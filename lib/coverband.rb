@@ -3,4 +3,5 @@ require "coverband/reporter"
 require "coverband/middleware"
 
 module Coverband
+  
 end

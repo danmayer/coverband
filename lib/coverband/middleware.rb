@@ -6,9 +6,10 @@ module Coverband
       root = settings[:root] || './'
       @project_directory = File.expand_path(root+'../')
       @enabled = true
-      @sample_percentage = 100.0
       @function_set = false
       @files = {}
+
+      @sample_percentage = settings[:percentage] || 100.0
       @reporter = settings[:reporter]
     end
 
