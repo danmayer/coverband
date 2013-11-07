@@ -3,7 +3,13 @@ require 'simplecov'
 module Coverband
 
   class Reporter
-    
+
+    def self.baseline(env)
+      Coverage.start
+      require env
+      puts Coverage.result.inspect
+    end
+
     def self.report(redis, options = {})
       if options.fetch(:reporter){ 'rcov' }=='rcov'
         report_rcov(redis, options['existing_coverage'])
@@ -28,7 +34,11 @@ module Coverband
       existing_coverage.each_pair do |key, lines|
         if current_lines = rcov_style_report[key]
           lines.each_with_index do |line, index|
-            current_lines[index] = current_lines[index] ? (current_lines[index].to_i + line.to_i) : nil 
+            if line.nil? && current_lines[index].to_i==0
+              current_lines[index] = nil
+            else
+              current_lines[index] = current_lines[index] ? (current_lines[index].to_i + line.to_i) : nil
+            end
           end
           rcov_style_report[key] = current_lines
         end
