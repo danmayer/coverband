@@ -64,11 +64,12 @@ module Coverband
           if @reporter
             if @reporter.is_a?(Redis)
               #"/Users/danmayer/projects/cover_band_server/app.rb"=>[54, 55]
-              @files.each_pair do |key, values|
+              old_files = files.dup
+              @files = {}
+              old_files.each_pair do |key, values|
                 @reporter.sadd "coverband", key.gsub('/','.')
                 @reporter.sadd "coverband#{key.gsub('/','.')}", values
               end
-              @files = {}
             end
           else
             puts "coverage report: "
