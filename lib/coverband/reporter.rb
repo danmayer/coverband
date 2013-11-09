@@ -4,10 +4,16 @@ module Coverband
 
   class Reporter
 
-    def self.baseline(env)
+    def self.baseline
+      require 'coverage'
       Coverage.start
-      require env
-      puts Coverage.result.inspect
+      yield
+      @project_directory = File.expand_path(Dir.pwd+'../')
+      results = Coverage.result
+      results = results.reject{|key, val| !key.match(@project_directory)}
+      puts results.inspect
+      
+      File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
     end
 
     def self.report(redis, options = {})
@@ -41,6 +47,8 @@ module Coverband
             end
           end
           rcov_style_report[key] = current_lines
+        else
+          rcov_style_report[key] = lines
         end
       end
       rcov_style_report
@@ -60,7 +68,11 @@ module Coverband
 
       lines_hit = redis.smembers("coverband#{key}")
       count = File.foreach(filename).inject(0) {|c, line| c+1}
-      line_array = Array.new(count, 0)
+      if filename.match(/\.erb/)
+        line_array = Array.new(count, nil)
+      else
+        line_array = Array.new(count, 0)
+      end
       line_array.each_with_index{|line,index| line_array[index]=1 if lines_hit.include?((index+1).to_s) }
       {filename => line_array}
     end
