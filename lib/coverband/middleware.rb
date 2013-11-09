@@ -9,6 +9,7 @@ module Coverband
       @function_set = false
       @files = {}
 
+      @ignore_patterns = settings[:ignore] || []
       @sample_percentage = settings[:percentage] || 100.0
       @reporter = settings[:reporter]
     end
@@ -48,7 +49,7 @@ module Coverband
     end
     
     def add_file(file, line)
-      unless !file.match(@project_directory) 
+      if file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
         if @files.include?(file)
           @files[file] << line
           @files[file].uniq!

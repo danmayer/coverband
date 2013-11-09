@@ -20,6 +20,18 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+## TODO
+
+* improve the configuration flow (only one time redis setup etc)
+* fix performance by logging to files that purge later
+
+## Completed
+
+* fix issue if a file can't be found for reporting
+* add support for file matching ignore for example we need to ignore '/app/vendor/'
+  * fix issue on heroku where it logs non app files
+* Allow more configs to be passed in like percentage
+
 ## Contributing
 
 1. Fork it

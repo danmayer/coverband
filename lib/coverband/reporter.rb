@@ -28,7 +28,7 @@ module Coverband
 
     def self.report_rcov(redis, existing_coverage)
       rcov_style_report = {}
-      redis.smembers('coverband').each{|key| rcov_style_report.merge!(line_hash(redis, key)) }
+      redis.smembers('coverband').each{|key| line_data = line_hash(redis, key); rcov_style_report.merge!(line_data) if line_data }
       rcov_style_report = merge_existing_coverage(rcov_style_report, existing_coverage)
       puts "report:"
       puts rcov_style_report.inspect
@@ -65,16 +65,19 @@ module Coverband
     # {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 1, nil, nil, nil]}
     def self.line_hash(redis, key)
       filename = key.gsub('.','/').gsub('/rb','.rb').gsub('/erb','.erb')
-
-      lines_hit = redis.smembers("coverband#{key}")
-      count = File.foreach(filename).inject(0) {|c, line| c+1}
-      if filename.match(/\.erb/)
-        line_array = Array.new(count, nil)
+      if File.exists?(filename)
+        lines_hit = redis.smembers("coverband#{key}")
+        count = File.foreach(filename).inject(0) {|c, line| c+1}
+        if filename.match(/\.erb/)
+          line_array = Array.new(count, nil)
+        else
+          line_array = Array.new(count, 0)
+        end
+        line_array.each_with_index{|line,index| line_array[index]=1 if lines_hit.include?((index+1).to_s) }
+        {filename => line_array}
       else
-        line_array = Array.new(count, 0)
+        puts "file #{filename} not found in project"
       end
-      line_array.each_with_index{|line,index| line_array[index]=1 if lines_hit.include?((index+1).to_s) }
-      {filename => line_array}
     end
 
   end
