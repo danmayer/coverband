@@ -77,8 +77,11 @@ module Coverband
         else
           puts "coverage disabled" if @reporter
         end
-      rescue RuntimeError
-        puts "coverage missing" if @reporter
+      rescue RuntimeError => err
+        if @reporter
+          puts "coverage missing"
+          puts "error: #{err.inspect} #{err.message}"
+        end
       end
     end
     
