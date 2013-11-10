@@ -4,7 +4,7 @@ module Coverband
     def initialize(app, settings={})
       @app = app
       root = settings[:root] || './'
-      @project_directory = File.expand_path(root+'../')
+      @project_directory = File.expand_path(root)
       @enabled = true
       @function_set = false
       @files = {}
