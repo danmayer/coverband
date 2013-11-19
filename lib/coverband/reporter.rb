@@ -79,7 +79,7 @@ module Coverband
     def self.filename_from_key(key, roots)
       filename = key.gsub('.','/').gsub('//','./').gsub('/rb','.rb').gsub('/erb','.erb')
       roots.each do |root|
-        filename = filename.gsub(root, './')
+        filename = filename.gsub(/^#{root}/, './')
       end
       filename = filename.gsub('./', roots.last)
       filename
