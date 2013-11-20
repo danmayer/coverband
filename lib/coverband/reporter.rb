@@ -1,7 +1,6 @@
 require 'simplecov'
 
 module Coverband
-
   class Reporter
 
     def self.baseline
@@ -105,5 +104,4 @@ module Coverband
     end
 
   end
-
 end

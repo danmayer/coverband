@@ -12,6 +12,7 @@ module Coverband
       @ignore_patterns = settings[:ignore] || []
       @sample_percentage = settings[:percentage] || 100.0
       @reporter = settings[:reporter]
+      @verbose = settings.fetch(:verbose){ false }
     end
 
     def call(env)
@@ -73,15 +74,15 @@ module Coverband
               end
             end
           else
-            puts "coverage report: "
-            puts @files.inspect
+            puts "coverage report: " if @verbose
+            puts @files.inspect if @verbose
           end
         else
-          puts "coverage disabled" if @reporter
+          puts "coverage disabled" if @verbose
         end
       rescue RuntimeError => err
-        if @reporter
-          puts "coverage missing"
+        if @verbose
+          puts "coverage missing" 
           puts "error: #{err.inspect} #{err.message}"
         end
       end
