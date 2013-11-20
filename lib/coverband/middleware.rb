@@ -70,7 +70,13 @@ module Coverband
               @files = {}
               old_files.each_pair do |key, values|
                 @reporter.sadd "coverband", key.gsub('/','.')
-                @reporter.sadd "coverband#{key.gsub('/','.')}", values
+                if @reporter.inspect.match(/v2/)
+                  values.each do |value|
+                    @reporter.sadd "coverband#{key.gsub('/','.')}", value
+                  end
+                else
+                  @reporter.sadd "coverband#{key.gsub('/','.')}", values
+                end
               end
             end
           else

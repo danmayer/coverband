@@ -18,13 +18,22 @@ module Coverband
     def self.report(redis, options = {})
       roots = options.fetch(:roots){[]}
       existing_coverage = options.fetch(:existing_coverage){ {} }
-      roots << "#{File.expand_path(Dir.pwd)}/"
+      roots << "#{current_root}/"
       puts "fixing root: #{roots.join(', ')}"
       if options.fetch(:reporter){ 'rcov' }=='rcov'
         report_rcov(redis, existing_coverage, roots)
       else
-        redis.smembers('coverband').each{|key| report_line(redis, key) }
+        lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
+        puts lines.join("\n")
       end
+    end
+
+    def self.clear_coverage(redis)
+      redis.smembers('coverband').each{|key| redis.del("coverband#{key}")}
+    end
+
+    def self.current_root
+      File.expand_path(Dir.pwd)
     end
 
     private
@@ -72,7 +81,7 @@ module Coverband
     # /Users/danmayer/projects/cover_band_server/app/rb: ["54", "55"]
     # /Users/danmayer/projects/cover_band_server/views/layout/erb: ["0", "33", "36", "37", "38", "39", "40", "62", "63", "66", "65532", "65533"]
     def self.report_line(redis, key)
-      puts "#{key.gsub('.','/')}: #{redis.smembers("coverband#{key}").inspect}"
+      "#{key.gsub('.','/')}: #{redis.smembers("coverband#{key}").inspect}"
     end
 
     def self.filename_from_key(key, roots)
