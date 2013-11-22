@@ -29,7 +29,7 @@ module Coverband
     end
 
     def self.clear_coverage(redis)
-      redis.smembers('coverband').each{|key| redis.del("coverband#{key}")}
+      redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
     end
 
     def self.current_root
@@ -81,11 +81,11 @@ module Coverband
     # /Users/danmayer/projects/cover_band_server/app/rb: ["54", "55"]
     # /Users/danmayer/projects/cover_band_server/views/layout/erb: ["0", "33", "36", "37", "38", "39", "40", "62", "63", "66", "65532", "65533"]
     def self.report_line(redis, key)
-      "#{key.gsub('.','/')}: #{redis.smembers("coverband#{key}").inspect}"
+      "#{key}: #{redis.smembers("coverband.#{key}").inspect}"
     end
 
     def self.filename_from_key(key, roots)
-      filename = key.gsub('.','/').gsub('//','./').gsub('/rb','.rb').gsub('/erb','.erb')
+      filename = key
       roots.each do |root|
         filename = filename.gsub(/^#{root}/, './')
       end
@@ -98,7 +98,7 @@ module Coverband
     def self.line_hash(redis, key, roots)
       filename = filename_from_key(key, roots)
       if File.exists?(filename)
-        lines_hit = redis.smembers("coverband#{key}")
+        lines_hit = redis.smembers("coverband.#{key}")
         count = File.foreach(filename).inject(0) {|c, line| c+1}
         if filename.match(/\.erb/)
           line_array = Array.new(count, nil)

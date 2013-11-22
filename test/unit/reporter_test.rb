@@ -20,7 +20,7 @@ class ReporterTest < Test::Unit::TestCase
     Coverband::Reporter.expects('puts').with("fixing root: /root_dir/")
     
     fake_coverband_members.each do |key|
-      fake_redis.expects(:smembers).with("coverband#{key}").returns(["54", "55"])
+      fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
     end
 
     matchers = [regexp_matches(/tester/),
@@ -44,9 +44,9 @@ class ReporterTest < Test::Unit::TestCase
   end
 
   def fake_coverband_members
-    [".Users.danmayer.projects.hearno.script.tester.rb",
-     ".Users.danmayer.projects.hearno.app.controllers.application_controller.rb",
-     ".Users.danmayer.projects.hearno.app.models.account.rb"
+    ["/Users/danmayer/projects/hearno/script/tester.rb",
+     "/Users/danmayer/projects/hearno/app/controllers/application_controller.rb",
+     "/Users/danmayer/projects/hearno/app/models/account.rb"
     ]
   end
 

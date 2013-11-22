@@ -1,6 +1,12 @@
 # Coverband
 
-Rack middleware to help measure production code coverage
+Rack middleware to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage.
+
+* Allow sampleing to avoid the perf overhead on every request.
+* Ignore directories to avoid data collection on vendor, lib, etc
+* Take a baseline to get inital app loading coverage.
+
+At the momement, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when stampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
 
 ## Installation
 
@@ -18,7 +24,49 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+After installing the gem you likely want to get the rake tasks configured as well as the rack middle ware.
+
+#### Configuring Rake
+
+Either add the below to your `Rakefile` or to a file included in you Rakefile
+
+	require 'coverband'
+
+	desc "report unused lines"
+	task :coverband => :environment do
+	  baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+	  # base in lines to consider covered manually to override any misses
+	  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
+	  root_paths = ['/app/']
+	  coverband_options = {:existing_coverage => baseline, :roots => root_paths}
+	  Coverband::Reporter.report(Redis.new, coverband_options)
+	end
+	
+	desc "get coverage baseline"
+	task :coverband_baseline do
+	  Coverband::Reporter.baseline {
+	  	#rails
+      	require File.expand_path("../config/environment", __FILE__)
+      	#sinatra
+      	#require File.expand_path("./app", __FILE__)
+      }
+    end
+    
+#### Configure rack middleware
+
+For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer you may just end up missing some boot up coverage.
+
+	require File.dirname(__FILE__) + '/config/environment'
+	
+	require 'coverband'
+
+	use Coverband::Middleware, :root => Dir.pwd,
+          :reporter => Redis.new,
+          :ignore => ['vendor'],
+          :percentage => 100.0
+
+	run ActionController::Dispatcher.new
+
 
 ## TODO
 
