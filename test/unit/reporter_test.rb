@@ -15,9 +15,14 @@ class ReporterTest < Test::Unit::TestCase
   end
 
   should "report data" do
+    Coverband.configure do |config|
+      config.redis             = fake_redis
+      config.reporter          = 'std_out'
+    end
+
     Coverband::Reporter.expects(:current_root).returns('/root_dir')
     fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
-    Coverband::Reporter.expects('puts').with("fixing root: /root_dir/")
+    Coverband::Reporter.expects('puts').with("fixing root: /app/, /root_dir/")
     
     fake_coverband_members.each do |key|
       fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
@@ -25,11 +30,12 @@ class ReporterTest < Test::Unit::TestCase
 
     matchers = [regexp_matches(/tester/),
                 regexp_matches(/application_controller/),
-               regexp_matches(/account/),
-               regexp_matches(/54/)]
+                regexp_matches(/account/),
+                regexp_matches(/54/)]
+    
     Coverband::Reporter.expects('puts').with(all_of(*matchers))
 
-    Coverband::Reporter.report(fake_redis, :reporter => 'std_out')
+    Coverband::Reporter.report
   end
 
   private

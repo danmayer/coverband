@@ -7,7 +7,7 @@ module Coverband
       require 'coverage'
       Coverage.start
       yield
-      @project_directory = File.expand_path(Dir.pwd)
+      @project_directory = File.expand_path(Coverband.configuration.root)
       results = Coverage.result
       results = results.reject{|key, val| !key.match(@project_directory)}
       puts results.inspect
@@ -15,12 +15,13 @@ module Coverband
       File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
     end
 
-    def self.report(redis, options = {})
-      roots = options.fetch(:roots){[]}
-      existing_coverage = options.fetch(:existing_coverage){ {} }
+    def self.report
+      redis = Coverband.configuration.redis
+      roots = Coverband.configuration.root_paths
+      existing_coverage = Coverband.configuration.coverage_baseline
       roots << "#{current_root}/"
       puts "fixing root: #{roots.join(', ')}"
-      if options.fetch(:reporter){ 'rcov' }=='rcov'
+      if  Coverband.configuration.reporter=='rcov'
         report_rcov(redis, existing_coverage, roots)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
@@ -29,11 +30,11 @@ module Coverband
     end
 
     def self.clear_coverage(redis)
-      redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
+      Coverband.configuration.redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
     end
 
     def self.current_root
-      File.expand_path(Dir.pwd)
+      File.expand_path(Coverband.configuration.root)
     end
 
     private

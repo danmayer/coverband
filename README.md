@@ -31,12 +31,19 @@ After installing the gem you likely want to get the rake tasks configured as wel
 Either add the below to your `Rakefile` or to a file included in you Rakefile
 
 	require 'coverband'
+	Coverband.configure do |config|
+      config.redis             = Redis.new
+      # merge in lines to consider covered manually to override any misses
+	  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
+	  # JSON.parse(File.read('./tmp/coverband_baseline.json')).merge(existing_coverage) 
+      config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+      config.root_paths        = ['/app/']
+    end
 
 	desc "report unused lines"
 	task :coverband => :environment do
 	  baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-	  # base in lines to consider covered manually to override any misses
-	  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
+
 	  root_paths = ['/app/']
 	  coverband_options = {:existing_coverage => baseline, :roots => root_paths}
 	  Coverband::Reporter.report(Redis.new, coverband_options)
@@ -59,12 +66,17 @@ For the best coverage you want this loaded as early as possible. I have been put
 	require File.dirname(__FILE__) + '/config/environment'
 	
 	require 'coverband'
+	
+	Coverband.configure do |config|
+	  config.root              = Dir.pwd
+	  config.redis             = Redis.new
+	  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+	  config.root_paths        = ['/app/']
+	  config.ignore            = ['vendor']
+	  config.percentage        = 100.0
+	end
 
-	use Coverband::Middleware, :root => Dir.pwd,
-          :reporter => Redis.new,
-          :ignore => ['vendor'],
-          :percentage => 100.0
-
+	use Coverband::Middleware
 	run ActionController::Dispatcher.new
 
 

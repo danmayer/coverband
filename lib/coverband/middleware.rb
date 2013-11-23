@@ -1,18 +1,18 @@
 module Coverband
   class Middleware
 
-    def initialize(app, settings={})
+    def initialize(app)
       @app = app
-      root = settings[:root] || './'
+      root = Coverband.configuration.root
       @project_directory = File.expand_path(root)
       @enabled = true
       @function_set = false
       @files = {}
 
-      @ignore_patterns = settings[:ignore] || []
-      @sample_percentage = settings[:percentage] || 100.0
-      @reporter = settings[:reporter]
-      @verbose = settings.fetch(:verbose){ false }
+      @ignore_patterns = Coverband.configuration.ignore
+      @sample_percentage = Coverband.configuration.percentage
+      @reporter = Coverband.configuration.redis
+      @verbose = Coverband.configuration.verbose
     end
 
     def call(env)

@@ -5,7 +5,7 @@ class MiddlewareTest < Test::Unit::TestCase
   FAKE_RESULTS = 'results'
 
   should "call app" do
-    middleware = Coverband::Middleware.new(fake_app, {})
+    middleware = Coverband::Middleware.new(fake_app)
     results = middleware.call({})
     assert_equal FAKE_RESULTS, results
   end
