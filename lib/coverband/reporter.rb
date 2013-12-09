@@ -9,7 +9,7 @@ module Coverband
       yield
       @project_directory = File.expand_path(Coverband.configuration.root)
       results = Coverage.result
-      results = results.reject{|key, val| !key.match(@project_directory)}
+      results = results.reject{|key, val| !key.match(@project_directory) || Coverband.configuration.ignore.any?{|pattern| key.match(/#{pattern}/)} }
       puts results.inspect
       
       File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
