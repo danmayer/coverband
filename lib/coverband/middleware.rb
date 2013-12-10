@@ -64,7 +64,7 @@ module Coverband
       begin
         if @enabled
           if @reporter
-            if @reporter.is_a?(Redis)
+            if @reporter.class.name.match(/redis/i)
               #"/Users/danmayer/projects/cover_band_server/app.rb"=>[54, 55]
               old_files = @files.dup
               @files = {}
