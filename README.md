@@ -26,6 +26,14 @@ Or install it yourself as:
 
 After installing the gem you likely want to get the rake tasks configured as well as the rack middle ware.
 
+## Example Output
+
+Index Page
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
+
+Details on a example Sinatra app
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
+
 #### Configuring Rake
 
 Either add the below to your `Rakefile` or to a file included in you Rakefile
