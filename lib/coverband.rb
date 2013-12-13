@@ -18,7 +18,6 @@ module Coverband
   class Configuration
     attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter
     
-
     def initialize
       @root = Dir.pwd
       @redis = nil

@@ -63,13 +63,16 @@ module Coverband
     def report_coverage
       begin
         if @enabled
+          if @function_set
+            set_trace_func(nil)
+            @function_set = false
+          end
           if @reporter
             if @reporter.class.name.match(/redis/i)
               #"/Users/danmayer/projects/cover_band_server/app.rb"=>[54, 55]
-              old_files = @files.dup
-              @files = {}
-              old_files.each_pair do |key, values|
+              @files.each_pair do |key, values|
                 @reporter.sadd "coverband", key
+                #clean this up but redis gem v2.x doesn't allow sadd with a collection, this is slow
                 if @reporter.inspect.match(/v2/)
                   values.each do |value|
                     @reporter.sadd "coverband.#{key}", value
@@ -78,6 +81,7 @@ module Coverband
                   @reporter.sadd "coverband.#{key}", values
                 end
               end
+              @files = {}
             end
           else
             puts "coverage report: " if @verbose

@@ -91,7 +91,10 @@ For the best coverage you want this loaded as early as possible. I have been put
 ## TODO
 
 * improve the configuration flow (only one time redis setup etc)
+  * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails) 
 * fix performance by logging to files that purge later
+* add support for zadd http://redis.io/topics/data-types-intro so one could determine single hits versus multiple hits on a line. Letting us determine the most executed code in production.
+ 
 
 ## Completed
 
@@ -120,3 +123,6 @@ For the best coverage you want this loaded as early as possible. I have been put
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## MIT License
+See the file license.txt for copying permission.
