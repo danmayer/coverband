@@ -3,10 +3,13 @@
 Rack middleware to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage.
 
 * Allow sampleing to avoid the perf overhead on every request.
-* Ignore directories to avoid data collection on vendor, lib, etc
+* Ignore directories to avoid overhead data collection on vendor, lib, etc
 * Take a baseline to get inital app loading coverage.
 
 At the momement, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when stampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
+
+###### Success:
+After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
 
 ## Installation
 
@@ -22,10 +25,6 @@ Or install it yourself as:
 
     $ gem install coverband
 
-## Usage
-
-After installing the gem you likely want to get the rake tasks configured as well as the rack middle ware.
-
 ## Example Output
 
 Index Page
@@ -33,6 +32,19 @@ Index Page
 
 Details on a example Sinatra app
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
+
+## Notes
+
+* Using Redis 2.x gem, while supported is extremely slow and not recommended. It will have a much larger impact on overhead performance.
+* This has been tested in Ruby 1.9.3, 2 and is running in production on Sinatra, Rails 2.3.x, and Rails 3.2.x
+* No 1.8.7 support
+* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1% which still gives excellent data
+* I believe there are possible ways to get even better data using the new Ruby2 TracePoint API
+* Make sure to add any folders you want to ignore like `vendor` and possibly `lib` as it can help to reduce performance overhead.
+
+## Usage
+
+After installing the gem you likely want to get the rake tasks configured as well as the rack middle ware.
 
 #### Configuring Rake
 
@@ -46,6 +58,7 @@ Either add the below to your `Rakefile` or to a file included in you Rakefile
 	  # JSON.parse(File.read('./tmp/coverband_baseline.json')).merge(existing_coverage) 
       config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
       config.root_paths        = ['/app/']
+      config.ignore            = ['vendor']
     end
 
 	desc "report unused lines"
@@ -90,11 +103,12 @@ For the best coverage you want this loaded as early as possible. I have been put
 
 ## TODO
 
-* improve the configuration flow (only one time redis setup etc)
+* Improve the configuration flow (only one time redis setup etc)
   * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails) 
-* fix performance by logging to files that purge later
-* add support for zadd http://redis.io/topics/data-types-intro so one could determine single hits versus multiple hits on a line. Letting us determine the most executed code in production.
- 
+* Fix performance by logging to files that purge later
+* Add support for zadd http://redis.io/topics/data-types-intro so one could determine single hits versus multiple hits on a line. Letting us determine the most executed code in production.
+* Add stats support on the number of requests recorded
+* Possibly add ability to record code run for a given route
 
 ## Completed
 

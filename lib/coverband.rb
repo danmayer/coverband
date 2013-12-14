@@ -24,9 +24,9 @@ module Coverband
       @coverage_baseline = {}
       @root_paths = []
       @ignore = []
-      @percentage = 100.0
+      @percentage = 0.0
       @verbose = false
-      @reporter = 'rcov'
+      @reporter = 'scov'
     end
   end
   

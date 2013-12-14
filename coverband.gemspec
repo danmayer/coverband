@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "mocha"
   spec.add_development_dependency "shoulda"
+  spec.add_development_dependency "rack"
   spec.add_runtime_dependency "simplecov"
   spec.add_runtime_dependency "json"
   spec.add_runtime_dependency "redis"

@@ -21,8 +21,8 @@ module Coverband
       existing_coverage = Coverband.configuration.coverage_baseline
       roots << "#{current_root}/"
       puts "fixing root: #{roots.join(', ')}"
-      if  Coverband.configuration.reporter=='rcov'
-        report_rcov(redis, existing_coverage, roots)
+      if  Coverband.configuration.reporter=='scov'
+        report_scov(redis, existing_coverage, roots)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
         puts lines.join("\n")
@@ -48,21 +48,21 @@ module Coverband
       fixed_report
     end
 
-    def self.report_rcov(redis, existing_coverage, roots)
-      rcov_style_report = {}
-      redis.smembers('coverband').each{|key| line_data = line_hash(redis, key, roots); rcov_style_report.merge!(line_data) if line_data }
-      rcov_style_report = fix_file_names(rcov_style_report, roots)
+    def self.report_scov(redis, existing_coverage, roots)
+      scov_style_report = {}
+      redis.smembers('coverband').each{|key| line_data = line_hash(redis, key, roots); scov_style_report.merge!(line_data) if line_data }
+      scov_style_report = fix_file_names(scov_style_report, roots)
       existing_coverage = fix_file_names(existing_coverage, roots)
-      rcov_style_report = merge_existing_coverage(rcov_style_report, existing_coverage)
+      scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
       puts "report: "
-      puts rcov_style_report.inspect
-      SimpleCov::Result.new(rcov_style_report).format!
+      puts scov_style_report.inspect
+      SimpleCov::Result.new(scov_style_report).format!
       `open coverage/index.html`
     end
 
-    def self.merge_existing_coverage(rcov_style_report, existing_coverage)
+    def self.merge_existing_coverage(scov_style_report, existing_coverage)
       existing_coverage.each_pair do |key, lines|
-        if current_lines = rcov_style_report[key]
+        if current_lines = scov_style_report[key]
           lines.each_with_index do |line, index|
             if line.nil? && current_lines[index].to_i==0
               current_lines[index] = nil
@@ -70,12 +70,12 @@ module Coverband
               current_lines[index] = current_lines[index] ? (current_lines[index].to_i + line.to_i) : nil
             end
           end
-          rcov_style_report[key] = current_lines
+          scov_style_report[key] = current_lines
         else
-          rcov_style_report[key] = lines
+          scov_style_report[key] = lines
         end
       end
-      rcov_style_report
+      scov_style_report
     end
 
     # /Users/danmayer/projects/cover_band_server/views/index/erb: ["0", "2", "3", "6", "65532", "65533"]

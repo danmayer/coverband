@@ -5,7 +5,7 @@ module Coverband
       @app = app
       root = Coverband.configuration.root
       @project_directory = File.expand_path(root)
-      @enabled = true
+      @enabled = false
       @function_set = false
       @files = {}
 
