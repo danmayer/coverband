@@ -129,6 +129,7 @@ For the best coverage you want this loaded as early as possible. I have been put
 * [simplecov walk through](http://www.tamingthemindmonkey.com/2011/09/27/ruby-code-coverage-using-simplecov) copy some of the syntax sugar setup for cover band
 * [Jruby coverage bug](http://jira.codehaus.org/browse/JRUBY-6106?page=com.atlassian.jira.plugin.system.issuetabpanels:changehistory-tabpanel)
 * [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)
+* [learn from stackprof](https://github.com/tmm1/stackprof#readme)
 
 ## Contributing
 
