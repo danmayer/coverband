@@ -2,8 +2,8 @@
 
 Rack middleware to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage.
 
-* Allow sampleing to avoid the perf overhead on every request.
-* Ignore directories to avoid overhead data collection on vendor, lib, etc
+* Allow sampling to avoid the performance overhead on every request.
+* Ignore directories to avoid overhead data collection on vendor, lib, etc.
 * Take a baseline to get inital app loading coverage.
 
 At the momement, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when stampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
@@ -35,20 +35,20 @@ Details on a example Sinatra app
 
 ## Notes
 
-* Using Redis 2.x gem, while supported is extremely slow and not recommended. It will have a much larger impact on overhead performance.
+* Using Redis 2.x gem, while supported, is extremely slow and not recommended. It will have a much larger impact on overhead performance.
 * This has been tested in Ruby 1.9.3, 2 and is running in production on Sinatra, Rails 2.3.x, and Rails 3.2.x
 * No 1.8.7 support
-* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1% which still gives excellent data
-* I believe there are possible ways to get even better data using the new Ruby2 TracePoint API
-* Make sure to add any folders you want to ignore like `vendor` and possibly `lib` as it can help to reduce performance overhead.
+* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1%, which still gives excellent data
+* I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
+* Make sure to ignore any folders like `vendor` and possibly `lib` as it can help reduce performance overhead
 
 ## Usage
 
-After installing the gem you likely want to get the rake tasks configured as well as the rack middle ware.
+After installing the gem, you likely want to get the rake tasks configured as well as the rack middleware.
 
 #### Configuring Rake
 
-Either add the below to your `Rakefile` or to a file included in you Rakefile
+Either add the below to your `Rakefile` or to a file included in your Rakefile
 
 	require 'coverband'
 	Coverband.configure do |config|
@@ -82,7 +82,7 @@ Either add the below to your `Rakefile` or to a file included in you Rakefile
     
 #### Configure rack middleware
 
-For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer you may just end up missing some boot up coverage.
+For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
 
 	require File.dirname(__FILE__) + '/config/environment'
 	
@@ -106,15 +106,15 @@ For the best coverage you want this loaded as early as possible. I have been put
 * Improve the configuration flow (only one time redis setup etc)
   * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails) 
 * Fix performance by logging to files that purge later
-* Add support for zadd http://redis.io/topics/data-types-intro so one could determine single hits versus multiple hits on a line. Letting us determine the most executed code in production.
+* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single hits versus multiple hits on a line, letting us determine the most executed code in production.
 * Add stats support on the number of requests recorded
 * Possibly add ability to record code run for a given route
 
 ## Completed
 
-* fix issue if a file can't be found for reporting
-* add support for file matching ignore for example we need to ignore '/app/vendor/'
-  * fix issue on heroku where it logs non app files
+* Fix issue if a file can't be found for reporting
+* Add support for file matching ignore for example we need to ignore '/app/vendor/'
+  * Fix issue on heroku where it logs non app files
 * Allow more configs to be passed in like percentage
 
 ## Resources
