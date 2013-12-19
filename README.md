@@ -27,6 +27,8 @@ Or install it yourself as:
 
 ## Example Output
 
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formater. 
+
 Index Page
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
 
