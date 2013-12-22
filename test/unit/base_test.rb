@@ -52,7 +52,7 @@ class BaseTest < Test::Unit::TestCase
     fake_redis = Redis.new
     coverband.instance_variable_set("@reporter", fake_redis)
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband./home/action/workspace/coverband/lib/coverband/base.rb", [54, 57, 65, 18, 20, 21, 22, 23])
+    fake_redis.expects(:sadd).at_least_once.with("coverband.#{File.expand_path('../../', File.dirname(__FILE__))}/lib/coverband/base.rb", [54, 57, 65, 18, 20, 21, 22, 23])
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     1 + 1
