@@ -1,11 +1,12 @@
 require 'redis'
 
-require "coverband/version"
-require "coverband/reporter"
-require "coverband/middleware"
+require 'coverband/version'
+require 'coverband/base'
+require 'coverband/reporter'
+require 'coverband/middleware'
 
 module Coverband
-
+  
   class << self
     attr_accessor :configuration
   end
