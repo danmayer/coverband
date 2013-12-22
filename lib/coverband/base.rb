@@ -38,7 +38,7 @@ module Coverband
       @enabled = false
     end
 
-    private
+    protected
 
     def configure_sampling
       if (rand * 100.0) > @sample_percentage
