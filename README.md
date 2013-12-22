@@ -102,6 +102,20 @@ For the best coverage you want this loaded as early as possible. I have been put
 	use Coverband::Middleware
 	run ActionController::Dispatcher.new
 
+## Clearing Line Coverage Data
+
+After a deploy where code has changed. 
+The line numbers previously recorded in redis may no longer match the curernt state of the files. 
+If being slightly out of sync isn't as important as gathering data over a long period, 
+you can live with minor inconsistancy for some files.
+
+As often as you like or as part of a deploy hook you can clear the recorded coverband data with the following command.
+
+    # defaults to the currently configured Coverband.configuration.redis
+    Coverband::Reporter.clear_coverage
+    # or pass in the current target redis
+    Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 6789))
+
 
 ## TODO
 
@@ -109,8 +123,11 @@ For the best coverage you want this loaded as early as possible. I have been put
   * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails) 
 * Fix performance by logging to files that purge later
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single hits versus multiple hits on a line, letting us determine the most executed code in production.
-* Add stats support on the number of requests recorded
+* Add stats optional support on the number of total requests recorded
 * Possibly add ability to record code run for a given route
+* Add default rake tasks so a project could just require the rake tasks
+* Generic hook for running coverband on arbitrary code, not just background jobs and not as rack middleware
+* Document clearing old line data
 
 ## Completed
 

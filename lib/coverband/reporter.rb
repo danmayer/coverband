@@ -29,8 +29,9 @@ module Coverband
       end
     end
 
-    def self.clear_coverage(redis)
-      Coverband.configuration.redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
+    def self.clear_coverage(redis = nil)
+      redis ||= Coverband.configuration.redis
+      redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
     end
 
     def self.current_root
