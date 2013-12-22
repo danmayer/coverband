@@ -1,6 +1,6 @@
 # Coverband
 
-Rack middleware to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage.
+A gem to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like coverage on background jobs).
 
 * Allow sampling to avoid the performance overhead on every request.
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
@@ -101,7 +101,50 @@ For the best coverage you want this loaded as early as possible. I have been put
 
 	use Coverband::Middleware
 	run ActionController::Dispatcher.new
+	
+#### Configure Manually (for example for background jobs)
 
+It is easy to use coverband outside of a Rack environment. Make sure you configure coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
+
+For example if you had a base resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
+
+
+      def before_perform(*args)
+		if (rand * 100.0) > Coverband.configuration.percentage
+          @@coverband ||= Coverband::Base.new
+          @recording_samples = true
+          @@coverband.start
+        else
+          @recording_samples = false
+        end
+      end
+      
+      def after_perform(*args)
+        if  @recording_samples
+          @@coverband.stop
+          @@coverband.save
+        end
+      end
+
+In general you can run coverband anywhere by using the lines below
+
+    require 'coverband'
+    Coverband.configure do |config|
+      config.redis             = Redis.new
+      config.percentage        = 50.0
+    end
+    coverband = Coverband::Base.new
+    
+    #manual
+    coverband.start
+    coverband.stop
+    coverband.save
+    
+    #sampling
+    coverband.sample {
+    	#code to sample coverband
+    }
+ 
 ## Clearing Line Coverage Data
 
 After a deploy where code has changed. 
@@ -120,21 +163,15 @@ As often as you like or as part of a deploy hook you can clear the recorded cove
 ## TODO
 
 * Improve the configuration flow (only one time redis setup etc)
-  * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails) 
+  * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails)
+  * this is a bit crazy at the moment
 * Fix performance by logging to files that purge later
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single hits versus multiple hits on a line, letting us determine the most executed code in production.
 * Add stats optional support on the number of total requests recorded
 * Possibly add ability to record code run for a given route
 * Add default rake tasks so a project could just require the rake tasks
-* Generic hook for running coverband on arbitrary code, not just background jobs and not as rack middleware
-* Document clearing old line data
+* Improve client code api, particularly around configuration, but also around manual usage of sampling
 
-## Completed
-
-* Fix issue if a file can't be found for reporting
-* Add support for file matching ignore for example we need to ignore '/app/vendor/'
-  * Fix issue on heroku where it logs non app files
-* Allow more configs to be passed in like percentage
 
 ## Resources
 
