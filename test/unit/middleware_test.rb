@@ -39,19 +39,19 @@ class MiddlewareTest < Test::Unit::TestCase
   should 'always unset function when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, middleware.instance_variable_get("@function_set")
+    assert_equal false, middleware.instance_variable_get("@tracer_set")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     results = middleware.call(request)
-    assert_equal false, middleware.instance_variable_get("@function_set")
+    assert_equal false, middleware.instance_variable_get("@tracer_set")
   end
 
   should 'always unset function when not sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, middleware.instance_variable_get("@function_set")
+    assert_equal false, middleware.instance_variable_get("@tracer_set")
     middleware.instance_variable_set("@sample_percentage", 0.0)
     results = middleware.call(request)
-    assert_equal false, middleware.instance_variable_get("@function_set")
+    assert_equal false, middleware.instance_variable_get("@tracer_set")
   end
 
   should 'always record coverage, set trace func, and add_files when sampling' do
@@ -70,7 +70,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, middleware.instance_variable_get("@enabled")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
-    middleware.instance_variable_set("@reporter", fake_redis)
+    middleware.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:sadd).at_least_once.with("coverband.#{FAKE_RACK_APP_PATH}", [4,5,6])
     results = middleware.call(request)

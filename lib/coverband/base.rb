@@ -4,11 +4,11 @@ module Coverband
     def initialize(options = {})
       @project_directory = File.expand_path(Coverband.configuration.root)
       @enabled = false
-      @function_set = false
+      @tracer_set = false
       @files = {}
       @ignore_patterns = Coverband.configuration.ignore
       @sample_percentage = Coverband.configuration.percentage
-      @reporter = Coverband.configuration.redis
+      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis)
       @verbose = Coverband.configuration.verbose
     end
 
@@ -19,10 +19,7 @@ module Coverband
     
     def stop
       @enabled = false
-      if @function_set
-        set_trace_func(nil)
-        @function_set = false
-      end
+      unset_tracer
     end
     
     def sample
@@ -50,17 +47,25 @@ module Coverband
 
     def record_coverage
       if @enabled
-        unless @function_set
-          set_trace_func proc { |event, file, line, id, binding, classname|
-            add_file(file, line)
-          }
-          @function_set = true
-        end
+        set_tracer
       else
-        if @function_set
-          set_trace_func(nil)
-          @function_set = false
-        end
+        unset_tracer
+      end
+    end
+
+    def set_tracer
+      unless @tracer_set
+        set_trace_func proc { |event, file, line, id, binding, classname|
+          add_file(file, line)
+        }
+        @tracer_set = true
+      end
+    end
+
+    def unset_tracer
+      if @tracer_set
+        set_trace_func(nil)
+        @tracer_set = false
       end
     end
     
@@ -76,42 +81,27 @@ module Coverband
     end
     
     def report_coverage
-      begin
-        if @enabled
-          if @function_set
-            set_trace_func(nil)
-            @function_set = false
-          end
-          if @reporter
-            if @reporter.class.name.match(/redis/i)
-              #"/Users/danmayer/projects/cover_band_server/app.rb"=>[54, 55]
-              @files.each_pair do |key, values|
-                @reporter.sadd "coverband", key
-                #clean this up but redis gem v2.x doesn't allow sadd with a collection, this is slow
-                if @reporter.inspect.match(/v2/)
-                  values.each do |value|
-                    @reporter.sadd "coverband.#{key}", value
-                  end
-                else
-                  @reporter.sadd "coverband.#{key}", values
-                end
-              end
-              @files = {}
-            end
-          else
-            puts "coverage report: " if @verbose
-            puts @files.inspect if @verbose
-          end
-        else
-          puts "coverage disabled" if @verbose
+      unless @enabled
+        puts "coverage disabled" if @verbose
+        return
+      end
+
+      unset_tracer
+
+      if @reporter
+        if @reporter.class.name.match(/redis/i)
+          @reporter.store_report(@files)
+          @files = {}
         end
-      rescue RuntimeError => err
-        if @verbose
-          puts "coverage missing" 
-          puts "error: #{err.inspect} #{err.message}"
-        end
+      elsif @verbose
+        puts "coverage report: "
+        puts @files.inspect
+      end
+    rescue RuntimeError => err
+      if @verbose
+        puts "coverage missing"
+        puts "error: #{err.inspect} #{err.message}"
       end
     end
-    
   end
 end
