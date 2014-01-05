@@ -1,6 +1,7 @@
 require 'redis'
 
 require 'coverband/version'
+require 'coverband/redis_store'
 require 'coverband/base'
 require 'coverband/reporter'
 require 'coverband/middleware'

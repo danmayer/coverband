@@ -18,7 +18,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal true, coverband.instance_variable_get("@enabled")
     coverband.stop
     assert_equal false, coverband.instance_variable_get("@enabled")
-    assert_equal false, coverband.instance_variable_get("@function_set")
+    assert_equal false, coverband.instance_variable_get("@tracer_set")
   end
   
   should "allow for sampling with a block and enable when 100 percent sample" do
@@ -49,10 +49,11 @@ class BaseTest < Test::Unit::TestCase
     coverband = Coverband::Base.new
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
-    fake_redis = Redis.new
-    coverband.instance_variable_set("@reporter", fake_redis)
-    fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{File.expand_path('../../', File.dirname(__FILE__))}/lib/coverband/base.rb", anything)
+    store = Coverband::RedisStore.new(Redis.new)
+    coverband.instance_variable_set("@reporter", store)
+    store.expects(:store_report).once.with { |files|
+      files.keys.include?("#{File.expand_path('../../../', __FILE__)}/lib/coverband/base.rb")
+    }
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     1 + 1
