@@ -71,6 +71,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
     middleware.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
+    fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:sadd).at_least_once.with("coverband.#{FAKE_RACK_APP_PATH}", [4,5,6])
     results = middleware.call(request)

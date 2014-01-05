@@ -5,6 +5,7 @@ class RedisStoreTest < Test::Unit::TestCase
     setup do
       @redis = Redis.current.tap { |redis|
         redis.stubs(:sadd).with(anything, anything)
+        redis.stubs(:info).returns({'redis_version' => 3.0})
       }
 
       @store = Coverband::RedisStore.new(@redis)
