@@ -65,11 +65,7 @@ Either add the below to your `Rakefile` or to a file included in your Rakefile
 
 	desc "report unused lines"
 	task :coverband => :environment do
-	  baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-
-	  root_paths = ['/app/']
-	  coverband_options = {:existing_coverage => baseline, :roots => root_paths}
-	  Coverband::Reporter.report(Redis.new, coverband_options)
+	  Coverband::Reporter
 	end
 	
 	desc "get coverage baseline"
