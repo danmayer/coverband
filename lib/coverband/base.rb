@@ -98,7 +98,7 @@ module Coverband
       if @reporter
         if @reporter.class.name.match(/redis/i)
           before_time = Time.now
-          @stats.increment "coverband.files.recorded.#{@files.length}" if @stats
+          @stats.increment "coverband.files.recorded_files", @files.length if @stats
           @reporter.store_report(@files)
           time_spent = Time.now - before_time
           @stats.timing "coverband.files.recorded_time", time_spent if @stats
