@@ -35,7 +35,13 @@ module Coverband
     end
 
     def recent_server_version?
-      Gem::Version.new(redis.info['redis_version']) >= Gem::Version.new('2.4')
+      info_data = redis.info
+      if info_data.is_a?(Hash)
+        Gem::Version.new(info_data['redis_version']) >= Gem::Version.new('2.4')
+      else
+        #guess supported
+        true
+      end
     end
 
     def recent_gem_version?

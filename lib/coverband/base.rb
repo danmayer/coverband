@@ -8,8 +8,9 @@ module Coverband
       @files = {}
       @ignore_patterns = Coverband.configuration.ignore
       @sample_percentage = Coverband.configuration.percentage
-      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis)
-      @verbose = Coverband.configuration.verbose
+      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
+      @stats    = Coverband.configuration.stats
+      @verbose  = Coverband.configuration.verbose
     end
 
     def start
@@ -51,6 +52,12 @@ module Coverband
       else
         unset_tracer
       end
+      @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
+    rescue RuntimeError => err
+      if @verbose
+        puts "error stating recording coverage"
+        puts "error: #{err.inspect} #{err.message}"
+      end
     end
 
     def set_tracer
@@ -90,7 +97,11 @@ module Coverband
 
       if @reporter
         if @reporter.class.name.match(/redis/i)
+          before_time = Time.now
+          @stats.increment "coverband.files.recorded.#{@files.length}" if @stats
           @reporter.store_report(@files)
+          time_spent = Time.now - before_time
+          @stats.timing "coverband.files.recorded_time", time_spent if @stats
           @files = {}
         end
       elsif @verbose

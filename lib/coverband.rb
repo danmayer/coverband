@@ -18,11 +18,12 @@ module Coverband
   end
 
   class Configuration
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter
+    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats
     
     def initialize
       @root = Dir.pwd
       @redis = nil
+      @stats = nil
       @coverage_baseline = {}
       @root_paths = []
       @ignore = []
