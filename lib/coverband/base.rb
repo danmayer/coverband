@@ -6,11 +6,13 @@ module Coverband
       @enabled = false
       @tracer_set = false
       @files = {}
+      @file_usage = {}
       @ignore_patterns = Coverband.configuration.ignore
       @sample_percentage = Coverband.configuration.percentage
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
+      @logger   = Coverband.configuration.logger || Logger.new(STDOUT)
     end
 
     def start
@@ -55,8 +57,8 @@ module Coverband
       @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
     rescue RuntimeError => err
       if @verbose
-        puts "error stating recording coverage"
-        puts "error: #{err.inspect} #{err.message}"
+        @logger.info "error stating recording coverage"
+        @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
 
@@ -77,10 +79,16 @@ module Coverband
     end
     
     def add_file(file, line)
-      if file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
+      if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
+        if @verbose
+          if @file_usage.include?(file)
+            @file_usage[file] += 1
+          else
+            @file_usage[file] = 1
+          end
+        end
         if @files.include?(file)
-          @files[file] << line
-          @files[file].uniq!
+          @files[file] << line unless @files.include?(line)
         else
           @files[file] = [line]
         end
@@ -89,11 +97,13 @@ module Coverband
     
     def report_coverage
       unless @enabled
-        puts "coverage disabled" if @verbose
+        @logger.info "coverage disabled" if @verbose
         return
       end
 
       unset_tracer
+
+      @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}" if @verbose
 
       if @reporter
         if @reporter.class.name.match(/redis/i)
@@ -103,15 +113,16 @@ module Coverband
           time_spent = Time.now - before_time
           @stats.timing "coverband.files.recorded_time", time_spent if @stats
           @files = {}
+          @@file_usage = {}
         end
       elsif @verbose
-        puts "coverage report: "
-        puts @files.inspect
+        @logger.info "coverage report: "
+        @logger.info @files.inspect
       end
     rescue RuntimeError => err
       if @verbose
-        puts "coverage missing"
-        puts "error: #{err.inspect} #{err.message}"
+        @logger.info "coverage missing"
+        @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
   end

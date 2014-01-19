@@ -1,4 +1,5 @@
 require 'redis'
+require 'logger'
 
 require 'coverband/version'
 require 'coverband/redis_store'
@@ -18,7 +19,7 @@ module Coverband
   end
 
   class Configuration
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats
+    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger
     
     def initialize
       @root = Dir.pwd
@@ -30,6 +31,7 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
+      @logger = nil
     end
   end
   
