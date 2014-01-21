@@ -1,7 +1,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class BaseTest < Test::Unit::TestCase
-  
+
   should "start should enable coverage" do
     coverband = Coverband::Base.new
     assert_equal false, coverband.instance_variable_get("@enabled")
@@ -22,23 +22,27 @@ class BaseTest < Test::Unit::TestCase
   end
   
   should "allow for sampling with a block and enable when 100 percent sample" do
+    logger = Logger.new(STDOUT)
     coverband = Coverband::Base.new
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
+    coverband.instance_variable_set("@logger", logger)
     coverband.instance_variable_set("@reporter", nil)
     assert_equal false, coverband.instance_variable_get("@enabled")
-    coverband.expects(:puts).at_least_once
+    logger.expects(:info).at_least_once
     coverband.sample { 1 + 1 }
     assert_equal true, coverband.instance_variable_get("@enabled")
   end
   
   should "allow reporting with start stop save" do
+    logger = Logger.new(STDOUT)
     coverband = Coverband::Base.new
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
+    coverband.instance_variable_set("@logger", logger)
     coverband.instance_variable_set("@reporter", nil)
     assert_equal false, coverband.instance_variable_get("@enabled")
-    coverband.expects(:puts).at_least_once
+    logger.expects(:info).at_least_once
     coverband.start
     1 + 1
     coverband.stop
