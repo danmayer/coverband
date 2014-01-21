@@ -15,15 +15,21 @@ After running in production for 30 minutes, we were able very easily delete 2000
 
 Add this line to your application's Gemfile:
 
-    gem 'coverband'
+```bash
+gem 'coverband'
+```
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install coverband
+```bash
+$ gem install coverband
+```
 
 ## Example Output
 
@@ -52,51 +58,55 @@ After installing the gem, you likely want to get the rake tasks configured as we
 
 Either add the below to your `Rakefile` or to a file included in your Rakefile
 
-	require 'coverband'
-	Coverband.configure do |config|
-      config.redis             = Redis.new
-      # merge in lines to consider covered manually to override any misses
-	  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
-	  # JSON.parse(File.read('./tmp/coverband_baseline.json')).merge(existing_coverage) 
-      config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-      config.root_paths        = ['/app/']
-      config.ignore            = ['vendor']
-    end
+```ruby
+require 'coverband'
+Coverband.configure do |config|
+  config.redis             = Redis.new
+  # merge in lines to consider covered manually to override any misses
+  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
+  # JSON.parse(File.read('./tmp/coverband_baseline.json')).merge(existing_coverage) 
+  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+  config.root_paths        = ['/app/']
+  config.ignore            = ['vendor']
+end
 
-	desc "report unused lines"
-	task :coverband => :environment do
-	  Coverband::Reporter
-	end
+desc "report unused lines"
+  task :coverband => :environment do
+  Coverband::Reporter
+end
 	
-	desc "get coverage baseline"
-	task :coverband_baseline do
-	  Coverband::Reporter.baseline {
-	  	#rails
-      	require File.expand_path("../config/environment", __FILE__)
-      	#sinatra
-      	#require File.expand_path("./app", __FILE__)
-      }
-    end
+desc "get coverage baseline"
+task :coverband_baseline do
+  Coverband::Reporter.baseline {
+    #rails
+    require File.expand_path("../config/environment", __FILE__)
+    #sinatra
+    #require File.expand_path("./app", __FILE__)
+  }
+end
+```
     
 #### Configure rack middleware
 
 For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
 
-	require File.dirname(__FILE__) + '/config/environment'
+```ruby
+require File.dirname(__FILE__) + '/config/environment'
 	
-	require 'coverband'
-	
-	Coverband.configure do |config|
-	  config.root              = Dir.pwd
-	  config.redis             = Redis.new
-	  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-	  config.root_paths        = ['/app/']
-	  config.ignore            = ['vendor']
-	  config.percentage        = 100.0
-	end
+require 'coverband'
 
-	use Coverband::Middleware
-	run ActionController::Dispatcher.new
+Coverband.configure do |config|
+  config.root              = Dir.pwd
+  config.redis             = Redis.new
+  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+  config.root_paths        = ['/app/']
+  config.ignore            = ['vendor']
+  config.percentage        = 100.0
+end
+
+use Coverband::Middleware
+run ActionController::Dispatcher.new
+```
 	
 #### Configure Manually (for example for background jobs)
 
@@ -104,42 +114,47 @@ It is easy to use coverband outside of a Rack environment. Make sure you configu
 
 For example if you had a base resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
 
-
-      def before_perform(*args)
-		if (rand * 100.0) > Coverband.configuration.percentage
-          @@coverband ||= Coverband::Base.new
-          @recording_samples = true
-          @@coverband.start
-        else
-          @recording_samples = false
-        end
-      end
+```ruby
+def before_perform(*args)
+  if (rand * 100.0) > Coverband.configuration.percentage
+    @@coverband ||= Coverband::Base.new
+    @recording_samples = true
+    @@coverband.start
+  else
+    @recording_samples = false
+  end
+end
       
-      def after_perform(*args)
-        if  @recording_samples
-          @@coverband.stop
-          @@coverband.save
-        end
-      end
+def after_perform(*args)
+  if @recording_samples
+    @@coverband.stop
+    @@coverband.save
+  end
+end
+```
 
 In general you can run coverband anywhere by using the lines below
 
-    require 'coverband'
-    Coverband.configure do |config|
-      config.redis             = Redis.new
-      config.percentage        = 50.0
-    end
-    coverband = Coverband::Base.new
+```ruby
+require 'coverband'
+	
+Coverband.configure do |config|
+  config.redis             = Redis.new
+  config.percentage        = 50.0
+end
+  
+coverband = Coverband::Base.new
     
-    #manual
-    coverband.start
-    coverband.stop
-    coverband.save
+#manual
+coverband.start
+coverband.stop
+coverband.save
     
-    #sampling
-    coverband.sample {
-    	#code to sample coverband
-    }
+#sampling
+coverband.sample {
+  #code to sample coverband
+}
+```
  
 ## Clearing Line Coverage Data
 
@@ -150,11 +165,12 @@ you can live with minor inconsistancy for some files.
 
 As often as you like or as part of a deploy hook you can clear the recorded coverband data with the following command.
 
-    # defaults to the currently configured Coverband.configuration.redis
-    Coverband::Reporter.clear_coverage
-    # or pass in the current target redis
-    Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 6789))
-
+```ruby
+# defaults to the currently configured Coverband.configuration.redis
+Coverband::Reporter.clear_coverage
+# or pass in the current target redis
+Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 6789))
+```
 
 ## TODO
 
