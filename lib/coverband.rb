@@ -19,7 +19,7 @@ module Coverband
   end
 
   class Configuration
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger
+    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger, :startup_delay
     
     def initialize
       @root = Dir.pwd
@@ -32,6 +32,7 @@ module Coverband
       @verbose = false
       @reporter = 'scov'
       @logger = nil
+      @startup_delay = 0
     end
   end
   

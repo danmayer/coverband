@@ -101,7 +101,11 @@ Coverband.configure do |config|
   config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
   config.root_paths        = ['/app/']
   config.ignore            = ['vendor']
-  config.percentage        = 100.0
+  # Since rails and other frameworks lazy load code. I have found it is bad to allow
+  # initial requests to record with coverband.
+  # This allows 10 requests prior to trying to record any activitly.
+  config.startup_delay     = 10
+  config.percentage        = 15.0
 end
 
 use Coverband::Middleware

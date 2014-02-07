@@ -7,6 +7,7 @@ module Coverband
       @tracer_set = false
       @files = {}
       @file_usage = {}
+      @startup_delay = Coverband.configuration.startup_delay
       @ignore_patterns = Coverband.configuration.ignore
       @sample_percentage = Coverband.configuration.percentage
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
@@ -41,7 +42,8 @@ module Coverband
     protected
 
     def configure_sampling
-      if (rand * 100.0) > @sample_percentage
+      if @startup_delay!=0 || (rand * 100.0) > @sample_percentage
+        @startup_delay -= 1 if @startup_delay > 0
         @enabled = false
       else
         @enabled = true
