@@ -52,7 +52,17 @@ Details on a example Sinatra app
 
 ## Usage
 
-After installing the gem, you likely want to get the rake tasks configured as well as the rack middleware.
+After installing the gem. There are a few steps to gather data, view reports, and cleaing up the data.
+
+1. First configure Rake, with helpful tasks. See the section below
+	* `rake coverband_baseline` helps you to record a baseline of your apps initialization process
+	*  `rake coverband` after you have setup coverband on a server and started recording data this generates the report and opens it in your browser.
+2. Setup the rack middleware, the middleware is what makes coverband gather metrics when your app runs. See below for details
+	* I setup coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
+	* To debug in development mode, I recommend turning verbose logging on `config.verbose           = true` and passing in the Rails.logger `config.logger = Rails.logger` to the coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
+3. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or coverband won't be recording any data. 
+4. Hit your development server exercising the endpoints you want to verify Coverband is recording.
+5. Now to view changes in live coverage run `rake coverband` again, previously it should have only shown the baseline data of your app initializing. After using it in development it hsould show increased coverage from the actions you have exercised.
 
 #### Configuring Rake
 
@@ -187,7 +197,7 @@ Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 678
 * Possibly add ability to record code run for a given route
 * Add default rake tasks so a project could just require the rake tasks
 * Improve client code api, particularly around configuration, but also around manual usage of sampling
-
+* Provide a better lighter example app, to show how to use coverband.
 
 ## Resources
 
