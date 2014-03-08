@@ -58,7 +58,7 @@ module Coverband
       puts "report: "
       puts scov_style_report.inspect
       SimpleCov::Result.new(scov_style_report).format!
-      `open coverage/index.html`
+      puts "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
     end
 
     def self.merge_existing_coverage(scov_style_report, existing_coverage)
