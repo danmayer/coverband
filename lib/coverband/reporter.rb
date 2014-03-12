@@ -15,14 +15,16 @@ module Coverband
       File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
     end
 
-    def self.report
+    def self.report(options = {})
       redis = Coverband.configuration.redis
       roots = Coverband.configuration.root_paths
       existing_coverage = Coverband.configuration.coverage_baseline
+      open_report = options.fetch(:open_report){ true }
+
       roots << "#{current_root}/"
       puts "fixing root: #{roots.join(', ')}"
       if  Coverband.configuration.reporter=='scov'
-        report_scov(redis, existing_coverage, roots)
+        report_scov(redis, existing_coverage, roots, open_report)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
         puts lines.join("\n")
@@ -49,7 +51,7 @@ module Coverband
       fixed_report
     end
 
-    def self.report_scov(redis, existing_coverage, roots)
+    def self.report_scov(redis, existing_coverage, roots, open_report)
       scov_style_report = {}
       redis.smembers('coverband').each{|key| line_data = line_hash(redis, key, roots); scov_style_report.merge!(line_data) if line_data }
       scov_style_report = fix_file_names(scov_style_report, roots)
@@ -58,7 +60,11 @@ module Coverband
       puts "report: "
       puts scov_style_report.inspect
       SimpleCov::Result.new(scov_style_report).format!
-      `open coverage/index.html`
+      if open_report
+        `open #{SimpleCov.coverage_dir}/index.html`
+      else
+        puts "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
+      end
     end
 
     def self.merge_existing_coverage(scov_style_report, existing_coverage)
