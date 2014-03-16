@@ -4,7 +4,7 @@ A gem to measure production code coverage. Coverband allows easy configuration t
 
 * Allow sampling to avoid the performance overhead on every request.
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
-* Take a baseline to get inital app loading coverage.
+* Take a baseline to get initial app loading coverage.
 
 At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when sampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
 
@@ -33,7 +33,7 @@ $ gem install coverband
 
 ## Example Output
 
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formater. 
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter. 
 
 Index Page
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
@@ -52,17 +52,17 @@ Details on a example Sinatra app
 
 ## Usage
 
-After installing the gem. There are a few steps to gather data, view reports, and cleaing up the data.
+After installing the gem. There are a few steps to gather data, view reports, and cleaning up the data.
 
 1. First configure Rake, with helpful tasks. See the section below
 	* `rake coverband_baseline` helps you to record a baseline of your apps initialization process
-	*  `rake coverband` after you have setup coverband on a server and started recording data this generates the report and opens it in your browser.
-2. Setup the rack middleware, the middleware is what makes coverband gather metrics when your app runs. See below for details
-	* I setup coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
-	* To debug in development mode, I recommend turning verbose logging on `config.verbose           = true` and passing in the Rails.logger `config.logger = Rails.logger` to the coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
-3. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or coverband won't be recording any data. 
+	*  `rake coverband` after you have setup Coverband on a server and started recording data this generates the report and opens it in your browser.
+2. Setup the rack middleware, the middleware is what makes Coverband gather metrics when your app runs. See below for details
+	* I setup Coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
+	* To debug in development mode, I recommend turning verbose logging on `config.verbose           = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
+3. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or Coverband won't be recording any data. 
 4. Hit your development server exercising the endpoints you want to verify Coverband is recording.
-5. Now to view changes in live coverage run `rake coverband` again, previously it should have only shown the baseline data of your app initializing. After using it in development it hsould show increased coverage from the actions you have exercised.
+5. Now to view changes in live coverage run `rake coverband` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
 
 #### Configuring Rake
 
@@ -90,7 +90,7 @@ task :coverband_baseline do
   Coverband::Reporter.baseline {
     #rails
     require File.expand_path("../config/environment", __FILE__)
-    #sinatra
+    #Sinatra
     #require File.expand_path("./app", __FILE__)
   }
 end
@@ -124,9 +124,9 @@ run ActionController::Dispatcher.new
 	
 #### Configure Manually (for example for background jobs)
 
-It is easy to use coverband outside of a Rack environment. Make sure you configure coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
+It is easy to use Coverband outside of a Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
 
-For example if you had a base resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
+For example if you had a base Resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
 
 ```ruby
 def before_perform(*args)
@@ -147,7 +147,7 @@ def after_perform(*args)
 end
 ```
 
-In general you can run coverband anywhere by using the lines below
+In general you can run Coverband anywhere by using the lines below
 
 ```ruby
 require 'coverband'
@@ -173,11 +173,11 @@ coverband.sample {
 ## Clearing Line Coverage Data
 
 After a deploy where code has changed. 
-The line numbers previously recorded in redis may no longer match the curernt state of the files. 
+The line numbers previously recorded in Redis may no longer match the current state of the files. 
 If being slightly out of sync isn't as important as gathering data over a long period, 
-you can live with minor inconsistancy for some files.
+you can live with minor inconsistency for some files.
 
-As often as you like or as part of a deploy hook you can clear the recorded coverband data with the following command.
+As often as you like or as part of a deploy hook you can clear the recorded Coverband data with the following command.
 
 ```ruby
 # defaults to the currently configured Coverband.configuration.redis
@@ -188,16 +188,16 @@ Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 678
 
 ## TODO
 
-* Improve the configuration flow (only one time redis setup etc)
-  * a suggestion was a .coverband file which stores the config block (can't use initializers because we try to load before rails)
-  * this is a bit crazy at the moment
+* Improve the baseline task, hard coded for rails, for Sinatra you need to override.
+  * perhaps allow in the config to pass in baseline_requires array? If not present do the rails thing?
 * Fix performance by logging to files that purge later
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single hits versus multiple hits on a line, letting us determine the most executed code in production.
 * Add stats optional support on the number of total requests recorded
 * Possibly add ability to record code run for a given route
-* Add default rake tasks so a project could just require the rake tasks
-* Improve client code api, particularly around configuration, but also around manual usage of sampling
-* Provide a better lighter example app, to show how to use coverband.
+* Improve client code api, around manual usage of sampling (like event usage)
+* Provide a better lighter example app, to show how to use Coverband.
+  * blank rails app
+  * blank Sinatra app 
 
 ## Resources
 
