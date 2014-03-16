@@ -8,12 +8,12 @@ namespace :coverband do
   end
 
   desc "report runtime coverband code coverage"
-  task :coverband => :environment do
+  task :coverage => :environment do
     Coverband::Reporter.report
   end
 
   desc "reset coverband coverage data"
-  task :coverband_clear  => :environment do
+  task :clear  => :environment do
     Coverband::Reporter.clear_coverage
   end
 
