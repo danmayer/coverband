@@ -9,7 +9,9 @@ A gem to measure production code coverage. Coverband allows easy configuration t
 At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when sampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
 
 ###### Success:
-After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
+After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data. 
+
+This has now been running in production on many applications for months. I will clean up configurations, documentation, and strive to get a 1.0 release out soon.
 
 ## Installation
 
@@ -52,49 +54,79 @@ Details on a example Sinatra app
 
 ## Usage
 
-After installing the gem. There are a few steps to gather data, view reports, and cleaning up the data.
+After installing the gem. There are a few steps to gather data, view reports, and for cleaning up the data.
 
-1. First configure Rake, with helpful tasks. See the section below
-	* `rake coverband_baseline` helps you to record a baseline of your apps initialization process
-	*  `rake coverband` after you have setup Coverband on a server and started recording data this generates the report and opens it in your browser.
-2. Setup the rack middleware, the middleware is what makes Coverband gather metrics when your app runs. See below for details
+1. First configure cover band options using the config file, See the section below
+2. Then configure Rake, with helpful tasks. Make sure things are working by recording your Coverband baseline. See the section below
+3. Setup the rack middleware, the middleware is what makes Coverband gather metrics when your app runs. See below for details
 	* I setup Coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
 	* To debug in development mode, I recommend turning verbose logging on `config.verbose           = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
-3. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or Coverband won't be recording any data. 
-4. Hit your development server exercising the endpoints you want to verify Coverband is recording.
-5. Now to view changes in live coverage run `rake coverband` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
+4. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or Coverband won't be recording any data. 
+5. Hit your development server exercising the endpoints you want to verify Coverband is recording.
+6. Now to view changes in live coverage run `rake coverband:coverage` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
+
+#### Configure Coverband Options
+
+You need to configure cover band you can either do that passing in all configuration options to `Coverband.configure` in block format, or a much simpler style is to call `Coverband.configure` with nothing while will load `config/coverband.rb` expecting it to configure the app correctly. Below is an example config file for a Sinatra app:
+
+```ruby
+require 'json'
+
+baseline = if File.exist?('./tmp/coverband_baseline.json')
+  JSON.parse(File.read('./tmp/coverband_baseline.json'))
+else
+  {}
+end
+
+Coverband.configure do |config|
+  config.root              = Dir.pwd
+  if defined? Redis
+    config.redis             = Redis.new(:host => 'utils.picoappz.com', :port => 49182, :db => 1)
+  end
+  config.coverage_baseline = baseline
+  config.root_paths        = ['/app/']
+  config.ignore            = ['vendor']
+  config.percentage        = 60.0
+  if defined? Statsd
+    config.stats             = Statsd.new('utils.picoappz.com', 8125)
+  end
+  config.verbose           = true
+end
+```
 
 #### Configuring Rake
 
-Either add the below to your `Rakefile` or to a file included in your Rakefile
+Either add the below to your `Rakefile` or to a file included in your Rakefile such as `lib/tasks/coverband` if you want to break it up that way.
 
 ```ruby
 require 'coverband'
-Coverband.configure do |config|
-  config.redis             = Redis.new
-  # merge in lines to consider covered manually to override any misses
-  # existing_coverage = {'./cover_band_server/app.rb' => Array.new(31,1)}
-  # JSON.parse(File.read('./tmp/coverband_baseline.json')).merge(existing_coverage) 
-  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
-end
+Coverband.configure
+require 'coverband/tasks'
+```
+This should give you access to a number of cover band tasks
 
-desc "report unused lines"
-  task :coverband => :environment do
-  Coverband::Reporter
-end
-	
-desc "get coverage baseline"
-task :coverband_baseline do
-  Coverband::Reporter.baseline {
-    #rails
-    require File.expand_path("../config/environment", __FILE__)
-    #Sinatra
-    #require File.expand_path("./app", __FILE__)
-  }
+```bash
+bundle exec rake -T coverband
+rake coverband:baseline      # record coverband coverage baseline
+rake coverband:clear         # reset coverband coverage data
+rake coverband:coverage      # report runtime coverband code coverage
+```
+
+The default Coverband baseline task will try to load the Rails environment. For a non Rails application you can make your own baseline. Below for example is how I take a baseline on a Sinatra app.
+
+```ruby
+namespace :coverband do
+  desc "get coverage baseline"
+  task :baseline_app do
+    Coverband::Reporter.baseline {
+      require 'sinatra'
+      require './app.rb'
+    }
+  end
 end
 ```
+
+To verify that rake is working run `rake coverband:baseline` and then run `rake coverband:coverage` to view what your baseline coverage looks like before any runtime traffic has been recorded.
     
 #### Configure rack middleware
 
@@ -185,6 +217,8 @@ Coverband::Reporter.clear_coverage
 # or pass in the current target redis
 Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 6789))
 ```
+You can also do this with the included rake tasks.
+
 
 ## TODO
 
