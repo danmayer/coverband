@@ -81,16 +81,33 @@ end
 Coverband.configure do |config|
   config.root              = Dir.pwd
   if defined? Redis
-    config.redis             = Redis.new(:host => 'utils.picoappz.com', :port => 49182, :db => 1)
+    config.redis             = Redis.new(:host => 'redis.host.com', :port => 49182, :db => 1)
   end
   config.coverage_baseline = baseline
   config.root_paths        = ['/app/']
   config.ignore            = ['vendor']
   config.percentage        = 60.0
   if defined? Statsd
-    config.stats             = Statsd.new('utils.picoappz.com', 8125)
+    config.stats             = Statsd.new('statsd.host.com', 8125)
   end
   config.verbose           = true
+end
+```
+
+Here is a alternative configuration example:
+
+```ruby
+Coverband.configure do |config|
+  config.root              = Dir.pwd
+  config.redis             = Redis.new
+  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
+  config.root_paths        = ['/app/']
+  config.ignore            = ['vendor']
+  # Since rails and other frameworks lazy load code. I have found it is bad to allow
+  # initial requests to record with coverband.
+  # This allows 10 requests prior to trying to record any activitly.
+  config.startup_delay     = 10
+  config.percentage        = 15.0
 end
 ```
 
@@ -136,19 +153,7 @@ For the best coverage you want this loaded as early as possible. I have been put
 require File.dirname(__FILE__) + '/config/environment'
 	
 require 'coverband'
-
-Coverband.configure do |config|
-  config.root              = Dir.pwd
-  config.redis             = Redis.new
-  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
-  # Since rails and other frameworks lazy load code. I have found it is bad to allow
-  # initial requests to record with coverband.
-  # This allows 10 requests prior to trying to record any activitly.
-  config.startup_delay     = 10
-  config.percentage        = 15.0
-end
+Coverband.configure
 
 use Coverband::Middleware
 run ActionController::Dispatcher.new
