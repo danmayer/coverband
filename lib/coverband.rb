@@ -16,11 +16,11 @@ module Coverband
 
   def self.configure(file = nil)
     self.configuration ||= Configuration.new
-    if file
-      puts "hooray"
-      raise "boom"
-    else
+    if block_given?
       yield(configuration)
+    else
+      file ||= './config/coverband.rb'
+      require file
     end
   end
   
