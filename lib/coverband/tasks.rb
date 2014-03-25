@@ -3,7 +3,7 @@ namespace :coverband do
   desc "record coverband coverage baseline"
   task :baseline do
     Coverband::Reporter.baseline {
-      require File.expand_path("../config/environment", __FILE__)
+      require File.expand_path("../config/environment", Dir.pwd)
     }
   end
 
