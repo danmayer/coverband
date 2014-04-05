@@ -14,6 +14,14 @@ module Coverband
     attr_accessor :configuration
   end
 
+  def self.parse_baseline(baseline_file = './tmp/coverband_baseline.json')
+    baseline = if File.exist?(baseline_file)
+      JSON.parse(File.read(baseline_file))
+    else
+      {}
+    end
+  end
+
   def self.configure(file = nil)
     self.configuration ||= Configuration.new
     if block_given?
