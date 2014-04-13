@@ -1,5 +1,3 @@
-require 'simplecov'
-
 module Coverband
   class Reporter
 
@@ -16,6 +14,12 @@ module Coverband
     end
 
     def self.report(options = {})
+      begin
+        require 'simplecov' if Coverband.configuration.reporter=='scov'
+      rescue
+        puts "coverband requires simplecov in order to generate a report, when configured for the scov report style."
+        return
+      end
       redis = Coverband.configuration.redis
       roots = Coverband.configuration.root_paths
       existing_coverage = Coverband.configuration.coverage_baseline
