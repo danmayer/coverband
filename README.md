@@ -72,11 +72,7 @@ You need to configure cover band you can either do that passing in all configura
 ```ruby
 require 'json'
 
-baseline = if File.exist?('./tmp/coverband_baseline.json')
-  JSON.parse(File.read('./tmp/coverband_baseline.json'))
-else
-  {}
-end
+baseline = Coverband.parse_baseline
 
 Coverband.configure do |config|
   config.root              = Dir.pwd
@@ -86,6 +82,9 @@ Coverband.configure do |config|
   config.coverage_baseline = baseline
   config.root_paths        = ['/app/']
   config.ignore            = ['vendor']
+  # Since rails and other frameworks lazy load code. I have found it is bad to allow
+  # initial requests to record with coverband. This ignores first 15 requests
+  config.startup_delay     = 15
   config.percentage        = 60.0
   if defined? Statsd
     config.stats             = Statsd.new('statsd.host.com', 8125)
@@ -94,7 +93,7 @@ Coverband.configure do |config|
 end
 ```
 
-Here is a alternative configuration example:
+Here is a alternative configuration example, allowing for production and development settings:
 
 ```ruby
 Coverband.configure do |config|
@@ -103,11 +102,8 @@ Coverband.configure do |config|
   config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
   config.root_paths        = ['/app/']
   config.ignore            = ['vendor']
-  # Since rails and other frameworks lazy load code. I have found it is bad to allow
-  # initial requests to record with coverband.
-  # This allows 10 requests prior to trying to record any activitly.
-  config.startup_delay     = 10
-  config.percentage        = 15.0
+  config.startup_delay     = Rails.env.production? ? 10 : 1
+  config.percentage        = Rails.env.production? ? 15.0 : 100.0
 end
 ```
 
@@ -227,11 +223,8 @@ You can also do this with the included rake tasks.
 
 ## TODO
 
-* Improve the baseline task, hard coded for rails, for Sinatra you need to override.
-  * perhaps allow in the config to pass in baseline_requires array? If not present do the rails thing?
-* Fix performance by logging to files that purge later
-* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single hits versus multiple hits on a line, letting us determine the most executed code in production.
-* Add stats optional support on the number of total requests recorded
+* Fix performance by logging to files that purge later (more time lost in set_trace_func than sending files)
+* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
 * Improve client code api, around manual usage of sampling (like event usage)
 * Provide a better lighter example app, to show how to use Coverband.
