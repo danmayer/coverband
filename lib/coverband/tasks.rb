@@ -24,8 +24,23 @@ namespace :coverband do
       }
   end
 
+  ###
+  # note: If have set a ton of simplecov filters you might want to override them and clear the filters or run the task below.
+  ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
+                   Coverband::Reporter.report
+  end
+
+  def clear_simplecov_filters
+    if defined? SimpleCov
+      SimpleCov.filters.clear
+    end
+  end
+
+  desc "report runtime coverband code coverage"
+  task :coverage_no_filters => :environment do
+    clear_simplecov_filters
     Coverband::Reporter.report
   end
 

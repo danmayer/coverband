@@ -89,7 +89,7 @@ Coverband.configure do |config|
   if defined? Statsd
     config.stats             = Statsd.new('statsd.host.com', 8125)
   end
-  config.verbose           = true
+  config.verbose           = Rails.env.production? ? false : true
 end
 ```
 
