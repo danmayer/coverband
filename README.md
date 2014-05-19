@@ -163,7 +163,7 @@ For example if you had a base Resque class, you could use the `before_perform` a
 
 ```ruby
 def before_perform(*args)
-  if (rand * 100.0) > Coverband.configuration.percentage
+  if (rand * 100.0) <= Coverband.configuration.percentage
     @@coverband ||= Coverband::Base.new
     @recording_samples = true
     @@coverband.start
