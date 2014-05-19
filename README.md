@@ -221,6 +221,27 @@ Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 678
 You can also do this with the included rake tasks.
 
 
+## Verbose debug mode for development
+
+If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` and `config.verbose = 'debug'` can be useful. With true set it will output the number of lines executed per file, to the passed in log. The files are sorted from least used file to most active file. I have even run that mode in production without much of a problem. The debug verbose mode outputs both file usage and provides the number of calls per line of code. For example if you see something like below which indicates that the `application_helper` has 43150 lines executed. That might seem odd. Then looking at the breakdown of `application_helper` we can see that line `516` was executed 38,577 times. That seems bad, and is likely worth investigating perhaps memoizing or cacheing is required. 
+
+    config.verbose = 'debug'
+    
+    coverband file usage:
+      [["/Users/danmayer/projects/app_name/lib/facebook.rb", 6],
+      ["/Users/danmayer/projects/app_name/app/models/some_modules.rb", 9],
+      ...
+      ["/Users/danmayer/projects/app_name/app/models/user.rb", 2606],
+      ["/Users/danmayer/projects/app_name/app/helpers/application_helper.rb",
+      43150]]
+    
+    file:
+      /Users/danmayer/projects/app_name/app/helpers/application_helper.rb =>
+      [[448, 1], [202, 1],
+      ...
+     [517, 1617], [516, 38577]]
+
+
 ## TODO
 
 * Fix performance by logging to files that purge later (more time lost in set_trace_func than sending files)

@@ -7,6 +7,7 @@ module Coverband
       @tracer_set = false
       @files = {}
       @file_usage = {}
+      @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
       @ignore_patterns = Coverband.configuration.ignore
       @sample_percentage = Coverband.configuration.percentage
@@ -88,6 +89,12 @@ module Coverband
           else
             @file_usage[file] = 1
           end
+          @file_line_usage[file] = {} unless @file_line_usage.include?(file)
+          if @file_line_usage[file].include?(line)
+            @file_line_usage[file][line] += 1
+          else
+            @file_line_usage[file][line] = 1
+          end
         end
         if @files.include?(file)
           @files[file] << line unless @files.include?(line)
@@ -95,6 +102,14 @@ module Coverband
           @files[file] = [line]
         end
       end
+    end
+
+    def output_file_line_usage
+      @file_line_usage.sort_by {|_key, value| value.length}.each do |pair|
+                                                             file = pair.first
+                                                             lines = pair.last
+                                                             @logger.info "file: #{file} => #{lines.sort_by {|_key, value| value}}"
+                                                           end
     end
     
     def report_coverage
@@ -105,7 +120,13 @@ module Coverband
 
       unset_tracer
 
-      @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}" if @verbose
+      if @verbose
+        @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
+        if @verbose="debug"
+          @logger.info "coverband debug coverband file:line usage:"
+          output_file_line_usage
+        end
+      end
 
       if @reporter
         if @reporter.class.name.match(/redis/i)
@@ -115,7 +136,8 @@ module Coverband
           time_spent = Time.now - before_time
           @stats.timing "coverband.files.recorded_time", time_spent if @stats
           @files = {}
-          @@file_usage = {}
+          @file_usage = {}
+          @file_line_usage = {}
         end
       elsif @verbose
         @logger.info "coverage report: "
