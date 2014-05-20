@@ -244,13 +244,15 @@ If you are trying to debug locally wondering what code is being run during a req
 
 ## TODO
 
-* Fix performance by logging to files that purge later (more time lost in set_trace_func than sending files)
+* Fix network performance by logging to files that purge later (far more time lost in set_trace_func than sending files, hence not a high priority)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
 * Improve client code api, around manual usage of sampling (like event usage)
 * Provide a better lighter example app, to show how to use Coverband.
   * blank rails app
-  * blank Sinatra app 
+  * blank Sinatra app
+* report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
+* ability to change the cover band config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 
 ## Resources
 
