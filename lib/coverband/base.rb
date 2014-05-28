@@ -6,7 +6,7 @@ module Coverband
       @enabled = false
       @tracer_set = false
       @files = {}
-      @file_usage = {}
+      @file_usage = Hash.new(0)
       @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
       @ignore_patterns = Coverband.configuration.ignore
@@ -84,17 +84,9 @@ module Coverband
     def add_file(file, line)
       if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
         if @verbose
-          if @file_usage.include?(file)
-            @file_usage[file] += 1
-          else
-            @file_usage[file] = 1
-          end
-          @file_line_usage[file] = {} unless @file_line_usage.include?(file)
-          if @file_line_usage[file].include?(line)
-            @file_line_usage[file][line] += 1
-          else
-            @file_line_usage[file][line] = 1
-          end
+          @file_usage[file] += 1
+          @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+          @file_line_usage[file][line] += 1
         end
         if @files.include?(file)
           @files[file] << line unless @files.include?(line)
@@ -105,6 +97,7 @@ module Coverband
     end
 
     def output_file_line_usage
+      @logger.info "coverband debug coverband file:line usage:"
       @file_line_usage.sort_by {|_key, value| value.length}.each do |pair|
                                                              file = pair.first
                                                              lines = pair.last
@@ -123,7 +116,6 @@ module Coverband
       if @verbose
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
         if @verbose="debug"
-          @logger.info "coverband debug coverband file:line usage:"
           output_file_line_usage
         end
       end
@@ -136,7 +128,7 @@ module Coverband
           time_spent = Time.now - before_time
           @stats.timing "coverband.files.recorded_time", time_spent if @stats
           @files = {}
-          @file_usage = {}
+          @file_usage = Hash.new(0)
           @file_line_usage = {}
         end
       elsif @verbose
