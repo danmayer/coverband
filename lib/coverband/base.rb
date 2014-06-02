@@ -115,7 +115,7 @@ module Coverband
 
       if @verbose
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
-        if @verbose="debug"
+        if @verbose=="debug"
           output_file_line_usage
         end
       end

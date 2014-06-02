@@ -25,7 +25,7 @@ module Coverband
 
     def store_array(key, values)
       if sadd_supports_array?
-        redis.sadd(key, values) && (values.length > 0)
+        redis.sadd(key, values) if (values.length > 0)
       else
         values.each do |value|
           redis.sadd(key, value)
