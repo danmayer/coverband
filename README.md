@@ -6,7 +6,7 @@ A gem to measure production code coverage. Coverband allows easy configuration t
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
 * Take a baseline to get initial app loading coverage.
 
-At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when sampling or stoping and starting collection. When [Coverage is patched](https://www.ruby-forum.com/topic/1811306) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
+At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when sampling or stoping and starting collection. When [Coverage is patched](https://bugs.ruby-lang.org/issues/9572) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
 
 ###### Success:
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data. 
@@ -256,13 +256,19 @@ If you are trying to debug locally wondering what code is being run during a req
 
 ## Resources
 
+##### Ruby Std-lib Coverage
+
+* [Fixed bug causing segfaults on 1.9.X](https://www.ruby-forum.com/topic/1811306)
+* [Current Coverage Bug causing issues on 2.1.1](https://bugs.ruby-lang.org/issues/9572)
+* [Ruby Coverage docs](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/coverage/rdoc/Coverage.html)
+
+##### other
+
 * [erb code coverage](http://stackoverflow.com/questions/13030909/how-to-test-code-coverage-for-rails-erb-templates)
 * [more erb code coverage](https://github.com/colszowka/simplecov/issues/38)
 * [erb syntax](http://stackoverflow.com/questions/7996695/rails-erb-syntax) parse out and mark lines as important
 * [ruby 2 tracer](https://github.com/brightbox/deb-ruby2.0/blob/master/lib/tracer.rb)
 * [coveralls hosted code coverage tracking](https://coveralls.io/docs/ruby) currently for test coverage but might be a good partner for production coverage
-* [bug in Ruby's stl-lib Coverage, needs to be fixed to be more accurate](https://www.ruby-forum.com/topic/1811306)
-* [Ruby Coverage docs](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/coverage/rdoc/Coverage.html)
 * [simplecov walk through](http://www.tamingthemindmonkey.com/2011/09/27/ruby-code-coverage-using-simplecov) copy some of the syntax sugar setup for cover band
 * [Jruby coverage bug](http://jira.codehaus.org/browse/JRUBY-6106?page=com.atlassian.jira.plugin.system.issuetabpanels:changehistory-tabpanel)
 * [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)
