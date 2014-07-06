@@ -1,9 +1,9 @@
 module Coverband
   class Middleware < Base
-
-    def initialize(app)
+    
+    def set_app(app)
       @app = app
-      super
+      self
     end
 
     def call(env)

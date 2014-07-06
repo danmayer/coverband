@@ -1,21 +1,6 @@
 module Coverband
   class Base
-
-    def initialize(options = {})
-      @project_directory = File.expand_path(Coverband.configuration.root)
-      @enabled = false
-      @tracer_set = false
-      @files = {}
-      @file_usage = Hash.new(0)
-      @file_line_usage = {}
-      @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore
-      @sample_percentage = Coverband.configuration.percentage
-      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
-      @stats    = Coverband.configuration.stats
-      @verbose  = Coverband.configuration.verbose
-      @logger   = Coverband.configuration.logger || Logger.new(STDOUT)
-    end
+    include Singleton
 
     def start
       @enabled = true
@@ -42,6 +27,23 @@ module Coverband
 
     def extended?
       false
+    end
+
+    def reset_instance
+      @project_directory = File.expand_path(Coverband.configuration.root)
+      @enabled = false
+      @tracer_set = false
+      @files = {}
+      @file_usage = Hash.new(0)
+      @file_line_usage = {}
+      @startup_delay = Coverband.configuration.startup_delay
+      @ignore_patterns = Coverband.configuration.ignore
+      @sample_percentage = Coverband.configuration.percentage
+      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
+      @stats    = Coverband.configuration.stats
+      @verbose  = Coverband.configuration.verbose
+      @logger   = Coverband.configuration.logger || Logger.new(STDOUT)
+      self
     end
 
     protected
@@ -153,5 +155,12 @@ module Coverband
         @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
+
+    private
+
+    def initialize
+      reset_instance
+    end
+
   end
 end

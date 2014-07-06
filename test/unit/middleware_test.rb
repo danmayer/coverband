@@ -7,20 +7,20 @@ class MiddlewareTest < Test::Unit::TestCase
   
   should "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app)
     results = middleware.call(request)
     assert_equal "/anything.json", results.last
   end
 
   should 'pass all rack lint checks' do
-    app = Rack::Lint.new(Coverband::Middleware.new(fake_app))
+    app = Rack::Lint.new(Coverband::Middleware.instance.reset_instance.set_app(fake_app))
     env = Rack::MockRequest.env_for('/hello')
     app.call(env)
   end
 
   should 'always be enabled with sample percentage of 100' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app)
     assert_equal false, middleware.instance_variable_get("@enabled")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     results = middleware.call(request)
@@ -29,7 +29,7 @@ class MiddlewareTest < Test::Unit::TestCase
 
   should 'never be enabled with sample percentage of 0' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app)
     assert_equal false, middleware.instance_variable_get("@enabled")
     middleware.instance_variable_set("@sample_percentage", 0.0)
     results = middleware.call(request)
@@ -38,7 +38,7 @@ class MiddlewareTest < Test::Unit::TestCase
 
   should 'always unset function when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app)
     assert_equal false, middleware.instance_variable_get("@tracer_set")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     results = middleware.call(request)
@@ -47,7 +47,7 @@ class MiddlewareTest < Test::Unit::TestCase
 
   should 'always unset function when not sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app)
     assert_equal false, middleware.instance_variable_get("@tracer_set")
     middleware.instance_variable_set("@sample_percentage", 0.0)
     results = middleware.call(request)
@@ -56,7 +56,7 @@ class MiddlewareTest < Test::Unit::TestCase
 
   should 'always record coverage, set trace func, and add_files when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app_with_lines)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app_with_lines)
     assert_equal false, middleware.instance_variable_get("@enabled")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     middleware.expects(:add_file).at_least_once
@@ -66,7 +66,7 @@ class MiddlewareTest < Test::Unit::TestCase
 
   should 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
-    middleware = Coverband::Middleware.new(fake_app_with_lines)
+    middleware = Coverband::Middleware.instance.reset_instance.set_app(fake_app_with_lines)
     assert_equal false, middleware.instance_variable_get("@enabled")
     middleware.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
