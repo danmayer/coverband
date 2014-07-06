@@ -40,6 +40,10 @@ module Coverband
       @enabled = false
     end
 
+    def extended?
+      false
+    end
+
     protected
 
     def configure_sampling
@@ -87,16 +91,20 @@ module Coverband
 
     def add_file(file, line)
       if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
-        if @verbose
-          @file_usage[file] += 1
-          @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-          @file_line_usage[file][line] += 1
-        end
-        if @files.include?(file)
-          @files[file] << line unless @files.include?(line)
-        else
-          @files[file] = [line]
-        end
+        add_file_without_checks(file, line)
+      end
+    end
+
+    def add_file_without_checks(file, line)
+      if @verbose
+        @file_usage[file] += 1
+        @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+        @file_line_usage[file][line] += 1
+      end
+      if @files.include?(file)
+        @files[file] << line unless @files.include?(line)
+      else
+        @files[file] = [line]
       end
     end
 

@@ -1,3 +1,3 @@
 module Coverband
-  VERSION = "0.0.27"
+  VERSION = "0.1.0"
 end
