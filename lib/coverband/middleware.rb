@@ -1,16 +1,15 @@
 module Coverband
-  class Middleware < Base
+  class Middleware
     
-    def set_app(app)
+    def initialize(app)
       @app = app
-      self
     end
 
     def call(env)
-      configure_sampling
-      record_coverage
+      Coverband::Base.instance.configure_sampling
+      Coverband::Base.instance.record_coverage
       results = @app.call(env)
-      report_coverage
+      Coverband::Base.instance.report_coverage
       results
     end
     

@@ -46,8 +46,6 @@ module Coverband
       self
     end
 
-    protected
-
     def configure_sampling
       if @startup_delay!=0 || (rand * 100.0) > @sample_percentage
         @startup_delay -= 1 if @startup_delay > 0
@@ -70,6 +68,45 @@ module Coverband
         @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
+
+    def report_coverage
+      unless @enabled
+        @logger.info "coverage disabled" if @verbose
+        return
+      end
+
+      unset_tracer
+
+      if @verbose
+        @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
+        if @verbose=="debug"
+          output_file_line_usage
+        end
+      end
+
+      if @reporter
+        if @reporter.class.name.match(/redis/i)
+          before_time = Time.now
+          @stats.increment "coverband.files.recorded_files", @files.length if @stats
+          @reporter.store_report(@files)
+          time_spent = Time.now - before_time
+          @stats.timing "coverband.files.recorded_time", time_spent if @stats
+          @files = {}
+          @file_usage = Hash.new(0)
+          @file_line_usage = {}
+        end
+      elsif @verbose
+        @logger.info "coverage report: "
+        @logger.info @files.inspect
+      end
+    rescue RuntimeError => err
+      if @verbose
+        @logger.info "coverage missing"
+        @logger.info "error: #{err.inspect} #{err.message}"
+      end
+    end
+
+    protected
 
     def set_tracer
       unless @tracer_set
@@ -117,43 +154,6 @@ module Coverband
                                                              lines = pair.last
                                                              @logger.info "file: #{file} => #{lines.sort_by {|_key, value| value}}"
                                                            end
-    end
-    
-    def report_coverage
-      unless @enabled
-        @logger.info "coverage disabled" if @verbose
-        return
-      end
-
-      unset_tracer
-
-      if @verbose
-        @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
-        if @verbose=="debug"
-          output_file_line_usage
-        end
-      end
-
-      if @reporter
-        if @reporter.class.name.match(/redis/i)
-          before_time = Time.now
-          @stats.increment "coverband.files.recorded_files", @files.length if @stats
-          @reporter.store_report(@files)
-          time_spent = Time.now - before_time
-          @stats.timing "coverband.files.recorded_time", time_spent if @stats
-          @files = {}
-          @file_usage = Hash.new(0)
-          @file_line_usage = {}
-        end
-      elsif @verbose
-        @logger.info "coverage report: "
-        @logger.info @files.inspect
-      end
-    rescue RuntimeError => err
-      if @verbose
-        @logger.info "coverage missing"
-        @logger.info "error: #{err.inspect} #{err.message}"
-      end
     end
 
     private
