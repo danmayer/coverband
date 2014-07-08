@@ -1,3 +1,5 @@
+require 'singleton'
+
 module Coverband
   class Base
     include Singleton
