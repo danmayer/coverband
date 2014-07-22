@@ -58,7 +58,11 @@ module Coverband
 
     def self.report_scov(redis, existing_coverage, roots, open_report)
       scov_style_report = {}
-      redis.smembers('coverband').each{|key| line_data = line_hash(redis, key, roots); scov_style_report.merge!(line_data) if line_data }
+      redis.smembers('coverband').each do |key|
+                                   next if Coverband.configuration.ignore.any?{ |i| key.match(i)}
+                                   line_data = line_hash(redis, key, roots)
+                                   scov_style_report.merge!(line_data) if line_data
+                                 end
       scov_style_report = fix_file_names(scov_style_report, roots)
       existing_coverage = fix_file_names(existing_coverage, roots)
       scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)

@@ -19,7 +19,19 @@ namespace :coverband do
                         end
         end
         if defined? Rails
-          Dir.glob("#{Rails.root}/app/models/*.rb").sort.each { |file| require_dependency file }
+          Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 
+              begin
+                require_dependency file
+              rescue
+                #ignore
+              end }
+        end
+        if File.exists?("#{Rails.root}/lib")
+          Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file| begin
+                                                                require_dependency file
+                                                              rescue
+                                                                #ignoring file
+                                                              end}
         end
       }
   end
