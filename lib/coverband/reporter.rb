@@ -70,9 +70,9 @@ module Coverband
                                    line_data = line_hash(redis, key, roots)
                                    
                                    if line_data
-                                     line_key = line_hash.keys.first
+                                     line_key = line_data.keys.first
                                      previous_line_hash = scov_style_report[line_key]
-                                     if merge_line
+                                     if previous_line_hash
                                        line_data[line_key] = line_data[line_key].merge(previous_line_hash)
                                      end
                                      scov_style_report.merge!(line_data)
