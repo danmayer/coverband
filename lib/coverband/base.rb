@@ -44,7 +44,7 @@ module Coverband
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
-      @logger   = Coverband.configuration.logger || Logger.new(STDOUT)
+      @logger   = Coverband.configuration.logger
       self
     end
 
@@ -137,6 +137,16 @@ module Coverband
     end
 
     def add_file_without_checks(file, line)
+      # file from ruby coverband at this method call is a full path
+      # file from native coverband is also a full path
+      #
+      # at the moment the full paths don't merge so the 'last' one wins and each deploy
+      # with a normal capistrano setup resets coverage.
+      #
+      # should we make it relative in this method (slows down collection)
+      # -- OR --
+      # we could have the reporter MERGE the results after normalizing the filenames
+      # (went with this route see report_scov previous_line_hash)
       if @verbose
         @file_usage[file] += 1
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)

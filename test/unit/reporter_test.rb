@@ -22,7 +22,6 @@ class ReporterTest < Test::Unit::TestCase
 
     Coverband::Reporter.expects(:current_root).returns('/root_dir')
     fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
-    Coverband::Reporter.expects('puts').with("fixing root: /app/, /root_dir/")
     
     fake_coverband_members.each do |key|
       fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
@@ -33,9 +32,50 @@ class ReporterTest < Test::Unit::TestCase
                 regexp_matches(/account/),
                 regexp_matches(/54/)]
     
-    Coverband::Reporter.expects('puts').with(all_of(*matchers))
+    Coverband.configuration.logger.expects('info').with(all_of(*matchers))
 
     Coverband::Reporter.report
+  end
+
+
+  ####
+  # TODO
+  # attempting to write some tests around this reporter
+  # shows that it has become a disaster of self methods relying on side effects.
+  # Fix to standard class and methods.
+  ####
+  should "fix filename from a key with a swappable path" do
+    Coverband.configure do |config|
+      config.redis             = fake_redis
+      config.reporter          = 'std_out'
+      config.root              = '/full/remote_app/path'
+    end
+
+    key = "/app/is/a/path.rb"
+    #the code takes config.root expands and adds a '/'
+    roots = ["/app/", '/full/remote_app/path/']
+
+    assert_equal "/full/remote_app/path/is/a/path.rb", Coverband::Reporter.filename_from_key(key, roots)
+  end
+
+  ####
+  # TODO
+  # attempting to write some tests around this reporter
+  # shows that it has become a disaster of self methods relying on side effects.
+  # Fix to standard class and methods.
+  ####
+  should "leave filename from a key with a local path" do
+    Coverband.configure do |config|
+      config.redis             = fake_redis
+      config.reporter          = 'std_out'
+      config.root              = '/full/remote_app/path'
+    end
+
+    key = "/full/remote_app/path/is/a/path.rb"
+    #the code takes config.root expands and adds a '/'
+    roots = ["/app/", '/full/remote_app/path/']
+
+    assert_equal "/full/remote_app/path/is/a/path.rb", Coverband::Reporter.filename_from_key(key, roots)
   end
 
   private
