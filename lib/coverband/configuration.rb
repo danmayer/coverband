@@ -15,5 +15,10 @@ module Coverband
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
     end
+
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+
   end
 end
