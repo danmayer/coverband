@@ -148,6 +148,7 @@ module Coverband
         {filename => line_array}
       else
         Coverband.configuration.logger.info "file #{filename} not found in project"
+        nil
       end
     end
 
