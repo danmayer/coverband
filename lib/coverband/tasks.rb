@@ -22,16 +22,17 @@ namespace :coverband do
           Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 
               begin
                 require_dependency file
-              rescue StandardError, LoadError
+              rescue Exception
                 #ignore
               end }
         end
         if File.exists?("#{Rails.root}/lib")
-          Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file| begin
-                                                                require_dependency file
-                                                              rescue StandardError, LoadError
-                                                                #ignoring file
-                                                              end}
+          Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file|
+              begin
+                require_dependency file
+              rescue Exception
+                #ignoring file
+              end}
         end
       }
   end
