@@ -1,3 +1,3 @@
 module Coverband
-  VERSION = "0.1.0.preRC9"
+  VERSION = "1.0.0"
 end
