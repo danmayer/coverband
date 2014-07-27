@@ -2,16 +2,21 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class BaseTest < Test::Unit::TestCase
 
-  should "start should enable coverage" do
-    coverband = Coverband::Base.new
+  test "start should enable coverage" do
+    coverband = Coverband::Base.instance.reset_instance
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.expects(:record_coverage).once
     coverband.start
     assert_equal true, coverband.instance_variable_get("@enabled")
   end
+
+  test "extended should default to false" do
+    coverband = Coverband::Base.instance.reset_instance
+    assert_equal false, coverband.extended?
+  end
   
-  should "stop should disable coverage" do
-    coverband = Coverband::Base.new
+  test "stop should disable coverage" do
+    coverband = Coverband::Base.instance.reset_instance
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.expects(:record_coverage).once
     coverband.start
@@ -21,9 +26,9 @@ class BaseTest < Test::Unit::TestCase
     assert_equal false, coverband.instance_variable_get("@tracer_set")
   end
   
-  should "allow for sampling with a block and enable when 100 percent sample" do
+  test "allow for sampling with a block and enable when 100 percent sample" do
     logger = Logger.new(STDOUT)
-    coverband = Coverband::Base.new
+    coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     coverband.instance_variable_set("@logger", logger)
@@ -34,9 +39,9 @@ class BaseTest < Test::Unit::TestCase
     assert_equal true, coverband.instance_variable_get("@enabled")
   end
   
-  should "allow reporting with start stop save" do
+  test "allow reporting with start stop save" do
     logger = Logger.new(STDOUT)
-    coverband = Coverband::Base.new
+    coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     coverband.instance_variable_set("@logger", logger)
@@ -49,8 +54,8 @@ class BaseTest < Test::Unit::TestCase
     coverband.save
   end
   
-  should "allow reporting to redis start stop save" do
-    coverband = Coverband::Base.new
+  test "allow reporting to redis start stop save" do
+    coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     store = Coverband::RedisStore.new(Redis.new)

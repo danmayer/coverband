@@ -12,8 +12,13 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
-      @logger = nil
+      @logger = Logger.new(STDOUT)
       @startup_delay = 0
     end
+
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+
   end
 end

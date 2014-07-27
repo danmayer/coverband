@@ -8,7 +8,10 @@ module Coverband
       @project_directory = File.expand_path(Coverband.configuration.root)
       results = Coverage.result
       results = results.reject{|key, val| !key.match(@project_directory) || Coverband.configuration.ignore.any?{|pattern| key.match(/#{pattern}/)} }
-      puts results.inspect
+
+      if Coverband.configuration.verbose
+        Coverband.configuration.logger.info results.inspect
+      end
       
       File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
     end
@@ -17,7 +20,7 @@ module Coverband
       begin
         require 'simplecov' if Coverband.configuration.reporter=='scov'
       rescue
-        puts "coverband requires simplecov in order to generate a report, when configured for the scov report style."
+        Coverband.configuration.logger.error "coverband requires simplecov in order to generate a report, when configured for the scov report style."
         return
       end
       redis = Coverband.configuration.redis
@@ -26,12 +29,16 @@ module Coverband
       open_report = options.fetch(:open_report){ true }
 
       roots << "#{current_root}/"
-      puts "fixing root: #{roots.join(', ')}"
+
+      if Coverband.configuration.verbose
+        Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
+      end
+
       if  Coverband.configuration.reporter=='scov'
         report_scov(redis, existing_coverage, roots, open_report)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
-        puts lines.join("\n")
+        Coverband.configuration.logger.info lines.join("\n")
       end
     end
 
@@ -56,19 +63,57 @@ module Coverband
       fixed_report
     end
 
+    # [0,0,1,0,1]
+    # [nil,0,1,0,0]
+    # merge to
+    # [0,0,1,0,1]
+    def self.merge_arrays(first, second)
+      merged = []
+      longest = if first.length > second.length 
+        first
+      else
+        second
+      end
+     longest.each_with_index do |line, index|
+              if first[index] || second[index]
+                merged[index] = (first[index].to_i + second[index].to_i >= 1 ? 1 : 0)
+              else
+                merged[index] = nil
+              end
+            end
+     merged
+    end
+
     def self.report_scov(redis, existing_coverage, roots, open_report)
       scov_style_report = {}
-      redis.smembers('coverband').each{|key| line_data = line_hash(redis, key, roots); scov_style_report.merge!(line_data) if line_data }
+      redis.smembers('coverband').each do |key|
+                                   next if Coverband.configuration.ignore.any?{ |i| key.match(i)}
+                                   line_data = line_hash(redis, key, roots)
+                                   
+                                   if line_data
+                                     line_key = line_data.keys.first
+                                     previous_line_hash = scov_style_report[line_key]
+                                     if previous_line_hash
+                       
+                                       line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
+                                     end
+                                     scov_style_report.merge!(line_data)
+                                   end
+                                 end
       scov_style_report = fix_file_names(scov_style_report, roots)
       existing_coverage = fix_file_names(existing_coverage, roots)
       scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
-      puts "report: "
-      puts scov_style_report.inspect
+      
+      if Coverband.configuration.verbose
+        Coverband.configuration.logger.info "report: "
+        Coverband.configuration.logger.info scov_style_report.inspect
+      end
+      
       SimpleCov::Result.new(scov_style_report).format!
       if open_report
         `open #{SimpleCov.coverage_dir}/index.html`
       else
-        puts "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
+        Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
       end
     end
 
@@ -94,7 +139,7 @@ module Coverband
     # /Users/danmayer/projects/cover_band_server/app/rb: ["54", "55"]
     # /Users/danmayer/projects/cover_band_server/views/layout/erb: ["0", "33", "36", "37", "38", "39", "40", "62", "63", "66", "65532", "65533"]
     def self.report_line(redis, key)
-      "#{key}: #{redis.smembers("coverband.#{key}").inspect}"
+      "#{key}: #{redis.smembers("coverband.#{key}").inspect}" #" fix line styles
     end
 
     def self.filename_from_key(key, roots)
@@ -102,6 +147,9 @@ module Coverband
       roots.each do |root|
         filename = filename.gsub(/^#{root}/, './')
       end
+      # the filename for  SimpleCov is expected to be a full path.
+      # roots.last should be roots << current_root}/
+      # a fully expanded path of config.root
       filename = filename.gsub('./', roots.last)
       filename
     end
@@ -121,7 +169,8 @@ module Coverband
         line_array.each_with_index{|line,index| line_array[index]=1 if lines_hit.include?((index+1).to_s) }
         {filename => line_array}
       else
-        puts "file #{filename} not found in project"
+        Coverband.configuration.logger.info "file #{filename} not found in project"
+        nil
       end
     end
 

@@ -11,7 +11,7 @@ require 'coverband/middleware'
 module Coverband
 
   class << self
-    attr_accessor :configuration
+    attr_accessor :configuration_data
   end
 
   def self.parse_baseline(baseline_file = './tmp/coverband_baseline.json')
@@ -23,13 +23,17 @@ module Coverband
   end
 
   def self.configure(file = nil)
-    self.configuration ||= Configuration.new
+    self.configuration_data ||= Configuration.new
     if block_given?
       yield(configuration)
     else
       file ||= './config/coverband.rb'
       require file
     end
+  end
+
+  def self.configuration
+    self.configuration_data ||= Configuration.new
   end
   
 end
