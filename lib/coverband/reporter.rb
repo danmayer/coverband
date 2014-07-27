@@ -63,6 +63,27 @@ module Coverband
       fixed_report
     end
 
+    # [0,0,1,0,1]
+    # [nil,0,1,0,0]
+    # merge to
+    # [0,0,1,0,1]
+    def self.merge_arrays(first, second)
+      merged = []
+      longest = if first.length > second.length 
+        first
+      else
+        second
+      end
+     longest.each_with_index do |line, index|
+              if first[index] || second[index]
+                merged[index] = (first[index].to_i + second[index].to_i >= 1 ? 1 : 0)
+              else
+                merged[index] = nil
+              end
+            end
+     merged
+    end
+
     def self.report_scov(redis, existing_coverage, roots, open_report)
       scov_style_report = {}
       redis.smembers('coverband').each do |key|
@@ -73,7 +94,8 @@ module Coverband
                                      line_key = line_data.keys.first
                                      previous_line_hash = scov_style_report[line_key]
                                      if previous_line_hash
-                                       line_data[line_key] = line_data[line_key].merge(previous_line_hash)
+                       
+                                       line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
                                      end
                                      scov_style_report.merge!(line_data)
                                    end
