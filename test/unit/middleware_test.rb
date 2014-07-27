@@ -3,7 +3,7 @@ require 'rack'
 
 class MiddlewareTest < Test::Unit::TestCase
   
-  should "call app" do
+  test "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -11,14 +11,14 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal "/anything.json", results.last
   end
 
-  should 'pass all rack lint checks' do
+  test 'pass all rack lint checks' do
     Coverband::Base.instance.reset_instance
     app = Rack::Lint.new(Coverband::Middleware.new(fake_app))
     env = Rack::MockRequest.env_for('/hello')
     app.call(env)
   end
 
-  should 'always be enabled with sample percentage of 100' do
+  test 'always be enabled with sample percentage of 100' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -28,7 +28,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
 
-  should 'never be enabled with sample percentage of 0' do
+  test 'never be enabled with sample percentage of 0' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -38,7 +38,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
   end
 
-  should 'always unset function when sampling' do
+  test 'always unset function when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -48,7 +48,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@tracer_set")
   end
 
-  should 'always unset function when not sampling' do
+  test 'always unset function when not sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -58,7 +58,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@tracer_set")
   end
 
-  should 'always record coverage, set trace func, and add_files when sampling' do
+  test 'always record coverage, set trace func, and add_files when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
@@ -69,7 +69,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
 
-  should 'always report coverage when sampling' do
+  test 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
 

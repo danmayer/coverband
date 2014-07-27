@@ -126,10 +126,6 @@ module Coverband
       end
     end
 
-    def add_from_tracepoint(trace_point)
-      add_file(trace_point.path, trace_point.lineno)
-    end
-
     def add_file(file, line)
       if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
         add_file_without_checks(file, line)
