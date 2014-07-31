@@ -13,7 +13,7 @@ module Coverband
         Coverband.configuration.logger.info results.inspect
       end
       
-      File.open('./tmp/coverband_baseline.json', 'w') {|f| f.write(results.to_json) }
+      File.open(Coverband.configuration.baseline_file, 'w') {|f| f.write(results.to_json) }
     end
 
     def self.report(options = {})
