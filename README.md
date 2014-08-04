@@ -11,7 +11,9 @@ At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to 
 ###### Success:
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data. 
 
-This has now been running in production on many applications for months. I will clean up configurations, documentation, and strive to get a 1.0 release out soon.
+###### Performance
+
+At the moment the performance impact of standard Ruby runtime coverage can be pretty large. Once getting things working. I highly recommend adding [coverband_ext](https://github.com/danmayer/coverband_ext) to the project which should shave the performance overhead down to something very reasonable. The two ways to deal with performance right now are lowering the sample rate and using the C extension. Often for smaller projects using the C extension makes 100% coverage possible. 
 
 ## Installation
 
@@ -45,12 +47,13 @@ Details on a example Sinatra app
 
 ## Notes
 
-* Using Redis 2.x gem, while supported, is extremely slow and not recommended. It will have a much larger impact on overhead performance.
-* This has been tested in Ruby 1.9.3, 2 and is running in production on Sinatra, Rails 2.3.x, and Rails 3.2.x
-* No 1.8.7 support
-* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1%, which still gives excellent data
-* I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
-* Make sure to ignore any folders like `vendor` and possibly `lib` as it can help reduce performance overhead
+* Coverband has been running in production on Ruby 1.9.3, 2.x, 2.1.x on Sinatra, Rails 2.3.x, Rails 3.0.x, and Rails 3.2.x
+* No 1.8.7 support, Coverband requires Ruby 1.9.3+
+* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1%, which still gives useful data
+    * The impact with the pure Ruby coverband can't be rather significant on sampled requests
+    * Most of the overhead is in the Ruby coverage collector, you can now use [coverband_ext](https://github.com/danmayer/coverband_ext) to run a C extension collector which is MUCH faster.
+    * Using Redis 2.x gem, while supported, is slow and not recommended. It will have a larger impact on overhead performance. Although the Ruby collection dwarfs the redis time, so it likely doesn't matter much.
+    * Make sure to ignore any folders like `vendor` and possibly `lib` as it can help reduce performance overhead. Or ignore specific frequently hit in app files for better perf.
 
 ## Usage
 
@@ -77,33 +80,29 @@ baseline = Coverband.parse_baseline
 Coverband.configure do |config|
   config.root              = Dir.pwd
   if defined? Redis
-    config.redis             = Redis.new(:host => 'redis.host.com', :port => 49182, :db => 1)
+    config.redis           = Redis.new(:host => 'redis.host.com', :port => 49182, :db => 1)
   end
   config.coverage_baseline = baseline
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
+  config.root_paths        = ['/app/'] # /app/ is needed for heroku deployments
+  # regex paths can help if you are seeing files duplicated for each capistrano deployment release
+  #config.root_paths       = ['/server/apps/my_app/releases/\d+/'] 
+  config.ignore            = ['vendor','lib/scrazy_i18n_patch_thats_hit_all_the_time.rb']
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
-  config.startup_delay     = 15
-  config.percentage        = 60.0
+  config.startup_delay     = Rails.env.production? ? 15 : 2
+  config.percentage        = Rails.env.production? ? 30.0 : 100.0
+  
+  config.logger            = Rails.logger
+  
+  #stats help you collect how often you are sampling requests and other info
   if defined? Statsd
-    config.stats             = Statsd.new('statsd.host.com', 8125)
+    config.stats           = Statsd.new('statsd.host.com', 8125)
   end
+  # config options false, true, or 'debug'. Always use false in production
+  # true and debug can give helpful and interesting code usage information
+  # they both increase the performance overhead of the gem a little.
+  # they can also help with initially debugging the installation.
   config.verbose           = Rails.env.production? ? false : true
-end
-```
-
-Here is a alternative configuration example, allowing for production and development settings:
-
-```ruby
-Coverband.configure do |config|
-  config.root              = Dir.pwd
-  config.redis             = Redis.new
-  config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
-  config.startup_delay     = Rails.env.production? ? 10 : 1
-  config.percentage        = Rails.env.production? ? 15.0 : 100.0
 end
 ```
 
@@ -125,7 +124,7 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-The default Coverband baseline task will try to load the Rails environment. For a non Rails application you can make your own baseline. Below for example is how I take a baseline on a Sinatra app.
+The default Coverband baseline task will try to detect your app as either Rack or Rails environment. It will load the app to take a baseline reading. If the baseline task doesn't load your app well you can override the default baseline to create a better baseline yourself. Below for example is how I take a baseline on a pretty simple Sinatra app.
 
 ```ruby
 namespace :coverband do
@@ -164,9 +163,8 @@ For example if you had a base Resque class, you could use the `before_perform` a
 ```ruby
 def before_perform(*args)
   if (rand * 100.0) <= Coverband.configuration.percentage
-    @@coverband ||= Coverband::Base.new
     @recording_samples = true
-    @@coverband.start
+    Coverband::Base.instance.start
   else
     @recording_samples = false
   end
@@ -174,8 +172,8 @@ end
       
 def after_perform(*args)
   if @recording_samples
-    @@coverband.stop
-    @@coverband.save
+    Coverband::Base.instance.stop
+    Coverband::Base.instance.save
   end
 end
 ```
@@ -184,13 +182,10 @@ In general you can run Coverband anywhere by using the lines below
 
 ```ruby
 require 'coverband'
+Coverband.configure
 	
-Coverband.configure do |config|
-  config.redis             = Redis.new
-  config.percentage        = 50.0
-end
   
-coverband = Coverband::Base.new
+coverband = Coverband::Base.instance
     
 #manual
 coverband.start
@@ -202,8 +197,10 @@ coverband.sample {
   #code to sample coverband
 }
 ```
+
+A common place for code to run outside of the request cycle or background jobs are cron jobs. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs. 
  
-## Clearing Line Coverage Data
+#### Clearing Line Coverage Data
 
 After a deploy where code has changed. 
 The line numbers previously recorded in Redis may no longer match the current state of the files. 
@@ -221,7 +218,7 @@ Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 678
 You can also do this with the included rake tasks.
 
 
-## Verbose debug mode for development
+### Verbose debug mode for development
 
 If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` and `config.verbose = 'debug'` can be useful. With true set it will output the number of lines executed per file, to the passed in log. The files are sorted from least used file to most active file. I have even run that mode in production without much of a problem. The debug verbose mode outputs both file usage and provides the number of calls per line of code. For example if you see something like below which indicates that the `application_helper` has 43150 lines executed. That might seem odd. Then looking at the breakdown of `application_helper` we can see that line `516` was executed 38,577 times. That seems bad, and is likely worth investigating perhaps memoizing or cacheing is required. 
 
@@ -242,9 +239,9 @@ If you are trying to debug locally wondering what code is being run during a req
      [517, 1617], [516, 38577]]
 
 
-## TODO
+### TODO
 
-* Fix network performance by logging to files that purge later (far more time lost in set_trace_func than sending files, hence not a high priority)
+* Fix network performance by logging to files that purge later (like NR) (far more time lost in set_trace_func than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
 * Improve client code api, around manual usage of sampling (like event usage)
@@ -254,7 +251,17 @@ If you are trying to debug locally wondering what code is being run during a req
 * report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
 * ability to change the cover band config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
+
 ## Resources
+
+This notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resorces might be helpfu. I learned a lot looking at various existing projects and open source code.
 
 ##### Ruby Std-lib Coverage
 
@@ -273,14 +280,7 @@ If you are trying to debug locally wondering what code is being run during a req
 * [Jruby coverage bug](http://jira.codehaus.org/browse/JRUBY-6106?page=com.atlassian.jira.plugin.system.issuetabpanels:changehistory-tabpanel)
 * [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)
 * [learn from stackprof](https://github.com/tmm1/stackprof#readme)
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+* I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
 
 ## MIT License
 See the file license.txt for copying permission.
