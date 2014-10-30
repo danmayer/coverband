@@ -11,7 +11,7 @@ At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to 
 ###### Success:
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data. 
 
-###### Performance
+###### Performance Impact
 
 At the moment the performance impact of standard Ruby runtime coverage can be pretty large. Once getting things working. I highly recommend adding [coverband_ext](https://github.com/danmayer/coverband_ext) to the project which should shave the performance overhead down to something very reasonable. The two ways to deal with performance right now are lowering the sample rate and using the C extension. Often for smaller projects using the C extension makes 100% coverage possible. 
 
@@ -58,6 +58,8 @@ Details on a example Sinatra app
 ## Usage
 
 After installing the gem. There are a few steps to gather data, view reports, and for cleaning up the data.
+
+See an [example Sinatra app](https://github.com/danmayer/churn-site) and example [non rack ruby app](https://github.com/danmayer/coverband_examples) configured with coverband.
 
 1. First configure cover band options using the config file, See the section below
 2. Then configure Rake, with helpful tasks. Make sure things are working by recording your Coverband baseline. See the section below
@@ -161,6 +163,9 @@ It is easy to use Coverband outside of a Rack environment. Make sure you configu
 For example if you had a base Resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
 
 ```ruby
+require 'coverband'
+Coverband.configure
+
 def before_perform(*args)
   if (rand * 100.0) <= Coverband.configuration.percentage
     @recording_samples = true
@@ -178,12 +183,11 @@ def after_perform(*args)
 end
 ```
 
-In general you can run Coverband anywhere by using the lines below
+In general you can run Coverband anywhere by using the lines below. This can be useful to wrap all cron jobs, background jobs, or other code run outside of web requests. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs. 
 
 ```ruby
 require 'coverband'
 Coverband.configure
-	
   
 coverband = Coverband::Base.instance
     
@@ -197,8 +201,6 @@ coverband.sample {
   #code to sample coverband
 }
 ```
-
-A common place for code to run outside of the request cycle or background jobs are cron jobs. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs. 
  
 #### Clearing Line Coverage Data
 
@@ -238,6 +240,12 @@ If you are trying to debug locally wondering what code is being run during a req
       ...
      [517, 1617], [516, 38577]]
 
+##### Known issues
+
+* `set_trace_func` isn't perfect in sending each line of code executed and can be a bit wonky in a few places. Such as missing the `end` lines in code blocks. If you notice examples of this send them to me.
+* If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if coverband gave a more actionable warning in this situation.
+* If you have simplecov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to coverband as well and can often filter out everything we are recording.
+* the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
 
 ### TODO
 
@@ -261,7 +269,7 @@ If you are trying to debug locally wondering what code is being run during a req
 
 ## Resources
 
-This notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resorces might be helpfu. I learned a lot looking at various existing projects and open source code.
+These notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resorces might be helpfu. I learned a lot looking at various existing projects and open source code.
 
 ##### Ruby Std-lib Coverage
 

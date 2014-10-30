@@ -10,6 +10,8 @@ require 'coverband/middleware'
 
 module Coverband
 
+  CONFIG_FILE = './config/coverband.rb'
+  
   class << self
     attr_accessor :configuration_data
   end
@@ -27,8 +29,12 @@ module Coverband
     if block_given?
       yield(configuration)
     else
-      file ||= './config/coverband.rb'
-      require file
+      if File.exists?(CONFIG_FILE)
+        file ||= CONFIG_FILE
+        require file
+      else
+        raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
+      end
     end
   end
 
