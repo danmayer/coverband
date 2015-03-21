@@ -12,7 +12,9 @@ module Coverband
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info results.inspect
       end
-      
+
+      config_dir = File.dirname(Coverband.configuration.baseline_file)
+      Dir.mkdir config_dir unless File.exists?(config_dir)
       File.open(Coverband.configuration.baseline_file, 'w') {|f| f.write(results.to_json) }
     end
 
@@ -34,7 +36,9 @@ module Coverband
 
       if  Coverband.configuration.reporter=='scov'
         additional_scov_data = options.fetch(:additional_scov_data){ [] }
-        print additional_scov_data
+        if Coverband.configuration.verbose
+          print additional_scov_data
+        end
         report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
@@ -92,10 +96,7 @@ module Coverband
 
     
     def self.get_current_scov_data
-      redis = Coverband.configuration.redis
-      roots = get_roots
-
-      get_current_scov_data_imp redis, roots
+      get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
     end
 
     def self.get_current_scov_data_imp(redis, roots)
@@ -162,9 +163,13 @@ module Coverband
     # /Users/danmayer/projects/cover_band_server/app/rb: ["54", "55"]
     # /Users/danmayer/projects/cover_band_server/views/layout/erb: ["0", "33", "36", "37", "38", "39", "40", "62", "63", "66", "65532", "65533"]
     def self.report_line(redis, key)
-      "#{key}: #{redis.smembers("coverband.#{key}").inspect}" #" fix line styles
+      "#{key}: #{line_members(redis, key)}"
     end
 
+    def self.line_members(redis, key)
+      redis.smembers("coverband.#{key}").inspect
+    end
+                                                            
     def self.filename_from_key(key, roots)
       filename = key
       roots.each do |root|

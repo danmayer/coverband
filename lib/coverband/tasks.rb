@@ -25,24 +25,26 @@ namespace :coverband do
               rescue Exception
                 #ignore
               end }
-        end
-        if File.exists?("#{Rails.root}/lib")
-          Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file|
+          if File.exists?("#{Rails.root}/lib")
+            Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file|
               begin
                 require_dependency file
               rescue Exception
                 #ignoring file
               end}
+          end
         end
       }
   end
 
   ###
-  # note: If have set a ton of simplecov filters you might want to override them and clear the filters or run the task below.
+  # note: If your project has set many simplecov filters.
+  # You might want to override them and clear the filters.
+  # Or run the task `coverage_no_filters` below.
   ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
-                   Coverband::Reporter.report
+    Coverband::Reporter.report
   end
 
   def clear_simplecov_filters
@@ -51,12 +53,17 @@ namespace :coverband do
     end
   end
 
-  desc "report runtime coverband code coverage"
+  desc "report runtime coverband code coverage after disabling simplecov filters"
   task :coverage_no_filters => :environment do
     clear_simplecov_filters
     Coverband::Reporter.report
   end
 
+  ###
+  # You likely want to clear coverage after significant code changes.
+  # You may want to have a hook that saves current coverband data on deploy
+  # and then resets the redis data.
+  ###
   desc "reset coverband coverage data"
   task :clear  => :environment do
     Coverband::Reporter.clear_coverage

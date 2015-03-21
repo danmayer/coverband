@@ -47,9 +47,9 @@ Details on a example Sinatra app
 
 ## Notes
 
-* Coverband has been running in production on Ruby 1.9.3, 2.x, 2.1.x on Sinatra, Rails 2.3.x, Rails 3.0.x, and Rails 3.2.x
+* Coverband has been running in production on Ruby 1.9.3, 2.x, 2.1.x on Sinatra, Rails 2.3.x, Rails 3.0.x, Rails 3.1.x, and Rails 3.2.x
 * No 1.8.7 support, Coverband requires Ruby 1.9.3+
-* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rake of 20% and on very high traffic sites I am sampling at 1%, which still gives useful data
+* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rate of 20% and on very high traffic sites I am sampling at 1%, which still gives useful data
     * The impact with the pure Ruby coverband can't be rather significant on sampled requests
     * Most of the overhead is in the Ruby coverage collector, you can now use [coverband_ext](https://github.com/danmayer/coverband_ext) to run a C extension collector which is MUCH faster.
     * Using Redis 2.x gem, while supported, is slow and not recommended. It will have a larger impact on overhead performance. Although the Ruby collection dwarfs the redis time, so it likely doesn't matter much.
@@ -72,9 +72,10 @@ See an [example Sinatra app](https://github.com/danmayer/churn-site) and example
 
 #### Configure Coverband Options
 
-You need to configure cover band you can either do that passing in all configuration options to `Coverband.configure` in block format, or a much simpler style is to call `Coverband.configure` with nothing while will load `config/coverband.rb` expecting it to configure the app correctly. Below is an example config file for a Sinatra app:
+You need to configure cover band you can either do that passing in all configuration options to `Coverband.configure` in block format, or a simpler style is to call `Coverband.configure` with nothing while will load `config/coverband.rb` expecting it to configure the app correctly. Below is an example config file for a Sinatra app:
 
 ```ruby
+#config/coverband.rb
 require 'json'
 
 baseline = Coverband.parse_baseline
@@ -140,7 +141,8 @@ namespace :coverband do
 end
 ```
 
-To verify that rake is working run `rake coverband:baseline` and then run `rake coverband:coverage` to view what your baseline coverage looks like before any runtime traffic has been recorded.
+To verify that rake is working run `rake coverband:baseline`
+then run `rake coverband:coverage` to view what your baseline coverage looks like before any runtime traffic has been recorded.
     
 #### Configure rack middleware
 
@@ -183,10 +185,11 @@ def after_perform(*args)
 end
 ```
 
-In general you can run Coverband anywhere by using the lines below. This can be useful to wrap all cron jobs, background jobs, or other code run outside of web requests. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs. 
+In general you can run Coverband anywhere by using the lines below. This can be useful to wrap all cron jobs, background jobs, or other code run outside of web requests. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs.
+
 
 ```ruby
-require 'coverband'
+require "coverband"
 Coverband.configure
   
 coverband = Coverband::Base.instance
@@ -239,8 +242,20 @@ If you are trying to debug locally wondering what code is being run during a req
       [[448, 1], [202, 1],
       ...
      [517, 1617], [516, 38577]]
+     
+### Merge coverage data over time     
 
-##### Known issues
+If you are clearing data on every deploy. You might want to write the data out to a file first. Then you could merge the data into the final results later.
+
+```ruby
+data = JSON.generate Coverband::Reporter.get_current_scov_data
+File.write("blah.json", data)  
+# Then later on, pass it in to the html reporter:
+data = JSON.parse(File.read("blah.json"))
+Coverband::Reporter.report :additional_scov_data => [data]   
+```
+
+#### Known issues
 
 * `set_trace_func` isn't perfect in sending each line of code executed and can be a bit wonky in a few places. Such as missing the `end` lines in code blocks. If you notice examples of this send them to me.
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if coverband gave a more actionable warning in this situation.
@@ -257,7 +272,7 @@ If you are trying to debug locally wondering what code is being run during a req
   * blank rails app
   * blank Sinatra app
 * report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
-* ability to change the cover band config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+* ability to change the coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 
 ## Contributing
 
@@ -277,7 +292,7 @@ These notes of kind of for myself, but if anyone is seriously interested in cont
 * [Current Coverage Bug causing issues on 2.1.1](https://bugs.ruby-lang.org/issues/9572)
 * [Ruby Coverage docs](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/coverage/rdoc/Coverage.html)
 
-##### other
+##### Other
 
 * [erb code coverage](http://stackoverflow.com/questions/13030909/how-to-test-code-coverage-for-rails-erb-templates)
 * [more erb code coverage](https://github.com/colszowka/simplecov/issues/38)

@@ -25,7 +25,7 @@ module Coverband
   end
 
   def self.configure(file = nil)
-    self.configuration_data ||= Configuration.new
+    configuration
     if block_given?
       yield(configuration)
     else
