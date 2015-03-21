@@ -24,18 +24,18 @@ module Coverband
         return
       end
       redis = Coverband.configuration.redis
-      roots = Coverband.configuration.root_paths
+      roots = get_roots
       existing_coverage = Coverband.configuration.coverage_baseline
       open_report = options.fetch(:open_report){ true }
-
-      roots << "#{current_root}/"
 
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
       end
 
       if  Coverband.configuration.reporter=='scov'
-        report_scov(redis, existing_coverage, roots, open_report)
+        additional_scov_data = options.fetch(:additional_scov_data){ [] }
+        print additional_scov_data
+        report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
       else
         lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
         Coverband.configuration.logger.info lines.join("\n")
@@ -46,6 +46,12 @@ module Coverband
       redis ||= Coverband.configuration.redis
       redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
       redis.del("coverband")
+    end
+
+    def self.get_roots
+      roots = Coverband.configuration.root_paths
+      roots << "#{current_root}/"
+      roots
     end
 
     def self.current_root
@@ -84,7 +90,15 @@ module Coverband
      merged
     end
 
-    def self.report_scov(redis, existing_coverage, roots, open_report)
+    
+    def self.get_current_scov_data
+      redis = Coverband.configuration.redis
+      roots = get_roots
+
+      get_current_scov_data_imp redis, roots
+    end
+
+    def self.get_current_scov_data_imp(redis, roots)
       scov_style_report = {}
       redis.smembers('coverband').each do |key|
                                    next if Coverband.configuration.ignore.any?{ |i| key.match(i)}
@@ -101,8 +115,17 @@ module Coverband
                                    end
                                  end
       scov_style_report = fix_file_names(scov_style_report, roots)
+      scov_style_report
+    end
+      
+    def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
+      scov_style_report = get_current_scov_data_imp redis, roots
       existing_coverage = fix_file_names(existing_coverage, roots)
       scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
+
+      additional_scov_data.each do |data|
+        scov_style_report = merge_existing_coverage(scov_style_report, data)
+      end
       
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "report: "
