@@ -2,21 +2,21 @@ module Coverband
   class RedisStore
     def initialize(redis)
       @redis = redis
+      @_sadd_supports_array = recent_gem_version? && recent_server_version?
     end
 
     def store_report(report)
-      store_array('coverband', report.keys)
+      redis.pipelined do
+        store_array('coverband', report.keys)
 
-      report.each do |file, lines|
-        store_array("coverband.#{file}", lines)
+        report.each do |file, lines|
+          store_array("coverband.#{file}", lines)
+        end
       end
     end
 
     def sadd_supports_array?
-      # if the value is false, ||= would reevaluate the right side
-      return @_sadd_supports_array if defined?(@_sadd_supports_array)
-
-      @_sadd_supports_array = recent_gem_version? && recent_server_version?
+      @_sadd_supports_array
     end
 
     private
