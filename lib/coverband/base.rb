@@ -8,19 +8,19 @@ module Coverband
       @enabled = true
       record_coverage
     end
-    
+
     def stop
       @enabled = false
       unset_tracer
     end
-    
+
     def sample
       configure_sampling
       record_coverage
       yield
       report_coverage
     end
-    
+
     def save
       @enabled = true
       report_coverage
@@ -112,7 +112,7 @@ module Coverband
 
     def set_tracer
       unless @tracer_set
-        set_trace_func proc { |event, file, line, id, binding, classname|
+        Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
           add_file(file, line)
         }
         @tracer_set = true
@@ -121,13 +121,13 @@ module Coverband
 
     def unset_tracer
       if @tracer_set
-        set_trace_func(nil)
+        Thread.current.set_trace_func(nil)
         @tracer_set = false
       end
     end
 
     def add_file(file, line)
-      if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) } 
+      if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) }
         add_file_without_checks(file, line)
       end
     end
