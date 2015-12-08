@@ -2,7 +2,10 @@ require 'singleton'
 
 module Coverband
   class Base
-    include Singleton
+
+    def self.instance
+      Thread.current[:coverband_instance] ||= Coverband::Base.new
+    end
 
     def start
       @enabled = true
