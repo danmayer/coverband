@@ -1,4 +1,6 @@
 require "bundler/gem_tasks"
+require 'coverband_ext' if ENV['C_EXT']
+
 import 'test/benchmarks/benchmark.rake'
 
 task :default => :test

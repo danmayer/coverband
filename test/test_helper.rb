@@ -4,7 +4,6 @@ require 'test/unit'
 require 'mocha/setup'
 require 'ostruct'
 require 'json'
-require 'coverband_ext' if ENV['C_EXT']
 
 SimpleCov.start do
   add_filter 'specs/ruby/1.9.1/gems/'

@@ -152,10 +152,6 @@ module Coverband
       end
     end
 
-    def add_file(file, line)
-      add_file_without_checks(file, line)
-    end
-
     # file from ruby coverband at this method call is a full path
     # file from native coverband is also a full path
     #
@@ -166,7 +162,7 @@ module Coverband
     # -- OR --
     # we could have the reporter MERGE the results after normalizing the filenames
     # (went with this route see report_scov previous_line_hash)
-    def add_file_without_checks(file, line)
+    def add_file(file, line)
       if @verbose
         @file_usage[file] += 1
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
@@ -178,6 +174,8 @@ module Coverband
         @files[file] = [line]
       end
     end
+
+    alias add_file_without_checks add_file
 
     def output_file_line_usage
       @logger.info "coverband debug coverband file:line usage:"
