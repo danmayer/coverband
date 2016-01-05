@@ -3,9 +3,20 @@ require 'redis'
 
 namespace :benchmarks do
 
+  def classifier_dir
+    classifier_dir = File.join(File.dirname(__FILE__), 'classifier-reborn')
+  end
+
+  def clone_classifier
+    unless Dir.exist? classifier_dir
+      system "git clone git@github.com:jekyll/classifier-reborn.git #{classifier_dir}"
+    end
+  end
+
   desc 'set up coverband'
   task :setup do
-    $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), 'classifier-reborn', 'lib'))
+    clone_classifier
+    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
     require 'benchmark'
     require 'classifier-reborn'
 
@@ -17,6 +28,7 @@ namespace :benchmarks do
       config.logger            = $stdout
       config.verbose           = false
     end
+
   end
 
 
@@ -52,9 +64,9 @@ namespace :benchmarks do
   desc 'runs benchmarks'
   task :run => :setup do
     SAMPLINGS = 3
-    bm = Benchmark.bm do |x|
+    bm = Benchmark.bm(15) do |x|
 
-      x.report "coverband" do
+      x.report 'coverband' do
         SAMPLINGS.times do
           Coverband::Base.instance.sample do
             work
