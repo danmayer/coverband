@@ -1,4 +1,5 @@
 require "bundler/gem_tasks"
+import 'test/benchmarks/benchmark.rake'
 
 task :default => :test
 require 'rake/testtask'

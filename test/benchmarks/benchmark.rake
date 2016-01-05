@@ -1,7 +1,5 @@
-
 require 'coverband'
 require 'redis'
-
 
 
 namespace :benchmarks do
