@@ -6,3 +6,5 @@ rvm:
   - "2.2"
 services:
   - redis-server
+before_install:
+  - gem install bundler
