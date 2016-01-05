@@ -82,7 +82,10 @@ module Coverband
 
       unset_tracer
 
+      @files.reject!{|file, lines| !track_file?(file) }
+
       if @verbose
+        @file_usage.reject!{|file, line_count| !track_file?(file) }
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
         if @verbose=="debug"
           output_file_line_usage
@@ -113,6 +116,11 @@ module Coverband
 
     protected
 
+    def track_file? file
+       !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) }
+    end
+
+
     def set_tracer
       unless @tracer_set
         Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
@@ -130,9 +138,7 @@ module Coverband
     end
 
     def add_file(file, line)
-      if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) }
-        add_file_without_checks(file, line)
-      end
+      add_file_without_checks(file, line)
     end
 
     # file from ruby coverband at this method call is a full path
