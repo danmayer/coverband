@@ -1,7 +1,6 @@
 require 'coverband'
 require 'redis'
 
-
 namespace :benchmarks do
 
   desc 'set up coverband'
@@ -73,3 +72,6 @@ namespace :benchmarks do
   end
 
 end
+
+desc "runs benchmarks"
+task benchmarks: [ "benchmarks:run" ]
