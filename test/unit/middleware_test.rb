@@ -2,7 +2,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Test::Unit::TestCase
-  
+
   test "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -82,7 +82,7 @@ class MiddlewareTest < Test::Unit::TestCase
     Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{file_with_path}", [11, 11, 11, 12])
+    fake_redis.expects(:sadd).at_least_once.with("coverband.#{file_with_path}", [11, 12])
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end

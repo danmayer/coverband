@@ -4,6 +4,7 @@ require 'test/unit'
 require 'mocha/setup'
 require 'ostruct'
 require 'json'
+require 'pry-byebug' if ENV['PRY_BYEBUG']
 require 'coverband_ext' if ENV['C_EXT']
 
 SimpleCov.start do

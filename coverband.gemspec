@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "mocha", "~> 0.14.0"
   spec.add_development_dependency "rack"
+  spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "coverband_ext", "~> 1.1"
   spec.add_development_dependency "test-unit"
   spec.add_runtime_dependency "simplecov"
