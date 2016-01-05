@@ -39,22 +39,35 @@ namespace :benchmarks do
     lsi.classify "This text is also about dogs!"
   end
 
+  def work
+    5.times do
+      bayes_classification
+      lsi_classification
+    end
+  end
+
 
 
   desc 'runs benchmarks'
   task :run do
+    SAMPLINGS = 3
+    bm = Benchmark.bm do |x|
 
-    bm = Benchmark.measure do
-      5.times do
-        Coverband::Base.instance.sample do
-          5.times do
-            bayes_classification
-            lsi_classification
+      x.report "coverband" do
+        SAMPLINGS.times do
+          Coverband::Base.instance.sample do
+            work
           end
         end
       end
+
+      x.report "no coverband" do
+        SAMPLINGS.times do
+          work
+        end
+      end
+
     end
-    puts bm
   end
 
 end
