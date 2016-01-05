@@ -42,7 +42,7 @@ module Coverband
       @file_usage = Hash.new(0)
       @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore
+      @ignore_patterns = Coverband.configuration.ignore + ['gems', "internal:prelude"]
       @sample_percentage = Coverband.configuration.percentage
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
@@ -117,7 +117,7 @@ module Coverband
     protected
 
     def track_file? file
-       !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) }
+      !@ignore_patterns.any?{ |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
     end
 
 
