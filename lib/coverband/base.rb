@@ -151,11 +151,8 @@ module Coverband
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
         @file_line_usage[file][line] += 1
       end
-      if @files.include?(file)
-        @files[file] << line unless @files.include?(line)
-      else
-        @files[file] = [line]
-      end
+      file_lines = (@files[file] ||= [])
+      file_lines << line
     end
 
     def output_file_line_usage
