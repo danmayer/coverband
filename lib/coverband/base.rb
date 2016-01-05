@@ -49,8 +49,11 @@ module Coverband
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
       @current_thread = Thread.current
-      @trace = TracePoint.new(:line) do |tp|
-        add_file(tp.path, tp.lineno) if Thread.current == @current_thread
+      #>= ruby 2.0 we use trace point
+      if defined?(TracePoint)
+        @trace = TracePoint.new(:line) do |tp|
+          add_file(tp.path, tp.lineno) if Thread.current == @current_thread
+        end
       end
       self
     end
@@ -127,18 +130,24 @@ module Coverband
 
     def set_tracer
       unless @tracer_set
-        #Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
-        #  add_file(file, line)
-        #
-        @trace.enable
+        if @trace
+          @trace.enable
+        else
+          Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
+            add_file(file, line)
+          }
+        end
         @tracer_set = true
       end
     end
 
     def unset_tracer
       if @tracer_set
-        #Thread.current.set_trace_func(nil)
-        @trace.disable
+        if @trace
+          @trace.disable
+        else
+          Thread.current.set_trace_func(nil)
+        end
         @tracer_set = false
       end
     end
