@@ -1,21 +1,25 @@
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), 'classifier-reborn', 'lib'))
 
 require 'coverband'
-require 'benchmark'
 require 'redis'
-require 'classifier-reborn'
 
 
 
 namespace :benchmarks do
 
-  Coverband.configure do |config|
-    config.redis             = Redis.new
-    config.root              = Dir.pwd
-    config.startup_delay     = 0
-    config.percentage        = 100.0
-    config.logger            = $stdout
-    config.verbose           = false
+  desc 'set up coverband'
+  task :setup do
+    $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), 'classifier-reborn', 'lib'))
+    require 'benchmark'
+    require 'classifier-reborn'
+
+    Coverband.configure do |config|
+      config.redis             = Redis.new
+      config.root              = Dir.pwd
+      config.startup_delay     = 0
+      config.percentage        = 100.0
+      config.logger            = $stdout
+      config.verbose           = false
+    end
   end
 
 
@@ -49,7 +53,7 @@ namespace :benchmarks do
 
 
   desc 'runs benchmarks'
-  task :run do
+  task :run => :setup do
     SAMPLINGS = 3
     bm = Benchmark.bm do |x|
 
