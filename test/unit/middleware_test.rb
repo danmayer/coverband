@@ -69,6 +69,15 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
 
+  test 'reports coverage when an error is raised' do
+    request = Rack::MockRequest.env_for("/anything.json")
+    Coverband::Base.instance.reset_instance
+    Coverband::Base.instance.expects(:report_coverage).once
+    middleware = Coverband::Middleware.new(fake_app_raise_error)
+    middleware.call(request) rescue nil
+  end
+
+
   test 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -114,6 +123,10 @@ class MiddlewareTest < Test::Unit::TestCase
 
   def fake_app
     @app ||= lambda { |env| [200, {'Content-Type' => 'text/plain'}, env['PATH_INFO']] }
+  end
+
+  def fake_app_raise_error
+    @fake_app_raise_error ||= lambda { raise "sh** happens" }
   end
 
   def fake_app_with_lines
