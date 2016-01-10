@@ -102,7 +102,7 @@ class MiddlewareTest < Test::Unit::TestCase
       Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
       fake_redis.stubs(:info).returns({'redis_version' => 3.0})
       fake_redis.expects(:sadd).at_least_once
-      fake_redis.expects(:sadd).at_least_once.with("coverband.#{file_with_path}", [6, 84, 148])
+      fake_redis.expects(:sadd).at_least_once.with("coverband.#{file_with_path}", [6, 87, 151])
       results = middleware.call(request)
       assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
     end
