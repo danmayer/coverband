@@ -42,12 +42,19 @@ module Coverband
       @file_usage = Hash.new(0)
       @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore
+      @ignore_patterns = Coverband.configuration.ignore + ['gems', "internal:prelude"]
       @sample_percentage = Coverband.configuration.percentage
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
+      @current_thread = Thread.current
+      #>= ruby 2.0 we use trace point
+      if defined?(TracePoint)
+        @trace = TracePoint.new(:line) do |tp|
+          add_file(tp.path, tp.lineno) if Thread.current == @current_thread
+        end
+      end
       self
     end
 
@@ -82,7 +89,10 @@ module Coverband
 
       unset_tracer
 
+      @files.reject!{|file, lines| !track_file?(file) }
+
       if @verbose
+        @file_usage.reject!{|file, line_count| !track_file?(file) }
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
         if @verbose=="debug"
           output_file_line_usage
@@ -90,15 +100,19 @@ module Coverband
       end
 
       if @reporter
-        if @reporter.class.name.match(/redis/i)
-          before_time = Time.now
-          @stats.count "coverband.files.recorded_files", @files.length if @stats
-          @reporter.store_report(@files.dup)
-          time_spent = Time.now - before_time
-          @stats.timing "coverband.files.recorded_time", time_spent if @stats
-          @files = {}
-          @file_usage = Hash.new(0)
-          @file_line_usage = {}
+        if @stats
+          @before_time = Time.now
+          @stats.count "coverband.files.recorded_files", @files.length
+        end
+        @reporter.store_report(@files)
+        if @stats
+          @time_spent = Time.now - @before_time
+          @stats.timing "coverband.files.recorded_time", @time_spent
+        end
+        @files.clear
+        if @verbose
+          @file_usage.clear
+          @file_line_usage.clear
         end
       elsif @verbose
         @logger.info "coverage report: "
@@ -113,25 +127,32 @@ module Coverband
 
     protected
 
+    def track_file? file
+      !@ignore_patterns.any?{ |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
+    end
+
+
     def set_tracer
       unless @tracer_set
-        Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
-          add_file(file, line)
-        }
+        if @trace
+          @trace.enable
+        else
+          Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
+            add_file(file, line)
+          }
+        end
         @tracer_set = true
       end
     end
 
     def unset_tracer
       if @tracer_set
-        Thread.current.set_trace_func(nil)
+        if @trace
+          @trace.disable
+        else
+          Thread.current.set_trace_func(nil)
+        end
         @tracer_set = false
-      end
-    end
-
-    def add_file(file, line)
-      if !file.match(/(\/gems\/|internal\:prelude)/) && file.match(@project_directory) && !@ignore_patterns.any?{|pattern| file.match(/#{pattern}/) }
-        add_file_without_checks(file, line)
       end
     end
 
@@ -145,18 +166,17 @@ module Coverband
     # -- OR --
     # we could have the reporter MERGE the results after normalizing the filenames
     # (went with this route see report_scov previous_line_hash)
-    def add_file_without_checks(file, line)
+    def add_file(file, line)
       if @verbose
         @file_usage[file] += 1
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
         @file_line_usage[file][line] += 1
       end
-      if @files.include?(file)
-        @files[file] << line unless @files.include?(line)
-      else
-        @files[file] = [line]
-      end
+      file_lines = (@files[file] ||= [])
+      file_lines << line
     end
+
+    alias add_file_without_checks add_file
 
     def output_file_line_usage
       @logger.info "coverband debug coverband file:line usage:"
