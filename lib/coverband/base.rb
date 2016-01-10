@@ -51,7 +51,7 @@ module Coverband
       @current_thread = Thread.current
       #>= ruby 2.0 we use trace point
       if defined?(TracePoint)
-        @trace = TracePoint.new(:call) do |tp|
+        @trace = TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
           add_file(tp.path, tp.lineno) if Thread.current == @current_thread
         end
       end
