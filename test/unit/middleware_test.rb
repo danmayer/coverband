@@ -64,7 +64,6 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
     Coverband::Base.instance.instance_variable_set("@sample_percentage", 100.0)
-    Coverband::Base.instance.expects(:add_file).at_least_once
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
@@ -92,7 +91,7 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     trace_point = Coverband::Base.instance.instance_variable_get(:@trace)
-    line_numbers = trace_point ? [11,12] : [11, 11, 11, 12]
+    line_numbers = trace_point ? [11,13] : [11, 11, 11, 13]
     fake_redis.expects(:sadd).at_least_once.with("coverband.#{file_with_path}", line_numbers)
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
