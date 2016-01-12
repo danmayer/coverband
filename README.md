@@ -1,4 +1,4 @@
-# Coverband 
+# Coverband
 
 [![Build Status](https://travis-ci.org/danmayer/coverband.svg?branch=master)](https://travis-ci.org/danmayer/coverband)
 
@@ -11,11 +11,11 @@ A gem to measure production code coverage. Coverband allows easy configuration t
 At the moment, Coverband relies on Ruby's `set_trace_func` hook. I attempted to use the standard lib's `Coverage` support but it proved buggy when sampling or stopping and starting collection. When [Coverage is patched](https://bugs.ruby-lang.org/issues/9572) in future Ruby versions it would likely be better. Using `set_trace_func` has some limitations where it doesn't collect covered lines, but I have been impressed with the coverage it shows for both Sinatra and Rails applications.
 
 ###### Success:
-After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data. 
+After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
 
 ###### Performance Impact
 
-At the moment the performance impact of standard Ruby runtime coverage can be pretty large. Once getting things working. I highly recommend adding [coverband_ext](https://github.com/danmayer/coverband_ext) to the project which should shave the performance overhead down to something very reasonable. The two ways to deal with performance right now are lowering the sample rate and using the C extension. Often for smaller projects using the C extension makes 100% coverage possible. 
+At the moment the performance impact of standard Ruby runtime coverage can be pretty large. Once getting things working. I highly recommend adding [coverband_ext](https://github.com/danmayer/coverband_ext) to the project which should shave the performance overhead down to something very reasonable. The two ways to deal with performance right now are lowering the sample rate and using the C extension. Often for smaller projects using the C extension makes 100% coverage possible.
 
 ## Installation
 
@@ -39,7 +39,7 @@ $ gem install coverband
 
 ## Example Output
 
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter. 
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
 
 Index Page
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
@@ -57,22 +57,9 @@ Details on a example Sinatra app
     * Using Redis 2.x gem, while supported, is slow and not recommended. It will have a larger impact on overhead performance. Although the Ruby collection dwarfs the redis time, so it likely doesn't matter much.
     * Make sure to ignore any folders like `vendor` and possibly `lib` as it can help reduce performance overhead. Or ignore specific frequently hit in app files for better perf.
 
-## Usage
+## Configuration
 
-After installing the gem. There are a few steps to gather data, view reports, and for cleaning up the data.
-
-See an [example Sinatra app](https://github.com/danmayer/churn-site) and example [non rack ruby app](https://github.com/danmayer/coverband_examples) configured with coverband.
-
-1. First configure cover band options using the config file, See the section below
-2. Then configure Rake, with helpful tasks. Make sure things are working by recording your Coverband baseline. See the section below
-3. Setup the rack middleware, the middleware is what makes Coverband gather metrics when your app runs. See below for details
-	* I setup Coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
-	* To debug in development mode, I recommend turning verbose logging on `config.verbose           = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
-4. Start your server with `rackup config.ru` If you use `rails s` make sure it is using your `config.ru` or Coverband won't be recording any data. 
-5. Hit your development server exercising the endpoints you want to verify Coverband is recording.
-6. Now to view changes in live coverage run `rake coverband:coverage` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
-
-#### Configure Coverband Options
+### 1. Create Coverband config file
 
 You need to configure cover band you can either do that passing in all configuration options to `Coverband.configure` in block format, or a simpler style is to call `Coverband.configure` with nothing while will load `config/coverband.rb` expecting it to configure the app correctly. Below is an example config file for a Sinatra app:
 
@@ -90,15 +77,15 @@ Coverband.configure do |config|
   config.coverage_baseline = baseline
   config.root_paths        = ['/app/'] # /app/ is needed for heroku deployments
   # regex paths can help if you are seeing files duplicated for each capistrano deployment release
-  #config.root_paths       = ['/server/apps/my_app/releases/\d+/'] 
+  #config.root_paths       = ['/server/apps/my_app/releases/\d+/']
   config.ignore            = ['vendor','lib/scrazy_i18n_patch_thats_hit_all_the_time.rb']
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
   config.startup_delay     = Rails.env.production? ? 15 : 2
   config.percentage        = Rails.env.production? ? 30.0 : 100.0
-  
+
   config.logger            = Rails.logger
-  
+
   #stats help you collect how often you are sampling requests and other info
   if defined? Statsd
     config.stats           = Statsd.new('statsd.host.com', 8125)
@@ -111,7 +98,7 @@ Coverband.configure do |config|
 end
 ```
 
-#### Configuring Rake
+### 2. Configuring Rake
 
 Either add the below to your `Rakefile` or to a file included in your Rakefile such as `lib/tasks/coverband` if you want to break it up that way.
 
@@ -145,22 +132,72 @@ end
 
 To verify that rake is working run `rake coverband:baseline`
 then run `rake coverband:coverage` to view what your baseline coverage looks like before any runtime traffic has been recorded.
-    
-#### Configure rack middleware
+
+### 3. Configure Rack to use the Coverband middleware
+
+The middleware is what makes Coverband gather metrics when your app runs.
+I setup Coverband in my rackup `config.ru` you can also set it up in rails middleware, but it may miss recording some code coverage early in the rails process. It does improve performance to have it later in the middleware stack. So there is a tradeoff there.
+
+#### For Sinatra apps
 
 For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
 
 ```ruby
 require File.dirname(__FILE__) + '/config/environment'
-	
+
 require 'coverband'
 Coverband.configure
 
 use Coverband::Middleware
 run ActionController::Dispatcher.new
 ```
-	
-#### Configure Manually (for example for background jobs)
+
+#### For Rails apps
+
+Create an initializer file
+
+```ruby
+# config/initializes/coverband_middleware.rb
+
+# Configure the Coverband Middleware
+require 'coverband'
+Coverband.configure
+```
+
+Then add the middleware to your Rails rake middle ware stack:
+
+```ruby
+# config/application.rb
+[...]
+
+module MyApplication
+  class Application < Rails::Application
+    [...]
+
+    # Coverband use Middleware
+    config.middleware.use Coverband::Middleware
+
+  end
+end
+```
+
+Note: To debug in development mode, I recommend turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
+
+## Usage
+
+1. Start your server with `rails s` or `rackup config.ru`.
+2. Hit your development server exercising the endpoints you want to verify Coverband is recording (you should see debug outputs in your server console)
+3. Run `rake coverband:coverage` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
+
+Note: if you use `rails s` and data aren't reccorded, make sure it is using your `config.ru`.
+
+## Example apps
+
+- [Rails app](https://github.com/arnlen/rails-coverband-example-app)
+- [Sinatra app](https://github.com/danmayer/churn-site)
+- [Non rack ruby app](https://github.com/danmayer/coverband_examples)
+
+### Manual configuration (for example for background jobs)
 
 It is easy to use Coverband outside of a Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
 
@@ -178,7 +215,7 @@ def before_perform(*args)
     @recording_samples = false
   end
 end
-      
+
 def after_perform(*args)
   if @recording_samples
     Coverband::Base.instance.stop
@@ -193,25 +230,25 @@ In general you can run Coverband anywhere by using the lines below. This can be 
 ```ruby
 require "coverband"
 Coverband.configure
-  
+
 coverband = Coverband::Base.instance
-    
+
 #manual
 coverband.start
 coverband.stop
 coverband.save
-    
+
 #sampling
 coverband.sample {
   #code to sample coverband
 }
 ```
- 
-#### Clearing Line Coverage Data
 
-After a deploy where code has changed. 
-The line numbers previously recorded in Redis may no longer match the current state of the files. 
-If being slightly out of sync isn't as important as gathering data over a long period, 
+### Clearing Line Coverage Data
+
+After a deploy where code has changed.
+The line numbers previously recorded in Redis may no longer match the current state of the files.
+If being slightly out of sync isn't as important as gathering data over a long period,
 you can live with minor inconsistency for some files.
 
 As often as you like or as part of a deploy hook you can clear the recorded Coverband data with the following command.
@@ -227,10 +264,10 @@ You can also do this with the included rake tasks.
 
 ### Verbose debug mode for development
 
-If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` and `config.verbose = 'debug'` can be useful. With true set it will output the number of lines executed per file, to the passed in log. The files are sorted from least used file to most active file. I have even run that mode in production without much of a problem. The debug verbose mode outputs both file usage and provides the number of calls per line of code. For example if you see something like below which indicates that the `application_helper` has 43150 lines executed. That might seem odd. Then looking at the breakdown of `application_helper` we can see that line `516` was executed 38,577 times. That seems bad, and is likely worth investigating perhaps memoizing or cacheing is required. 
+If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` and `config.verbose = 'debug'` can be useful. With true set it will output the number of lines executed per file, to the passed in log. The files are sorted from least used file to most active file. I have even run that mode in production without much of a problem. The debug verbose mode outputs both file usage and provides the number of calls per line of code. For example if you see something like below which indicates that the `application_helper` has 43150 lines executed. That might seem odd. Then looking at the breakdown of `application_helper` we can see that line `516` was executed 38,577 times. That seems bad, and is likely worth investigating perhaps memoizing or cacheing is required.
 
     config.verbose = 'debug'
-    
+
     coverband file usage:
       [["/Users/danmayer/projects/app_name/lib/facebook.rb", 6],
       ["/Users/danmayer/projects/app_name/app/models/some_modules.rb", 9],
@@ -238,33 +275,33 @@ If you are trying to debug locally wondering what code is being run during a req
       ["/Users/danmayer/projects/app_name/app/models/user.rb", 2606],
       ["/Users/danmayer/projects/app_name/app/helpers/application_helper.rb",
       43150]]
-    
+
     file:
       /Users/danmayer/projects/app_name/app/helpers/application_helper.rb =>
       [[448, 1], [202, 1],
       ...
      [517, 1617], [516, 38577]]
-     
-### Merge coverage data over time     
+
+### Merge coverage data over time
 
 If you are clearing data on every deploy. You might want to write the data out to a file first. Then you could merge the data into the final results later.
 
 ```ruby
 data = JSON.generate Coverband::Reporter.get_current_scov_data
-File.write("blah.json", data)  
+File.write("blah.json", data)
 # Then later on, pass it in to the html reporter:
 data = JSON.parse(File.read("blah.json"))
-Coverband::Reporter.report :additional_scov_data => [data]   
+Coverband::Reporter.report :additional_scov_data => [data]
 ```
 
-#### Known issues
+### Known issues
 
 * `set_trace_func` isn't perfect in sending each line of code executed and can be a bit wonky in a few places. Such as missing the `end` lines in code blocks. If you notice examples of this send them to me.
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if coverband gave a more actionable warning in this situation.
 * If you have simplecov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to coverband as well and can often filter out everything we are recording.
 * the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
 
-### TODO
+## TODO
 
 * Fix network performance by logging to files that purge later (like NR) (far more time lost in set_trace_func than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
