@@ -42,7 +42,8 @@ module Coverband
       @file_usage = Hash.new(0)
       @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore + ['gems', "internal:prelude"]
+      @ignore_patterns = Coverband.configuration.ignore + ["internal:prelude"]
+      @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
       @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
