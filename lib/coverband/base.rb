@@ -49,13 +49,10 @@ module Coverband
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
       @current_thread = Thread.current
-      #>= ruby 2.0 we use trace point
-      if defined?(TracePoint)
-        @trace = TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
-          if Thread.current == @current_thread
-            file_lines = (@files[tp.path] ||= [])
-            file_lines << tp.lineno
-          end
+      @trace = TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
+        if Thread.current == @current_thread
+          file_lines = (@files[tp.path] ||= [])
+          file_lines << tp.lineno
         end
       end
       self
@@ -137,26 +134,14 @@ module Coverband
 
     def set_tracer
       unless @tracer_set
-        if @trace
-          @trace.enable
-        else
-          Thread.current.set_trace_func proc { |event, file, line, id, binding, classname|
-            add_file(file, line)
-          }
-        end
+        @trace.enable
         @tracer_set = true
       end
     end
 
     def unset_tracer
-      if @tracer_set
-        if @trace
-          @trace.disable
-        else
-          Thread.current.set_trace_func(nil)
-        end
-        @tracer_set = false
-      end
+      @trace.disable
+      @tracer_set = false
     end
 
     # file from ruby coverband at this method call is a full path
