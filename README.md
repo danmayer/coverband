@@ -16,7 +16,7 @@ After running in production for 30 minutes, we were able very easily delete 2000
 
 ###### Performance Impact
 
-Because coverband 2.0+ uses TracePoint which is much speedier than the ruby 1.9 set_trace_func, the performance impact is reasonable and there is no need for the c-ext ![coverband_ext](https://github.com/danmayer/coverband_ext).  If you are stuck on ruby 1.9 and coverband 1.0.X, the ![coverband_ext](https://github.com/danmayer/coverband_ext) is a must.
+Because coverband 2.0+ uses TracePoint which is much speedier than the ruby 1.9 set_trace_func, the performance impact is reasonable and there is no need for the c-ext [coverband_ext](https://github.com/danmayer/coverband_ext).  If you are stuck on ruby 1.9 and coverband 1.0.X, the [coverband_ext](https://github.com/danmayer/coverband_ext) is a must.
 
 ## Installation
 
