@@ -1,4 +1,5 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('./dog', File.dirname(__FILE__))
 
 class BaseTest < Test::Unit::TestCase
 
@@ -14,7 +15,7 @@ class BaseTest < Test::Unit::TestCase
     coverband = Coverband::Base.instance.reset_instance
     assert_equal false, coverband.extended?
   end
-  
+
   test "stop should disable coverage" do
     coverband = Coverband::Base.instance.reset_instance
     assert_equal false, coverband.instance_variable_get("@enabled")
@@ -25,7 +26,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal false, coverband.instance_variable_get("@enabled")
     assert_equal false, coverband.instance_variable_get("@tracer_set")
   end
-  
+
   test "allow for sampling with a block and enable when 100 percent sample" do
     logger = Logger.new(STDOUT)
     coverband = Coverband::Base.instance.reset_instance
@@ -38,7 +39,7 @@ class BaseTest < Test::Unit::TestCase
     coverband.sample { 1 + 1 }
     assert_equal true, coverband.instance_variable_get("@enabled")
   end
-  
+
   test "allow reporting with start stop save" do
     logger = Logger.new(STDOUT)
     coverband = Coverband::Base.instance.reset_instance
@@ -53,7 +54,7 @@ class BaseTest < Test::Unit::TestCase
     coverband.stop
     coverband.save
   end
-  
+
   test "allow reporting to redis start stop save" do
     coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
@@ -61,11 +62,12 @@ class BaseTest < Test::Unit::TestCase
     store = Coverband::RedisStore.new(Redis.new)
     coverband.instance_variable_set("@reporter", store)
     store.expects(:store_report).once.with { |files|
-      files.keys.include?("#{File.expand_path('../../../', __FILE__)}/lib/coverband/base.rb")
+      files.keys.include?(File.expand_path('./dog.rb', File.dirname(__FILE__)))
     }
+
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
-    1 + 1
+    Dog.new.bark
     coverband.stop
     coverband.save
   end
