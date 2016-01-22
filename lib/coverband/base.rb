@@ -50,12 +50,7 @@ module Coverband
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
       @current_thread = Thread.current
-      @trace = TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
-        if Thread.current == @current_thread
-          file_lines = (@files[tp.path] ||= [])
-          file_lines << tp.lineno
-        end
-      end
+      @trace = create_trace_point
       self
     end
 
@@ -145,28 +140,6 @@ module Coverband
       @tracer_set = false
     end
 
-    # file from ruby coverband at this method call is a full path
-    # file from native coverband is also a full path
-    #
-    # at the moment the full paths don't merge so the 'last' one wins and each deploy
-    # with a normal capistrano setup resets coverage.
-    #
-    # should we make it relative in this method (slows down collection)
-    # -- OR --
-    # we could have the reporter MERGE the results after normalizing the filenames
-    # (went with this route see report_scov previous_line_hash)
-    def add_file(file, line)
-      if @verbose
-        @file_usage[file] += 1
-        @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-        @file_line_usage[file][line] += 1
-      end
-      file_lines = (@files[file] ||= [])
-      file_lines << line
-    end
-
-    alias add_file_without_checks add_file
-
     def output_file_line_usage
       @logger.info "coverband debug coverband file:line usage:"
       @file_line_usage.sort_by {|_key, value| value.length}.each do |pair|
@@ -177,6 +150,22 @@ module Coverband
     end
 
     private
+
+    def create_trace_point
+      TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
+        if Thread.current == @current_thread
+          file = tp.path
+          line = tp.lineno
+          if @verbose
+            @file_usage[file] += 1
+            @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+            @file_line_usage[file][line] += 1
+          end
+          file_lines = (@files[file] ||= [])
+          file_lines << line
+        end
+      end
+    end
 
     def initialize
       reset_instance
