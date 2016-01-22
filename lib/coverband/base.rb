@@ -50,19 +50,7 @@ module Coverband
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
       @current_thread = Thread.current
-      @trace = TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
-        if Thread.current == @current_thread
-          file = tp.path
-          line = tp.lineno
-          if @verbose
-            @file_usage[file] += 1
-            @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-            @file_line_usage[file][line] += 1
-          end
-          file_lines = (@files[file] ||= [])
-          file_lines << line
-        end
-      end
+      @trace = create_trace_point
       self
     end
 
@@ -162,6 +150,22 @@ module Coverband
     end
 
     private
+
+    def create_trace_point
+      TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
+        if Thread.current == @current_thread
+          file = tp.path
+          line = tp.lineno
+          if @verbose
+            @file_usage[file] += 1
+            @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+            @file_line_usage[file][line] += 1
+          end
+          file_lines = (@files[file] ||= [])
+          file_lines << line
+        end
+      end
+    end
 
     def initialize
       reset_instance
