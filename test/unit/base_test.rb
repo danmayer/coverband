@@ -56,15 +56,13 @@ class BaseTest < Test::Unit::TestCase
   end
 
   test "allow reporting to redis start stop save" do
+    dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
     coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     store = Coverband::RedisStore.new(Redis.new)
     coverband.instance_variable_set("@reporter", store)
-    store.expects(:store_report).once.with { |files|
-      files.keys.include?(File.expand_path('./dog.rb', File.dirname(__FILE__)))
-    }
-
+    store.expects(:store_report).once.with(has_entries(dog_file => [3]) )
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     Dog.new.bark
