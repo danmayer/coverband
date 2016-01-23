@@ -45,7 +45,7 @@ module Coverband
       @ignore_patterns = Coverband.configuration.ignore + ["internal:prelude"]
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
-      @reporter = Coverband::RedisStore.new(Coverband.configuration.redis) if Coverband.configuration.redis
+      @reporter = Coverband::MemoryCacheStore.new(Coverband::RedisStore.new(Coverband.configuration.redis)) if Coverband.configuration.redis
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
