@@ -4,6 +4,7 @@ require 'logger'
 require 'coverband/version'
 require 'coverband/configuration'
 require 'coverband/redis_store'
+require 'coverband/memory_cache_store'
 require 'coverband/base'
 require 'coverband/reporter'
 require 'coverband/middleware'
@@ -11,7 +12,7 @@ require 'coverband/middleware'
 module Coverband
 
   CONFIG_FILE = './config/coverband.rb'
-  
+
   class << self
     attr_accessor :configuration_data
   end
@@ -41,5 +42,5 @@ module Coverband
   def self.configuration
     self.configuration_data ||= Configuration.new
   end
-  
+
 end
