@@ -1,5 +1,4 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
-require 'pry-byebug'
 
 module Coverband
   class MemoryCacheStoreTest < Test::Unit::TestCase

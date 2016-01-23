@@ -1,4 +1,3 @@
-require 'thread_safe'
 module Coverband
   class MemoryCacheStore
 
@@ -6,7 +5,7 @@ module Coverband
 
 
     def self.files_cache
-      @files_cache ||= ThreadSafe::Cache.new
+      @files_cache ||= Hash.new
     end
 
     def self.reset!
