@@ -2,6 +2,14 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class RedisTest < Test::Unit::TestCase
 
+  def test_covered_lines_for_file
+    @redis = Redis.new
+    @store = Coverband::RedisStore.new(@redis)
+    @redis.sadd('coverband.dog.rb', 1)
+    @redis.sadd('coverband.dog.rb', 2)
+    assert_equal @store.covered_lines_for_file('dog.rb').sort,  [1, 2]
+  end
+
   private
 
   def test_data

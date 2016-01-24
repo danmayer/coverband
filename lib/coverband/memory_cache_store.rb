@@ -29,7 +29,8 @@ module Coverband
 
     def filter(files)
       files.each_with_object(Hash.new) do |(file, lines), filtered_file_hash|
-        line_cache = files_cache[file] ||= Set.new
+        #first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
+        line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
         lines.reject! do |line|
           if line_cache.include? line
             true

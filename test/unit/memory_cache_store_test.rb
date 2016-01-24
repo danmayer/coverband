@@ -16,6 +16,8 @@ module Coverband
         'file2' => [1, 2]
       }
       @store.expects(:store_report).with data
+      @store.expects(:covered_lines_for_file).with('file1').returns []
+      @store.expects(:covered_lines_for_file).with('file2').returns []
       @memory_store.store_report data
     end
 
@@ -25,6 +27,8 @@ module Coverband
         'file2' => [1, 2]
       }
       @store.expects(:store_report).once.with data
+      @store.expects(:covered_lines_for_file).with('file1').returns []
+      @store.expects(:covered_lines_for_file).with('file2').returns []
       2.times { @memory_store.store_report data }
     end
 
@@ -37,6 +41,8 @@ module Coverband
         'file1' => [ 3, 5, 10 ],
         'file2' => [1, 2]
       }
+      @store.expects(:covered_lines_for_file).with('file1').returns []
+      @store.expects(:covered_lines_for_file).with('file2').returns []
       @store.expects(:store_report).once.with first_data
       @store.expects(:store_report).once.with(
         'file1' => [10]
