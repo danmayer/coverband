@@ -51,5 +51,17 @@ module Coverband
       @memory_store.store_report second_data
     end
 
+    test 'it initializes cache with what is in store' do
+      data = {
+        'file1' => [ 3, 5 ],
+        'file2' => [1, 2]
+      }
+      @store.expects(:covered_lines_for_file).with('file1').returns [3,5]
+      @store.expects(:covered_lines_for_file).with('file2').returns [2]
+      @store.expects(:store_report).with( 'file2' => [1] )
+      @memory_store.store_report data
+    end
+
   end
+
 end

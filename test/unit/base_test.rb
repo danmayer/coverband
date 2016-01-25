@@ -1,7 +1,6 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('./dog', File.dirname(__FILE__))
 
-require 'pry-byebug'
 class BaseTest < Test::Unit::TestCase
 
   test 'defaults to a redis store' do
