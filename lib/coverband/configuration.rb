@@ -1,6 +1,6 @@
 module Coverband
   class Configuration
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger, :startup_delay, :baseline_file, :trace_point_events, :include_gems
+    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger, :startup_delay, :baseline_file, :trace_point_events, :include_gems, :memory_caching
 
     def initialize
       @root = Dir.pwd
@@ -17,6 +17,7 @@ module Coverband
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
       @trace_point_events = [:line]
+      @memory_caching = false
     end
 
     def logger
