@@ -3,6 +3,19 @@ require File.expand_path('./dog', File.dirname(__FILE__))
 
 class BaseTest < Test::Unit::TestCase
 
+  test 'defaults to a redis store' do
+    coverband = Coverband::Base.instance.reset_instance
+    assert_equal Coverband::RedisStore, coverband.instance_variable_get('@reporter').class
+  end
+
+
+  test 'configure memory caching' do
+    Coverband.configuration.memory_caching = true
+    coverband = Coverband::Base.instance.reset_instance
+    assert_equal Coverband::MemoryCacheStore, coverband.instance_variable_get('@reporter').class
+    Coverband.configuration.memory_caching = false
+  end
+
   test "start should enable coverage" do
     coverband = Coverband::Base.instance.reset_instance
     assert_equal false, coverband.instance_variable_get("@enabled")

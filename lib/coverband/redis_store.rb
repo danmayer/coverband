@@ -15,6 +15,12 @@ module Coverband
       end
     end
 
+
+    def covered_lines_for_file(file)
+      @redis.smembers("coverband.#{file}").map(&:to_i)
+    end
+
+
     def sadd_supports_array?
       @_sadd_supports_array
     end
