@@ -133,7 +133,8 @@ module Coverband
         Coverband.configuration.logger.info scov_style_report.inspect
       end
 
-      SimpleCov::Result.new(scov_style_report).format!
+      SimpleCov.track_files "#{current_root}/{app,lib,config}/**/*.{rb,haml,erb,slim}"
+      SimpleCov::Result.new(SimpleCov.add_not_loaded_files(scov_style_report)).format!
       if open_report
         `open #{SimpleCov.coverage_dir}/index.html`
       else
