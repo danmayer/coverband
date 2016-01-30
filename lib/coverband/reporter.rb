@@ -66,7 +66,7 @@ module Coverband
 
     def self.fix_file_names(report_hash, roots)
       fixed_report = {} #normalize names across servers
-      report_hash.each_pair do |key, values| 
+      report_hash.each_pair do |key, values|
         filename = filename_from_key(key, roots)
         fixed_report[filename] = values
       end
@@ -79,7 +79,7 @@ module Coverband
     # [0,0,1,0,1]
     def self.merge_arrays(first, second)
       merged = []
-      longest = if first.length > second.length 
+      longest = if first.length > second.length
         first
       else
         second
@@ -94,7 +94,7 @@ module Coverband
      merged
     end
 
-    
+
     def self.get_current_scov_data
       get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
     end
@@ -104,12 +104,12 @@ module Coverband
       redis.smembers('coverband').each do |key|
                                    next if Coverband.configuration.ignore.any?{ |i| key.match(i)}
                                    line_data = line_hash(redis, key, roots)
-                                   
+
                                    if line_data
                                      line_key = line_data.keys.first
                                      previous_line_hash = scov_style_report[line_key]
                                      if previous_line_hash
-                       
+
                                        line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
                                      end
                                      scov_style_report.merge!(line_data)
@@ -118,7 +118,7 @@ module Coverband
       scov_style_report = fix_file_names(scov_style_report, roots)
       scov_style_report
     end
-      
+
     def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
       scov_style_report = get_current_scov_data_imp redis, roots
       existing_coverage = fix_file_names(existing_coverage, roots)
@@ -127,18 +127,26 @@ module Coverband
       additional_scov_data.each do |data|
         scov_style_report = merge_existing_coverage(scov_style_report, data)
       end
-      
+
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "report: "
         Coverband.configuration.logger.info scov_style_report.inspect
       end
-      
+
       SimpleCov::Result.new(scov_style_report).format!
       if open_report
         `open #{SimpleCov.coverage_dir}/index.html`
       else
         Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
       end
+      persist_results if Coverband.configuration.s3_bucket
+    end
+
+    def self.persist_results
+      s3 = Aws::S3::Resource.new
+      bucket = s3.bucket(Coverband.configuration.s3_bucket)
+      obj = bucket.object('coverband/index.html')
+      obj.put(body: File.read("#{SimpleCov.coverage_dir}/index.html"))
     end
 
     def self.merge_existing_coverage(scov_style_report, existing_coverage)
@@ -169,7 +177,7 @@ module Coverband
     def self.line_members(redis, key)
       redis.smembers("coverband.#{key}").inspect
     end
-                                                            
+
     def self.filename_from_key(key, roots)
       filename = key
       roots.each do |root|
