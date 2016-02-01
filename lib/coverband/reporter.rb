@@ -139,14 +139,9 @@ module Coverband
       else
         Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
       end
-      persist_results if Coverband.configuration.s3_bucket
+      S3ReportWriter.new(Coverband.configuration.s3_bucket).persist! if Coverband.configuration.s3_bucket
     end
 
-    def self.persist_results
-      bucket = Aws::S3::Resource.new.bucket(Coverband.configuration.s3_bucket)
-      obj = bucket.object('coverband/index.html')
-      obj.put(body: File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/#{Gem::Specification.find_by_name('simplecov-html').version.version}/", ''))
-    end
 
     def self.merge_existing_coverage(scov_style_report, existing_coverage)
       existing_coverage.each_pair do |key, lines|
