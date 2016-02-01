@@ -1,5 +1,6 @@
 require 'redis'
 require 'logger'
+require 'aws-sdk'
 
 require 'coverband/version'
 require 'coverband/configuration'
