@@ -146,7 +146,7 @@ module Coverband
       s3 = Aws::S3::Resource.new
       bucket = s3.bucket(Coverband.configuration.s3_bucket)
       obj = bucket.object('coverband/index.html')
-      obj.put(body: File.read("#{SimpleCov.coverage_dir}/index.html"))
+      obj.put(body: File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/0.10.0/", ''))
     end
 
     def self.merge_existing_coverage(scov_style_report, existing_coverage)
