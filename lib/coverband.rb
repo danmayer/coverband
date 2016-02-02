@@ -1,5 +1,6 @@
 require 'redis'
 require 'logger'
+require 'aws-sdk'
 
 require 'coverband/version'
 require 'coverband/configuration'
@@ -8,6 +9,7 @@ require 'coverband/memory_cache_store'
 require 'coverband/base'
 require 'coverband/reporter'
 require 'coverband/middleware'
+require 'coverband/s3_report_writer'
 
 module Coverband
 

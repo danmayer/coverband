@@ -1,6 +1,6 @@
 module Coverband
   class Configuration
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger, :startup_delay, :baseline_file, :trace_point_events, :include_gems, :memory_caching
+    attr_accessor :redis, :coverage_baseline, :root_paths, :root, :ignore, :percentage, :verbose, :reporter, :stats, :logger, :startup_delay, :baseline_file, :trace_point_events, :include_gems, :memory_caching, :s3_bucket
 
     def initialize
       @root = Dir.pwd
