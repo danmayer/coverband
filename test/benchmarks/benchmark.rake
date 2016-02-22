@@ -22,12 +22,14 @@ namespace :benchmarks do
     require 'classifier-reborn'
 
     Coverband.configure do |config|
-      config.redis             = Redis.new
-      config.root              = Dir.pwd
-      config.startup_delay     = 0
-      config.percentage        = 100.0
-      config.logger            = $stdout
-      config.verbose           = false
+      config.redis              = Redis.new
+      config.root               = Dir.pwd
+      config.startup_delay      = 0
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.verbose            = false
+      #config.memory_caching     = true
+      #config.trace_point_events = [:call]
     end
 
   end
