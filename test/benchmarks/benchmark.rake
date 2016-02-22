@@ -1,5 +1,6 @@
 require 'coverband'
 require 'redis'
+require File.join(File.dirname(__FILE__), 'dog')
 
 namespace :benchmarks do
 
@@ -57,6 +58,9 @@ namespace :benchmarks do
       bayes_classification
       lsi_classification
     end
+
+    #simulate many calls to the same line
+    10_000.times { Dog.new.bark }
   end
 
 
