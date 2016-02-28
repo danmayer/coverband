@@ -78,7 +78,7 @@ class BaseTest < Test::Unit::TestCase
     store.expects(:store_report).once.with(has_entries(dog_file => [3]) )
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
-    Dog.new.bark
+    5.times { Dog.new.bark }
     coverband.stop
     coverband.save
   end
