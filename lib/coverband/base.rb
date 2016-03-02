@@ -90,8 +90,10 @@ module Coverband
 
       @files.reject!{|file, lines| !track_file?(file) }
 
+      #make lines uniq
+      @files.each{|file, lines| lines.uniq!}
+
       if @verbose
-        @file_usage.reject!{|file, line_count| !track_file?(file) }
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
         if @verbose=="debug"
           output_file_line_usage

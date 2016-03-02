@@ -1,5 +1,6 @@
 require 'coverband'
 require 'redis'
+require File.join(File.dirname(__FILE__), 'dog')
 
 namespace :benchmarks do
 
@@ -21,12 +22,14 @@ namespace :benchmarks do
     require 'classifier-reborn'
 
     Coverband.configure do |config|
-      config.redis             = Redis.new
-      config.root              = Dir.pwd
-      config.startup_delay     = 0
-      config.percentage        = 100.0
-      config.logger            = $stdout
-      config.verbose           = false
+      config.redis              = Redis.new
+      config.root               = Dir.pwd
+      config.startup_delay      = 0
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.verbose            = false
+      #config.memory_caching     = true
+      #config.trace_point_events = [:call]
     end
 
   end
@@ -57,6 +60,9 @@ namespace :benchmarks do
       bayes_classification
       lsi_classification
     end
+
+    #simulate many calls to the same line
+    10_000.times { Dog.new.bark }
   end
 
 
