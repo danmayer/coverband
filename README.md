@@ -2,21 +2,22 @@
 
 [![Build Status](https://travis-ci.org/danmayer/coverband.svg?branch=master)](https://travis-ci.org/danmayer/coverband)
 
-A gem to measure production code coverage. Coverband allows easy configuration to collect and report on production code coverage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like coverage on background jobs).
+A gem to measure production code usage, showing each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like usage during background jobs). I like to think of this as production code coverage, but that implies test coverage to some folks, so being more explicit to say that it shows when a line of code is executed in a given environment is the most accurate way to describe it.
 
 * Allow sampling to avoid the performance overhead on every request.
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
-* Take a baseline to get initial app loading coverage.
+* Take a baseline to get initial app execution during app initialization.
+* Development mode for additional code usage details (number of LOC execution during single request, etc).
+* Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
 
-coverband 1.1+ supports ruby 2.0+.  For ruby 1.9 use coverband 1.0.X.
-
+__Notes:__ Latest versions of Coverband drop support for anything less than Ruby 2.0, and ruby 2.1.+ is recommended.
 
 ###### Success:
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
 
 ###### Performance Impact
 
-Because coverband 2.0+ uses TracePoint which is much speedier than the ruby 1.9 set_trace_func, the performance impact is reasonable and there is no need for the c-ext [coverband_ext](https://github.com/danmayer/coverband_ext).  If you are stuck on ruby 1.9 and coverband 1.0.X, the [coverband_ext](https://github.com/danmayer/coverband_ext) is a must.
+The performance impact on Ruby 2.1.+ is fairly small and no longer requires a C-extension. Look at the benchmark rake task for specific details.
 
 ## Installation
 
@@ -50,13 +51,7 @@ Details on a example Sinatra app
 
 ## Notes
 
-* Coverband has been running in production on Ruby 1.9.3, 2.x, 2.1.x on Sinatra, Rails 2.3.x, Rails 3.0.x, Rails 3.1.x, and Rails 3.2.x
-* No 1.8.7 support, Coverband requires Ruby 1.9.3+
-* There is a performance impact which is why the gem supports sampling. On low traffic sites I am running a sample rate of 20% and on very high traffic sites I am sampling at 1%, which still gives useful data
-    * The impact with the pure Ruby coverband can't be rather significant on sampled requests
-    * Most of the overhead is in the Ruby coverage collector, you can now use [coverband_ext](https://github.com/danmayer/coverband_ext) to run a C extension collector which is MUCH faster.
-    * Using Redis 2.x gem, while supported, is slow and not recommended. It will have a larger impact on overhead performance. Although the Ruby collection dwarfs the redis time, so it likely doesn't matter much.
-    * Make sure to ignore any folders like `vendor` and possibly `lib` as it can help reduce performance overhead. Or ignore specific frequently hit in app files for better perf.
+* Coverband has been used on large scale production websites without large impacts on performance. Adjusting the samplerate to achieve an acceptable trade-off on detailed information vs performance impact.
 
 ## Configuration
 
@@ -297,8 +292,8 @@ Coverband::Reporter.report :additional_scov_data => [data]
 
 ### Known issues
 
-* If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if coverband gave a more actionable warning in this situation.
-* If you have simplecov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to coverband as well and can often filter out everything we are recording.
+* If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
+* If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
 * the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
 
 ## TODO
@@ -311,7 +306,9 @@ Coverband::Reporter.report :additional_scov_data => [data]
   * blank rails app
   * blank Sinatra app
 * report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
-* ability to change the coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+* ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+* Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
+* mountable rack app to view coverage similar to flipper-ui
 
 ## Contributing
 
@@ -323,7 +320,7 @@ Coverband::Reporter.report :additional_scov_data => [data]
 
 ## Resources
 
-These notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resorces might be helpfu. I learned a lot looking at various existing projects and open source code.
+These notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resources might be helpful. I learned a lot looking at various existing projects and open source code.
 
 ##### Ruby Std-lib Coverage
 
