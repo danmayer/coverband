@@ -185,7 +185,7 @@ Note: To debug in development mode, I recommend turning verbose logging on `conf
 2. Hit your development server exercising the endpoints you want to verify Coverband is recording (you should see debug outputs in your server console)
 3. Run `rake coverband:coverage` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
 
-Note: if you use `rails s` and data aren't reccorded, make sure it is using your `config.ru`.
+Note: if you use `rails s` and data aren't recorded, make sure it is using your `config.ru`.
 
 ## Example apps
 
