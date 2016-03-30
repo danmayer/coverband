@@ -150,10 +150,10 @@ run ActionController::Dispatcher.new
 
 #### For Rails apps
 
-Create an initializer file
+Create an initializers file
 
 ```ruby
-# config/initializes/coverband_middleware.rb
+# config/initializers/coverband_middleware.rb
 
 # Configure the Coverband Middleware
 require 'coverband'
@@ -190,6 +190,7 @@ Note: if you use `rails s` and data aren't reccorded, make sure it is using your
 ## Example apps
 
 - [Rails app](https://github.com/arnlen/rails-coverband-example-app)
+- [Rails app with Coverband 1.1](https://github.com/danmayer/covered_rails)
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non rack ruby app](https://github.com/danmayer/coverband_examples)
 
