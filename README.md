@@ -10,14 +10,14 @@ A gem to measure production code usage, showing each line of code that is execut
 * Development mode for additional code usage details (number of LOC execution during single request, etc).
 * Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
 
-__Notes:__ Latest versions of Coverband drop support for anything less than Ruby 2.0, and ruby 2.1.+ is recommended.
+__Notes:__ Latest versions of Coverband drop support for anything less than Ruby 2.0, and Ruby 2.1+ is recommended.
 
 ###### Success:
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
 
 ###### Performance Impact
 
-The performance impact on Ruby 2.1.+ is fairly small and no longer requires a C-extension. Look at the benchmark rake task for specific details.
+The performance impact on Ruby 2.1+ is fairly small and no longer requires a C-extension. Look at the benchmark rake task for specific details.
 
 ## Installation
 
