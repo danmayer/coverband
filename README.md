@@ -6,7 +6,7 @@ A gem to measure production code usage, showing each line of code that is execut
 
 * Allow sampling to avoid the performance overhead on every request.
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
-* Take a baseline to get initial app execution during app initialization.
+* Take a baseline to get initial app execution during app initialization. (the baseline is important because some code is executed during app load, but might not be invoked during any requests, think prefetching, initial cache builds, setting constants, etc...)
 * Development mode for additional code usage details (number of LOC execution during single request, etc).
 * Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
 
@@ -112,7 +112,7 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-The default Coverband baseline task will try to detect your app as either Rack or Rails environment. It will load the app to take a baseline reading. If the baseline task doesn't load your app well you can override the default baseline to create a better baseline yourself. Below for example is how I take a baseline on a pretty simple Sinatra app.
+The default Coverband baseline task will try to detect your app as either Rack or Rails environment. It will load the app to take a baseline reading. The baseline coverage is important because some code is executed during app load, but might not be invoked during any requests, think prefetching, initial cache builds, setting constants, etc. If the baseline task doesn't load your app well you can override the default baseline to create a better baseline yourself. Below for example is how I take a baseline on a pretty simple Sinatra app.
 
 ```ruby
 namespace :coverband do
