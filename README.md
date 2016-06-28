@@ -177,7 +177,7 @@ module MyApplication
 end
 ```
 
-Note: To debug in development mode, I recommend turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will effect performance.
+Note: To debug in development mode, I recommend turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
 
 ## Usage
 
