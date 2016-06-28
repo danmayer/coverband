@@ -96,7 +96,7 @@ end
 
 ### 2. Configuring Rake
 
-Either add the below to your `Rakefile` or to a file included in your Rakefile such as `lib/tasks/coverband` if you want to break it up that way.
+Either add the below to your `Rakefile` or to a file included in your Rakefile such as `lib/tasks/coverband.rake` if you want to break it up that way.
 
 ```ruby
 require 'coverband'
