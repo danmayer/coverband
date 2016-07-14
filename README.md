@@ -78,6 +78,7 @@ Coverband.configure do |config|
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
   config.startup_delay     = Rails.env.production? ? 15 : 2
+  # Percentage of requests recorded
   config.percentage        = Rails.env.production? ? 30.0 : 100.0
 
   config.logger            = Rails.logger
