@@ -93,8 +93,14 @@ module Coverband
     end
 
 
-    def self.get_current_scov_data
-      get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
+    def self.get_current_scov_data(options = {})
+      additional_scov_data = options.fetch(:additional_scov_data) { [] }
+
+      if (additional_scov_data)
+        report_scov_with_additional_data(Coverband.configuration.redis, Coverband.configuration.coverage_baseline, additional_scov_data, get_roots)
+      else
+        get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
+      end
     end
 
     def self.get_current_scov_data_imp(redis, roots)
@@ -120,7 +126,7 @@ module Coverband
       scov_style_report
     end
 
-    def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
+    def self.report_scov_with_additional_data(redis, existing_coverage, additional_scov_data, roots)
       scov_style_report = get_current_scov_data_imp redis, roots
       existing_coverage = fix_file_names(existing_coverage, roots)
       scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
@@ -128,6 +134,12 @@ module Coverband
       additional_scov_data.each do |data|
         scov_style_report = merge_existing_coverage(scov_style_report, data)
       end
+
+      scov_style_report
+    end
+
+    def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
+      scov_style_report = report_scov_with_additional_data(redis, existing_coverage, additional_scov_data, roots)
 
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "report: "

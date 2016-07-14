@@ -292,6 +292,8 @@ data = JSON.parse(File.read("blah.json"))
 Coverband::Reporter.report :additional_scov_data => [data]
 ```
 
+You can also pass a `:additional_scov_data => [data]` option to `Coverband::Reporter.get_current_scov_data` to write out merged data.
+
 ### Known issues
 
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
