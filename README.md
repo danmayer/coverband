@@ -318,7 +318,8 @@ Coverband::Reporter.report :additional_scov_data => [data]
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+5. Make sure all tests are passing (run `bundle install`, make sure Redis is running, and then execute `bundle exec rake test`)
+6. Create new Pull Request
 
 ## Resources
 
