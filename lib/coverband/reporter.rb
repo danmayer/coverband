@@ -7,7 +7,7 @@ module Coverband
       yield
       @project_directory = File.expand_path(Coverband.configuration.root)
       results = Coverage.result
-      results = results.reject{|key, val| !key.match(@project_directory) || Coverband.configuration.ignore.any?{|pattern| key.match(/#{pattern}/)} }
+      results = results.reject { |key, val| !key.match(@project_directory) || Coverband.configuration.ignore.any? { |pattern| key.match(/#{pattern}/) } }
 
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info results.inspect
@@ -15,7 +15,7 @@ module Coverband
 
       config_dir = File.dirname(Coverband.configuration.baseline_file)
       Dir.mkdir config_dir unless File.exists?(config_dir)
-      File.open(Coverband.configuration.baseline_file, 'w') {|f| f.write(results.to_json) }
+      File.open(Coverband.configuration.baseline_file, 'w') { |f| f.write(results.to_json) }
     end
 
     def self.report(options = {})
@@ -28,27 +28,27 @@ module Coverband
       redis = Coverband.configuration.redis
       roots = get_roots
       existing_coverage = Coverband.configuration.coverage_baseline
-      open_report = options.fetch(:open_report){ true }
+      open_report = options.fetch(:open_report) { true }
 
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
       end
 
-      if  Coverband.configuration.reporter=='scov'
-        additional_scov_data = options.fetch(:additional_scov_data){ [] }
+      if Coverband.configuration.reporter == 'scov'
+        additional_scov_data = options.fetch(:additional_scov_data) { [] }
         if Coverband.configuration.verbose
           print additional_scov_data
         end
         report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
       else
-        lines = redis.smembers('coverband').map{|key| report_line(redis, key) }
+        lines = redis.smembers('coverband').map{ |key| report_line(redis, key) }
         Coverband.configuration.logger.info lines.join("\n")
       end
     end
 
     def self.clear_coverage(redis = nil)
       redis ||= Coverband.configuration.redis
-      redis.smembers('coverband').each{|key| redis.del("coverband.#{key}")}
+      redis.smembers('coverband').each { |key| redis.del("coverband.#{key}") }
       redis.del("coverband")
     end
 
@@ -79,47 +79,54 @@ module Coverband
     # [0,0,1,0,1]
     def self.merge_arrays(first, second)
       merged = []
-      longest = if first.length > second.length
-        first
-      else
-        second
+      longest = first.length > second.length ? first : second
+
+      longest.each_with_index do |line, index|
+        if first[index] || second[index]
+          merged[index] = (first[index].to_i + second[index].to_i >= 1 ? 1 : 0)
+        else
+          merged[index] = nil
+        end
       end
-     longest.each_with_index do |line, index|
-              if first[index] || second[index]
-                merged[index] = (first[index].to_i + second[index].to_i >= 1 ? 1 : 0)
-              else
-                merged[index] = nil
-              end
-            end
-     merged
+
+      merged
     end
 
 
-    def self.get_current_scov_data
-      get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
+    def self.get_current_scov_data(options = {})
+      additional_scov_data = options.fetch(:additional_scov_data) { [] }
+
+      if (additional_scov_data)
+        report_scov_with_additional_data(Coverband.configuration.redis, Coverband.configuration.coverage_baseline, additional_scov_data, get_roots)
+      else
+        get_current_scov_data_imp(Coverband.configuration.redis, get_roots)
+      end
     end
 
     def self.get_current_scov_data_imp(redis, roots)
       scov_style_report = {}
+
       redis.smembers('coverband').each do |key|
-                                   next if Coverband.configuration.ignore.any?{ |i| key.match(i)}
-                                   line_data = line_hash(redis, key, roots)
+        next if Coverband.configuration.ignore.any?{ |i| key.match(i) }
+        line_data = line_hash(redis, key, roots)
 
-                                   if line_data
-                                     line_key = line_data.keys.first
-                                     previous_line_hash = scov_style_report[line_key]
-                                     if previous_line_hash
+        if line_data
+          line_key = line_data.keys.first
+          previous_line_hash = scov_style_report[line_key]
 
-                                       line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
-                                     end
-                                     scov_style_report.merge!(line_data)
-                                   end
-                                 end
+          if previous_line_hash
+            line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
+          end
+
+          scov_style_report.merge!(line_data)
+        end
+      end
+
       scov_style_report = fix_file_names(scov_style_report, roots)
       scov_style_report
     end
 
-    def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
+    def self.report_scov_with_additional_data(redis, existing_coverage, additional_scov_data, roots)
       scov_style_report = get_current_scov_data_imp redis, roots
       existing_coverage = fix_file_names(existing_coverage, roots)
       scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
@@ -127,6 +134,12 @@ module Coverband
       additional_scov_data.each do |data|
         scov_style_report = merge_existing_coverage(scov_style_report, data)
       end
+
+      scov_style_report
+    end
+
+    def self.report_scov(redis, existing_coverage, additional_scov_data, roots, open_report)
+      scov_style_report = report_scov_with_additional_data(redis, existing_coverage, additional_scov_data, roots)
 
       if Coverband.configuration.verbose
         Coverband.configuration.logger.info "report: "
@@ -147,7 +160,7 @@ module Coverband
       existing_coverage.each_pair do |key, lines|
         if current_lines = scov_style_report[key]
           lines.each_with_index do |line, index|
-            if line.nil? && current_lines[index].to_i==0
+            if line.nil? && current_lines[index].to_i == 0
               current_lines[index] = nil
             else
               current_lines[index] = current_lines[index] ? (current_lines[index].to_i + line.to_i) : nil
@@ -190,13 +203,13 @@ module Coverband
       filename = filename_from_key(key, roots)
       if File.exists?(filename)
         lines_hit = redis.smembers("coverband.#{key}")
-        count = File.foreach(filename).inject(0) {|c, line| c+1}
+        count = File.foreach(filename).inject(0) { |c, line| c + 1 }
         if filename.match(/\.erb/)
           line_array = Array.new(count, nil)
         else
           line_array = Array.new(count, 0)
         end
-        line_array.each_with_index{|line,index| line_array[index]=1 if lines_hit.include?((index+1).to_s) }
+        line_array.each_with_index{|line,index| line_array[index] = 1 if lines_hit.include?((index + 1).to_s) }
         {filename => line_array}
       else
         Coverband.configuration.logger.info "file #{filename} not found in project"

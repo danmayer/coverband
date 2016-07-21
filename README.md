@@ -78,6 +78,7 @@ Coverband.configure do |config|
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
   config.startup_delay     = Rails.env.production? ? 15 : 2
+  # Percentage of requests recorded
   config.percentage        = Rails.env.production? ? 30.0 : 100.0
 
   config.logger            = Rails.logger
@@ -291,6 +292,8 @@ data = JSON.parse(File.read("blah.json"))
 Coverband::Reporter.report :additional_scov_data => [data]
 ```
 
+You can also pass a `:additional_scov_data => [data]` option to `Coverband::Reporter.get_current_scov_data` to write out merged data.
+
 ### Known issues
 
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
@@ -317,7 +320,8 @@ Coverband::Reporter.report :additional_scov_data => [data]
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+5. Make sure all tests are passing (run `bundle install`, make sure Redis is running, and then execute `bundle exec rake test`)
+6. Create new Pull Request
 
 ## Resources
 
