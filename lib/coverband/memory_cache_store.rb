@@ -32,12 +32,7 @@ module Coverband
         #first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
         line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
         lines.reject! do |line|
-          if line_cache.include? line
-            true
-          else
-            line_cache << line
-            false
-          end
+          line_cache.include?(line) ? true : (line_cache << line and false)
         end
         filtered_file_hash[file] = lines if lines.any?
       end
