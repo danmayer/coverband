@@ -83,4 +83,14 @@ class BaseTest < Test::Unit::TestCase
     coverband.save
   end
 
+  test "tracer should collect uniq line numbers" do
+    dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
+    coverband = Coverband::Base.instance.reset_instance
+    coverband.start
+    100.times { Dog.new.bark }
+    assert_equal 1, coverband.instance_variable_get("@files")[dog_file].select{ |i| 3 == i }.count
+    coverband.stop
+    coverband.save
+  end
+
 end

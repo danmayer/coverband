@@ -167,7 +167,7 @@ module Coverband
             @file_line_usage[file][line] += 1
           end
           file_lines = (@files[file] ||= [])
-          file_lines << line
+          file_lines.push(line) unless file_lines.include?(line)
         end
       end
     end
