@@ -61,16 +61,12 @@ You need to configure cover band you can either do that passing in all configura
 
 ```ruby
 #config/coverband.rb
-require 'json'
-
-baseline = Coverband.parse_baseline
-
 Coverband.configure do |config|
   config.root              = Dir.pwd
   if defined? Redis
     config.redis           = Redis.new(:host => 'redis.host.com', :port => 49182, :db => 1)
   end
-  config.coverage_baseline = baseline
+  config.coverage_baseline = Coverband.parse_baseline
   config.root_paths        = ['/app/'] # /app/ is needed for heroku deployments
   # regex paths can help if you are seeing files duplicated for each capistrano deployment release
   #config.root_paths       = ['/server/apps/my_app/releases/\d+/']
