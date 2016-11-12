@@ -336,8 +336,8 @@ These notes of kind of for myself, but if anyone is seriously interested in cont
 * [erb syntax](http://stackoverflow.com/questions/7996695/rails-erb-syntax) parse out and mark lines as important
 * [ruby 2 tracer](https://github.com/brightbox/deb-ruby2.0/blob/master/lib/tracer.rb)
 * [coveralls hosted code coverage tracking](https://coveralls.io/docs/ruby) currently for test coverage but might be a good partner for production coverage
-* [simplecov walk through](http://www.tamingthemindmonkey.com/2011/09/27/ruby-code-coverage-using-simplecov) copy some of the syntax sugar setup for cover band
-* [Jruby coverage bug](http://jira.codehaus.org/browse/JRUBY-6106?page=com.atlassian.jira.plugin.system.issuetabpanels:changehistory-tabpanel)
+* [simplecov usage example](http://www.cakesolutions.net/teamblogs/brief-introduction-to-rspec-and-simplecov-for-ruby) copy some of the syntax sugar setup for cover band
+* [Jruby coverage bug](https://github.com/jruby/jruby/issues/1196)
 * [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)
 * [learn from stackprof](https://github.com/tmm1/stackprof#readme)
 * I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
