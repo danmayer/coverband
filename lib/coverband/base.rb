@@ -1,4 +1,5 @@
 require 'singleton'
+require 'set'
 
 module Coverband
   class Base
@@ -41,6 +42,7 @@ module Coverband
       @files = {}
       @file_usage = Hash.new(0)
       @file_line_usage = {}
+      @ignored_files = Set.new
       @startup_delay = Coverband.configuration.startup_delay
       @ignore_patterns = Coverband.configuration.ignore + ["internal:prelude"]
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
@@ -87,8 +89,6 @@ module Coverband
       end
 
       unset_tracer
-
-      @files.reject!{|file, lines| !track_file?(file) }
 
       #make lines uniq
       @files.each{|file, lines| lines.uniq!}
@@ -156,18 +156,27 @@ module Coverband
 
     private
 
+    def add_file(file, line)
+      if @verbose
+        @file_usage[file] += 1
+        @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+        @file_line_usage[file][line] += 1
+      end
+      file_lines = (@files[file] ||= [])
+      file_lines.push(line) unless file_lines.include?(line)
+    end
+
     def create_trace_point
       TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
         if Thread.current == @current_thread
           file = tp.path
-          line = tp.lineno
-          if @verbose
-            @file_usage[file] += 1
-            @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-            @file_line_usage[file][line] += 1
+          if !@ignored_files.include?(file)
+            if track_file?(file)
+              add_file(file, tp.lineno)
+            else
+              @ignored_files << file
+            end
           end
-          file_lines = (@files[file] ||= [])
-          file_lines.push(line) unless file_lines.include?(line)
         end
       end
     end
