@@ -75,7 +75,7 @@ class BaseTest < Test::Unit::TestCase
     coverband.instance_variable_set("@verbose", true)
     store = Coverband::RedisStore.new(Redis.new)
     coverband.instance_variable_set("@reporter", store)
-    store.expects(:store_report).once.with(has_entries(dog_file => [3]) )
+    store.expects(:store_report).once.with(has_entries(dog_file => { 3 => 5 }) )
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     5.times { Dog.new.bark }
@@ -83,12 +83,12 @@ class BaseTest < Test::Unit::TestCase
     coverband.save
   end
 
-  test "tracer should collect uniq line numbers" do
+  test "tracer should count line numbers" do
     dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
     coverband = Coverband::Base.instance.reset_instance
     coverband.start
     100.times { Dog.new.bark }
-    assert_equal 1, coverband.instance_variable_get("@files")[dog_file].select{ |i| 3 == i }.count
+    assert_equal 100, coverband.instance_variable_get("@file_line_usage")[dog_file][3]
     coverband.stop
     coverband.save
   end

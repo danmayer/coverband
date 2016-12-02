@@ -22,8 +22,8 @@ class RedisTest < Test::Unit::TestCase
 
   def test_data
     {
-      "/Users/danmayer/projects/cover_band_server/app.rb"=>[54, 55],
-      "/Users/danmayer/projects/cover_band_server/server.rb"=>[5]
+      "/Users/danmayer/projects/cover_band_server/app.rb" => { 54 => 1, 55 => 2 },
+      "/Users/danmayer/projects/cover_band_server/server.rb" => { 5 => 1 }
     }
   end
 end
