@@ -40,7 +40,6 @@ module Coverband
       @enabled = false
       @tracer_set = false
       @files = {}
-      @file_usage = Hash.new(0)
       @file_line_usage = {}
       @ignored_files = Set.new
       @startup_delay = Coverband.configuration.startup_delay
@@ -94,7 +93,7 @@ module Coverband
       @files.each{|file, lines| lines.uniq!}
 
       if @verbose
-        @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
+        @logger.info "coverband file usage: #{file_usage.inspect}"
         if @verbose=="debug"
           output_file_line_usage
         end
@@ -112,7 +111,6 @@ module Coverband
         end
         @files.clear
         if @verbose
-          @file_usage.clear
           @file_line_usage.clear
         end
       elsif @verbose
@@ -156,9 +154,16 @@ module Coverband
 
     private
 
+    def file_usage
+      hash = {}
+      @file_line_usage.each do |file, lines|
+        hash[file] = lines.values.inject(0, :+)
+      end
+      hash.sort_by {|_key, value| value}
+    end
+
     def add_file(file, line)
       if @verbose
-        @file_usage[file] += 1
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
         @file_line_usage[file][line] += 1
       end
