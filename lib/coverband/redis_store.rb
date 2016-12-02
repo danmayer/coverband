@@ -10,7 +10,7 @@ module Coverband
         store_array('coverband', report.keys)
 
         report.each do |file, lines|
-          store_array("coverband.#{file}", lines)
+          store_array("coverband.#{file}", lines.keys)
         end
       end
     end

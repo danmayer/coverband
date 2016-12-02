@@ -9,12 +9,14 @@ module Coverband
       @memory_store = MemoryCacheStore.new(@store)
     end
 
+    def data
+      {
+        'file1' => { 3 => 1, 5 => 2 },
+        'file2' => { 1 => 1, 2 => 1 }
+      }
+    end
 
     test 'it passes data into store' do
-      data = {
-        'file1' => [ 3, 5 ],
-        'file2' => [1, 2]
-      }
       @store.expects(:store_report).with data
       @store.expects(:covered_lines_for_file).with('file1').returns []
       @store.expects(:covered_lines_for_file).with('file2').returns []
@@ -22,10 +24,6 @@ module Coverband
     end
 
     test 'it passes data into store only once' do
-      data = {
-        'file1' => [ 3, 5 ],
-        'file2' => [1, 2]
-      }
       @store.expects(:store_report).once.with data
       @store.expects(:covered_lines_for_file).with('file1').returns []
       @store.expects(:covered_lines_for_file).with('file2').returns []
@@ -33,32 +31,24 @@ module Coverband
     end
 
     test 'it only passes files and lines we have not hit yet' do
-      first_data = {
-        'file1' => [ 3, 5 ],
-        'file2' => [1, 2]
-      }
       second_data = {
-        'file1' => [ 3, 5, 10 ],
-        'file2' => [1, 2]
+        'file1' => { 3 => 1, 5 => 1, 10 => 1 },
+        'file2' => { 1 => 1, 2 => 1 }
       }
       @store.expects(:covered_lines_for_file).with('file1').returns []
       @store.expects(:covered_lines_for_file).with('file2').returns []
-      @store.expects(:store_report).once.with first_data
+      @store.expects(:store_report).once.with data
       @store.expects(:store_report).once.with(
-        'file1' => [10]
+        'file1' => { 10 => 1 }
       )
-      @memory_store.store_report first_data
+      @memory_store.store_report data
       @memory_store.store_report second_data
     end
 
     test 'it initializes cache with what is in store' do
-      data = {
-        'file1' => [ 3, 5 ],
-        'file2' => [1, 2]
-      }
       @store.expects(:covered_lines_for_file).with('file1').returns [3,5]
       @store.expects(:covered_lines_for_file).with('file2').returns [2]
-      @store.expects(:store_report).with( 'file2' => [1] )
+      @store.expects(:store_report).with('file2' => { 1 => 1 })
       @memory_store.store_report data
     end
 

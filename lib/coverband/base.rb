@@ -38,7 +38,6 @@ module Coverband
       @project_directory = File.expand_path(Coverband.configuration.root)
       @enabled = false
       @tracer_set = false
-      @files = {}
       @file_usage = Hash.new(0)
       @file_line_usage = {}
       @startup_delay = Coverband.configuration.startup_delay
@@ -88,10 +87,7 @@ module Coverband
 
       unset_tracer
 
-      @files.reject!{|file, lines| !track_file?(file) }
-
-      #make lines uniq
-      @files.each{|file, lines| lines.uniq!}
+      @file_line_usage.reject!{|file, _lines| !track_file?(file) }
 
       if @verbose
         @logger.info "coverband file usage: #{@file_usage.sort_by {|_key, value| value}.inspect}"
@@ -103,21 +99,20 @@ module Coverband
       if @reporter
         if @stats
           @before_time = Time.now
-          @stats.count "coverband.files.recorded_files", @files.length
+          @stats.count "coverband.files.recorded_files", @file_line_usage.length
         end
-        @reporter.store_report(@files)
+        @reporter.store_report(@file_line_usage)
         if @stats
           @time_spent = Time.now - @before_time
           @stats.timing "coverband.files.recorded_time", @time_spent
         end
-        @files.clear
+        @file_line_usage.clear
         if @verbose
           @file_usage.clear
-          @file_line_usage.clear
         end
       elsif @verbose
         @logger.info "coverage report: "
-        @logger.info @files.inspect
+        @logger.info @file_line_usage.inspect
       end
     rescue RuntimeError => err
       if @verbose
@@ -163,11 +158,9 @@ module Coverband
           line = tp.lineno
           if @verbose
             @file_usage[file] += 1
-            @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-            @file_line_usage[file][line] += 1
           end
-          file_lines = (@files[file] ||= [])
-          file_lines.push(line) unless file_lines.include?(line)
+          @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+          @file_line_usage[file][line] += 1
         end
       end
     end
