@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = Coverband::VERSION
   spec.authors       = ["Dan Mayer"]
   spec.email         = ["dan@mayerdan.com"]
-  spec.description   = %q{Rack middleware to help measure production code coverage}
-  spec.summary       = %q{Rack middleware to help measure production code coverage}
-  spec.homepage      = ""
+  spec.description   = %q{Rack middleware to help measure production code usage (LOC runtime usage)}
+  spec.summary       = %q{Rack middleware to help measure production code usage (LOC runtime usage)}
+  spec.homepage      = "https://github.com/danmayer/coverband"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "test-unit"
   spec.add_development_dependency 'sinatra'
+  spec.add_development_dependency 'classifier-reborn'
   spec.add_runtime_dependency "simplecov"
   spec.add_runtime_dependency "json"
   spec.add_runtime_dependency "redis"

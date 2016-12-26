@@ -51,7 +51,11 @@ Details on a example Sinatra app
 
 ## Notes
 
-* Coverband has been used on large scale production websites without large impacts on performance. Adjusting the samplerate to achieve an acceptable trade-off on detailed information vs performance impact.
+* Coverband has been used on large scale production websites without large impacts on performance. Adjusting the sample rate to achieve an acceptable trade-off on detailed information vs performance impact. Coverband started as a Ruby 1.9 project and the performance impact has been reduced by each Ruby release since.
+
+## Coverband Baseline
+
+The baseline seems to cause some confusion. Basically, when coverband records code usage, it will not request initial startup code like method definition, it covers what it hit during run time. This would produce a fairly odd view of code usage. To cover things like defining routes, dynamic methods, and the like Coverband records a baseline. The baseline should capture coverage of app initialization and boot up, we don't want to do this on deploy as it can be slow. So we take a recording of boot up as a one time baseline Rake task `bundle exec rake coverband:baseline`.
 
 ## Configuration
 
