@@ -294,6 +294,15 @@ Coverband::Reporter.report :additional_scov_data => [data]
 
 You can also pass a `:additional_scov_data => [data]` option to `Coverband::Reporter.get_current_scov_data` to write out merged data.
 
+### Coverband development
+
+If you are working on adding features, PRs, or bugfixes to Coverband this section should help get you going.
+
+* run tests: `bundle exec rake`
+* view test coverage: `open coverage/index.html`
+* run the benchmarks before and after your change to see impact
+   * `bundle exec rake benchmarks` 
+
 ### Known issues
 
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.

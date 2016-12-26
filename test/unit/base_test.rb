@@ -8,7 +8,6 @@ class BaseTest < Test::Unit::TestCase
     assert_equal Coverband::RedisStore, coverband.instance_variable_get('@reporter').class
   end
 
-
   test 'configure memory caching' do
     Coverband.configuration.memory_caching = true
     coverband = Coverband::Base.instance.reset_instance
