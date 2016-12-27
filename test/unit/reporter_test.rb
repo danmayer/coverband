@@ -37,6 +37,26 @@ class ReporterTest < Test::Unit::TestCase
     Coverband::Reporter.report
   end
 
+    test "report data with scov" do
+    Coverband.configure do |config|
+      config.redis             = fake_redis
+      config.reporter          = 'scov'
+      config.s3_bucket         = nil
+    end
+
+    Coverband::Reporter.expects(:current_root).at_least_once.returns('/root_dir')
+    fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
+    
+    fake_coverband_members.each do |key|
+      File.expects(:exists?).with(key).returns(true)
+      File.expects(:foreach).with(key).returns(['a','b','c'])
+      fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
+    end
+    
+    Coverband.configuration.logger.stubs('info')
+
+    Coverband::Reporter.report(open_report: false)
+  end
 
   ####
   # TODO
