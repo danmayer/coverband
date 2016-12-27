@@ -39,6 +39,19 @@ Or install it yourself as:
 $ gem install coverband
 ```
 
+That gives you the gem, but to get up and running then follow:
+
+* [Coverband Configuration](https://github.com/danmayer/coverband#configuration)
+  * Rake integration
+  * Coverband config setup
+  * Require Coverband
+  * Insert middleware in stack  
+* run `bundle exec rake coverband:baseline` ([what is baseline?](https://github.com/danmayer/coverband#coverband-baseline))
+* run `bundle exec rake coverband:coverage` this will show app initialization coverage
+* run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 2)
+* run `bundle exec rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+
+
 ## Example Output
 
 Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
@@ -55,7 +68,9 @@ Details on a example Sinatra app
 
 ## Coverband Baseline
 
-The baseline seems to cause some confusion. Basically, when coverband records code usage, it will not request initial startup code like method definition, it covers what it hit during run time. This would produce a fairly odd view of code usage. To cover things like defining routes, dynamic methods, and the like Coverband records a baseline. The baseline should capture coverage of app initialization and boot up, we don't want to do this on deploy as it can be slow. So we take a recording of boot up as a one time baseline Rake task `bundle exec rake coverband:baseline`.
+__TLDR:__ Baseline is app initialization coverage, not captured during runtime.
+
+The baseline seems to cause some confusion. Basically, when Coverband records code usage, it will not request initial startup code like method definition, it covers what it hit during run time. This would produce a fairly odd view of code usage. To cover things like defining routes, dynamic methods, and the like Coverband records a baseline. The baseline should capture coverage of app initialization and boot up, we don't want to do this on deploy as it can be slow. So we take a recording of boot up as a one time baseline Rake task `bundle exec rake coverband:baseline`.
 
 ## Configuration
 
@@ -77,6 +92,7 @@ Coverband.configure do |config|
   config.ignore            = ['vendor','lib/scrazy_i18n_patch_thats_hit_all_the_time.rb']
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
+  # NOTE: If you are using a threaded webserver (example: Puma) this will ignore requests for each thread
   config.startup_delay     = Rails.env.production? ? 15 : 2
   # Percentage of requests recorded
   config.percentage        = Rails.env.production? ? 30.0 : 100.0
