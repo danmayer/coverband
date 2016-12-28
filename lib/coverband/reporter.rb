@@ -14,7 +14,7 @@ module Coverband
       end
 
       config_dir = File.dirname(Coverband.configuration.baseline_file)
-      Dir.mkdir config_dir unless File.exists?(config_dir)
+      Dir.mkdir config_dir unless File.exist?(config_dir)
       File.open(Coverband.configuration.baseline_file, 'w') { |f| f.write(results.to_json) }
     end
 
@@ -204,14 +204,24 @@ module Coverband
     def self.line_hash(redis, key, roots)
       filename = filename_from_key(key, roots)
       if File.exists?(filename)
-        lines_hit = redis.smembers("coverband.#{key}")
+        begin
+          data_as_array = true
+          lines_hit = redis.smembers("coverband.#{key}")
+        rescue Redis::CommandError
+          data_as_array = false
+          lines_hit = redis.hgetall("coverband.#{key}")
+        end
         count = File.foreach(filename).inject(0) { |c, line| c + 1 }
         if filename.match(/\.erb/)
           line_array = Array.new(count, nil)
         else
           line_array = Array.new(count, 0)
         end
-        line_array.each_with_index{|line,index| line_array[index] = 1 if lines_hit.include?((index + 1).to_s) }
+        if data_as_array
+          line_array.each_with_index{|line,index| line_array[index] = 1 if lines_hit.include?((index + 1).to_s) }
+        else
+          line_array.each_with_index{|line,index| line_array[index] += lines_hit[(index + 1).to_s].to_i if lines_hit.keys.include?((index + 1).to_s) }
+        end
         {filename => line_array}
       else
         Coverband.configuration.logger.info "file #{filename} not found in project"

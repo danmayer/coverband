@@ -3,7 +3,6 @@ module Coverband
 
     attr_accessor :store
 
-
     def self.files_cache
       @files_cache ||= Hash.new
     end

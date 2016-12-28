@@ -76,7 +76,6 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware.call(request) rescue nil
   end
 
-
   test 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -87,11 +86,11 @@ class MiddlewareTest < Test::Unit::TestCase
     Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{basic_rack_ruby_file}", [5])
+    fake_redis.expects(:mapped_hmset).at_least_once
+    fake_redis.expects(:mapped_hmset).at_least_once.with("coverband.#{basic_rack_ruby_file}", {'5' => 1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
-
 
   test 'report only on calls when configured' do
     request = Rack::MockRequest.env_for("/anything.json")
@@ -104,12 +103,11 @@ class MiddlewareTest < Test::Unit::TestCase
     Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{basic_rack_ruby_file}", [4])
+    fake_redis.expects(:mapped_hmset).at_least_once
+    fake_redis.expects(:mapped_hmset).at_least_once.with("coverband.#{basic_rack_ruby_file}", {'4'=>1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
-
-
 
   private
 

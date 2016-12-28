@@ -5,7 +5,7 @@ class RedisTest < Test::Unit::TestCase
   def setup
     @redis = Redis.new
     @redis.flushdb
-    @store = Coverband::RedisStore.new(@redis)
+    @store = Coverband::RedisStore.new(@redis, array: true)
   end
 
   def test_covered_lines_for_file
@@ -28,7 +28,7 @@ class RedisTest < Test::Unit::TestCase
   end
 end
 
-class RedisStoreTestV3 < RedisTest
+class RedisStoreTestV3Array < RedisTest
 
     def setup
       @redis = Redis.current.tap { |redis|
@@ -36,7 +36,7 @@ class RedisStoreTestV3 < RedisTest
         redis.stubs(:info).returns({'redis_version' => 3.0})
       }
 
-      @store = Coverband::RedisStore.new(@redis)
+      @store = Coverband::RedisStore.new(@redis, array: true)
     end
 
     test "it stores the files into coverband" do
@@ -68,6 +68,41 @@ class RedisStoreTestV3 < RedisTest
 
 end
 
+class RedisStoreTestV3Hash < RedisTest
+
+    def setup
+      @redis = Redis.current.tap { |redis|
+        redis.stubs(:sadd).with(anything, anything)
+        redis.stubs(:info).returns({'redis_version' => 3.0})
+      }
+
+      @store = Coverband::RedisStore.new(@redis)
+    end
+
+    test "it stores the files into coverband" do
+      @redis.expects(:sadd).with('coverband', [
+        '/Users/danmayer/projects/cover_band_server/app.rb',
+        '/Users/danmayer/projects/cover_band_server/server.rb'
+      ])
+
+      @store.store_report(test_data)
+    end
+
+    test "it stores the file lines of the file app.rb" do
+      @redis.expects(:mapped_hmset).with(
+        'coverband./Users/danmayer/projects/cover_band_server/app.rb',
+        {'54' => 1, '55' => 2}
+      )
+      @redis.expects(:mapped_hmset).with(
+        'coverband./Users/danmayer/projects/cover_band_server/server.rb',
+        {'5' => 1}
+      )
+
+      @store.store_report(test_data)
+    end
+
+end
+
 class RedisStoreTestV223 < RedisTest
 
     def setup
@@ -76,7 +111,7 @@ class RedisStoreTestV223 < RedisTest
         redis.stubs(:info).returns({'redis_version' => "2.2.3"})
       }
 
-      @store = Coverband::RedisStore.new(@redis)
+      @store = Coverband::RedisStore.new(@redis, array: true)
     end
 
     test "it store the files with separate calls into coverband" do
@@ -95,7 +130,7 @@ class RedisStoreTestV222 < RedisTest
         redis.stubs(:info).returns({'redis_version' => "2.2.2"})
       }
 
-      @store = Coverband::RedisStore.new(@redis)
+      @store = Coverband::RedisStore.new(@redis, array: true)
     end
 
     test "it store the files with separate calls into coverband" do
