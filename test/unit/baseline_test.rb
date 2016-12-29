@@ -14,4 +14,13 @@ class ReporterTest < Test::Unit::TestCase
     }
   end
 
+  test "parse baseline" do
+    File.expects(:exist?).once.returns(true)
+    expected = {"filename.rb" => [0,nil,1]}
+    fake_file_data = expected.to_json
+    File.expects(:read).returns(fake_file_data)
+    results = Coverband::Baseline.parse_baseline("fake_file.json")
+    assert_equal({"filename.rb" => [0,nil,1]}, results)
+  end
+
 end
