@@ -44,7 +44,12 @@ namespace :coverband do
   ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
-    Coverband::Reporters::SimpleCovReport.report
+    if Coverband.configuration.reporter=='scov'
+      Coverband::Reporters::SimpleCovReport.report
+    else
+      store = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
+      Coverband::Reporters::ConsoleReport.report(store)
+    end
   end
 
   def clear_simplecov_filters
@@ -62,11 +67,13 @@ namespace :coverband do
   ###
   # You likely want to clear coverage after significant code changes.
   # You may want to have a hook that saves current coverband data on deploy
-  # and then resets the redis data.
+  # and then resets the coverband store data.
   ###
   desc "reset coverband coverage data"
   task :clear  => :environment do
-    Coverband::Reporters::SimpleCovReport.clear_coverage
+    if Coverband.configuration.redis
+      Coverband::Adapters::RedisStore.new(Coverband.configuration.redis).clear!
+    end
   end
 
 end

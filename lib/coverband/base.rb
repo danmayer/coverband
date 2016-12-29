@@ -123,7 +123,6 @@ module Coverband
       !@ignore_patterns.any?{ |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
     end
 
-
     def set_tracer
       unless @tracer_set
         @trace.enable

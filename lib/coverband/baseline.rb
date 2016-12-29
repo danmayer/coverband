@@ -18,5 +18,13 @@ module Coverband
       File.open(Coverband.configuration.baseline_file, 'w') { |f| f.write(results.to_json) }
     end
 
+    def self.parse_baseline(baseline_file = Coverband.configuration.baseline_file)
+      baseline = if File.exist?(baseline_file)
+                   JSON.parse(File.read(baseline_file))
+                 else
+                   {}
+                 end
+    end
+
   end
 end

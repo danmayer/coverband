@@ -28,6 +28,26 @@ def test(name, &block)
   end
 end
 
+def fake_redis
+  @redis ||= begin
+    redis = OpenStruct.new()
+    def redis.smembers(key)
+    end
+    redis
+  end
+end
+
+def fake_coverband_members
+  ["/Users/danmayer/projects/hearno/script/tester.rb",
+   "/Users/danmayer/projects/hearno/app/controllers/application_controller.rb",
+   "/Users/danmayer/projects/hearno/app/models/account.rb"
+  ]
+end
+
+def fake_coverage_report
+  {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 1, nil, nil, nil]}
+end
+
 require 'coverband'
 
 unless File.exist?('./tmp/coverband_baseline.json')

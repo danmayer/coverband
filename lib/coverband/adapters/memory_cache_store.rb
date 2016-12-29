@@ -11,7 +11,11 @@ module Coverband
         files_cache.clear
       end
 
-      def store_report files
+      def clear!
+        self.class.reset!
+      end
+
+      def store_report(files)
         filtered_files = filter(files)
         store.store_report(filtered_files) if filtered_files.any?
       end

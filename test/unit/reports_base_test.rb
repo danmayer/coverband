@@ -1,57 +1,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class SimpleCovReportTest < Test::Unit::TestCase
+class ReportsBaseTest < Test::Unit::TestCase
 
-  test "report data" do
-    Coverband.configure do |config|
-      config.redis             = fake_redis
-      config.reporter          = 'std_out'
-    end
-
-    Coverband::Reporters::SimpleCovReport.expects(:current_root).returns('/root_dir')
-    fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
-    
-    fake_coverband_members.each do |key|
-      fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
-    end
-
-    matchers = [regexp_matches(/tester/),
-                regexp_matches(/application_controller/),
-                regexp_matches(/account/),
-                regexp_matches(/54/)]
-    
-    Coverband.configuration.logger.expects('info').with(all_of(*matchers))
-
-    Coverband::Reporters::SimpleCovReport.report
-  end
-
-    test "report data with scov" do
-    Coverband.configure do |config|
-      config.redis             = fake_redis
-      config.reporter          = 'scov'
-      config.s3_bucket         = nil
-    end
-
-    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/root_dir')
-    fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
-    
-    fake_coverband_members.each do |key|
-      File.expects(:exists?).with(key).returns(true)
-      File.expects(:foreach).with(key).returns(['a','b','c'])
-      fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
-    end
-    
-    Coverband.configuration.logger.stubs('info')
-
-    Coverband::Reporters::SimpleCovReport.report(open_report: false)
-  end
-
-  ####
-  # TODO
-  # attempting to write some tests around this reporter
-  # shows that it has become a disaster of self methods relying on side effects.
-  # Fix to standard class and methods.
-  ####
   test "filename_from_key fix filename from a key with a swappable path" do
     Coverband.configure do |config|
       config.redis             = fake_redis
@@ -168,28 +118,6 @@ class SimpleCovReportTest < Test::Unit::TestCase
     expects = [0,0,1,0,1,0,0,1]
 
     assert_equal expects, Coverband::Reporters::SimpleCovReport.merge_arrays(first, second)
-  end
-
-  private
-
-  def fake_redis
-    @redis ||= begin
-                 redis = OpenStruct.new()
-                 def redis.smembers(key)
-                 end
-                 redis
-               end
-  end
-
-  def fake_coverband_members
-    ["/Users/danmayer/projects/hearno/script/tester.rb",
-     "/Users/danmayer/projects/hearno/app/controllers/application_controller.rb",
-     "/Users/danmayer/projects/hearno/app/models/account.rb"
-    ]
-  end
-
-  def fake_coverage_report
-    {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 1, nil, nil, nil]}
   end
 
 end

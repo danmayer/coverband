@@ -7,6 +7,12 @@ module Coverband
         @store_as_array = opts.fetch(:array){ false }
       end
 
+      def clear!
+        @redis.smembers('coverband').each { |key| @redis.del("coverband.#{key}") }
+        @redis.del("coverband")
+      end
+
+      #todo save_report
       def store_report(report)
         if @store_as_array
           redis.pipelined do
@@ -25,8 +31,22 @@ module Coverband
         end
       end
 
+      def covered_files
+        redis.smembers('coverband')
+      end
+
       def covered_lines_for_file(file)
-        @redis.smembers("coverband.#{file}").map(&:to_i)
+        if @store_as_array
+          @redis.smembers("coverband.#{file}").map(&:to_i)
+        else
+          @redis.hgetall("coverband.#{file}")
+        end
+      end
+
+      def coverage_report
+        report = {}
+        covered_files.each{ |key| report[key] = covered_lines_for_file(key) }
+        report
       end
 
       def sadd_supports_array?

@@ -72,6 +72,7 @@ class BaseTest < Test::Unit::TestCase
     coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
+    Coverband.configuration.logger.stubs('info')
     store = Coverband::Adapters::RedisStore.new(Redis.new)
     coverband.instance_variable_set("@store", store)
     store.expects(:store_report).once.with(has_entries(dog_file => { 3 => 5 }) )
