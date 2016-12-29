@@ -5,7 +5,7 @@ class RedisTest < Test::Unit::TestCase
   def setup
     @redis = Redis.new
     @redis.flushdb
-    @store = Coverband::RedisStore.new(@redis, array: true)
+    @store = Coverband::Adapters::RedisStore.new(@redis, array: true)
   end
 
   def test_covered_lines_for_file
@@ -36,7 +36,7 @@ class RedisStoreTestV3Array < RedisTest
         redis.stubs(:info).returns({'redis_version' => 3.0})
       }
 
-      @store = Coverband::RedisStore.new(@redis, array: true)
+      @store = Coverband::Adapters::RedisStore.new(@redis, array: true)
     end
 
     test "it stores the files into coverband" do
@@ -76,7 +76,7 @@ class RedisStoreTestV3Hash < RedisTest
         redis.stubs(:info).returns({'redis_version' => 3.0})
       }
 
-      @store = Coverband::RedisStore.new(@redis)
+      @store = Coverband::Adapters::RedisStore.new(@redis)
     end
 
     test "it stores the files into coverband" do
@@ -111,7 +111,7 @@ class RedisStoreTestV223 < RedisTest
         redis.stubs(:info).returns({'redis_version' => "2.2.3"})
       }
 
-      @store = Coverband::RedisStore.new(@redis, array: true)
+      @store = Coverband::Adapters::RedisStore.new(@redis, array: true)
     end
 
     test "it store the files with separate calls into coverband" do
@@ -130,7 +130,7 @@ class RedisStoreTestV222 < RedisTest
         redis.stubs(:info).returns({'redis_version' => "2.2.2"})
       }
 
-      @store = Coverband::RedisStore.new(@redis, array: true)
+      @store = Coverband::Adapters::RedisStore.new(@redis, array: true)
     end
 
     test "it store the files with separate calls into coverband" do

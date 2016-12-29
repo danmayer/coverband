@@ -4,9 +4,9 @@ module Coverband
   class MemoryCacheStoreTest < Test::Unit::TestCase
 
     def setup
-      MemoryCacheStore.reset!
+      Adapters::MemoryCacheStore.reset!
       @store = mock('store')
-      @memory_store = MemoryCacheStore.new(@store)
+      @memory_store = Adapters::MemoryCacheStore.new(@store)
     end
 
     def data
