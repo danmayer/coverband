@@ -8,7 +8,7 @@ require 'coverband/adapters/redis_store'
 require 'coverband/adapters/memory_cache_store'
 require 'coverband/base'
 require 'coverband/baseline'
-require 'coverband/reporter'
+require 'coverband/reporters/simple_cov_report'
 require 'coverband/middleware'
 require 'coverband/s3_report_writer'
 

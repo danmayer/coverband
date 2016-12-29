@@ -8,15 +8,15 @@ module Coverband
       end
 
       def store_report(report)
-         if @store_as_array
-           redis.pipelined do
-             store_array('coverband', report.keys)
+        if @store_as_array
+          redis.pipelined do
+            store_array('coverband', report.keys)
 
-             report.each do |file, lines|
-               store_array("coverband.#{file}", lines.keys)
-             end
-           end
-         else
+            report.each do |file, lines|
+              store_array("coverband.#{file}", lines.keys)
+            end
+          end
+        else
           store_array('coverband', report.keys)
 
           report.each do |file, lines|

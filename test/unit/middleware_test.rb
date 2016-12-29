@@ -83,7 +83,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
     Coverband::Base.instance.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set("@reporter", Coverband::Adapters::RedisStore.new(fake_redis))
+    Coverband::Base.instance.instance_variable_set("@store", Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
@@ -100,7 +100,7 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
     Coverband::Base.instance.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set("@reporter", Coverband::Adapters::RedisStore.new(fake_redis))
+    Coverband::Base.instance.instance_variable_set("@store", Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once

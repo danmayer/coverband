@@ -1,19 +1,14 @@
 module Coverband
   module Adapters
     class MemoryCacheStore
-
       attr_accessor :store
 
-      def self.files_cache
-        @files_cache ||= Hash.new
+      def initialize(store)
+        @store = store
       end
 
       def self.reset!
         files_cache.clear
-      end
-
-      def initialize(store)
-        @store = store
       end
 
       def store_report files
@@ -22,6 +17,10 @@ module Coverband
       end
 
       private
+
+      def self.files_cache
+        @files_cache ||= Hash.new
+      end
 
       def files_cache
         self.class.files_cache

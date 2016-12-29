@@ -44,7 +44,7 @@ namespace :coverband do
   ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
-    Coverband::Reporter.report
+    Coverband::Reporters::SimpleCovReport.report
   end
 
   def clear_simplecov_filters
@@ -56,7 +56,7 @@ namespace :coverband do
   desc "report runtime coverband code coverage after disabling simplecov filters"
   task :coverage_no_filters => :environment do
     clear_simplecov_filters
-    Coverband::Reporter.report
+    Coverband::Reporters::SimpleCovReport.report
   end
 
   ###
@@ -66,7 +66,7 @@ namespace :coverband do
   ###
   desc "reset coverband coverage data"
   task :clear  => :environment do
-    Coverband::Reporter.clear_coverage
+    Coverband::Reporters::SimpleCovReport.clear_coverage
   end
 
 end

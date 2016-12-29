@@ -46,8 +46,8 @@ module Coverband
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
       if Coverband.configuration.redis
-        @reporter = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
-        @reporter = Coverband::Adapters::MemoryCacheStore.new(@reporter) if Coverband.configuration.memory_caching
+        @store = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
+        @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
       end
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
@@ -95,12 +95,12 @@ module Coverband
         end
       end
 
-      if @reporter
+      if @store
         if @stats
           @before_time = Time.now
           @stats.count "coverband.files.recorded_files", @file_line_usage.length
         end
-        @reporter.store_report(@file_line_usage)
+        @store.store_report(@file_line_usage)
         if @stats
           @time_spent = Time.now - @before_time
           @stats.timing "coverband.files.recorded_time", @time_spent
