@@ -15,7 +15,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     end
 
     Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/root_dir')
-    fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
+    @fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
 
     SimpleCov.expects(:track_files)
     SimpleCov.expects(:add_not_loaded_files).returns({})
@@ -24,7 +24,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     fake_coverband_members.each do |key|
       File.expects(:exists?).with(key).returns(true)
       File.expects(:foreach).with(key).returns(['a','b','c'])
-      fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
+      @fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
     end
     
     Coverband.configuration.logger.stubs('info')

@@ -4,7 +4,6 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test "filename_from_key fix filename from a key with a swappable path" do
     Coverband.configure do |config|
-      config.redis             = fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -18,7 +17,6 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test "filename_from_key fix filename a changing deploy path with double quotes" do
     Coverband.configure do |config|
-      config.redis             = fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -33,7 +31,6 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test "filename_from_key fix filename a changing deploy path with single quotes" do
     Coverband.configure do |config|
-      config.redis             = fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -48,7 +45,6 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test "filename_from_key leave filename from a key with a local path" do
     Coverband.configure do |config|
-      config.redis             = fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -61,8 +57,11 @@ class ReportsBaseTest < Test::Unit::TestCase
   end
 
   test "line_hash gets correct hash entry for a line key" do
+    @fake_redis = fake_redis
+    store = Coverband::Adapters::RedisStore.new(@fake_redis, array: true)
+
     Coverband.configure do |config|
-      config.redis             = fake_redis
+      config.redis             = @fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -71,20 +70,22 @@ class ReportsBaseTest < Test::Unit::TestCase
     #the code takes config.root expands and adds a '/'
     roots = ["/app/", '/full/remote_app/path/']
 
-    current_redis = fake_redis
     lines_hit = ['1','3','6']
-    current_redis.stubs(:smembers).returns(lines_hit)
+    @fake_redis.stubs(:smembers).returns(lines_hit)
     #expects to show hit counts on 1,3,6
     expected = {"/full/remote_app/path/is/a/path.rb" => [1,0,1,0,0,1]}
     File.stubs(:exists?).returns(true)
     File.stubs(:foreach).returns(['line 1','line2','line3','line4','line5','line6'])
     
-    assert_equal expected, Coverband::Reporters::Base.line_hash(current_redis, key, roots)
+    assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
   end
 
   test "line_hash adjusts relative paths" do
+    @fake_redis = fake_redis
+    store = Coverband::Adapters::RedisStore.new(@fake_redis, array: true)
+
     Coverband.configure do |config|
-      config.redis             = fake_redis
+      config.redis             = @fake_redis
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
@@ -93,15 +94,14 @@ class ReportsBaseTest < Test::Unit::TestCase
     #the code takes config.root expands and adds a '/'
     roots = ["/app/", '/full/remote_app/path/']
 
-    current_redis = fake_redis
     lines_hit = ['1','3','6']
-    current_redis.stubs(:smembers).returns(lines_hit)
+    @fake_redis.stubs(:smembers).returns(lines_hit)
     #expects to show hit counts on 1,3,6
     expected = {"/full/remote_app/path/is/a/path.rb" => [1,0,1,0,0,1]}
     File.stubs(:exists?).returns(true)
     File.stubs(:foreach).returns(['line 1','line2','line3','line4','line5','line6'])
     
-    assert_equal expected, Coverband::Reporters::Base.line_hash(current_redis, key, roots)
+    assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
   end
 
   test "#merge_arrays basic merge preserves order and counts" do

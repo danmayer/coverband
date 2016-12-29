@@ -31,9 +31,15 @@ module Coverband
       def self.get_current_scov_data_imp(store, roots)
         scov_style_report = {}
 
-        Coverband.configuration.redis.smembers('coverband').each do |key|
+        ###
+        # why do we need to merge covered files data?
+        # basically because paths on machines or deployed hosts could be different, so
+        # two different keys could point to the same filename or `line_key`
+        # this logic should be pushed to base report
+        ###
+        store.covered_files.each do |key|
           next if Coverband.configuration.ignore.any?{ |i| key.match(i) }
-          line_data = line_hash(Coverband.configuration.redis, key, roots)
+          line_data = line_hash(store, key, roots)
 
           if line_data
             line_key = line_data.keys.first
@@ -52,7 +58,7 @@ module Coverband
       end
 
       def self.report_scov_with_additional_data(store, existing_coverage, additional_scov_data, roots)
-        scov_style_report = get_current_scov_data_imp Coverband.configuration.redis, roots
+        scov_style_report = get_current_scov_data_imp(store, roots)
         existing_coverage = fix_file_names(existing_coverage, roots)
         scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
 

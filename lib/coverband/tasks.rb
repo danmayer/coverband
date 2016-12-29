@@ -44,10 +44,10 @@ namespace :coverband do
   ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
+    store = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
     if Coverband.configuration.reporter=='scov'
-      Coverband::Reporters::SimpleCovReport.report
+      Coverband::Reporters::SimpleCovReport.report(store)
     else
-      store = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
       Coverband::Reporters::ConsoleReport.report(store)
     end
   end
@@ -60,8 +60,13 @@ namespace :coverband do
 
   desc "report runtime coverband code coverage after disabling simplecov filters"
   task :coverage_no_filters => :environment do
-    clear_simplecov_filters
-    Coverband::Reporters::SimpleCovReport.report
+    store = Coverband::Adapters::RedisStore.new(Coverband.configuration.redis)
+    if Coverband.configuration.reporter=='scov'
+      clear_simplecov_filters
+      Coverband::Reporters::SimpleCovReport.report(store)
+    else
+      puts "coverage without filters only makes sense for SimpleCov reports"
+    end
   end
 
   ###
