@@ -2,7 +2,7 @@ namespace :coverband do
 
   desc "record coverband coverage baseline"
   task :baseline do
-    Coverband::Reporter.baseline {
+    Coverband::Baseline.record {
         if Rake::Task.tasks.any?{ |key| key.to_s.match(/environment$/) }
           Rake::Task['environment'].invoke
         elsif Rake::Task.tasks.any?{ |key| key.to_s.match(/env$/) }

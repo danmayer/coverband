@@ -2,18 +2,6 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class ReporterTest < Test::Unit::TestCase
 
-  test "record baseline" do
-    Coverage.expects(:start).returns(true).at_least_once
-    Coverage.expects(:result).returns({'fake' => [0,1]}).at_least_once
-    File.expects(:open).once
-
-    Coverband::Reporter.stubs(:puts)
-
-    Coverband::Reporter.baseline{
-      #nothing
-    }
-  end
-
   test "report data" do
     Coverband.configure do |config|
       config.redis             = fake_redis
