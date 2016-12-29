@@ -107,7 +107,7 @@ class ReportsBaseTest < Test::Unit::TestCase
   test "#merge_arrays basic merge preserves order and counts" do
     first = [0,0,1,0,1]
     second = [nil,0,1,0,0]
-    expects = [0,0,1,0,1]
+    expects = [0,0,2,0,1]
 
     assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
   end
@@ -115,9 +115,17 @@ class ReportsBaseTest < Test::Unit::TestCase
   test "#merge_arrays basic merge preserves order and counts different lenths" do
     first = [0,0,1,0,1]
     second = [nil,0,1,0,0,0,0,1]
-    expects = [0,0,1,0,1,0,0,1]
+    expects = [0,0,2,0,1,0,0,1]
 
     assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
+  end
+
+  test "#merge_existing_coverage basic merge preserves order and counts different lenths" do
+    first = {"file.rb" => [0,1,2,nil,nil,nil]}
+    second = {"file.rb" => [0,1,2,nil,0,1,2]}
+    expects = {"file.rb" => [0,2,4,nil,0,1,2]}
+
+    assert_equal expects, Coverband::Reporters::Base.merge_existing_coverage(first, second)
   end
 
 end

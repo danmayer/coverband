@@ -27,9 +27,7 @@ module Coverband
         fixed_report
       end
 
-      # [0,0,1,0,1]
-      # [nil,0,1,0,0]
-      # merge to
+      # > merge_arrays([0,0,1,0,1],[nil,0,1,0,0])
       # [0,0,1,0,1]
       def self.merge_arrays(first, second)
         merged = []
@@ -37,7 +35,7 @@ module Coverband
 
         longest.each_with_index do |line, index|
           if first[index] || second[index]
-            merged[index] = (first[index].to_i + second[index].to_i >= 1 ? 1 : 0)
+            merged[index] = (first[index].to_i + second[index].to_i)
           else
             merged[index] = nil
           end
@@ -46,19 +44,14 @@ module Coverband
         merged
       end
 
+      # > merge_existing_coverage({"file.rb" => [0,1,2,nil,nil,nil]}, {"file.rb" => [0,1,2,nil,0,1,2]})
+      # expects = {"file.rb" => [0,2,4,nil,0,1,2]}
       def self.merge_existing_coverage(scov_style_report, existing_coverage)
-        existing_coverage.each_pair do |key, lines|
-          if current_lines = scov_style_report[key]
-            lines.each_with_index do |line, index|
-              if line.nil? && current_lines[index].to_i == 0
-                current_lines[index] = nil
-              else
-                current_lines[index] = current_lines[index] ? (current_lines[index].to_i + line.to_i) : nil
-              end
-            end
-            scov_style_report[key] = current_lines
+        existing_coverage.each_pair do |file_key, existing_lines|
+          if current_line_hits = scov_style_report[file_key]
+            scov_style_report[file_key] = merge_arrays(current_line_hits, existing_lines)
           else
-            scov_style_report[key] = lines
+            scov_style_report[file_key] = existing_lines
           end
         end
         scov_style_report
