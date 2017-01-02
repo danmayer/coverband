@@ -2,6 +2,7 @@ module Coverband
   module Reporters
     class SimpleCovReport < Base
 
+      #TODO almost all of this can move to base for getting a scov style report with baseline and additional coverage merged.
       def self.report(store, options = {})
         begin
           require 'simplecov'
@@ -18,12 +19,35 @@ module Coverband
           Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
         end
 
-        additional_scov_data = options.fetch(:additional_scov_data) { [] }
+        additional_coverage_data = options.fetch(:additional_scov_data) { [] }
         if Coverband.configuration.verbose
-          print additional_scov_data
+          Coverband.configuration.logger.info "additional data:\n #{additional_coverage_data}"
+        end
+        additional_coverage_data.push(fix_file_names(existing_coverage, roots))
+
+        scov_style_report = report_scov_with_additional_data(store, additional_coverage_data, roots)
+
+        if Coverband.configuration.verbose
+          Coverband.configuration.logger.info "report:\n #{scov_style_report.inspect}"
         end
 
-        report_scov(store, existing_coverage, additional_scov_data, roots, open_report)
+        # add in files never hit in coverband
+        SimpleCov.track_files "#{current_root}/{app,lib,config}/**/*.{rb,haml,erb,slim}"
+        report_files = SimpleCov.add_not_loaded_files(scov_style_report)
+        filtered_report_files = {}
+        report_files.each_pair do |file, data|
+          next if Coverband.configuration.ignore.any?{ |i| file.match(i) }
+          filtered_report_files[file] = data
+        end
+        SimpleCov::Result.new(filtered_report_files).format!
+
+        if open_report
+          `open #{SimpleCov.coverage_dir}/index.html`
+        else
+          Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
+        end
+
+        S3ReportWriter.new(Coverband.configuration.s3_bucket).persist! if Coverband.configuration.s3_bucket
       end
 
       private
@@ -57,37 +81,14 @@ module Coverband
         scov_style_report
       end
 
-      def self.report_scov_with_additional_data(store, existing_coverage, additional_scov_data, roots)
+      def self.report_scov_with_additional_data(store, additional_scov_data, roots)
         scov_style_report = get_current_scov_data_imp(store, roots)
-        existing_coverage = fix_file_names(existing_coverage, roots)
-        scov_style_report = merge_existing_coverage(scov_style_report, existing_coverage)
 
         additional_scov_data.each do |data|
           scov_style_report = merge_existing_coverage(scov_style_report, data)
         end
 
         scov_style_report
-      end
-
-      def self.report_scov(store, existing_coverage, additional_scov_data, roots, open_report)
-        scov_style_report = report_scov_with_additional_data(store, existing_coverage, additional_scov_data, roots)
-
-        if Coverband.configuration.verbose
-          Coverband.configuration.logger.info "report: "
-          Coverband.configuration.logger.info scov_style_report.inspect
-        end
-
-        # add in files never hit in coverband
-        SimpleCov.track_files "#{current_root}/{app,lib,config}/**/*.{rb,haml,erb,slim}"
-        SimpleCov::Result.new(SimpleCov.add_not_loaded_files(scov_style_report)).format!
-
-        if open_report
-          `open #{SimpleCov.coverage_dir}/index.html`
-        else
-          Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
-        end
-
-        S3ReportWriter.new(Coverband.configuration.s3_bucket).persist! if Coverband.configuration.s3_bucket
       end
 
     end

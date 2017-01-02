@@ -300,6 +300,8 @@ If you are trying to debug locally wondering what code is being run during a req
 
 If you are clearing data on every deploy. You might want to write the data out to a file first. Then you could merge the data into the final results later.
 
+__note:__ I don't actually recommend clearing on every deploy, but only following significant releases where many line numbers would be off. If you follow that approach you don't need to merge data over time as this example shows how.
+
 ```ruby
 data = JSON.generate Coverband::Reporter.get_current_scov_data
 File.write("blah.json", data)
@@ -321,12 +323,14 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 
 ### Known issues
 
+* __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
 * the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
 
 ## TODO
 
+* move to SimpleCov console out, or make similar console tabular output
 * Fix network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route

@@ -48,6 +48,7 @@ module Coverband
       # expects = {"file.rb" => [0,2,4,nil,0,1,2]}
       def self.merge_existing_coverage(scov_style_report, existing_coverage)
         existing_coverage.each_pair do |file_key, existing_lines|
+          next if Coverband.configuration.ignore.any?{ |i| file_key.match(i) }
           if current_line_hits = scov_style_report[file_key]
             scov_style_report[file_key] = merge_arrays(current_line_hits, existing_lines)
           else
@@ -70,23 +71,19 @@ module Coverband
       end
 
       # > line_hash(store, 'hearno/script/tester.rb', ['/app/', '/Users/danmayer/projects/hearno/'])
-      # {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 1, nil, nil, nil]}
+      # {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 2, nil, nil, nil]}
       def self.line_hash(store, key, roots)
         filename = filename_from_key(key, roots)
         if File.exists?(filename)
 
           count = File.foreach(filename).inject(0) { |c, line| c + 1 }
-          if filename.match(/\.erb/)
-            line_array = Array.new(count, nil)
-          else
-            line_array = Array.new(count, 0)
-          end
+          line_array = Array.new(count, nil)
 
           lines_hit = store.covered_lines_for_file(key)
           if lines_hit.is_a?(Array)
-            line_array.each_with_index{|line,index| line_array[index] = 1 if lines_hit.include?((index + 1)) }
+            line_array.each_with_index{|_,index| line_array[index] = 1 if lines_hit.include?((index + 1)) }
           else
-            line_array.each_with_index{|line,index| line_array[index] += lines_hit[(index + 1).to_s].to_i if lines_hit.keys.include?((index + 1).to_s) }
+            line_array.each_with_index{|_,index| line_array[index] = (line_array[index].to_i + lines_hit[(index + 1).to_s].to_i) if lines_hit.keys.include?((index + 1).to_s) }
           end
           {filename => line_array}
         else

@@ -73,7 +73,7 @@ class ReportsBaseTest < Test::Unit::TestCase
     lines_hit = ['1','3','6']
     @fake_redis.stubs(:smembers).returns(lines_hit)
     #expects to show hit counts on 1,3,6
-    expected = {"/full/remote_app/path/is/a/path.rb" => [1,0,1,0,0,1]}
+    expected = {"/full/remote_app/path/is/a/path.rb" => [1,nil,1,nil,nil,1]}
     File.stubs(:exists?).returns(true)
     File.stubs(:foreach).returns(['line 1','line2','line3','line4','line5','line6'])
     
@@ -97,7 +97,7 @@ class ReportsBaseTest < Test::Unit::TestCase
     lines_hit = ['1','3','6']
     @fake_redis.stubs(:smembers).returns(lines_hit)
     #expects to show hit counts on 1,3,6
-    expected = {"/full/remote_app/path/is/a/path.rb" => [1,0,1,0,0,1]}
+    expected = {"/full/remote_app/path/is/a/path.rb" => [1,nil,1,nil,nil,1]}
     File.stubs(:exists?).returns(true)
     File.stubs(:foreach).returns(['line 1','line2','line3','line4','line5','line6'])
     

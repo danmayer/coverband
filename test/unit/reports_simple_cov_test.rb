@@ -53,8 +53,11 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     end
 
     Coverband.configuration.logger.stubs('info')
+    additional_data = [
+      fake_coverage_report
+    ]
 
-    Coverband::Reporters::SimpleCovReport.report(@store, open_report: false)
+    Coverband::Reporters::SimpleCovReport.report(@store, open_report: false, additional_scov_data: additional_data)
   end
 
 end
