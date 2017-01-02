@@ -327,18 +327,21 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
 * the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
+* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting to record the baseline..
 
 ## TODO
 
+* perf test for array vs hash
+* redis pipeline around hash (or batch get then push)
+* pass in namespace to redis (coverage vs baseline)
+* what about having baseline a onetime recording into redis no merge later
 * move to SimpleCov console out, or make similar console tabular output
 * Fix network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
 * Improve client code api, around manual usage of sampling (like event usage)
 * Provide a better lighter example app, to show how to use Coverband.
-  * blank rails app
   * blank Sinatra app
-* report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
 * ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 * Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
 * mountable rack app to view coverage similar to flipper-ui

@@ -4,19 +4,21 @@ namespace :coverband do
   task :baseline do
     Coverband::Baseline.record {
         if Rake::Task.tasks.any?{ |key| key.to_s.match(/environment$/) }
+          Coverband.configuration.logger.info "invoking rake environment"
           Rake::Task['environment'].invoke
         elsif Rake::Task.tasks.any?{ |key| key.to_s.match(/env$/) }
+          Coverband.configuration.logger.info "invoking rake env"
           Rake::Task["env"].invoke
-        else
-          baseline_files = [File.expand_path('./config/boot.rb',  Dir.pwd),
-                            File.expand_path('./config/application.rb', Dir.pwd),
-                            File.expand_path('./config/environment.rb', Dir.pwd)]
-          
-          baseline_files.each do |baseline_file|
-                          if File.exists?(baseline_file)
-                            require baseline_file
-                          end
-                        end
+        end
+
+        baseline_files = [File.expand_path('./config/boot.rb',  Dir.pwd),
+                          File.expand_path('./config/application.rb', Dir.pwd),
+                          File.expand_path('./config/environment.rb', Dir.pwd)]
+
+        baseline_files.each do |baseline_file|
+          if File.exists?(baseline_file)
+            puts require baseline_file
+          end
         end
         if defined? Rails
           Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 

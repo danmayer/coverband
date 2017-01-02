@@ -18,6 +18,10 @@ module Coverband
         File.open(path, 'w') { |f| f.write(results.to_json) }
       end
 
+      def coverage
+        existing_data(path)
+      end
+
       def covered_files
         report = existing_data(path)
         existing_data(path).merge(report).keys || []

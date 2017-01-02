@@ -13,7 +13,7 @@ class SimpleCovReportTest < Test::Unit::TestCase
       config.reporter          = 'std_out'
     end
 
-    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('/root_dir')
+    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('/tmp/root_dir')
     @fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
     
     fake_coverband_members.each do |key|

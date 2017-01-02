@@ -14,6 +14,10 @@ module Coverband
 
         open_report = options.fetch(:open_report) { true }
 
+        # set root to show files if user has simplecov profiles
+        # https://github.com/danmayer/coverband/issues/59
+        SimpleCov.root(current_root)
+
         # add in files never hit in coverband
         SimpleCov.track_files "#{current_root}/{app,lib,config}/**/*.{rb,haml,erb,slim}"
 

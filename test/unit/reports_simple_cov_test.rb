@@ -14,7 +14,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
       config.s3_bucket         = nil
     end
 
-    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/root_dir')
+    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/tmp/root_dir')
     @fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
 
     SimpleCov.expects(:track_files)
@@ -39,7 +39,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
       config.s3_bucket         = nil
     end
 
-    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/root_dir')
+    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/tmp/root_dir')
     @fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
 
     SimpleCov.expects(:track_files)
