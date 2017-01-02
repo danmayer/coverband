@@ -12,8 +12,7 @@ module Coverband
         @redis.del("coverband")
       end
 
-      #todo save_report
-      def store_report(report)
+      def save_report(report)
         if @store_as_array
           redis.pipelined do
             store_array('coverband', report.keys)
@@ -43,19 +42,13 @@ module Coverband
         end
       end
 
-      def coverage_report
-        report = {}
-        covered_files.each{ |key| report[key] = covered_lines_for_file(key) }
-        report
-      end
+      private
+
+      attr_reader :redis
 
       def sadd_supports_array?
         @_sadd_supports_array
       end
-
-      private
-
-      attr_reader :redis
 
       def store_map(key, values)
         existing = redis.hgetall(key)

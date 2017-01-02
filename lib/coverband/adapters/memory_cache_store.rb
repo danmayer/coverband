@@ -15,9 +15,9 @@ module Coverband
         self.class.reset!
       end
 
-      def store_report(files)
+      def save_report(files)
         filtered_files = filter(files)
-        store.store_report(filtered_files) if filtered_files.any?
+        store.save_report(filtered_files) if filtered_files.any?
       end
 
       private

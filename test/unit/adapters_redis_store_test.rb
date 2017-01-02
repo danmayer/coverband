@@ -45,7 +45,7 @@ class RedisStoreTestV3Array < RedisTest
         '/Users/danmayer/projects/cover_band_server/server.rb'
       ])
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 
     test "it stores the file lines of the file app.rb" do
@@ -54,7 +54,7 @@ class RedisStoreTestV3Array < RedisTest
         [54, 55]
       )
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 
     test "it stores the file lines of the file server.rb" do
@@ -63,7 +63,7 @@ class RedisStoreTestV3Array < RedisTest
         [5]
       )
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 
 end
@@ -85,7 +85,7 @@ class RedisStoreTestV3Hash < RedisTest
         '/Users/danmayer/projects/cover_band_server/server.rb'
       ])
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 
     test "it stores the file lines of the file app.rb" do
@@ -98,7 +98,7 @@ class RedisStoreTestV3Hash < RedisTest
         {'5' => 1}
       )
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 
 end
@@ -118,7 +118,7 @@ class RedisStoreTestV223 < RedisTest
       @redis.expects(:sadd).with('coverband', '/Users/danmayer/projects/cover_band_server/app.rb')
       @redis.expects(:sadd).with('coverband', '/Users/danmayer/projects/cover_band_server/server.rb')
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 end
 
@@ -137,6 +137,6 @@ class RedisStoreTestV222 < RedisTest
       @redis.expects(:sadd).with('coverband', '/Users/danmayer/projects/cover_band_server/app.rb')
       @redis.expects(:sadd).with('coverband', '/Users/danmayer/projects/cover_band_server/server.rb')
 
-      @store.store_report(test_data)
+      @store.save_report(test_data)
     end
 end

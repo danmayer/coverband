@@ -75,7 +75,7 @@ class BaseTest < Test::Unit::TestCase
     Coverband.configuration.logger.stubs('info')
     store = Coverband::Adapters::RedisStore.new(Redis.new)
     coverband.instance_variable_set("@store", store)
-    store.expects(:store_report).once.with(has_entries(dog_file => { 3 => 5 }) )
+    store.expects(:save_report).once.with(has_entries(dog_file => { 3 => 5 }) )
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     5.times { Dog.new.bark }
