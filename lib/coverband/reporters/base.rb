@@ -3,7 +3,25 @@ module Coverband
     class Base
 
       def self.report(store, options = {})
-        raise "abstract method child must implement"
+        roots = get_roots
+        existing_coverage = Coverband.configuration.coverage_baseline
+
+        if Coverband.configuration.verbose
+          Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
+        end
+
+        additional_coverage_data = options.fetch(:additional_scov_data) { [] }
+        if Coverband.configuration.verbose
+          Coverband.configuration.logger.info "additional data:\n #{additional_coverage_data}"
+        end
+        additional_coverage_data.push(fix_file_names(existing_coverage, roots))
+
+        scov_style_report = report_scov_with_additional_data(store, additional_coverage_data, roots)
+
+        if Coverband.configuration.verbose
+          Coverband.configuration.logger.info "report:\n #{scov_style_report.inspect}"
+        end
+        scov_style_report
       end
 
       def self.get_roots
@@ -90,6 +108,45 @@ module Coverband
           Coverband.configuration.logger.info "file #{filename} not found in project"
           nil
         end
+      end
+
+      def self.get_current_scov_data_imp(store, roots)
+        scov_style_report = {}
+
+        ###
+        # why do we need to merge covered files data?
+        # basically because paths on machines or deployed hosts could be different, so
+        # two different keys could point to the same filename or `line_key`
+        # this logic should be pushed to base report
+        ###
+        store.covered_files.each do |key|
+          next if Coverband.configuration.ignore.any?{ |i| key.match(i) }
+          line_data = line_hash(store, key, roots)
+
+          if line_data
+            line_key = line_data.keys.first
+            previous_line_hash = scov_style_report[line_key]
+
+            if previous_line_hash
+              line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
+            end
+
+            scov_style_report.merge!(line_data)
+          end
+        end
+
+        scov_style_report = fix_file_names(scov_style_report, roots)
+        scov_style_report
+      end
+
+      def self.report_scov_with_additional_data(store, additional_scov_data, roots)
+        scov_style_report = get_current_scov_data_imp(store, roots)
+
+        additional_scov_data.each do |data|
+          scov_style_report = merge_existing_coverage(scov_style_report, data)
+        end
+
+        scov_style_report
       end
 
     end

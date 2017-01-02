@@ -23,7 +23,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
 
     fake_coverband_members.each do |key|
       File.expects(:exists?).with(key).returns(true)
-      File.expects(:foreach).with(key).returns(['a','b','c'])
+      File.expects(:foreach).with(key).returns(Array.new(60){'LOC'})
       @fake_redis.expects(:smembers).with("coverband.#{key}").returns(["54", "55"])
     end
     
