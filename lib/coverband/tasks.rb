@@ -17,7 +17,7 @@ namespace :coverband do
 
         baseline_files.each do |baseline_file|
           if File.exists?(baseline_file)
-            puts require baseline_file
+            require baseline_file
           end
         end
         if defined? Rails
