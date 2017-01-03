@@ -4,17 +4,12 @@ module Coverband
 
       def self.report(store, options = {})
         roots = get_roots
-        existing_coverage = Coverband.configuration.coverage_baseline
+        additional_coverage_data = options.fetch(:additional_scov_data) { [] }
 
         if Coverband.configuration.verbose
           Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
-        end
-
-        additional_coverage_data = options.fetch(:additional_scov_data) { [] }
-        if Coverband.configuration.verbose
           Coverband.configuration.logger.info "additional data:\n #{additional_coverage_data}"
         end
-        additional_coverage_data.push(fix_file_names(existing_coverage, roots))
 
         scov_style_report = report_scov_with_additional_data(store, additional_coverage_data, roots)
 

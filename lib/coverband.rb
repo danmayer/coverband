@@ -17,7 +17,6 @@ require 'coverband/middleware'
 require 'coverband/s3_report_writer'
 
 module Coverband
-
   CONFIG_FILE = './config/coverband.rb'
 
   class << self

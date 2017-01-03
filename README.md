@@ -331,6 +331,7 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 
 ## TODO
 
+* graphite adapters (it would allow passing in date ranges on usage)
 * perf test for array vs hash
 * redis pipeline around hash (or batch get then push)
 * pass in namespace to redis (coverage vs baseline)

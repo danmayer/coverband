@@ -30,6 +30,14 @@ module Coverband
         end
       end
 
+      def coverage
+        data = {}
+        redis.smembers('coverband').each do |key|
+          data[key] = covered_lines_for_file(key)
+        end
+        data
+      end
+
       def covered_files
         redis.smembers('coverband')
       end
@@ -51,11 +59,13 @@ module Coverband
       end
 
       def store_map(key, values)
-        existing = redis.hgetall(key)
-        #in redis all keys are strings
-        values = Hash[values.map{|k,val| [k.to_s,val] } ]
-        values.merge!( existing ){|k, old_v, new_v| old_v.to_i + new_v.to_i}
-        redis.mapped_hmset(key, values)
+        unless values.empty?
+          existing = redis.hgetall(key)
+          #in redis all keys are strings
+          values = Hash[values.map{|k,val| [k.to_s,val] } ]
+          values.merge!( existing ){|k, old_v, new_v| old_v.to_i + new_v.to_i}
+          redis.mapped_hmset(key, values)
+        end
       end
 
       def store_array(key, values)

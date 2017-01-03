@@ -3,7 +3,6 @@ module Coverband
     class ConsoleReport < Base
 
       def self.report(store, options = {})
-
         scov_style_report = super(store, options)
 
         scov_style_report.each_pair do |file, usage|

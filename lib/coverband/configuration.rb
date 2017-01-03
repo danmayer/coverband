@@ -1,17 +1,15 @@
 module Coverband
   class Configuration
      
-    attr_accessor :redis, :coverage_baseline, :root_paths, :root, 
+    attr_accessor :redis, :root_paths, :root,
                   :ignore, :percentage, :verbose, :reporter, :stats,
-                  :logger, :startup_delay, :baseline_file, :trace_point_events, 
+                  :logger, :startup_delay, :trace_point_events,
                   :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store
 
     def initialize
       @root = Dir.pwd
       @redis = nil
       @stats = nil
-      @coverage_baseline = {}
-      @baseline_file = './tmp/coverband_baseline.json'
       @root_paths = []
       @ignore = []
       @include_gems = false
