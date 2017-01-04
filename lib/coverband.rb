@@ -1,7 +1,5 @@
 require 'redis'
 require 'logger'
-# todo this shouldn't be required, but allowed if they use S3 output
-require 'aws-sdk'
 
 require 'coverband/version'
 require 'coverband/configuration'
