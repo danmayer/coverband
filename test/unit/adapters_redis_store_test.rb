@@ -8,14 +8,35 @@ class RedisTest < Test::Unit::TestCase
     @store = Coverband::Adapters::RedisStore.new(@redis, array: true)
   end
 
+  def test_coverage
+    @redis.sadd('coverband', 'dog.rb')
+    @redis.sadd('coverband.dog.rb', 1)
+    @redis.sadd('coverband.dog.rb', 2)
+    expected = {'dog.rb' => [1,2]}
+    assert_equal expected, @store.coverage
+  end
+
   def test_covered_lines_for_file
     @redis.sadd('coverband.dog.rb', 1)
     @redis.sadd('coverband.dog.rb', 2)
-    assert_equal @store.covered_lines_for_file('dog.rb').sort,  [1, 2]
+    assert_equal [1, 2], @store.covered_lines_for_file('dog.rb').sort
+  end
+
+  def test_covered_lines_for_file__hash
+    @redis.mapped_hmset('coverband.dog.rb', {"1" => 1, "2" => 2})
+    @store = Coverband::Adapters::RedisStore.new(@redis, array: false)
+    expected = [["1", "1"], ["2", "2"]]
+    assert_equal expected, @store.covered_lines_for_file('dog.rb').sort
   end
 
   def test_covered_lines_when_null
     assert_equal @store.covered_lines_for_file('dog.rb'),  []
+  end
+
+  def test_clear
+    @redis.expects(:smembers).with('coverband').once.returns([])
+    @redis.expects(:del).with('coverband').once
+    @store.clear!
   end
 
   private
