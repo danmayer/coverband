@@ -1,5 +1,6 @@
 require 'redis'
 require 'logger'
+require 'json'
 
 require 'coverband/version'
 require 'coverband/configuration'

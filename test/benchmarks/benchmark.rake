@@ -14,7 +14,7 @@ namespace :benchmarks do
     end
   end
 
-  desc 'set up coverband'
+  desc 'set up coverband default redis'
   task :setup do
     clone_classifier
     $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
@@ -34,6 +34,42 @@ namespace :benchmarks do
 
   end
 
+  desc 'set up coverband redis array'
+  task :setup_array do
+    clone_classifier
+    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
+    require 'benchmark'
+    require 'classifier-reborn'
+
+    Coverband.configure do |config|
+      config.redis              = Redis.new
+      config.root               = Dir.pwd
+      config.startup_delay      = 0
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.verbose            = false
+      config.store              = Coverband::Adapters::RedisStore.new(Redis.new, array: true)
+    end
+  end
+
+  desc 'set up coverband filestore'
+  task :setup_file do
+    clone_classifier
+    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
+    require 'benchmark'
+    require 'classifier-reborn'
+
+    Coverband.configure do |config|
+      config.redis              = nil
+      config.store              = nil
+      config.root               = Dir.pwd
+      config.startup_delay      = 0
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.verbose            = false
+      config.coverage_file     = '/tmp/benchmark_store.json'
+    end
+  end
 
   def bayes_classification
     b = ClassifierReborn::Bayes.new 'Interesting', 'Uninteresting'
@@ -65,11 +101,9 @@ namespace :benchmarks do
     10_000.times { Dog.new.bark }
   end
 
-
-
-  desc 'runs benchmarks'
-  task :run => :setup do
-    SAMPLINGS = 3
+  def run_work
+    puts "benchmark for: #{Coverband.configuration.inspect}"
+    puts "store: #{Coverband.configuration.store.inspect}"
     bm = Benchmark.bm(15) do |x|
 
       x.report 'coverband' do
@@ -85,10 +119,26 @@ namespace :benchmarks do
           work
         end
       end
-
     end
   end
 
+  desc 'runs benchmarks on default redis setup'
+  task :run => :setup do
+    SAMPLINGS = 5
+    run_work
+  end
+
+  desc 'runs benchmarks redis array'
+  task :run_array => :setup_array do
+    SAMPLINGS = 5
+    run_work
+  end
+
+  desc 'runs benchmarks file store'
+  task :run_file => :setup_file do
+    SAMPLINGS = 5
+    run_work
+  end
 end
 
 desc "runs benchmarks"
