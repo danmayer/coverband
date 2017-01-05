@@ -6,6 +6,10 @@ module Coverband
                   :logger, :startup_delay, :trace_point_events,
                   :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store
 
+    # deprecated, but leaving to allow old configs to 'just work'
+    # remove for 2.0
+    attr_accessor :coverage_baseline
+
     def initialize
       @root = Dir.pwd
       @redis = nil
@@ -28,6 +32,7 @@ module Coverband
       @logger ||= Logger.new(STDOUT)
     end
 
+    #TODO considering removing @redis / @coveragefile and have user set store directly
     def store
       return @store if @store
       if redis

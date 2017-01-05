@@ -3,6 +3,8 @@ require File.expand_path('../fake_app/basic_rack', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Test::Unit::TestCase
+  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
+
   test "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -87,7 +89,7 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("coverband.#{basic_rack_ruby_file}", {'5' => 1})
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", {'5' => 1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
@@ -104,7 +106,7 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("coverband.#{basic_rack_ruby_file}", {'4'=>1})
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", {'4'=>1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end

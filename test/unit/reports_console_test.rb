@@ -1,6 +1,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class SimpleCovReportTest < Test::Unit::TestCase
+  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup
     @fake_redis = fake_redis
@@ -14,12 +15,12 @@ class SimpleCovReportTest < Test::Unit::TestCase
     end
 
     Coverband::Reporters::ConsoleReport.expects(:current_root).returns('/tmp/root_dir')
-    @fake_redis.expects(:smembers).with('coverband').returns(fake_coverband_members)
+    @fake_redis.expects(:smembers).with(BASE_KEY).returns(fake_coverband_members)
     
     fake_coverband_members.each do |key|
       File.expects(:exists?).with(key).returns(true)
       File.expects(:foreach).with(key).returns(Array.new(4){'LOC'})
-      @fake_redis.expects(:smembers).with("coverband.#{key}").returns(["1", "3"])
+      @fake_redis.expects(:smembers).with("#{BASE_KEY}.#{key}").returns(["1", "3"])
     end
     
     Coverband.configuration.logger.stubs('info')

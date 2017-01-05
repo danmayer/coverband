@@ -1,6 +1,7 @@
-require 'redis'
 require 'logger'
 require 'json'
+# todo move to only be request if using redis store
+require 'redis'
 
 require 'coverband/version'
 require 'coverband/configuration'

@@ -1,52 +1,56 @@
 module Coverband
   module Adapters
     class RedisStore
+      BASE_KEY = 'coverband1'
+
       def initialize(redis, opts = {})
         @redis = redis
+        #remove check for coverband 2.0
         @_sadd_supports_array = recent_gem_version? && recent_server_version?
+        #possibly drop array storage for 2.0
         @store_as_array = opts.fetch(:array){ false }
       end
 
       def clear!
-        @redis.smembers('coverband').each { |key| @redis.del("coverband.#{key}") }
-        @redis.del("coverband")
+        @redis.smembers(BASE_KEY).each { |key| @redis.del("#{BASE_KEY}.#{key}") }
+        @redis.del(BASE_KEY)
       end
 
       def save_report(report)
         if @store_as_array
           redis.pipelined do
-            store_array('coverband', report.keys)
+            store_array(BASE_KEY, report.keys)
 
             report.each do |file, lines|
-              store_array("coverband.#{file}", lines.keys)
+              store_array("#{BASE_KEY}.#{file}", lines.keys)
             end
           end
         else
-          store_array('coverband', report.keys)
+          store_array(BASE_KEY, report.keys)
 
           report.each do |file, lines|
-            store_map("coverband.#{file}", lines)
+            store_map("#{BASE_KEY}.#{file}", lines)
           end
         end
       end
 
       def coverage
         data = {}
-        redis.smembers('coverband').each do |key|
+        redis.smembers(BASE_KEY).each do |key|
           data[key] = covered_lines_for_file(key)
         end
         data
       end
 
       def covered_files
-        redis.smembers('coverband')
+        redis.smembers(BASE_KEY)
       end
 
       def covered_lines_for_file(file)
         if @store_as_array
-          @redis.smembers("coverband.#{file}").map(&:to_i)
+          @redis.smembers("#{BASE_KEY}.#{file}").map(&:to_i)
         else
-          @redis.hgetall("coverband.#{file}")
+          @redis.hgetall("#{BASE_KEY}.#{file}")
         end
       end
 
