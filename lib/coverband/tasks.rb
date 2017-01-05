@@ -2,21 +2,23 @@ namespace :coverband do
 
   desc "record coverband coverage baseline"
   task :baseline do
-    Coverband::Reporter.baseline {
+    Coverband::Baseline.record {
         if Rake::Task.tasks.any?{ |key| key.to_s.match(/environment$/) }
+          Coverband.configuration.logger.info "invoking rake environment"
           Rake::Task['environment'].invoke
         elsif Rake::Task.tasks.any?{ |key| key.to_s.match(/env$/) }
+          Coverband.configuration.logger.info "invoking rake env"
           Rake::Task["env"].invoke
-        else
-          baseline_files = [File.expand_path('./config/boot.rb',  Dir.pwd),
-                            File.expand_path('./config/application.rb', Dir.pwd),
-                            File.expand_path('./config/environment.rb', Dir.pwd)]
-          
-          baseline_files.each do |baseline_file|
-                          if File.exists?(baseline_file)
-                            require baseline_file
-                          end
-                        end
+        end
+
+        baseline_files = [File.expand_path('./config/boot.rb',  Dir.pwd),
+                          File.expand_path('./config/application.rb', Dir.pwd),
+                          File.expand_path('./config/environment.rb', Dir.pwd)]
+
+        baseline_files.each do |baseline_file|
+          if File.exists?(baseline_file)
+            require baseline_file
+          end
         end
         if defined? Rails
           Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 
@@ -44,7 +46,11 @@ namespace :coverband do
   ###
   desc "report runtime coverband code coverage"
   task :coverage => :environment do
-    Coverband::Reporter.report
+    if Coverband.configuration.reporter=='scov'
+      Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store)
+    else
+      Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
+    end
   end
 
   def clear_simplecov_filters
@@ -55,18 +61,22 @@ namespace :coverband do
 
   desc "report runtime coverband code coverage after disabling simplecov filters"
   task :coverage_no_filters => :environment do
-    clear_simplecov_filters
-    Coverband::Reporter.report
+    if Coverband.configuration.reporter=='scov'
+      clear_simplecov_filters
+      Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store)
+    else
+      puts "coverage without filters only makes sense for SimpleCov reports"
+    end
   end
 
   ###
   # You likely want to clear coverage after significant code changes.
   # You may want to have a hook that saves current coverband data on deploy
-  # and then resets the redis data.
+  # and then resets the coverband store data.
   ###
   desc "reset coverband coverage data"
   task :clear  => :environment do
-    Coverband::Reporter.clear_coverage
+    Coverband.configuration.store.clear!
   end
 
 end

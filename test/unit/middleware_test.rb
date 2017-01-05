@@ -3,6 +3,8 @@ require File.expand_path('../fake_app/basic_rack', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Test::Unit::TestCase
+  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
+
   test "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -76,7 +78,6 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware.call(request) rescue nil
   end
 
-
   test 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Base.instance.reset_instance
@@ -84,14 +85,14 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
     Coverband::Base.instance.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
+    Coverband::Base.instance.instance_variable_set("@store", Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{basic_rack_ruby_file}", [5])
+    fake_redis.expects(:mapped_hmset).at_least_once
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", {'5' => 1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
-
 
   test 'report only on calls when configured' do
     request = Rack::MockRequest.env_for("/anything.json")
@@ -101,15 +102,14 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Base.instance.instance_variable_get("@enabled")
     Coverband::Base.instance.instance_variable_set("@sample_percentage", 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set("@reporter", Coverband::RedisStore.new(fake_redis))
+    Coverband::Base.instance.instance_variable_set("@store", Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns({'redis_version' => 3.0})
     fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:sadd).at_least_once.with("coverband.#{basic_rack_ruby_file}", [4])
+    fake_redis.expects(:mapped_hmset).at_least_once
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", {'4'=>1})
     results = middleware.call(request)
     assert_equal true, Coverband::Base.instance.instance_variable_get("@enabled")
   end
-
-
 
   private
 

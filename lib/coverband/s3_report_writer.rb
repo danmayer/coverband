@@ -2,6 +2,12 @@ class S3ReportWriter
 
   def initialize(bucket_name)
     @bucket_name = bucket_name
+    begin
+      require 'aws-sdk'
+    rescue
+      Coverband.configuration.logger.error "coverband requires 'aws-sdk' in order use S3ReportWriter."
+      return
+    end
   end
 
   def persist!
@@ -25,6 +31,5 @@ class S3ReportWriter
   def bucket
     s3.bucket(@bucket_name)
   end
-
 
 end

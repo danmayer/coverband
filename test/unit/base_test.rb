@@ -5,13 +5,13 @@ class BaseTest < Test::Unit::TestCase
 
   test 'defaults to a redis store' do
     coverband = Coverband::Base.instance.reset_instance
-    assert_equal Coverband::RedisStore, coverband.instance_variable_get('@reporter').class
+    assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class
   end
 
   test 'configure memory caching' do
     Coverband.configuration.memory_caching = true
     coverband = Coverband::Base.instance.reset_instance
-    assert_equal Coverband::MemoryCacheStore, coverband.instance_variable_get('@reporter').class
+    assert_equal Coverband::Adapters::MemoryCacheStore, coverband.instance_variable_get('@store').class
     Coverband.configuration.memory_caching = false
   end
 
@@ -45,7 +45,7 @@ class BaseTest < Test::Unit::TestCase
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     coverband.instance_variable_set("@logger", logger)
-    coverband.instance_variable_set("@reporter", nil)
+    coverband.instance_variable_set("@store", nil)
     assert_equal false, coverband.instance_variable_get("@enabled")
     logger.expects(:info).at_least_once
     coverband.sample { 1 + 1 }
@@ -58,7 +58,7 @@ class BaseTest < Test::Unit::TestCase
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
     coverband.instance_variable_set("@logger", logger)
-    coverband.instance_variable_set("@reporter", nil)
+    coverband.instance_variable_set("@store", nil)
     assert_equal false, coverband.instance_variable_get("@enabled")
     logger.expects(:info).at_least_once
     coverband.start
@@ -72,9 +72,10 @@ class BaseTest < Test::Unit::TestCase
     coverband = Coverband::Base.instance.reset_instance
     coverband.instance_variable_set("@sample_percentage", 100.0)
     coverband.instance_variable_set("@verbose", true)
-    store = Coverband::RedisStore.new(Redis.new)
-    coverband.instance_variable_set("@reporter", store)
-    store.expects(:store_report).once.with(has_entries(dog_file => { 3 => 5 }) )
+    Coverband.configuration.logger.stubs('info')
+    store = Coverband::Adapters::RedisStore.new(Redis.new)
+    coverband.instance_variable_set("@store", store)
+    store.expects(:save_report).once.with(has_entries(dog_file => { 3 => 5 }) )
     assert_equal false, coverband.instance_variable_get("@enabled")
     coverband.start
     5.times { Dog.new.bark }

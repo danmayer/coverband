@@ -13,11 +13,30 @@ A gem to measure production code usage, showing each line of code that is execut
 __Notes:__ Latest versions of Coverband drop support for anything less than Ruby 2.0, and Ruby 2.1+ is recommended.
 
 ###### Success:
+
 After running in production for 30 minutes, we were able very easily delete 2000 LOC after looking through the data. We expect to be able to clean up much more after it has collected more data.
 
 ###### Performance Impact
 
 The performance impact on Ruby 2.1+ is fairly small and no longer requires a C-extension. Look at the benchmark rake task for specific details.
+
+## How I use Coverband
+
+* install coverband.
+* take baseline: `rake coverband:baseline`
+* validate baseline with  `rake coverband:coverage`
+* test setup in development (hit endpoints and generate new report)
+* deploy to staging and verify functionality
+* deploy to production and verify functionality
+* every 2 weeks or with major releases
+   * clear old coverage: `rake coverband:clear`
+   * take new baseline: `rake coverband:baseline`
+   * deploy and verify coverage is matching expectations
+* __COVERAGE DRIFT__
+   * if you never clear you have lines of code drift from when they were recorded
+   * if you clear on every deploy you don't capture as useful of data
+   * there is a tradeoff on accuracy and data value
+   * I recommend clearing after major code changes, significant releases, or some regular schedule.
 
 ## Installation
 
@@ -82,10 +101,16 @@ You need to configure cover band you can either do that passing in all configura
 #config/coverband.rb
 Coverband.configure do |config|
   config.root              = Dir.pwd
+  
   if defined? Redis
     config.redis           = Redis.new(:host => 'redis.host.com', :port => 49182, :db => 1)
   end
-  config.coverage_baseline = Coverband.parse_baseline
+  # don't want to use redis, store to file system ;)
+  # config.coverage_file           = './tmp/coverband_coverage.json'
+  
+  # DEPRECATED now will use redis or file store
+  # config.coverage_baseline = Coverband.parse_baseline
+  
   config.root_paths        = ['/app/'] # /app/ is needed for heroku deployments
   # regex paths can help if you are seeing files duplicated for each capistrano deployment release
   #config.root_paths       = ['/server/apps/my_app/releases/\d+/']
@@ -103,6 +128,7 @@ Coverband.configure do |config|
   if defined? Statsd
     config.stats           = Statsd.new('statsd.host.com', 8125)
   end
+  
   # config options false, true, or 'debug'. Always use false in production
   # true and debug can give helpful and interesting code usage information
   # they both increase the performance overhead of the gem a little.
@@ -260,7 +286,8 @@ coverband.sample {
 
 ### Clearing Line Coverage Data
 
-After a deploy where code has changed.
+After a deploy where code has changed significantly.
+
 The line numbers previously recorded in Redis may no longer match the current state of the files.
 If being slightly out of sync isn't as important as gathering data over a long period,
 you can live with minor inconsistency for some files.
@@ -300,6 +327,8 @@ If you are trying to debug locally wondering what code is being run during a req
 
 If you are clearing data on every deploy. You might want to write the data out to a file first. Then you could merge the data into the final results later.
 
+__note:__ I don't actually recommend clearing on every deploy, but only following significant releases where many line numbers would be off. If you follow that approach you don't need to merge data over time as this example shows how.
+
 ```ruby
 data = JSON.generate Coverband::Reporter.get_current_scov_data
 File.write("blah.json", data)
@@ -321,20 +350,24 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 
 ### Known issues
 
+* __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
 * If you don't have a baseline recorded your coverage can look odd like you are missing a bunch of data. It would be good if Coverband gave a more actionable warning in this situation.
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
 * the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
+* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting to record the baseline..
 
 ## TODO
 
+* graphite adapters (it would allow passing in date ranges on usage)
+* perf test for array vs hash
+* redis pipeline around hash (or batch get then push)
+* pass in namespace to redis (coverage vs baseline)
+* what about having baseline a onetime recording into redis no merge later
+* move to SimpleCov console out, or make similar console tabular output
 * Fix network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
 * Improve client code api, around manual usage of sampling (like event usage)
-* Provide a better lighter example app, to show how to use Coverband.
-  * blank rails app
-  * blank Sinatra app
-* report on Coverband files that haven't recorded any coverage (find things like events and crons that aren't recording, or dead files)
 * ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 * Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
 * mountable rack app to view coverage similar to flipper-ui

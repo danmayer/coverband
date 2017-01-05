@@ -45,10 +45,8 @@ module Coverband
       @ignore_patterns = Coverband.configuration.ignore + ["internal:prelude"]
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
-      if Coverband.configuration.redis
-        @reporter = Coverband::RedisStore.new(Coverband.configuration.redis)
-        @reporter = Coverband::MemoryCacheStore.new(@reporter) if Coverband.configuration.memory_caching
-      end
+      @store = Coverband.configuration.store
+      @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
@@ -95,12 +93,12 @@ module Coverband
         end
       end
 
-      if @reporter
+      if @store
         if @stats
           @before_time = Time.now
           @stats.count "coverband.files.recorded_files", @file_line_usage.length
         end
-        @reporter.store_report(@file_line_usage)
+        @store.save_report(@file_line_usage)
         if @stats
           @time_spent = Time.now - @before_time
           @stats.timing "coverband.files.recorded_time", @time_spent
@@ -122,7 +120,6 @@ module Coverband
     def track_file? file
       !@ignore_patterns.any?{ |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
     end
-
 
     def set_tracer
       unless @tracer_set
