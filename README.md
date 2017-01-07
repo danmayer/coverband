@@ -67,7 +67,7 @@ That gives you the gem, but to get up and running then follow:
   * Insert middleware in stack  
 * run `bundle exec rake coverband:baseline` ([what is baseline?](https://github.com/danmayer/coverband#coverband-baseline))
 * run `bundle exec rake coverband:coverage` this will show app initialization coverage
-* run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 2)
+* run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 0)
 * run `bundle exec rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
 
@@ -118,7 +118,7 @@ Coverband.configure do |config|
   # Since rails and other frameworks lazy load code. I have found it is bad to allow
   # initial requests to record with coverband. This ignores first 15 requests
   # NOTE: If you are using a threaded webserver (example: Puma) this will ignore requests for each thread
-  config.startup_delay     = Rails.env.production? ? 15 : 2
+  config.startup_delay     = Rails.env.production? ? 5 : 0
   # Percentage of requests recorded
   config.percentage        = Rails.env.production? ? 30.0 : 100.0
 
