@@ -93,4 +93,8 @@ class BaseTest < Test::Unit::TestCase
     coverband.save
   end
 
+  test "sample should return the result of the block" do
+    coverband = Coverband::Base.instance.reset_instance
+    assert_equal 2, coverband.sample { 1 + 1 }
+  end
 end

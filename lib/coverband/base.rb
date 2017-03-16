@@ -21,8 +21,9 @@ module Coverband
     def sample
       configure_sampling
       record_coverage
-      yield
+      result = yield
       report_coverage
+      result
     end
 
     def save
