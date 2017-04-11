@@ -4,7 +4,8 @@ module Coverband
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :percentage, :verbose, :reporter, :stats,
                   :logger, :startup_delay, :trace_point_events,
-                  :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store
+                  :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store,
+                  :disable_on_failure_for
 
     # deprecated, but leaving to allow old configs to 'just work'
     # remove for 2.0
@@ -26,6 +27,7 @@ module Coverband
       @memory_caching = false
       @coverage_file = nil
       @store = nil
+      @disable_on_failure_for = nil
     end
 
     def logger
