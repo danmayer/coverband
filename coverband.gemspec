@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'sinatra'
   spec.add_development_dependency 'classifier-reborn'
   spec.add_development_dependency 'aws-sdk', '~> 2'
-  spec.add_runtime_dependency "simplecov"
+  spec.add_runtime_dependency "simplecov", '~> 0.11' 
   spec.add_runtime_dependency "json"
   # TODO make redis optional dependancy as we add additional adapters
   spec.add_runtime_dependency "redis"
