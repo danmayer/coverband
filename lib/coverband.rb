@@ -47,3 +47,4 @@ module Coverband
   end
 
 end
+require 'coverband/background_jobs/sidekiq/middleware'
