@@ -20,20 +20,23 @@ namespace :coverband do
             require baseline_file
           end
         end
-        if defined? Rails
-          Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 
+        if defined? Rails && !Rails.config.eager_load
+          Dir.glob("#{Rails.root}/app/**/*.rb").sort.each do |file|
               begin
                 require_dependency file
               rescue Exception
                 #ignore
-              end }
+              end
+          end
+
           if File.exists?("#{Rails.root}/lib")
-            Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file|
+            Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each do |file|
               begin
                 require_dependency file
               rescue Exception
                 #ignoring file
-              end}
+              end
+            end
           end
         end
       }
