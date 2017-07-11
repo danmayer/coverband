@@ -38,6 +38,20 @@ class ReporterTest < Test::Unit::TestCase
     assert_equal(results, {"filename.rb" => [0,nil,1]})
   end
 
+  test "exclude_files" do
+    Coverband.configure do |config|
+      config.redis             = nil
+      config.store             = nil
+      config.root              = '/full/remote_app/path'
+      config.coverage_file     = '/tmp/fake_file.json'
+      config.ignore            = ['ignored_file.rb']
+    end
+    root = Coverband.configuration.root
+    files = [root + '/ignored_file.rb', root + '/fakefile.rb']
+    expected_files =[root + '/fakefile.rb']
+    assert_equal(expected_files, Coverband::Baseline.exclude_files(files))
+  end
+
   # todo test redis and file stores baseline
 
   test "convert_coverage_format" do

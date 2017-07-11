@@ -4,6 +4,7 @@ module Coverband
     def self.record
       require 'coverage'
       Coverage.start
+      #binding.pry
       yield
 
       project_directory = File.expand_path(Coverband.configuration.root)
@@ -15,6 +16,15 @@ module Coverband
 
     def self.parse_baseline(back_compat = nil)
       Coverband.configuration.store.coverage
+    end
+
+    def self.exclude_files(files)
+      Coverband.configuration.ignore.each do |ignore|
+        path = Coverband.configuration.root + "/#{ignore}"
+        excludes = File.directory?(path) ? Dir.glob("#{path}/**/*") : [path]
+        files -= excludes
+      end
+      files
     end
 
     private
