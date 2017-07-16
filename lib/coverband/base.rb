@@ -44,7 +44,7 @@ module Coverband
       @file_line_usage = {}
       @ignored_files = Set.new
       @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore + ["internal:prelude"]
+      @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb'] 
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
       @store = Coverband.configuration.store
