@@ -21,14 +21,16 @@ namespace :coverband do
           end
         end
         if defined? Rails
-          Dir.glob("#{Rails.root}/app/**/*.rb").sort.each { |file| 
+          files = Coverband::Baseline.exclude_files(Dir.glob("#{Rails.root}/app/**/*.rb"))
+          files.sort.each { |file|
               begin
                 require_dependency file
               rescue Exception
                 #ignore
               end }
           if File.exists?("#{Rails.root}/lib")
-            Dir.glob("#{Rails.root}/lib/**/*.rb").sort.each { |file|
+            files = Coverband::Baseline.exclude_files(Dir.glob("#{Rails.root}/lib/**/*.rb"))
+            files.sort.each { |file|
               begin
                 require_dependency file
               rescue Exception
@@ -78,5 +80,4 @@ namespace :coverband do
   task :clear  => :environment do
     Coverband.configuration.store.clear!
   end
-
 end

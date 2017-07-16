@@ -17,6 +17,15 @@ module Coverband
       Coverband.configuration.store.coverage
     end
 
+    def self.exclude_files(files)
+      Coverband.configuration.ignore.each do |ignore|
+        path = Coverband.configuration.root + "/#{ignore}"
+        excludes = File.directory?(path) ? Dir.glob("#{path}/**/*") : [path]
+        files -= excludes
+      end
+      files
+    end
+
     private
 
     def self.convert_coverage_format(results)
