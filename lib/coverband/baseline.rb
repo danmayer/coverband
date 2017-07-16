@@ -4,7 +4,6 @@ module Coverband
     def self.record
       require 'coverage'
       Coverage.start
-      #binding.pry
       yield
 
       project_directory = File.expand_path(Coverband.configuration.root)
