@@ -6,11 +6,9 @@ module Coverband
   class S3ReportWriterTest < Test::Unit::TestCase
 
     def html_version
-     begin
       "#{Gem::Specification.find_by_name('simplecov-html').version.version}"
     rescue
-      File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/0.10.1/", '')
-          end
+      "0.10.1"
     end
     
     test 'it writes the coverage report to s3' do
