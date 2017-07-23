@@ -20,7 +20,7 @@ class S3ReportWriter
     begin
       File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/#{Gem::Specification.find_by_name('simplecov-html').version.version}/", '')
     rescue
-      File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/0.10.1/", '')
+      File.read("#{SimpleCov.coverage_dir}/index.html").to_s.gsub("./assets/0.10.1/", '')
     end
   end
 
