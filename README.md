@@ -23,7 +23,7 @@ The performance impact on Ruby 2.1+ is fairly small and no longer requires a C-e
 ## How I use Coverband
 
 * install coverband.
-* take baseline: `rake coverband:baseline`
+* take baseline: `rake coverband:baseline` (__note: never run baseline on production__)
 * validate baseline with  `rake coverband:coverage`
 * test setup in development (hit endpoints and generate new report)
 * deploy to staging and verify functionality
@@ -65,7 +65,7 @@ That gives you the gem, but to get up and running then follow:
   * Coverband config setup
   * Require Coverband
   * Insert middleware in stack  
-* run `bundle exec rake coverband:baseline` ([what is baseline?](https://github.com/danmayer/coverband#coverband-baseline))
+* run `bundle exec rake coverband:baseline` ([what is baseline?](https://github.com/danmayer/coverband#coverband-baseline)) (__note: never run baseline on production__)
 * run `bundle exec rake coverband:coverage` this will show app initialization coverage
 * run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 0)
 * run `bundle exec rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
