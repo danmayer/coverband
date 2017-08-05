@@ -1,9 +1,9 @@
 module Coverband
   class Configuration
-     
+
     attr_accessor :redis, :root_paths, :root,
-                  :ignore, :percentage, :verbose, :reporter, :stats,
-                  :logger, :startup_delay, :trace_point_events,
+                  :ignore, :additional_files, :percentage, :verbose, :reporter,
+                  :stats, :logger, :startup_delay, :trace_point_events,
                   :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store,
                   :disable_on_failure_for
 
@@ -17,6 +17,7 @@ module Coverband
       @stats = nil
       @root_paths = []
       @ignore = []
+      @additional_files = []
       @include_gems = false
       @percentage = 0.0
       @verbose = false
