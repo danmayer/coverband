@@ -92,8 +92,7 @@ module Coverband
 
         # irrelevant lines
         lines_to_skip = ['require', 'include', 'def', 'class', 'module', 'end', 'private', 'public',
-          'before_action', 'load_and_authorize_resource', 'skip_before_filter', 'layout', 'protect_from_forgery',
-          'after_action', 'skip_after_action']
+          'load_and_authorize_resource', 'layout', 'protect_from_forgery']
         return false if line.match(/^[(?:\t{0,3}|\s{0,3}]*(?:#{lines_to_skip.join('|')})(?:\s|$)/).present?
 
         # constant definitions
