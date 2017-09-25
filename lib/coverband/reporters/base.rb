@@ -83,14 +83,36 @@ module Coverband
         filename
       end
 
+      def self.track_line?(line)
+        # empty lines
+        return false if line.match(/^$/).present?
+
+        # comments
+        return false if line.match(/^[\s\t]*#/).present?
+
+        # irrelevant lines
+        lines_to_skip = ['require', 'include', 'def', 'class', 'module', 'end', 'private', 'public',
+          'load_and_authorize_resource', 'layout', 'protect_from_forgery']
+        return false if line.match(/^[(?:\t{0,3}|\s{0,3}]*(?:#{lines_to_skip.join('|')})(?:\s|$)/).present?
+
+        # constant definitions
+        # return false if line.match(/^[\s]*[A-Z_][A-Z_]+[\s]*=/).present?
+        true
+      end
+
       # > line_hash(store, 'hearno/script/tester.rb', ['/app/', '/Users/danmayer/projects/hearno/'])
       # {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 2, nil, nil, nil]}
       def self.line_hash(store, key, roots)
         filename = filename_from_key(key, roots)
         if File.exists?(filename)
-
-          count = File.foreach(filename).inject(0) { |c, line| c + 1 }
-          line_array = Array.new(count, nil)
+          line_array = Array.new
+          File.foreach(filename).inject(0) do |_, line|
+            if track_line?(line)
+              line_array << 0
+            else
+              line_array << nil
+            end
+          end
 
           lines_hit = store.covered_lines_for_file(key)
           if lines_hit.is_a?(Array)
