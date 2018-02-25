@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'singleton'
 require 'set'
 
 module Coverband
   class Base
-
     def self.instance
       Thread.current[:coverband_instance] ||= Coverband::Base.new
     end
@@ -44,7 +45,7 @@ module Coverband
       @file_line_usage = {}
       @ignored_files = Set.new
       @startup_delay = Coverband.configuration.startup_delay
-      @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb'] 
+      @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
       @store = Coverband.configuration.store
@@ -58,7 +59,7 @@ module Coverband
     end
 
     def configure_sampling
-      if @startup_delay!=0 || (rand * 100.0) > @sample_percentage
+      if @startup_delay != 0 || (rand * 100.0) > @sample_percentage
         @startup_delay -= 1 if @startup_delay > 0
         @enabled = false
       else
@@ -72,62 +73,60 @@ module Coverband
       else
         unset_tracer
       end
-      @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
+      @stats&.increment "coverband.request.recorded.#{@enabled}"
     rescue RuntimeError => err
       failed!
       if @verbose
-        @logger.info "error stating recording coverage"
+        @logger.info 'error stating recording coverage'
         @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
 
     def report_coverage
       unless @enabled
-        @logger.info "coverage disabled" if @verbose
+        @logger.info 'coverage disabled' if @verbose
         return
       end
 
       unset_tracer
 
       if failed_recently?
-        @logger.info "coverage reporting sanding-by because of recent failure" if @verbose
+        @logger.info 'coverage reporting sanding-by because of recent failure' if @verbose
         return
       end
 
       if @verbose
         @logger.info "coverband file usage: #{file_usage.inspect}"
-        if @verbose=="debug"
-          output_file_line_usage
-        end
+        output_file_line_usage if @verbose == 'debug'
       end
 
       if @store
         if @stats
           @before_time = Time.now
-          @stats.count "coverband.files.recorded_files", @file_line_usage.length
+          @stats.count 'coverband.files.recorded_files', @file_line_usage.length
         end
         @store.save_report(@file_line_usage)
         if @stats
           @time_spent = Time.now - @before_time
-          @stats.timing "coverband.files.recorded_time", @time_spent
+          @stats.timing 'coverband.files.recorded_time', @time_spent
         end
         @file_line_usage.clear
       elsif @verbose
-        @logger.info "coverage report: "
+        @logger.info 'coverage report: '
         @logger.info @file_line_usage.inspect
       end
     rescue RuntimeError => err
       failed!
       if @verbose
-        @logger.info "coverage missing"
+        @logger.info 'coverage missing'
         @logger.info "error: #{err.inspect} #{err.message}"
       end
     end
 
     protected
 
-    def track_file? file
-      !@ignore_patterns.any?{ |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
+    def track_file?(file)
+      @ignore_patterns.none? { |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
     end
 
     def set_tracer
@@ -143,12 +142,12 @@ module Coverband
     end
 
     def output_file_line_usage
-      @logger.info "coverband debug coverband file:line usage:"
-      @file_line_usage.sort_by {|_key, value| value.length}.each do |pair|
-                                                             file = pair.first
-                                                             lines = pair.last
-                                                             @logger.info "file: #{file} => #{lines.sort_by {|_key, value| value}}"
-                                                           end
+      @logger.info 'coverband debug coverband file:line usage:'
+      @file_line_usage.sort_by { |_key, value| value.length }.each do |pair|
+        file = pair.first
+        lines = pair.last
+        @logger.info "file: #{file} => #{lines.sort_by { |_key, value| value }}"
+      end
     end
 
     private
@@ -179,7 +178,7 @@ module Coverband
       @file_line_usage.each do |file, lines|
         hash[file] = lines.values.inject(0, :+)
       end
-      hash.sort_by {|_key, value| value}
+      hash.sort_by { |_key, value| value }
     end
 
     def add_file(file, line)
@@ -191,7 +190,7 @@ module Coverband
       TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
         if Thread.current == @current_thread
           file = tp.path
-          if !@ignored_files.include?(file)
+          unless @ignored_files.include?(file)
             if track_file?(file)
               add_file(file, tp.lineno)
             else
@@ -205,6 +204,5 @@ module Coverband
     def initialize
       reset_instance
     end
-
   end
 end

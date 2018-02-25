@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Coverband
   class Middleware
-
     def initialize(app)
       @app = app
     end
@@ -12,6 +13,5 @@ module Coverband
     ensure
       Coverband::Base.instance.report_coverage
     end
-
   end
 end

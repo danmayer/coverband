@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Coverband
   module Adapters
     class RedisStore
@@ -5,10 +7,10 @@ module Coverband
 
       def initialize(redis, opts = {})
         @redis = redis
-        #remove check for coverband 2.0
+        # remove check for coverband 2.0
         @_sadd_supports_array = recent_gem_version? && recent_server_version?
-        #possibly drop array storage for 2.0
-        @store_as_array = opts.fetch(:array){ false }
+        # possibly drop array storage for 2.0
+        @store_as_array = opts.fetch(:array) { false }
       end
 
       def clear!
@@ -65,16 +67,16 @@ module Coverband
       def store_map(key, values)
         unless values.empty?
           existing = redis.hgetall(key)
-          #in redis all keys are strings
-          values = Hash[values.map{|k,val| [k.to_s,val] } ]
-          values.merge!( existing ){|k, old_v, new_v| old_v.to_i + new_v.to_i}
+          # in redis all keys are strings
+          values = Hash[values.map { |k, val| [k.to_s, val] }]
+          values.merge!(existing) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
           redis.mapped_hmset(key, values)
         end
       end
 
       def store_array(key, values)
         if sadd_supports_array?
-          redis.sadd(key, values) if (values.length > 0)
+          redis.sadd(key, values) unless values.empty?
         else
           values.each do |value|
             redis.sadd(key, value)
@@ -88,7 +90,7 @@ module Coverband
         if info_data.is_a?(Hash)
           Gem::Version.new(info_data['redis_version']) >= Gem::Version.new('2.4')
         else
-          #guess supported
+          # guess supported
           true
         end
       end

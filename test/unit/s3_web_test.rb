@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('../../lib/coverband/s3_web', File.dirname(__FILE__))
 require 'rack/test'
@@ -6,7 +8,6 @@ ENV['RACK_ENV'] = 'test'
 
 module Coverband
   class S3WebTest < Test::Unit::TestCase
-
     include Rack::Test::Methods
 
     def app

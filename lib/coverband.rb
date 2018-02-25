@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'logger'
 require 'json'
-# todo move to only be request if using redis store
+# TODO: move to only be request if using redis store
 require 'redis'
 
 require 'coverband/version'
@@ -33,7 +35,7 @@ module Coverband
     if block_given?
       yield(configuration)
     else
-      if File.exists?(CONFIG_FILE)
+      if File.exist?(CONFIG_FILE)
         file ||= CONFIG_FILE
         require file
       else
@@ -45,5 +47,4 @@ module Coverband
   def self.configuration
     self.configuration_data ||= Configuration.new
   end
-
 end

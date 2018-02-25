@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Coverband
   class Configuration
-
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :percentage, :verbose, :reporter,
                   :stats, :logger, :startup_delay, :trace_point_events,
@@ -35,7 +36,7 @@ module Coverband
       @logger ||= Logger.new(STDOUT)
     end
 
-    #TODO considering removing @redis / @coveragefile and have user set store directly
+    # TODO: considering removing @redis / @coveragefile and have user set store directly
     def store
       return @store if @store
       if redis
@@ -45,6 +46,5 @@ module Coverband
       end
       @store
     end
-
   end
 end

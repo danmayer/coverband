@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Coverband
   module Adapters
     class MemoryCacheStore
@@ -23,7 +25,7 @@ module Coverband
       private
 
       def self.files_cache
-        @files_cache ||= Hash.new
+        @files_cache ||= {}
       end
 
       def files_cache
@@ -31,16 +33,15 @@ module Coverband
       end
 
       def filter(files)
-        files.each_with_object(Hash.new) do |(file, lines), filtered_file_hash|
-          #first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
+        files.each_with_object({}) do |(file, lines), filtered_file_hash|
+          # first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
           line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
           lines.reject! do |line|
-            line_cache.include?(line) ? true : (line_cache << line and false)
+            line_cache.include?(line) ? true : (line_cache << line && false)
           end
           filtered_file_hash[file] = lines if lines.any?
         end
       end
-
     end
   end
 end
