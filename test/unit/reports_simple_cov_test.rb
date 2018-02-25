@@ -27,7 +27,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     SimpleCov.stubs(:root)
 
     fake_coverband_members.each do |key|
-      File.expects(:exists?).with(key).returns(true)
+      File.expects(:exist?).with(key).returns(true)
       File.expects(:foreach).with(key).returns(Array.new(60) { 'LOC' })
       @fake_redis.expects(:smembers).with("#{BASE_KEY}.#{key}").returns(%w[54 55])
     end
@@ -54,7 +54,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     SimpleCov.stubs(:root)
 
     fake_coverband_members.each do |key|
-      File.expects(:exists?).with(key).returns(true)
+      File.expects(:exist?).with(key).returns(true)
       File.expects(:foreach).with(key).returns(%w[a b c])
       @fake_redis.expects(:smembers).with("#{BASE_KEY}.#{key}").returns(%w[54 55])
     end

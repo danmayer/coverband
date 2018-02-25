@@ -20,7 +20,7 @@ class SimpleCovReportTest < Test::Unit::TestCase
     @fake_redis.expects(:smembers).with(BASE_KEY).returns(fake_coverband_members)
 
     fake_coverband_members.each do |key|
-      File.expects(:exists?).with(key).returns(true)
+      File.expects(:exist?).with(key).returns(true)
       File.expects(:foreach).with(key).returns(Array.new(4) { 'LOC' })
       @fake_redis.expects(:smembers).with("#{BASE_KEY}.#{key}").returns(%w[1 3])
     end

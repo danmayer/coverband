@@ -9,14 +9,14 @@ class MiddlewareTest < Test::Unit::TestCase
 
   test 'call app' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
     results = middleware.call(request)
     assert_equal '/anything.json', results.last
   end
 
   test 'pass all rack lint checks' do
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     app = Rack::Lint.new(Coverband::Middleware.new(fake_app))
     env = Rack::MockRequest.env_for('/hello')
     app.call(env)
@@ -24,58 +24,58 @@ class MiddlewareTest < Test::Unit::TestCase
 
   test 'always be enabled with sample percentage of 100' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     results = middleware.call(request)
-    assert_equal true, Coverband::Base.instance.instance_variable_get('@enabled')
+    assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   test 'never be enabled with sample percentage of 0' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 0.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 0.0)
     results = middleware.call(request)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   test 'always unset function when sampling' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@tracer_set')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     results = middleware.call(request)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@tracer_set')
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
   end
 
   test 'always unset function when not sampling' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@tracer_set')
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
     middleware.instance_variable_set('@sample_percentage', 0.0)
     results = middleware.call(request)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@tracer_set')
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
   end
 
   test 'always record coverage, set trace func, and add_files when sampling' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     results = middleware.call(request)
-    assert_equal true, Coverband::Base.instance.instance_variable_get('@enabled')
+    assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   test 'reports coverage when an error is raised' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
-    Coverband::Base.instance.expects(:report_coverage).once
+    Coverband::Collectors::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.expects(:report_coverage).once
     middleware = Coverband::Middleware.new(fake_app_raise_error)
     begin
       middleware.call(request)
@@ -86,35 +86,35 @@ class MiddlewareTest < Test::Unit::TestCase
 
   test 'always report coverage when sampling' do
     request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app_with_lines)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
+    Coverband::Collectors::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns('redis_version' => 3.0)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '5' => 1)
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '7' => 1)
     results = middleware.call(request)
-    assert_equal true, Coverband::Base.instance.instance_variable_get('@enabled')
+    assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   test 'report only on calls when configured' do
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband.configuration.trace_point_events = [:call]
-    Coverband::Base.instance.reset_instance
+    Coverband::Collectors::Base.instance.reset_instance
     middleware = Coverband::Middleware.new(fake_app_with_lines)
-    assert_equal false, Coverband::Base.instance.instance_variable_get('@enabled')
-    Coverband::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
+    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     fake_redis = Redis.new
-    Coverband::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
+    Coverband::Collectors::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
     fake_redis.stubs(:info).returns('redis_version' => 3.0)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '4' => 1)
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '6' => 1)
     results = middleware.call(request)
-    assert_equal true, Coverband::Base.instance.instance_variable_get('@enabled')
+    assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   private

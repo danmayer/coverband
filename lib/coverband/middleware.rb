@@ -7,11 +7,11 @@ module Coverband
     end
 
     def call(env)
-      Coverband::Base.instance.configure_sampling
-      Coverband::Base.instance.record_coverage
+      Coverband::Collectors::Base.instance.configure_sampling
+      Coverband::Collectors::Base.instance.record_coverage
       @app.call(env)
     ensure
-      Coverband::Base.instance.report_coverage
+      Coverband::Collectors::Base.instance.report_coverage
     end
   end
 end

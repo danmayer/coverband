@@ -6,11 +6,7 @@ module Coverband
                   :ignore, :additional_files, :percentage, :verbose, :reporter,
                   :stats, :logger, :startup_delay, :trace_point_events,
                   :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store,
-                  :disable_on_failure_for
-
-    # deprecated, but leaving to allow old configs to 'just work'
-    # remove for 2.0
-    attr_accessor :coverage_baseline
+                  :collector, :disable_on_failure_for
 
     def initialize
       @root = Dir.pwd
@@ -23,6 +19,7 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
+      @collector = 'trace'
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
       @trace_point_events = [:line]

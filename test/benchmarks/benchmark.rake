@@ -107,7 +107,7 @@ namespace :benchmarks do
     bm = Benchmark.bm(15) do |x|
       x.report 'coverband' do
         SAMPLINGS.times do
-          Coverband::Base.instance.sample do
+          Coverband::Collectors::Base.instance.sample do
             work
           end
         end

@@ -10,7 +10,8 @@ require 'coverband/configuration'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/memory_cache_store'
 require 'coverband/adapters/file_store'
-require 'coverband/base'
+require 'coverband/collectors/base'
+require 'coverband/collectors/trace'
 require 'coverband/baseline'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
@@ -23,11 +24,6 @@ module Coverband
 
   class << self
     attr_accessor :configuration_data
-  end
-
-  # this method is left for backwards compatibility with existing configs
-  def self.parse_baseline(baseline_file = './tmp/coverband_baseline.json')
-    Coverband::Baseline.parse_baseline(baseline_file)
   end
 
   def self.configure(file = nil)
