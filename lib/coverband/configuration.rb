@@ -4,8 +4,8 @@ module Coverband
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :percentage, :verbose, :reporter,
                   :stats, :logger, :startup_delay, :trace_point_events,
-                  :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store,
-                  :disable_on_failure_for
+                  :include_gems, :memory_caching, :coverage_file, :store, :disable_on_failure_for,
+                  :s3_bucket, :s3_region, :s3_access_key_id, :s3_secret_access_key
 
     # deprecated, but leaving to allow old configs to 'just work'
     # remove for 2.0
