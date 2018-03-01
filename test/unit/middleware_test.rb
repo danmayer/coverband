@@ -90,8 +90,11 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    # TODO this isn't a fake redis investigate mock redis for testing
     fake_redis = Redis.new
-    Coverband::Collectors::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
+    redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
+    redis_store.clear!
+    Coverband::Collectors::Base.instance.instance_variable_set('@store', redis_store)
     fake_redis.stubs(:info).returns('redis_version' => 3.0)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
@@ -107,8 +110,11 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
+    # TODO this isn't a fake redis investigate mock redis for testing
     fake_redis = Redis.new
-    Coverband::Collectors::Base.instance.instance_variable_set('@store', Coverband::Adapters::RedisStore.new(fake_redis))
+    redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
+    redis_store.clear!
+    Coverband::Collectors::Base.instance.instance_variable_set('@store', redis_store)
     fake_redis.stubs(:info).returns('redis_version' => 3.0)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once

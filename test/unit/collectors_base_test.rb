@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('./dog', File.dirname(__FILE__))
 
-class BaseTest < Test::Unit::TestCase
+class CollectorsBaseTest < Test::Unit::TestCase
   test 'defaults to a redis store' do
     coverband = Coverband::Collectors::Base.instance.reset_instance
     assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class

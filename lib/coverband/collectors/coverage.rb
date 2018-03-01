@@ -2,14 +2,7 @@
 
 module Coverband
   module Collectors
-    class Trace < Base
-
-      def reset_instance
-        super
-        @tracer_set = false
-        @trace = create_trace_point
-        self
-      end
+    class Coverage < Base
 
       def report_coverage
         unless @enabled
@@ -17,11 +10,18 @@ module Coverband
           return
         end
 
-        unset_tracer
-
         if failed_recently?
           @logger.info 'coverage reporting standing-by because of recent failure' if @verbose
           return
+        end
+
+        current_results = ::Coverage.peek_result
+        # puts current_results
+
+        current_results.each_pair do |file, line_counts|
+          next if @ignored_files.include?(file)
+          next unless track_file?(file)
+          add_file(file, line_counts)
         end
 
         if @verbose
@@ -55,45 +55,39 @@ module Coverband
       protected
 
       def set_tracer
-        unless @tracer_set
-          @trace.enable
-          @tracer_set = true
-        end
+        # no op
       end
 
       def unset_tracer
-        @trace.disable
-        @tracer_set = false
+        # no op
       end
 
       private
 
-      def add_file(file, line)
+      # TODO this seems like a dumb conversion for the already good coverage format
+      # coverage is 0 based other implementation matches line number
+      def add_file(file, line_counts)
         @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-        @file_line_usage[file][line] += 1
+        line_counts.each_with_index do |line_count, index|
+          @file_line_usage[file][(index + 1)] = line_count
+        end
       end
 
       def file_usage
         hash = {}
         @file_line_usage.each do |file, lines|
-          hash[file] = lines.values.inject(0, :+)
+          hash[file] = lines.values.compact.inject(0, :+)
         end
         hash.sort_by { |_key, value| value }
       end
 
-      def create_trace_point
-        TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
-          if Thread.current == @current_thread
-            file = tp.path
-            unless @ignored_files.include?(file)
-              if track_file?(file)
-                add_file(file, tp.lineno)
-              else
-                @ignored_files << file
-              end
-            end
-          end
+      def initialize
+        unless defined?(Coverage)
+          puts 'loading coverage'
+          require 'coverage'
+          Coverage.start
         end
+        reset_instance
       end
     end
   end

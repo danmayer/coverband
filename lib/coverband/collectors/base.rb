@@ -8,6 +8,8 @@ module Coverband
 
         Thread.current[:coverband_instance] = if Coverband.configuration.collector == 'trace'
                                                 Coverband::Collectors::Trace.new
+                                              elsif Coverband.configuration.collector == 'coverage'
+                                                Coverband::Collectors::Coverage.new
                                               else
                                                 raise 'trace point collector is the only implemented collector'
                                               end
@@ -41,7 +43,6 @@ module Coverband
         @project_directory = File.expand_path(Coverband.configuration.root)
         @enabled = false
         @disable_on_failure_for = Coverband.configuration.disable_on_failure_for
-        @tracer_set = false
         @file_line_usage = {}
         @ignored_files = Set.new
         @startup_delay = Coverband.configuration.startup_delay
@@ -54,7 +55,6 @@ module Coverband
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
-        @trace = create_trace_point
         self
       end
 
@@ -83,44 +83,7 @@ module Coverband
       end
 
       def report_coverage
-        unless @enabled
-          @logger.info 'coverage disabled' if @verbose
-          return
-        end
-
-        unset_tracer
-
-        if failed_recently?
-          @logger.info 'coverage reporting sanding-by because of recent failure' if @verbose
-          return
-        end
-
-        if @verbose
-          @logger.info "coverband file usage: #{file_usage.inspect}"
-          output_file_line_usage if @verbose == 'debug'
-        end
-
-        if @store
-          if @stats
-            @before_time = Time.now
-            @stats.count 'coverband.files.recorded_files', @file_line_usage.length
-          end
-          @store.save_report(@file_line_usage)
-          if @stats
-            @time_spent = Time.now - @before_time
-            @stats.timing 'coverband.files.recorded_time', @time_spent
-          end
-          @file_line_usage.clear
-        elsif @verbose
-          @logger.info 'coverage report: '
-          @logger.info @file_line_usage.inspect
-        end
-      rescue RuntimeError => err
-        failed!
-        if @verbose
-          @logger.info 'coverage missing'
-          @logger.info "error: #{err.inspect} #{err.message}"
-        end
+        raise 'abstract'
       end
 
       protected
@@ -130,15 +93,11 @@ module Coverband
       end
 
       def set_tracer
-        unless @tracer_set
-          @trace.enable
-          @tracer_set = true
-        end
+        raise 'abstract'
       end
 
       def unset_tracer
-        @trace.disable
-        @tracer_set = false
+        raise 'abstract'
       end
 
       def output_file_line_usage
@@ -171,34 +130,6 @@ module Coverband
       def failed_recently?
         return false unless @disable_on_failure_for && failed_at
         failed_at + @disable_on_failure_for > Time.now
-      end
-
-      def file_usage
-        hash = {}
-        @file_line_usage.each do |file, lines|
-          hash[file] = lines.values.inject(0, :+)
-        end
-        hash.sort_by { |_key, value| value }
-      end
-
-      def add_file(file, line)
-        @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-        @file_line_usage[file][line] += 1
-      end
-
-      def create_trace_point
-        TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
-          if Thread.current == @current_thread
-            file = tp.path
-            unless @ignored_files.include?(file)
-              if track_file?(file)
-                add_file(file, tp.lineno)
-              else
-                @ignored_files << file
-              end
-            end
-          end
-        end
       end
 
       def initialize

@@ -5,11 +5,13 @@ namespace :coverband do
     if files_to_cover.any?
       files = Coverband::Baseline.exclude_files(files_to_cover)
       files.each do |file|
-        require_dependency file
-      rescue Exception => err
-        if Coverband.configuration.verbose
-          Coverband.configuration.logger.info "error adding file to baseline: #{file}"
-          Coverband.configuration.logger.info "error: #{err}"
+        begin
+          require_dependency file
+        rescue Exception => err
+          if Coverband.configuration.verbose
+            Coverband.configuration.logger.info "error adding file to baseline: #{file}"
+            Coverband.configuration.logger.info "error: #{err}"
+          end
         end
       end
     end
