@@ -29,13 +29,14 @@ module Coverband
   end
 
   def self.configure(file = nil)
+    configuration_file = file || CONFIG_FILE
+
     configuration
     if block_given?
       yield(configuration)
     else
-      if File.exists?(CONFIG_FILE)
-        file ||= CONFIG_FILE
-        require file
+      if File.exists?(configuration_file)
+        require configuration_file
       else
         raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
       end
