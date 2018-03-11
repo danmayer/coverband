@@ -91,7 +91,7 @@ class CollectorsCoverageTest < Test::Unit::TestCase
     prior[4] = prior[4] + 5
     expected = {}
     prior.each_with_index do |count, index|
-      expected[(index + 1)] = count
+      expected[(index + 1)] = count if count
     end
 
     store.expects(:save_report).once.with(has_entries(dog_file => expected))
@@ -102,7 +102,22 @@ class CollectorsCoverageTest < Test::Unit::TestCase
     coverband.save
   end
 
-  test 'tracer should count line numbers' do
+  test 'coverage should count line numbers only the new calls' do
+    dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
+    coverband.instance_variable_set('@sample_percentage', 100.0)
+    coverband.instance_variable_set('@store', nil)
+    original_count = Coverage.peek_result[dog_file][4]
+    coverband.start
+    100.times { Dog.new.bark }
+    coverband.stop
+    coverband.save
+    assert_equal (original_count + 100), coverband.instance_variable_get('@file_line_usage')[dog_file][5]
+    50.times { Dog.new.bark }
+    coverband.save
+    assert_equal 50, coverband.instance_variable_get('@file_line_usage')[dog_file][5]
+  end
+
+  test 'coverage should count line numbers' do
     dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
     coverband.instance_variable_set('@sample_percentage', 100.0)
     coverband.instance_variable_set('@store', nil)
