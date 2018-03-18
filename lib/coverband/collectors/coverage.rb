@@ -3,8 +3,8 @@
 module Coverband
   module Collectors
     class Coverage < Base
-      def array_diff(latest, original)
-        latest.map.with_index { |v, i| v ? v - original[i] : nil }
+      def record_coverage
+        # noop
       end
 
       def report_coverage
@@ -18,43 +18,13 @@ module Coverband
           return
         end
 
-        current_results = ::Coverage.peek_result
-        # if current_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "total"
-        #   puts current_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
-        # if @previous_results
-        #   new_results = {}
-        #   current_results.each_pair do |file,line_counts|
-        #     new_results[file] = array_diff(line_counts, @previous_results[file])
-        #   end
-        # else
-        #   new_results = current_results
-        # end
-        #
-        # if @previous_results && @previous_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "prev"
-        #   puts @previous_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
-        #
-        # if current_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "new"
-        #   puts new_results['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
-
-        # todo move back to new_results
-        current_results.each_pair do |file, line_counts|
+        new_results = nil
+        @semaphore.synchronize { new_results = new_coverage(::Coverage.peek_result.dup) }
+        new_results.each_pair do |file, line_counts|
           next if @ignored_files.include?(file)
           next unless track_file?(file)
           add_file(file, line_counts)
         end
-        # this concept fails across threads
-        # as the  coverage is shared across all threads
-        # but the @previous_results is thread local
-        # how to share it acrss threads or pull from RedisStore
-        # regardlesss we can likely make this as slow as we need when we change coverage
-        # to report every X seconds and on exit
-        @previous_results = current_results
 
         if @verbose
           @logger.info "coverband file usage: #{file_usage.inspect}"
@@ -66,8 +36,7 @@ module Coverband
             @before_time = Time.now
             @stats.count 'coverband.files.recorded_files', @file_line_usage.length
           end
-          # puts "coverage report"
-          # puts @file_line_usage['/Users/danmayer/projects/rails_benchmark/app/controllers/posts_controller.rb'].inspect
+
           @store.save_report(@file_line_usage)
           if @stats
             @time_spent = Time.now - @before_time
@@ -98,6 +67,48 @@ module Coverband
 
       private
 
+      def array_diff(latest, original)
+        latest.map.with_index { |v, i| v ? v - original[i] : nil }
+      end
+
+      def previous_results
+        @@previous_results
+      end
+
+      def set_previous_results(val)
+        @@previous_results = val
+      end
+
+      def new_coverage(current_coverage)
+        if previous_results
+          new_results = {}
+          current_coverage.each_pair do |file, line_counts|
+            new_results[file] = array_diff(line_counts, previous_results[file])
+          end
+        else
+          new_results = current_coverage
+        end
+
+        # if current_coverage['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
+        #   puts "total"
+        #   puts current_coverage['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
+        # end
+        #
+        #
+        # if previous_results && previous_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
+        #   puts "prev"
+        #   puts previous_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
+        # end
+        #
+        # if new_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
+        #   puts "new"
+        #   puts new_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
+        # end
+
+        set_previous_results(current_coverage)
+        new_results.dup
+      end
+
       # TODO this seems like a dumb conversion for the already good coverage format
       # coverage is 0 based other implementation matches line number
       def add_file(file, line_counts)
@@ -121,7 +132,8 @@ module Coverband
           require 'coverage'
           Coverage.start
         end
-        @previous_results = nil
+        @semaphore = Mutex.new
+        @@previous_results = nil
         reset_instance
       end
     end

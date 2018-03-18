@@ -4,15 +4,13 @@ module Coverband
   module Collectors
     class Base
       def self.instance
-        return Thread.current[:coverband_instance] if Thread.current[:coverband_instance]
-
-        Thread.current[:coverband_instance] = if Coverband.configuration.collector == 'trace'
-                                                Coverband::Collectors::Trace.new
-                                              elsif Coverband.configuration.collector == 'coverage'
-                                                Coverband::Collectors::Coverage.new
-                                              else
-                                                raise 'trace point collector is the only implemented collector'
-                                              end
+        if Coverband.configuration.collector == 'trace'
+          Thread.current[:coverband_instance] ||= Coverband::Collectors::Trace.new
+        elsif Coverband.configuration.collector == 'coverage'
+          Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
+        else
+          raise 'select valid collector [trace, coverage]'
+        end
       end
 
       def start
