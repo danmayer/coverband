@@ -34,6 +34,24 @@ namespace :benchmarks do
     end
   end
 
+  desc 'set up coverband with coverage redis'
+  task :setup_coverage do
+    clone_classifier
+    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
+    require 'benchmark'
+    require 'classifier-reborn'
+
+    Coverband.configure do |config|
+      config.redis              = Redis.new
+      config.root               = Dir.pwd
+      config.startup_delay      = 0
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.verbose            = false
+      config.collector          = 'coverage'
+    end
+  end
+
   desc 'set up coverband redis array'
   task :setup_array do
     clone_classifier
@@ -138,7 +156,13 @@ namespace :benchmarks do
     SAMPLINGS = 5
     run_work
   end
+
+  desc 'runs benchmarks coverage'
+  task run_coverage: :setup_coverage do
+    SAMPLINGS = 5
+    run_work
+  end
 end
 
 desc 'runs benchmarks'
-task benchmarks: ['benchmarks:run']
+task benchmarks: ['benchmarks:run_file', 'benchmarks:run', 'benchmarks:run_array', 'benchmarks:run_coverage']
