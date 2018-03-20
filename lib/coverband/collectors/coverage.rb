@@ -132,6 +132,9 @@ module Coverband
           require 'coverage'
           Coverage.start
         end
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
+          raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
+        end
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
