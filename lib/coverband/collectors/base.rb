@@ -53,6 +53,7 @@ module Coverband
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
+        Thread.current[:coverband_instance] = nil
         self
       end
 
@@ -71,7 +72,7 @@ module Coverband
         else
           unset_tracer
         end
-        @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
+        @stats&.increment "coverband.request.recorded.#{@enabled}"
       rescue RuntimeError => err
         failed!
         if @verbose

@@ -22,6 +22,7 @@ module Coverband
         store.save_report(filtered_files) if filtered_files.any?
       end
 
+      # rubocop:disable Lint/IneffectiveAccessModifier
       private
 
       def self.files_cache
@@ -42,6 +43,7 @@ module Coverband
           filtered_file_hash[file] = lines if lines.any?
         end
       end
+      # rubocop:enable Lint/IneffectiveAccessModifier
     end
   end
 end

@@ -6,13 +6,15 @@ require File.join(File.dirname(__FILE__), 'dog')
 
 namespace :benchmarks do
   def classifier_dir
-    classifier_dir = File.join(File.dirname(__FILE__), 'classifier-reborn')
+    File.join(File.dirname(__FILE__), 'classifier-reborn')
   end
 
   def clone_classifier
+    # rubocop:disable Style/IfUnlessModifier
     unless Dir.exist? classifier_dir
       system "git clone git@github.com:jekyll/classifier-reborn.git #{classifier_dir}"
     end
+    # rubocop:enable Style/IfUnlessModifier
   end
 
   desc 'set up coverband default redis'
@@ -122,7 +124,7 @@ namespace :benchmarks do
   def run_work
     puts "benchmark for: #{Coverband.configuration.inspect}"
     puts "store: #{Coverband.configuration.store.inspect}"
-    bm = Benchmark.bm(15) do |x|
+    Benchmark.bm(15) do |x|
       x.report 'coverband' do
         SAMPLINGS.times do
           Coverband::Collectors::Base.instance.sample do
@@ -137,28 +139,34 @@ namespace :benchmarks do
         end
       end
     end
+    Coverband::Collectors::Base.instance.stop
+    Coverband::Collectors::Base.instance.reset_instance
   end
 
   desc 'runs benchmarks on default redis setup'
   task run: :setup do
+    puts 'Coverband tracepoint configured with default redis store'
     SAMPLINGS = 5
     run_work
   end
 
   desc 'runs benchmarks redis array'
   task run_array: :setup_array do
+    puts 'Coverband tracepoint configured with redis array store'
     SAMPLINGS = 5
     run_work
   end
 
   desc 'runs benchmarks file store'
   task run_file: :setup_file do
+    puts 'Coverband tracepoint configured with file store'
     SAMPLINGS = 5
     run_work
   end
 
   desc 'runs benchmarks coverage'
   task run_coverage: :setup_coverage do
+    puts 'Coverband Coverage configured with to use default redis store'
     SAMPLINGS = 5
     run_work
   end

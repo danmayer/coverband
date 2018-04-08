@@ -75,7 +75,7 @@ module Coverband
         @@previous_results
       end
 
-      def set_previous_results(val)
+      def add_previous_results(val)
         @@previous_results = val
       end
 
@@ -105,7 +105,7 @@ module Coverband
         #   puts new_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
         # end
 
-        set_previous_results(current_coverage)
+        add_previous_results(current_coverage)
         new_results.dup
       end
 
@@ -127,11 +127,11 @@ module Coverband
       end
 
       def initialize
-        unless defined?(Coverage)
-          puts 'loading coverage'
+        unless defined?(::Coverage)
+          # puts 'loading coverage'
           require 'coverage'
-          Coverage.start
         end
+        ::Coverage.start unless ::Coverage.running?
         if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
           raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
         end

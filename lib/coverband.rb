@@ -31,13 +31,11 @@ module Coverband
     configuration
     if block_given?
       yield(configuration)
+    elsif File.exist?(CONFIG_FILE)
+      file ||= CONFIG_FILE
+      require file
     else
-      if File.exist?(CONFIG_FILE)
-        file ||= CONFIG_FILE
-        require file
-      else
-        raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
-      end
+      raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
     end
   end
 
