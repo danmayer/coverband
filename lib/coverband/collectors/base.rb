@@ -72,7 +72,8 @@ module Coverband
         else
           unset_tracer
         end
-        @stats&.increment "coverband.request.recorded.#{@enabled}"
+        # support old ruby before &. safe digging
+        @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
       rescue RuntimeError => err
         failed!
         if @verbose

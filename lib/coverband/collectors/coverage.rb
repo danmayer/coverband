@@ -127,14 +127,18 @@ module Coverband
       end
 
       def initialize
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
+          raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
+        end
         unless defined?(::Coverage)
           # puts 'loading coverage'
           require 'coverage'
         end
-        ::Coverage.start unless ::Coverage.running?
-        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
-          raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
-        end
+        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.4.0')
+          ::Coverage.start unless ::Coverage.running?
+        else
+          ::Coverage.start
+        end     
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
