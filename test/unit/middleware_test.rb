@@ -28,7 +28,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
@@ -38,7 +38,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 0.0)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
@@ -48,7 +48,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
   end
 
@@ -58,7 +58,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
     middleware.instance_variable_set('@sample_percentage', 0.0)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
   end
 
@@ -68,7 +68,7 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
@@ -99,7 +99,7 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '7' => 1)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
@@ -119,14 +119,14 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '6' => 1)
-    results = middleware.call(request)
+    middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
   private
 
   def fake_app
-    @app ||= ->(env) { [200, { 'Content-Type' => 'text/plain' }, env['PATH_INFO']] }
+    @fake_app ||= ->(env) { [200, { 'Content-Type' => 'text/plain' }, env['PATH_INFO']] }
   end
 
   def fake_app_raise_error
@@ -134,7 +134,7 @@ class MiddlewareTest < Test::Unit::TestCase
   end
 
   def fake_app_with_lines
-    @lines_app ||= ::HelloWorld.new
+    @fake_app_with_lines ||= ::HelloWorld.new
   end
 
   def basic_rack_ruby_file

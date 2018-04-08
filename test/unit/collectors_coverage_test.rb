@@ -75,7 +75,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
       assert_equal false, coverband.instance_variable_get('@enabled')
       logger.expects(:info).at_least_once
       coverband.start
-      1 + 1
+      logger.info(1 + 1)
       coverband.stop
       coverband.save
     end
