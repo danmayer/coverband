@@ -134,7 +134,7 @@ module Coverband
           # puts 'loading coverage'
           require 'coverage'
         end
-        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.4.0')
+        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
           ::Coverage.start unless ::Coverage.running?
         else
           ::Coverage.start
