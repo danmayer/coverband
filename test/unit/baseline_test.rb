@@ -52,9 +52,7 @@ class ReporterTest < Test::Unit::TestCase
     expected_files = [root + '/fakefile.rb']
     assert_equal(expected_files, Coverband::Baseline.exclude_files(files))
   end
-
-  # TODO: test redis and file stores baseline
-
+  
   test 'convert_coverage_format' do
     results = { 'fake_file.rb' => [1, nil, 0, 2] }
     expected = { 'fake_file.rb' => { 1 => 1, 3 => 0, 4 => 2 } }

@@ -37,7 +37,9 @@ end
 def fake_redis
   @redis ||= begin
     redis = OpenStruct.new
+    # mocha requires method to exist to mock it 
     def redis.smembers(key); end
+    def redis.hgetall(key); end
     redis
   end
 end

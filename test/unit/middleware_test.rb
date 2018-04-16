@@ -90,7 +90,6 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    # TODO this isn't a fake redis investigate mock redis for testing
     fake_redis = Redis.new
     redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
     redis_store.clear!
@@ -110,7 +109,6 @@ class MiddlewareTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    # TODO this isn't a fake redis investigate mock redis for testing
     fake_redis = Redis.new
     redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
     redis_store.clear!

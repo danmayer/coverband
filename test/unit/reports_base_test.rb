@@ -59,7 +59,7 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test 'line_hash gets correct hash entry for a line key' do
     @fake_redis = fake_redis
-    store = Coverband::Adapters::RedisStore.new(@fake_redis, array: true)
+    store = Coverband::Adapters::RedisStore.new(@fake_redis)
 
     Coverband.configure do |config|
       config.redis             = @fake_redis
@@ -71,8 +71,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # the code takes config.root expands and adds a '/'
     roots = ['/app/', '/full/remote_app/path/']
 
-    lines_hit = %w[1 3 6]
-    @fake_redis.stubs(:smembers).returns(lines_hit)
+    lines_hit = [1, 3, 6]
+    store.stubs(:covered_lines_for_file).returns(lines_hit)
     # expects to show hit counts on 1,3,6
     expected = { '/full/remote_app/path/is/a/path.rb' => [1, nil, 1, nil, nil, 1] }
     File.stubs(:exist?).returns(true)
@@ -83,7 +83,7 @@ class ReportsBaseTest < Test::Unit::TestCase
 
   test 'line_hash adjusts relative paths' do
     @fake_redis = fake_redis
-    store = Coverband::Adapters::RedisStore.new(@fake_redis, array: true)
+    store = Coverband::Adapters::RedisStore.new(@fake_redis)
 
     Coverband.configure do |config|
       config.redis             = @fake_redis
@@ -95,8 +95,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # the code takes config.root expands and adds a '/'
     roots = ['/app/', '/full/remote_app/path/']
 
-    lines_hit = %w[1 3 6]
-    @fake_redis.stubs(:smembers).returns(lines_hit)
+    lines_hit = [1, 3, 6]
+    store.stubs(:covered_lines_for_file).returns(lines_hit)
     # expects to show hit counts on 1,3,6
     expected = { '/full/remote_app/path/is/a/path.rb' => [1, nil, 1, nil, nil, 1] }
     File.stubs(:exist?).returns(true)

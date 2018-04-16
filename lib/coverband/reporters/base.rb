@@ -87,7 +87,6 @@ module Coverband
       def self.line_hash(store, key, roots)
         filename = filename_from_key(key, roots)
         if File.exist?(filename)
-
           count = File.foreach(filename).inject(0) { |c, _line| c + 1 }
           line_array = Array.new(count, nil)
 

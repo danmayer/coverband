@@ -54,24 +54,6 @@ namespace :benchmarks do
     end
   end
 
-  desc 'set up coverband redis array'
-  task :setup_array do
-    clone_classifier
-    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
-    require 'benchmark'
-    require 'classifier-reborn'
-
-    Coverband.configure do |config|
-      config.redis              = Redis.new
-      config.root               = Dir.pwd
-      config.startup_delay      = 0
-      config.percentage         = 100.0
-      config.logger             = $stdout
-      config.verbose            = false
-      config.store              = Coverband::Adapters::RedisStore.new(Redis.new, array: true)
-    end
-  end
-
   desc 'set up coverband filestore'
   task :setup_file do
     clone_classifier
@@ -150,13 +132,6 @@ namespace :benchmarks do
     run_work
   end
 
-  desc 'runs benchmarks redis array'
-  task run_array: :setup_array do
-    puts 'Coverband tracepoint configured with redis array store'
-    SAMPLINGS = 5
-    run_work
-  end
-
   desc 'runs benchmarks file store'
   task run_file: :setup_file do
     puts 'Coverband tracepoint configured with file store'
@@ -173,4 +148,4 @@ namespace :benchmarks do
 end
 
 desc 'runs benchmarks'
-task benchmarks: ['benchmarks:run_file', 'benchmarks:run', 'benchmarks:run_array', 'benchmarks:run_coverage']
+task benchmarks: ['benchmarks:run_file', 'benchmarks:run', 'benchmarks:run_coverage']
