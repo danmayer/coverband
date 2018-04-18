@@ -47,7 +47,11 @@ module Coverband
           @logger.info 'coverage report: '
           @logger.info @file_line_usage.inspect
         end
-      rescue RuntimeError => err
+      # StandardError might be better option
+      # coverband previously had RuntimeError here
+      # but runtime error can let a large number of error crash this method
+      # and this method is currently in a ensure block in middleware
+      rescue StandardError => err
         failed!
         if @verbose
           @logger.info 'coverage missing'
@@ -83,7 +87,11 @@ module Coverband
         if previous_results
           new_results = {}
           current_coverage.each_pair do |file, line_counts|
-            new_results[file] = array_diff(line_counts, previous_results[file])
+            if previous_results[file]
+              new_results[file] = array_diff(line_counts, previous_results[file])
+            else
+              new_results[file] = line_counts
+            end
           end
         else
           new_results = current_coverage
@@ -138,7 +146,7 @@ module Coverband
           ::Coverage.start unless ::Coverage.running?
         else
           ::Coverage.start
-        end     
+        end
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
