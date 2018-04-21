@@ -2,11 +2,10 @@
 
 require 'logger'
 require 'json'
-# TODO: move to only be request if using redis store
-require 'redis'
 
 require 'coverband/version'
 require 'coverband/configuration'
+require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/memory_cache_store'
 require 'coverband/adapters/file_store'

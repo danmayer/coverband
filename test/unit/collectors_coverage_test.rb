@@ -8,9 +8,9 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
     attr_accessor :coverband
 
     def setup
-      Thread.current[:coverband_instance] = nil
       Coverband.configure do |config|
         config.collector = 'coverage'
+        config.store     = Coverband::Adapters::RedisStore.new(Redis.new)
       end
       @coverband = Coverband::Collectors::Base.instance.reset_instance
     end

@@ -7,6 +7,15 @@ require 'rack'
 class MiddlewareTest < Test::Unit::TestCase
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
+  def setup
+    Coverband.configure do |config|
+      config.redis             = nil
+      config.store             = nil
+      config.collector         = 'trace'
+      config.store             = Coverband::Adapters::RedisStore.new(Redis.new)
+    end
+  end
+
   test 'call app' do
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband::Collectors::Base.instance.reset_instance
@@ -42,26 +51,6 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end
 
-  test 'always unset function when sampling' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Collectors::Base.instance.reset_instance
-    middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
-    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    middleware.call(request)
-    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
-  end
-
-  test 'always unset function when not sampling' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Collectors::Base.instance.reset_instance
-    middleware = Coverband::Middleware.new(fake_app)
-    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
-    middleware.instance_variable_set('@sample_percentage', 0.0)
-    middleware.call(request)
-    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@tracer_set')
-  end
-
   test 'always record coverage, set trace func, and add_files when sampling' do
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband::Collectors::Base.instance.reset_instance
@@ -93,30 +82,11 @@ class MiddlewareTest < Test::Unit::TestCase
     fake_redis = Redis.new
     redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
     redis_store.clear!
+    Coverband::Collectors::Base.instance.reset_instance
     Coverband::Collectors::Base.instance.instance_variable_set('@store', redis_store)
-    fake_redis.stubs(:info).returns('redis_version' => 3.0)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '7' => 1)
-    middleware.call(request)
-    assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
-  end
-
-  test 'report only on calls when configured' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband.configuration.trace_point_events = [:call]
-    Coverband::Collectors::Base.instance.reset_instance
-    middleware = Coverband::Middleware.new(fake_app_with_lines)
-    assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
-    Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
-    fake_redis = Redis.new
-    redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
-    redis_store.clear!
-    Coverband::Collectors::Base.instance.instance_variable_set('@store', redis_store)
-    fake_redis.stubs(:info).returns('redis_version' => 3.0)
-    fake_redis.expects(:sadd).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '6' => 1)
     middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end

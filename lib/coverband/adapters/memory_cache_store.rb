@@ -2,7 +2,7 @@
 
 module Coverband
   module Adapters
-    class MemoryCacheStore
+    class MemoryCacheStore < Base
       attr_accessor :store
 
       def initialize(store)

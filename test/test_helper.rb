@@ -6,12 +6,15 @@ require 'test/unit'
 require 'mocha/setup'
 require 'ostruct'
 require 'json'
+require 'redis'
 
 SimpleCov.start do
   add_filter 'specs/ruby/1.9.1/gems/'
   add_filter '/test/'
   add_filter '/config/'
 end
+
+TEST_COVERAGE_FILE = '/tmp/fake_file.json'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -37,7 +40,7 @@ end
 def fake_redis
   @redis ||= begin
     redis = OpenStruct.new
-    # mocha requires method to exist to mock it 
+    # mocha requires method to exist to mock it
     def redis.smembers(key); end
     def redis.hgetall(key); end
     redis
@@ -63,10 +66,9 @@ end
 
 Coverband.configure do |config|
   config.root              = Dir.pwd
-  config.redis             = Redis.new
-  # config.coverage_baseline = JSON.parse(File.read('./tmp/coverband_baseline.json'))
   config.root_paths        = ['/app/']
   config.ignore            = ['vendor']
   config.percentage        = 100.0
   config.reporter          = 'std_out'
+  config.store             = Coverband::Adapters::RedisStore.new(Redis.new)
 end

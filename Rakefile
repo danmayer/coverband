@@ -14,3 +14,8 @@ Rake::TestTask.new(:test) do |test|
   test.test_files = FileList['test/unit/*_test.rb']
   test.verbose = true
 end
+
+desc 'load irb with this gem'
+task :console do
+  exec 'irb -I lib -r coverband'
+end

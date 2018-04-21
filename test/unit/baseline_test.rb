@@ -3,12 +3,10 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class ReporterTest < Test::Unit::TestCase
+
   test 'record baseline' do
     Coverband.configure do |config|
-      config.redis             = nil
-      config.store             = nil
-      config.root              = '/full/remote_app/path'
-      config.coverage_file     = '/tmp/fake_file.json'
+      config.store             = Coverband::Adapters::FileStore.new(TEST_COVERAGE_FILE)
     end
     Coverage.expects(:start).returns(true).at_least_once
     Coverage.expects(:result).returns('fake' => [0, 1]).at_least_once
@@ -29,7 +27,7 @@ class ReporterTest < Test::Unit::TestCase
       config.redis             = nil
       config.store             = nil
       config.root              = '/full/remote_app/path'
-      config.coverage_file     = '/tmp/fake_file.json'
+      config.store             = Coverband::Adapters::FileStore.new(TEST_COVERAGE_FILE)
     end
     File.expects(:exist?).at_least_once.returns(true)
     expected = { 'filename.rb' => [0, nil, 1] }
@@ -44,7 +42,7 @@ class ReporterTest < Test::Unit::TestCase
       config.redis             = nil
       config.store             = nil
       config.root              = '/full/remote_app/path'
-      config.coverage_file     = '/tmp/fake_file.json'
+      config.store             = Coverband::Adapters::FileStore.new(TEST_COVERAGE_FILE)
       config.ignore            = ['ignored_file.rb']
     end
     root = Coverband.configuration.root
@@ -52,7 +50,7 @@ class ReporterTest < Test::Unit::TestCase
     expected_files = [root + '/fakefile.rb']
     assert_equal(expected_files, Coverband::Baseline.exclude_files(files))
   end
-  
+
   test 'convert_coverage_format' do
     results = { 'fake_file.rb' => [1, nil, 0, 2] }
     expected = { 'fake_file.rb' => { 1 => 1, 3 => 0, 4 => 2 } }

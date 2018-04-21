@@ -4,6 +4,12 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('./dog', File.dirname(__FILE__))
 
 class CollectorsTraceTest < Test::Unit::TestCase
+  def setup
+    Coverband.configure do |config|
+      config.collector         = 'trace'
+    end
+  end
+
   test 'defaults to a redis store' do
     coverband = Coverband::Collectors::Base.instance.reset_instance
     assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class
@@ -82,6 +88,8 @@ class CollectorsTraceTest < Test::Unit::TestCase
   test 'tracer should count line numbers' do
     dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
     coverband = Coverband::Collectors::Base.instance.reset_instance
+    store = Coverband::Adapters::RedisStore.new(Redis.new)
+    coverband.instance_variable_set('@store', store)
     coverband.start
     100.times { Dog.new.bark }
     assert_equal 100, coverband.instance_variable_get('@file_line_usage')[dog_file][5]

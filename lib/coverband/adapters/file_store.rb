@@ -2,7 +2,7 @@
 
 module Coverband
   module Adapters
-    class FileStore
+    class FileStore < Base
       attr_accessor :path
 
       def initialize(path, _opts = {})

@@ -4,10 +4,10 @@ module Coverband
   class Configuration
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :percentage, :verbose, :reporter,
-                  :stats, :startup_delay, :trace_point_events,
-                  :include_gems, :memory_caching, :s3_bucket, :coverage_file,
+                  :stats, :startup_delay,
+                  :include_gems, :memory_caching, :s3_bucket,
                   :collector, :disable_on_failure_for
-    attr_writer :logger, :store
+    attr_writer :logger
 
     def initialize
       @root = Dir.pwd
@@ -20,12 +20,10 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
-      @collector = 'trace'
+      @collector = 'coverage'
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
-      @trace_point_events = [:line]
       @memory_caching = false
-      @coverage_file = nil
       @store = nil
       @disable_on_failure_for = nil
     end
@@ -34,15 +32,21 @@ module Coverband
       @logger ||= Logger.new(STDOUT)
     end
 
-    # TODO: considering removing @redis / @coveragefile and have user set store directly
     def store
       return @store if @store
-      if redis
+      raise 'no valid store configured'
+    end
+
+    # TODO should I default the store?
+    # need to check if redis is loaded to even use is_a on Redis
+    def store=(store)
+      if store.is_a?(Coverband::Adapters::Base)
+        @store = store
+      elsif defined?(Redis) && store.is_a?(Redis)
         @store = Coverband::Adapters::RedisStore.new(redis)
-      elsif Coverband.configuration.coverage_file
+      elsif store.is_a?(String)
         @store = Coverband::Adapters::FileStore.new(coverage_file)
       end
-      @store
     end
   end
 end

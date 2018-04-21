@@ -7,6 +7,7 @@ module Coverband
       def reset_instance
         super
         @tracer_set = false
+        @trace_point_events = [:line]
         @trace = create_trace_point
         self
       end
@@ -82,9 +83,10 @@ module Coverband
       end
 
       def create_trace_point
-        TracePoint.new(*Coverband.configuration.trace_point_events) do |tp|
+        TracePoint.new(*@trace_point_events) do |tp|
           if Thread.current == @current_thread
             file = tp.path
+
             unless @ignored_files.include?(file)
               if track_file?(file)
                 add_file(file, tp.lineno)

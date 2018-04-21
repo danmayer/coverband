@@ -4,6 +4,12 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('./dog', File.dirname(__FILE__))
 
 class CollectorsBaseTest < Test::Unit::TestCase
+  def setup
+    Coverband.configure do |config|
+      config.collector         = 'trace'
+    end
+  end
+
   test 'defaults to a redis store' do
     coverband = Coverband::Collectors::Base.instance.reset_instance
     assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class
@@ -32,7 +38,6 @@ class CollectorsBaseTest < Test::Unit::TestCase
     assert_equal true, coverband.instance_variable_get('@enabled')
     coverband.stop
     assert_equal false, coverband.instance_variable_get('@enabled')
-    assert_equal false, coverband.instance_variable_get('@tracer_set')
   end
 
   test 'allow for sampling with a block and enable when 100 percent sample' do
@@ -71,7 +76,7 @@ class CollectorsBaseTest < Test::Unit::TestCase
     Coverband.configuration.logger.stubs('info')
     store = Coverband::Adapters::RedisStore.new(Redis.new)
     coverband.instance_variable_set('@store', store)
-    store.expects(:save_report).once.with(has_entries(dog_file => { 5 => 5 }))
+    store.expects(:save_report).once.with(has_entries(dog_file => {5 => 5}))
     assert_equal false, coverband.instance_variable_get('@enabled')
     coverband.start
     5.times { Dog.new.bark }
@@ -84,6 +89,7 @@ class CollectorsBaseTest < Test::Unit::TestCase
     coverband = Coverband::Collectors::Base.instance.reset_instance
     coverband.start
     100.times { Dog.new.bark }
+    Coverband::Collectors::Base.instance
     assert_equal 100, coverband.instance_variable_get('@file_line_usage')[dog_file][5]
     coverband.stop
     coverband.save
