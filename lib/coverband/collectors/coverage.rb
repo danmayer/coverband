@@ -7,6 +7,10 @@ module Coverband
         # noop
       end
 
+      def stop_coverage
+        # noop
+      end
+
       def report_coverage
         unless @enabled
           @logger.info 'coverage disabled' if @verbose
@@ -50,16 +54,6 @@ module Coverband
         end
       end
 
-      protected
-
-      def set_tracer
-        # no op
-      end
-
-      def unset_tracer
-        # no op
-      end
-
       private
 
       def array_diff(latest, original)
@@ -87,22 +81,6 @@ module Coverband
         else
           new_results = current_coverage
         end
-
-        # if current_coverage['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "total"
-        #   puts current_coverage['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
-        #
-        #
-        # if previous_results && previous_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "prev"
-        #   puts previous_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
-        #
-        # if new_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb']
-        #   puts "new"
-        #   puts new_results['/Users/danmayer/projects/coverage_rails_benchmark/app/controllers/posts_controller.rb'].inspect
-        # end
 
         add_previous_results(current_coverage)
         new_results.dup

@@ -36,7 +36,6 @@ module Coverband
       raise 'no valid store configured'
     end
 
-    # TODO should I default the store?
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store

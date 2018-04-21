@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+####
+# TODO refactor this along with the coverage and trace collector
+####
 module Coverband
   module Collectors
     class Base
@@ -20,7 +23,7 @@ module Coverband
 
       def stop
         @enabled = false
-        unset_tracer
+        stop_coverage
       end
 
       def sample
@@ -66,17 +69,11 @@ module Coverband
       end
 
       def record_coverage
-        if @enabled && !failed_recently?
-          set_tracer
-        else
-          unset_tracer
-        end
-      rescue RuntimeError => err
-        failed!
-        if @verbose
-          @logger.info 'error stating recording coverage'
-          @logger.info "error: #{err.inspect} #{err.message}"
-        end
+        raise 'abstract'
+      end
+
+      def stop_coverage
+        raise 'abstract'
       end
 
       def report_coverage
@@ -87,14 +84,6 @@ module Coverband
 
       def track_file?(file)
         @ignore_patterns.none? { |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
-      end
-
-      def set_tracer
-        raise 'abstract'
-      end
-
-      def unset_tracer
-        raise 'abstract'
       end
 
       def output_file_line_usage

@@ -12,6 +12,24 @@ module Coverband
         self
       end
 
+      def record_coverage
+        if @enabled && !failed_recently?
+          set_tracer
+        else
+          unset_tracer
+        end
+      rescue RuntimeError => err
+        failed!
+        if @verbose
+          @logger.info 'error stating recording coverage'
+          @logger.info "error: #{err.inspect} #{err.message}"
+        end
+      end
+
+      def stop_coverage
+        unset_tracer
+      end
+
       def report_coverage
         unless @enabled
           @logger.info 'coverage disabled' if @verbose
