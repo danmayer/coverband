@@ -3,16 +3,15 @@
 module Coverband
   class Configuration
     attr_accessor :redis, :root_paths, :root,
-                  :ignore, :additional_files, :percentage, :verbose, :reporter,
-                  :stats, :startup_delay,
-                  :include_gems, :memory_caching, :s3_bucket,
+                  :ignore, :additional_files, :percentage, :verbose,
+                  :reporter, :startup_delay, :memory_caching,
+                  :include_gems, :s3_bucket,
                   :collector, :disable_on_failure_for
     attr_writer :logger
 
     def initialize
       @root = Dir.pwd
       @redis = nil
-      @stats = nil
       @root_paths = []
       @ignore = []
       @additional_files = []
@@ -38,7 +37,6 @@ module Coverband
     end
 
     # TODO should I default the store?
-    # need to check if redis is loaded to even use is_a on Redis
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store

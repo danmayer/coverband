@@ -27,12 +27,11 @@ namespace :benchmarks do
     Coverband.configure do |config|
       config.redis              = Redis.new
       config.root               = Dir.pwd
-      config.startup_delay      = 0
       config.percentage         = 100.0
       config.logger             = $stdout
-      config.verbose            = false
-      # config.memory_caching     = true
-      # config.trace_point_events = [:call]
+      config.collector          = 'trace'
+      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
+      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
     end
   end
 
@@ -44,13 +43,12 @@ namespace :benchmarks do
     require 'classifier-reborn'
 
     Coverband.configure do |config|
-      config.redis              = Redis.new
       config.root               = Dir.pwd
-      config.startup_delay      = 0
       config.percentage         = 100.0
       config.logger             = $stdout
-      config.verbose            = false
       config.collector          = 'coverage'
+      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
+      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
     end
   end
 
@@ -62,14 +60,12 @@ namespace :benchmarks do
     require 'classifier-reborn'
 
     Coverband.configure do |config|
-      config.redis              = nil
-      config.store              = nil
       config.root               = Dir.pwd
-      config.startup_delay      = 0
       config.percentage         = 100.0
       config.logger             = $stdout
-      config.verbose            = false
-      config.coverage_file = '/tmp/benchmark_store.json'
+      config.collector          = 'trace'
+      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
+      config.store              = Coverband::Adapters::FileStore.new('/tmp/benchmark_store.json')
     end
   end
 

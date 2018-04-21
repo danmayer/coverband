@@ -32,16 +32,7 @@ module Coverband
         end
 
         if @store
-          if @stats
-            @before_time = Time.now
-            @stats.count 'coverband.files.recorded_files', @file_line_usage.length
-          end
-
           @store.save_report(@file_line_usage)
-          if @stats
-            @time_spent = Time.now - @before_time
-            @stats.timing 'coverband.files.recorded_time', @time_spent
-          end
           @file_line_usage.clear
         elsif @verbose
           @logger.info 'coverage report: '

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+###
+# TODO current benchmarks aren't showing much advantage from this wrapped cache approach
+# re-evaluate before 2.0.0 release 
+###
 module Coverband
   module Adapters
     class MemoryCacheStore < Base

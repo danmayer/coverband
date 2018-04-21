@@ -49,7 +49,6 @@ module Coverband
         @sample_percentage = Coverband.configuration.percentage
         @store = Coverband.configuration.store
         @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
-        @stats    = Coverband.configuration.stats
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
@@ -72,8 +71,6 @@ module Coverband
         else
           unset_tracer
         end
-        # support old ruby before &. safe digging
-        @stats.increment "coverband.request.recorded.#{@enabled}" if @stats
       rescue RuntimeError => err
         failed!
         if @verbose
