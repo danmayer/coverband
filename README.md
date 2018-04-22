@@ -381,6 +381,62 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 5. Make sure all tests are passing (run `bundle install`, make sure Redis is running, and then execute `bundle exec rake test`)
 6. Create new Pull Request
 
+## Formats
+
+The format we get from TracePoint, Coverage, Native to our Storage Options, and Used by SimpleCov for reporting have traditionally varied a bit. We can document the differences in formats here.
+
+### Coverage
+
+```
+>> require 'coverage'
+=> true
+>> Coverage.start
+=> nil
+>> require './test/unit/dog.rb'
+=> true
+>>  5.times { Dog.new.bark }
+=> 5
+>> Coverage.peek_result
+=> {"/Users/danmayer/projects/coverband/test/unit/dog.rb"=>[nil, nil, 1, 1, 5, nil, nil]}
+```
+
+### SimpleCov
+
+The same format, but relative paths.
+
+```
+{"test/unit/dog.rb"=>[1, 2, nil, nil, nil, nil, nil]}
+```
+
+### Redis Store
+
+We store relative path in Redis, the Redis hash stores line numbers -> count (as strings).
+
+```
+# Array
+["test/unit/dog.rb"]
+
+# Hash
+{"test/unit/dog.rb"=>{"1"=>"1", "2"=>"2"}}
+```
+
+### File Store
+
+Similar format to redis store, but array with integer values
+
+```
+{"test/unit/dog.rb"=>{"1"=>1, "2"=>2}}
+```
+
+## Future
+
+### Alternative Redis formats
+
+* Look at alternative storage formats for Redis
+  * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
+  * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
+
+
 ## Resources
 
 These notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resources might be helpful. I learned a lot looking at various existing projects and open source code.

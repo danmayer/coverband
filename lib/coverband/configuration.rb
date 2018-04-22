@@ -19,7 +19,11 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
-      @collector = 'coverage'
+      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
+        @collector = 'trace'
+      else
+        @collector = 'coverage'
+      end
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
       @memory_caching = false
