@@ -436,6 +436,8 @@ Similar format to redis store, but array with integer values
   * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
   * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
 
+### Improved Railtie integration
+  * support runner, active job, etc without needed extra config 
 
 ## Resources
 
@@ -443,9 +445,7 @@ These notes of kind of for myself, but if anyone is seriously interested in cont
 
 ##### Ruby Std-lib Coverage
 
-* [Fixed bug causing segfaults on 1.9.X](https://www.ruby-forum.com/topic/1811306)
-* [Current Coverage Bug causing issues on 2.1.1](https://bugs.ruby-lang.org/issues/9572)
-* [Ruby Coverage docs](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/coverage/rdoc/Coverage.html)
+* [Ruby Coverage docs](https://ruby-doc.org/stdlib-2.5.0/libdoc/coverage/rdoc/Coverage.html)
 
 ##### Other
 
