@@ -1,10 +1,34 @@
 # frozen_string_literal: true
-
-require 'coverband'
-require 'redis'
-require File.join(File.dirname(__FILE__), 'dog')
-
 namespace :benchmarks do
+
+  # https://github.com/evanphx/benchmark-ips
+  # Enable and start GC before each job run. Disable GC afterwards.
+  #
+  # Inspired by https://www.omniref.com/ruby/2.2.1/symbols/Benchmark/bm?#annotation=4095926&line=182
+  class GCSuite
+    def warming(*)
+      run_gc
+    end
+
+    def running(*)
+      run_gc
+    end
+
+    def warmup_stats(*)
+    end
+
+    def add_report(*)
+    end
+
+    private
+
+    def run_gc
+      GC.enable
+      GC.start
+      GC.disable
+    end
+  end
+
   def classifier_dir
     File.join(File.dirname(__FILE__), 'classifier-reborn')
   end
@@ -17,13 +41,34 @@ namespace :benchmarks do
     # rubocop:enable Style/IfUnlessModifier
   end
 
-  desc 'set up coverband default redis'
+  desc 'setup standard benchmark'
   task :setup do
     clone_classifier
     $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
     require 'benchmark'
-    require 'classifier-reborn'
+    require 'benchmark/ips'
 
+    # TODO ok this is interesting and weird
+    # basically the earlier I require coverage and
+    # then require files the larger perf impact
+    # this is somewhat expected but can lead to significant perf diffs
+    # for example moving `require 'classifier-reborn'` below the coverage.start
+    # results in 1.5x slower vs "difference falls within error"
+    # moving from 5 second of time to 12 still shows slower based on when classifier is required
+    # make sure to be plugged in while benchmarking ;) Otherwise you get very unreliable results
+    require 'classifier-reborn'
+    if ENV['COVERAGE']
+      puts 'Coverage library loaded and started'
+      require 'coverage'
+      ::Coverage.start
+    end
+    require 'redis'
+    require 'coverband'
+    require File.join(File.dirname(__FILE__), 'dog')
+  end
+
+  desc 'set up coverband tracepoint Redis'
+  task :setup_redis do
     Coverband.configure do |config|
       config.redis              = Redis.new
       config.root               = Dir.pwd
@@ -35,30 +80,8 @@ namespace :benchmarks do
     end
   end
 
-  desc 'set up coverband with coverage redis'
-  task :setup_coverage do
-    clone_classifier
-    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
-    require 'benchmark'
-    require 'classifier-reborn'
-
-    Coverband.configure do |config|
-      config.root               = Dir.pwd
-      config.percentage         = 100.0
-      config.logger             = $stdout
-      config.collector          = 'coverage'
-      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
-    end
-  end
-
-  desc 'set up coverband filestore'
+  desc 'set up coverband tracepoint filestore'
   task :setup_file do
-    clone_classifier
-    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
-    require 'benchmark'
-    require 'classifier-reborn'
-
     Coverband.configure do |config|
       config.root               = Dir.pwd
       config.percentage         = 100.0
@@ -66,6 +89,22 @@ namespace :benchmarks do
       config.collector          = 'trace'
       config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
       config.store              = Coverband::Adapters::FileStore.new('/tmp/benchmark_store.json')
+    end
+  end
+
+  ###
+  # This benchmark always needs to be run last
+  # as requiring coverage changes how Ruby interprets the code
+  ###
+  desc 'set up coverband with coverage Redis'
+  task :setup_coverage do
+    Coverband.configure do |config|
+      config.root               = Dir.pwd
+      config.percentage         = 100.0
+      config.logger             = $stdout
+      config.collector          = 'coverage'
+      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
+      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
     end
   end
 
@@ -99,49 +138,52 @@ namespace :benchmarks do
     10_000.times { Dog.new.bark }
   end
 
-  def run_work
-    puts "benchmark for: #{Coverband.configuration.inspect}"
-    puts "store: #{Coverband.configuration.store.inspect}"
-    Benchmark.bm(15) do |x|
+  def run_work(hold_work = false)
+    suite = GCSuite.new
+    #puts "benchmark for: #{Coverband.configuration.inspect}"
+    #puts "store: #{Coverband.configuration.store.inspect}"
+    Benchmark.ips do |x|
+      x.config(:time => 12, :warmup => 5, :suite => suite)
       x.report 'coverband' do
-        SAMPLINGS.times do
-          Coverband::Collectors::Base.instance.sample do
-            work
-          end
-        end
-      end
-
-      x.report 'no coverband' do
-        SAMPLINGS.times do
+        Coverband::Collectors::Base.instance.sample do
           work
         end
       end
+      Coverband::Collectors::Base.instance.stop
+      x.report 'no coverband' do
+        work
+      end
+      x.hold! 'temp_results' if hold_work
+      x.compare!
     end
-    Coverband::Collectors::Base.instance.stop
     Coverband::Collectors::Base.instance.reset_instance
   end
 
   desc 'runs benchmarks on default redis setup'
-  task run: :setup do
-    puts 'Coverband tracepoint configured with default redis store'
-    SAMPLINGS = 5
+  task run_redis: [:setup, :setup_redis] do
+    puts 'Coverband tracepoint configured with default Redis store'
     run_work
   end
 
   desc 'runs benchmarks file store'
-  task run_file: :setup_file do
+  task run_file: [:setup, :setup_file] do
     puts 'Coverband tracepoint configured with file store'
-    SAMPLINGS = 5
     run_work
   end
 
   desc 'runs benchmarks coverage'
-  task run_coverage: :setup_coverage do
-    puts 'Coverband Coverage configured with to use default redis store'
-    SAMPLINGS = 5
-    run_work
+  task run_coverage: [:setup, :setup_coverage] do
+    puts 'Coverband Coverage configured with to use default Redis store'
+    run_work(true)
+  end
+
+  desc 'compare Coverband Ruby Coverage with normal Ruby'
+  task :compare_coverage do
+    puts 'comparing with Coverage loaded and not, this takes some time for output...'
+    puts `COVERAGE=true rake benchmarks:run_coverage`
+    puts `rake benchmarks:run_coverage`
   end
 end
 
 desc 'runs benchmarks'
-task benchmarks: ['benchmarks:run_file', 'benchmarks:run', 'benchmarks:run_coverage']
+task benchmarks: ['benchmarks:run_file', 'benchmarks:run_redis', 'benchmarks:compare_coverage']

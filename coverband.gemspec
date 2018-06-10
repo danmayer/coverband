@@ -29,9 +29,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'sinatra'
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'redis'
+  spec.add_development_dependency 'benchmark-ips'
   # add when debugging
   # require 'byebug'; byebug
   spec.add_development_dependency 'byebug'
+  # deprecate when dropping support for older ruby
   spec.add_runtime_dependency 'json'
+  # todo make an optional dependency for simplecov reports
+  # also likely should just require simplecov-html not the whole lib
   spec.add_runtime_dependency 'simplecov', '> 0.11.1'
 end
