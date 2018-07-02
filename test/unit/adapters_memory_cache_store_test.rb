@@ -52,6 +52,77 @@ module Coverband
       @memory_store.save_report data
     end
 
+    test 'it doesn\'t pass data into store for one call' do
+      file_data = {
+        'file0' => { 1 => 1, 5 => 1 }
+      }
+
+      @memory_store.instance_variable_set('@max_caching', 3)
+      @store.expects(:covered_lines_for_file).with('file0').returns []
+      @store.expects(:save_report).times(0)
+      @memory_store.save_report({ 'file0' => file_data['file0'] })
+    end
+
+    test 'it doesn\'t pass data into store for two calls' do
+      file_data = {
+        'file0' => { 1 => 1, 5 => 1 },
+        'file1' => { 4 => 1, 5 => 1 }
+      }
+
+      @memory_store.instance_variable_set('@max_caching', 3)
+      @store.expects(:covered_lines_for_file).with('file0').returns []
+      @store.expects(:covered_lines_for_file).with('file1').returns []
+      @store.expects(:save_report).times(0)
+      @memory_store.save_report({ 'file0' => file_data['file0'] })
+      @memory_store.save_report({ 'file1' => file_data['file1'] })
+    end
+
+    test 'it passes data into store for three calls' do
+      file_data = {
+        'file0' => { 1 => 1, 5 => 1 },
+        'file1' => { 4 => 1, 5 => 1 },
+        'file2' => { 6 => 1 }
+      }
+
+      @memory_store.instance_variable_set('@max_caching', 3)
+      # This represents the state of the persistent storage
+      @store.expects(:covered_lines_for_file).with('file0').returns []
+      @store.expects(:covered_lines_for_file).with('file1').returns []
+      @store.expects(:covered_lines_for_file).with('file2').returns []
+      @store.expects(:save_report).once.with(file_data)
+      @memory_store.save_report({ 'file0' => file_data['file0'] })
+      @memory_store.save_report({ 'file1' => file_data['file1'] })
+      @memory_store.save_report({ 'file2' => file_data['file2'] })
+    end
+
+    test 'it passes data into store for three calls - same file' do
+      iter0 = { 1 => 1, 5 => 1 }
+      iter1 = { 4 => 1, 5 => 1 }
+      iter2 = { 1 => 1, 6 => 1 }
+
+      @memory_store.instance_variable_set('@max_caching', 3)
+      # This represents the state of the persistent storage
+      @store.expects(:covered_lines_for_file).with('file0').returns []
+      @store.expects(:save_report).once.with({ 'file0' => { 1 => 1, 5 => 1, 4 => 1, 6 => 1 } })
+      @memory_store.save_report({ 'file0' => iter0 })
+      @memory_store.save_report({ 'file0' => iter1 })
+      @memory_store.save_report({ 'file0' => iter2 })
+    end
+
+    test 'it passes data into store for three calls - data in persistent storage' do
+      iter0 = { 1 => 1, 5 => 1 }
+      iter1 = { 4 => 1, 5 => 1 }
+      iter2 = { 1 => 1, 6 => 1 }
+
+      @memory_store.instance_variable_set('@max_caching', 3)
+      # This represents the state of the persistent storage
+      @store.expects(:covered_lines_for_file).with('file0').returns [1, 5]
+      @store.expects(:save_report).once.with({ 'file0' => { 4 => 1, 6 => 1 } })
+      @memory_store.save_report({ 'file0' => iter0 })
+      @memory_store.save_report({ 'file0' => iter1 })
+      @memory_store.save_report({ 'file0' => iter2 })
+    end
+
   end
 
 end

@@ -1,10 +1,15 @@
+require 'active_support'
+
 module Coverband
   module Adapters
     class MemoryCacheStore
       attr_accessor :store
 
-      def initialize(store)
-        @store = store
+      def initialize(store, options = {})
+        @store       = store
+        @max_caching = options[:max_caching] || 1
+        @count       = 0
+        @filtered_files = {}
       end
 
       def self.reset!
@@ -16,8 +21,13 @@ module Coverband
       end
 
       def save_report(files)
-        filtered_files = filter(files)
-        store.save_report(filtered_files) if filtered_files.any?
+        @count = @count.succ % @max_caching
+        @filtered_files.deep_merge!(filter(files))
+
+        return unless @count.zero?
+        return unless @filtered_files.any?
+        store.save_report(@filtered_files)
+        @filtered_files.clear
       end
 
       private

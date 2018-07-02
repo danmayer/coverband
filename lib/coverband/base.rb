@@ -48,7 +48,7 @@ module Coverband
       @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
       @sample_percentage = Coverband.configuration.percentage
       @store = Coverband.configuration.store
-      @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
+      @store = Coverband::Adapters::MemoryCacheStore.new(@store, max_caching: Coverband.configuration.memory_caching_max) if Coverband.configuration.memory_caching
       @stats    = Coverband.configuration.stats
       @verbose  = Coverband.configuration.verbose
       @logger   = Coverband.configuration.logger
