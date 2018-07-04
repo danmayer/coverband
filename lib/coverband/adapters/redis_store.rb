@@ -8,49 +8,65 @@ module Coverband
         #remove check for coverband 2.0
         @_sadd_supports_array = recent_gem_version? && recent_server_version?
         #possibly drop array storage for 2.0
-        @store_as_array = opts.fetch(:array){ false }
+        @store_as_array  = opts.fetch(:array){ false }
+        @ttl             = opts[:ttl]
+        @redis_namespace = opts[:redis_namespace]
+      end
+
+      def base_key
+        @base_key || [BASE_KEY, @redis_namespace].compact.join('.')
       end
 
       def clear!
-        @redis.smembers(BASE_KEY).each { |key| @redis.del("#{BASE_KEY}.#{key}") }
-        @redis.del(BASE_KEY)
+        @redis.smembers(base_key).each { |key| @redis.del("#{base_key}.#{key}") }
+        @redis.del(base_key)
       end
 
       def save_report(report)
         if @store_as_array
           redis.pipelined do
-            store_array(BASE_KEY, report.keys)
+            store_array(base_key, report.keys)
 
             report.each do |file, lines|
-              store_array("#{BASE_KEY}.#{file}", lines.keys)
+              store_array("#{base_key}.#{file}", lines.keys)
             end
           end
         else
-          store_array(BASE_KEY, report.keys)
-
-          report.each do |file, lines|
-            store_map("#{BASE_KEY}.#{file}", lines)
+          if sadd_supports_array?
+            redis.pipelined do
+              redis.sadd(base_key, report.keys) if (report.keys.length > 0)
+              redis.expire(base_key, @ttl) if @ttl
+              report.each do |file, lines|
+                lines.each { |line, count| redis.hincrby("#{base_key}.#{file}", line, count) }
+                redis.expire("#{base_key}.#{file}", @ttl) if @ttl
+              end              
+            end
+          else
+            store_array(base_key, report.keys)
+            report.each do |file, lines|
+              store_map("#{base_key}.#{file}", lines)
+            end
           end
         end
       end
 
       def coverage
         data = {}
-        redis.smembers(BASE_KEY).each do |key|
+        redis.smembers(base_key).each do |key|
           data[key] = covered_lines_for_file(key)
         end
         data
       end
 
       def covered_files
-        redis.smembers(BASE_KEY)
+        redis.smembers(base_key)
       end
 
       def covered_lines_for_file(file)
         if @store_as_array
-          @redis.smembers("#{BASE_KEY}.#{file}").map(&:to_i)
+          @redis.smembers("#{base_key}.#{file}").map(&:to_i)
         else
-          @redis.hgetall("#{BASE_KEY}.#{file}")
+          @redis.hgetall("#{base_key}.#{file}")
         end
       end
 
@@ -69,6 +85,7 @@ module Coverband
           values = Hash[values.map{|k,val| [k.to_s,val] } ]
           values.merge!( existing ){|k, old_v, new_v| old_v.to_i + new_v.to_i}
           redis.mapped_hmset(key, values)
+          redis.expire(key, @ttl) if @ttl
         end
       end
 
@@ -80,6 +97,7 @@ module Coverband
             redis.sadd(key, value)
           end
         end
+        redis.expire(key, @ttl) if @ttl
         values
       end
 
