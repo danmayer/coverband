@@ -1,44 +1,29 @@
+require 'active_support'
+
 module Coverband
   module Adapters
     class MemoryCacheStore
       attr_accessor :store
 
-      def initialize(store)
-        @store = store
-      end
-
-      def self.reset!
-        files_cache.clear
-      end
-
-      def clear!
-        self.class.reset!
+      def initialize(store, options = {})
+        @store       = store
+        @max_caching = options[:max_caching] || 1
+        @count       = 0
+        @cached_data = {}
       end
 
       def save_report(files)
-        filtered_files = filter(files)
-        store.save_report(filtered_files) if filtered_files.any?
-      end
-
-      private
-
-      def self.files_cache
-        @files_cache ||= Hash.new
-      end
-
-      def files_cache
-        self.class.files_cache
-      end
-
-      def filter(files)
-        files.each_with_object(Hash.new) do |(file, lines), filtered_file_hash|
-          #first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
-          line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
-          lines.reject! do |line|
-            line_cache.include?(line) ? true : (line_cache << line and false)
-          end
-          filtered_file_hash[file] = lines if lines.any?
+        @count = @count.succ % @max_caching
+        files.each_with_object(@cached_data) do |(file, lines), cached_data|
+          line_cache = cached_data[file] ||= {}
+          line_cache.merge!(lines) { |k, old_v, new_v| old_v.to_i + new_v.to_i }
+          cached_data[file] = line_cache
         end
+
+        return unless @count.zero?
+        return unless @cached_data.any?
+        store.save_report(@cached_data)
+        @cached_data.clear
       end
 
     end
