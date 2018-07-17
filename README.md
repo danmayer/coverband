@@ -5,11 +5,9 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#how-to-use">How To Use</a> •
-  <a href="#download">Installation</a> •
-  <a href="#download">Configuration</a> •
-  <a href="#credits">Usage</a> •
-  <a href="#credits">Credits</a> •
-  <a href="#related">Related</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#usage">Usage</a> •
   <a href="#license">License</a>
 </p>
 
@@ -43,7 +41,7 @@ Below is my Coverband workflow, which hopefully will help other best use this li
    * there is a tradeoff on accuracy and data value
    * I recommend clearing after major code changes, significant releases, or some regular schedule.
 
-# Example Output
+## Example Output
 
 Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
 
@@ -85,7 +83,7 @@ Or install it yourself as:
 $ gem install coverband
 ```
 
-## Configuration
+# Configuration
 
 After you have the gem, you will want to setup the needed integration:
 
@@ -533,6 +531,7 @@ These notes of kind of for myself, but if anyone is seriously interested in cont
 * [learn from stackprof](https://github.com/tmm1/stackprof#readme)
 * I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
 
-# MIT License
+# License
 
+This is a MIT License project...
 See the file license.txt for copying permission.
