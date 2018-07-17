@@ -1,8 +1,6 @@
 # Coverband
 
-<p align="center">
 Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?branch=master)](https://travis-ci.org/danmayer/coverband)
-</p>
 
 <p align="center">
   <a href="#key-features">Key Features</a> •
@@ -60,7 +58,7 @@ Details on a example Sinatra app
 
 Follow the below section to install and configure Coverband.
 
-![coverband installation](https://raw.github.com/danmayer/coverband/master/docs/coverband_installation.gif)
+![coverband installation](https://raw.githubusercontent.com/danmayer/coverband/feature/via_coverage/docs/coverband_install.gif?raw=true)
 
 ## Prerequisites
 
