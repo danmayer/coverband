@@ -11,7 +11,9 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
   <a href="#license">License</a>
 </p>
 
-A gem to measure production code usage, showing each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like usage during background jobs). I like to think of this as production code coverage, but that implies test coverage to some folks, so being more explicit to say that it shows when a line of code is executed in a given environment is the most accurate way to describe it.
+A gem to measure production code usage, showing each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like usage during background jobs).
+
+Note: Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
 
 ## Key Features
 
@@ -19,7 +21,6 @@ A gem to measure production code usage, showing each line of code that is execut
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
 * Take a baseline to get initial app execution during app initialization. (the baseline is important because some code is executed during app load, but might not be invoked during any requests, think prefetching, initial cache builds, setting constants, etc...)
 * Development mode for additional code usage details (number of LOC execution during single request, etc).
-* Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
 
 # How To Use
 
