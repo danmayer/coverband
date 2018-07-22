@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'benchmark-ips'
   # add when debugging
   # require 'byebug'; byebug
-  spec.add_development_dependency 'byebug'
+  #spec.add_development_dependency 'byebug'
   # deprecate when dropping support for older ruby
   spec.add_runtime_dependency 'json'
   # todo make an optional dependency for simplecov reports
