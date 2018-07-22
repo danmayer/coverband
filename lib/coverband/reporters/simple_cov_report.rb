@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 module Coverband
   module Reporters
     class SimpleCovReport < Base
-
       def self.report(store, options = {})
         begin
           require 'simplecov'
-        rescue
-          Coverband.configuration.logger.error "coverband requires simplecov in order to generate a report, when configured for the scov report style."
+        rescue StandardError
+          Coverband.configuration.logger.error 'coverband requires simplecov in order to generate a report, when configured for the scov report style.'
           return
         end
 
@@ -25,7 +26,7 @@ module Coverband
         report_files = SimpleCov.add_not_loaded_files(scov_style_report)
         filtered_report_files = {}
         report_files.each_pair do |file, data|
-          next if Coverband.configuration.ignore.any?{ |i| file.match(i) }
+          next if Coverband.configuration.ignore.any? { |i| file.match(i) }
           filtered_report_files[file] = data
         end
 
@@ -39,8 +40,6 @@ module Coverband
 
         S3ReportWriter.new(Coverband.configuration.s3_bucket).persist! if Coverband.configuration.s3_bucket
       end
-
     end
   end
 end
-

@@ -1,6 +1,12 @@
+# frozen_string_literal: true
+
+###
+# TODO current benchmarks aren't showing much advantage from this wrapped cache approach
+# re-evaluate before 2.0.0 release 
+###
 module Coverband
   module Adapters
-    class MemoryCacheStore
+    class MemoryCacheStore < Base
       attr_accessor :store
 
       def initialize(store)
@@ -20,10 +26,11 @@ module Coverband
         store.save_report(filtered_files) if filtered_files.any?
       end
 
+      # rubocop:disable Lint/IneffectiveAccessModifier
       private
 
       def self.files_cache
-        @files_cache ||= Hash.new
+        @files_cache ||= {}
       end
 
       def files_cache
@@ -31,16 +38,16 @@ module Coverband
       end
 
       def filter(files)
-        files.each_with_object(Hash.new) do |(file, lines), filtered_file_hash|
-          #first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
+        files.each_with_object({}) do |(file, lines), filtered_file_hash|
+          # first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
           line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
           lines.reject! do |line|
-            line_cache.include?(line) ? true : (line_cache << line and false)
+            line_cache.include?(line) ? true : (line_cache << line && false)
           end
           filtered_file_hash[file] = lines if lines.any?
         end
       end
-
+      # rubocop:enable Lint/IneffectiveAccessModifier
     end
   end
 end

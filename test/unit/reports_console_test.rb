@@ -1,37 +1,34 @@
+# frozen_string_literal: true
+
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class SimpleCovReportTest < Test::Unit::TestCase
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup
-    @fake_redis = fake_redis
-    @store = Coverband::Adapters::RedisStore.new(@fake_redis, array: true)
+    @redis = Redis.new
+    @redis.flushdb
+    @store = Coverband::Adapters::RedisStore.new(@redis)
   end
 
-  test "report data" do
-    Coverband.configure do |config|
-      config.redis             = @fake_redis
-      config.reporter          = 'std_out'
-    end
+  def example_hash
+    {'1' => '1', '2' => '2'}
+  end
 
-    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('/tmp/root_dir')
-    @fake_redis.expects(:smembers).with(BASE_KEY).returns(fake_coverband_members)
-    
-    fake_coverband_members.each do |key|
-      File.expects(:exists?).with(key).returns(true)
-      File.expects(:foreach).with(key).returns(Array.new(4){'LOC'})
-      @fake_redis.expects(:smembers).with("#{BASE_KEY}.#{key}").returns(["1", "3"])
+  test 'report data' do
+    Coverband.configure do |config|
+      config.redis             = @redis
+      config.reporter          = 'std_out'
+      config.store             = @store
     end
-    
     Coverband.configuration.logger.stubs('info')
+    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('./test/unit')
+
+    @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
+    @store.send(:store_map, "#{BASE_KEY}.test/unit/dog.rb", example_hash)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
-    expected = {"/Users/danmayer/projects/hearno/app/controllers/application_controller.rb"=>
-                  [1, nil, 1, nil],
-                "/Users/danmayer/projects/hearno/app/models/account.rb"=>[1, nil, 1, nil],
-                "/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, nil]}
-
+    expected = {"test/unit/dog.rb"=>[1, 2, nil, nil, nil, nil, nil]}
     assert_equal(expected, report)
   end
-
 end

@@ -1,6 +1,16 @@
+### 2.0.0
+
+Major release with various backwards compatibility breaking changes.
+
+* Massive performance enhancements by moving to Ruby `Coverage` based collection
+* Opposed to sampling this is now a reporting frequency
+* Reduced configuration complexity
+* Refactoring the code preparing for more varied storage and reporting options
+* Drop Redis as a gem runtime_dependency
+
 ### 1.5.0
 
-This is a major release with significant refactoring a stepping stone for a 2.0 release.
+This is a significant release with significant refactoring a stepping stone for a 2.0 release.
 
 * staging a changes.md document!
 * refactored out full abstraction for stores
