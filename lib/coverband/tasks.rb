@@ -39,12 +39,7 @@ namespace :coverband do
 
       safely_import_files(Coverband.configuration.additional_files.flatten)
 
-      if defined? Rails
-        safely_import_files(Dir.glob("#{Rails.root}/app/**/*.rb"))
-        if File.exists?("#{Rails.root}/lib")
-          safely_import_files(Dir.glob("#{Rails.root}/lib/**/*.rb"))
-        end
-      end
+      Rails.application.eager_load! if defined? Rails
     end
   end
 
