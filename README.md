@@ -102,7 +102,7 @@ Coverband.configure do |config|
   config.root              = Dir.pwd
   config.collector         = 'coverage'
   config.redis             = Redis.new(url: ENV['REDIS_URL']) if defined? Redis
-  config.ignore            = %w[vendor .erb .slim]
+  config.ignore            = %w[vendor .erb$ .slim$]
   # add paths that you deploy to that might be different than your local dev root path
   config.root_paths        = []
 

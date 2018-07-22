@@ -137,4 +137,30 @@ class ReportsBaseTest < Test::Unit::TestCase
 
     assert_equal expects, Coverband::Reporters::Base.merge_existing_coverage(first, second)
   end
+
+  test "#get_current_scov_data_imp doesn't ignore folders with default ignore keys" do
+    @fake_redis = fake_redis
+    store = Coverband::Adapters::RedisStore.new(@fake_redis)
+
+    Coverband.configure do |config|
+      config.redis             = @fake_redis
+      config.reporter          = 'std_out'
+      config.ignore            = %w[vendor .erb$ .slim$]
+      config.root              = '/full/remote_app/path'
+    end
+
+    key = '/a_path/that_has_erb_in/thepath.rb'
+    roots = ['/app/', '/full/remote_app/path/']
+
+    lines_hit = [1, 3, 6]
+    store.stubs(:covered_lines_for_file).returns(lines_hit)
+    # expects to show hit counts on 1,3,6
+    expected = { '/a_path/that_has_erb_in/thepath.rb' => [1, nil, 1, nil, nil, 1] }
+    File.stubs(:exist?).returns(true)
+    File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
+
+    # assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
+    store.expects(:covered_files).returns([key])
+    assert_equal expected, Coverband::Reporters::Base.get_current_scov_data_imp(store, roots)
+  end
 end
