@@ -1,9 +1,30 @@
+# Future Roadmap
+
+### Coverband 3.0
+
+Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
+
+* expects to drop Tracepoint collection engine
+* expects to drop anything below Ruby 2.3
+* Release will be aimed as significantly simplifying ease of use
+   * expects to drop the concept of baseline recordings
+   * improve support for eager-loading
+   * add built-in support for easy loading via Railties
+   * expects to add safe list support to force reload files one wants coverage on that may happen outside of the standard load order
+   * built in support for activejob, sidekiq, and other common frameworks
+
+# Released
+
 ### 2.0.0
 
-Major release with various backwards compatibility breaking changes.
+Major release with various backwards compatibility breaking changes (generally related to the configuration). The 2.0 lifecycle will act as a mostly easy upgrade that supports past users looking to move to the much faster new Coverage Adapter.
 
-* Massive performance enhancements by moving to Ruby `Coverage` based collection
-* Opposed to sampling this is now a reporting frequency
+* Continues to support Ruby 2.0 and up
+* supports multiple collect engines, introducing the concept of multiple collector adapters
+* extends the concepts of multiple storage adapters, enabling additional authors to help support Kafka, graphite, other adapters
+* old require based loading, but working towards deprecating the entire baseline concept
+* Introduces massive performance enhancements by moving to Ruby `Coverage` based collection
+   * Opposed to sampling this is now a reporting frequency, when using `Coverage` collector
 * Reduced configuration complexity
 * Refactoring the code preparing for more varied storage and reporting options
 * Drop Redis as a gem runtime_dependency
