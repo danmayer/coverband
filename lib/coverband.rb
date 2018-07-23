@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 require 'logger'
 require 'json'
-# todo move to only be request if using redis store
-require 'redis'
 
 require 'coverband/version'
 require 'coverband/configuration'
+require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/memory_cache_store'
 require 'coverband/adapters/file_store'
-require 'coverband/base'
+require 'coverband/collectors/base'
+require 'coverband/collectors/trace'
+require 'coverband/collectors/coverage'
 require 'coverband/baseline'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
@@ -23,27 +26,19 @@ module Coverband
     attr_accessor :configuration_data
   end
 
-  # this method is left for backwards compatibility with existing configs
-  def self.parse_baseline(baseline_file = './tmp/coverband_baseline.json')
-    Coverband::Baseline.parse_baseline(baseline_file)
-  end
-
   def self.configure(file = nil)
     configuration
     if block_given?
       yield(configuration)
+    elsif File.exist?(CONFIG_FILE)
+      file ||= CONFIG_FILE
+      require file
     else
-      if File.exists?(CONFIG_FILE)
-        file ||= CONFIG_FILE
-        require file
-      else
-        raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
-      end
+      raise ArgumentError, "configure requires a block or the existance of a #{CONFIG_FILE} in your project"
     end
   end
 
   def self.configuration
     self.configuration_data ||= Configuration.new
   end
-
 end

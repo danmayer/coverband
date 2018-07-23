@@ -1,20 +1,17 @@
+# frozen_string_literal: true
+
 module Coverband
   class Configuration
-
     attr_accessor :redis, :root_paths, :root,
-                  :ignore, :additional_files, :percentage, :verbose, :reporter,
-                  :stats, :logger, :startup_delay, :trace_point_events,
-                  :include_gems, :memory_caching, :s3_bucket, :coverage_file, :store,
-                  :disable_on_failure_for
-
-    # deprecated, but leaving to allow old configs to 'just work'
-    # remove for 2.0
-    attr_accessor :coverage_baseline
+                  :ignore, :additional_files, :percentage, :verbose,
+                  :reporter, :startup_delay, :memory_caching,
+                  :include_gems, :s3_bucket,
+                  :collector, :disable_on_failure_for
+    attr_writer :logger
 
     def initialize
       @root = Dir.pwd
       @redis = nil
-      @stats = nil
       @root_paths = []
       @ignore = []
       @additional_files = []
@@ -22,11 +19,14 @@ module Coverband
       @percentage = 0.0
       @verbose = false
       @reporter = 'scov'
+      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
+        @collector = 'trace'
+      else
+        @collector = 'coverage'
+      end
       @logger = Logger.new(STDOUT)
       @startup_delay = 0
-      @trace_point_events = [:line]
       @memory_caching = false
-      @coverage_file = nil
       @store = nil
       @disable_on_failure_for = nil
     end
@@ -35,16 +35,19 @@ module Coverband
       @logger ||= Logger.new(STDOUT)
     end
 
-    #TODO considering removing @redis / @coveragefile and have user set store directly
     def store
       return @store if @store
-      if redis
-        @store = Coverband::Adapters::RedisStore.new(redis)
-      elsif Coverband.configuration.coverage_file
-        @store = Coverband::Adapters::FileStore.new(coverage_file)
-      end
-      @store
+      raise 'no valid store configured'
     end
 
+    def store=(store)
+      if store.is_a?(Coverband::Adapters::Base)
+        @store = store
+      elsif defined?(Redis) && store.is_a?(Redis)
+        @store = Coverband::Adapters::RedisStore.new(redis)
+      elsif store.is_a?(String)
+        @store = Coverband::Adapters::FileStore.new(coverage_file)
+      end
+    end
   end
 end

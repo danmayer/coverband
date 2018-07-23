@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 module Coverband
   class MemoryCacheStoreTest < Test::Unit::TestCase
-
     def setup
       Adapters::MemoryCacheStore.reset!
       @store = mock('store')
@@ -46,12 +47,10 @@ module Coverband
     end
 
     test 'it initializes cache with what is in store' do
-      @store.expects(:covered_lines_for_file).with('file1').returns [3,5]
+      @store.expects(:covered_lines_for_file).with('file1').returns [3, 5]
       @store.expects(:covered_lines_for_file).with('file2').returns [2]
       @store.expects(:save_report).with('file2' => { 1 => 1 })
       @memory_store.save_report data
     end
-
   end
-
 end

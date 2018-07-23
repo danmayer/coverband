@@ -4,6 +4,8 @@
 .config
 .yardoc
 .idea/
+.ruby-version
+.rubocop.yml
 Gemfile.lock
 InstalledFiles
 _yardoc
@@ -16,3 +18,4 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+.byebug_history

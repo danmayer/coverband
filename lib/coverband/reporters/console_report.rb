@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Coverband
   module Reporters
     class ConsoleReport < Base
-
       def self.report(store, options = {})
         scov_style_report = super(store, options)
 
@@ -10,8 +11,6 @@ module Coverband
         end
         scov_style_report
       end
-
     end
   end
 end
-
