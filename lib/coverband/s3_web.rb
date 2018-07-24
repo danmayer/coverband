@@ -19,7 +19,15 @@ module Coverband
         Coverband.configuration.logger.error "coverband requires 'aws-sdk' in order use S3ReportWriter."
         return
       end
-      @s3 ||= Aws::S3::Client.new
+      @s3 ||= begin
+        client_options = {
+          region: Coverband.configuration.s3_region,
+          access_key_id: Coverband.configuration.s3_access_key_id,
+          secret_access_key: Coverband.configuration.s3_secret_access_key
+        }
+        client_options = {} if client_options.values.any?(&:nil?)
+        Aws::S3::Client.new(client_options)
+      end
     end
   end
 end

@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 class S3ReportWriter
-  def initialize(bucket_name)
+  def initialize(bucket_name, options = {})
     @bucket_name = bucket_name
+    @region = options[:region]
+    @access_key_id = options[:access_key_id]
+    @secret_access_key = options[:secret_access_key]
     begin
       require 'aws-sdk'
     rescue StandardError
@@ -29,7 +32,14 @@ class S3ReportWriter
   end
 
   def s3
-    Aws::S3::Resource.new
+    client_options = {
+      region: @region,
+      access_key_id: @access_key_id,
+      secret_access_key: @secret_access_key
+    }
+    resource_options = { client: Aws::S3::Client.new(client_options) }
+    resource_options = {} if client_options.values.any?(&:nil?)
+    Aws::S3::Resource.new(resource_options)
   end
 
   def bucket
