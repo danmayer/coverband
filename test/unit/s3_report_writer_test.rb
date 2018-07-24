@@ -18,7 +18,13 @@ module Coverband
       File.expects(:read).at_least(0).returns("content ./assets/#{html_version}/")
       object.expects(:put).with(body: 'content ')
       Aws::S3::Resource.expects(:new).returns(s3)
-      S3ReportWriter.new('coverage-bucket').persist!
+
+      s3_writer_options = {
+        region: 'us-west-1',
+        access_key_id: '',
+        secret_access_key: ''
+      }
+      S3ReportWriter.new('coverage-bucket', s3_writer_options).persist!
     end
   end
 end

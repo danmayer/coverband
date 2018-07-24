@@ -6,9 +6,8 @@ module Coverband
                   :ignore, :additional_files, :percentage, :verbose,
                   :reporter, :startup_delay, :memory_caching,
                   :include_gems, :s3_bucket,
-                  :collector, :disable_on_failure_for,
-                  :s3_bucket, :s3_region, :s3_access_key_id, :s3_secret_access_key
-    attr_writer :logger
+                  :collector, :disable_on_failure_for
+    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
     def initialize
       @root = Dir.pwd
@@ -30,10 +29,30 @@ module Coverband
       @memory_caching = false
       @store = nil
       @disable_on_failure_for = nil
+      @s3_region = nil
+      @s3_bucket = nil
+      @s3_access_key_id = nil
+      @s3_secret_access_key = nil
     end
 
     def logger
       @logger ||= Logger.new(STDOUT)
+    end
+
+    def s3_bucket
+      @s3_bucket || ENV['AWS_BUCKET']
+    end
+
+    def s3_region
+      @s3_region || ENV['AWS_REGION']
+    end
+
+    def s3_access_key_id
+      @s3_access_key_id || ENV['AWS_ACCESS_KEY_ID']
+    end
+
+    def s3_secret_access_key
+      @s3_secret_access_key || ENV['AWS_SECRET_ACCESS_KEY']
     end
 
     def store
