@@ -19,6 +19,8 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 * add support for fine grained S3 congiguration via Coverband config, thanks @a0s
   * https://github.com/danmayer/coverband/pull/98 
+* Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
+  * https://github.com/danmayer/coverband/pull/100 
 
 ### 2.0.0
 
