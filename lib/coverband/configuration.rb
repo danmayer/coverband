@@ -6,7 +6,8 @@ module Coverband
                   :ignore, :additional_files, :percentage, :verbose,
                   :reporter, :startup_delay, :memory_caching,
                   :include_gems, :s3_bucket,
-                  :collector, :disable_on_failure_for
+                  :collector, :disable_on_failure_for,
+                  :s3_bucket, :s3_region, :s3_access_key_id, :s3_secret_access_key
     attr_writer :logger
 
     def initialize
