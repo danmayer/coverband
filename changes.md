@@ -15,6 +15,11 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Released
 
+### 2.x.x TBD
+
+* add support for fine grained S3 congiguration via Coverband config, thanks @a0s
+  * https://github.com/danmayer/coverband/pull/98 
+
 ### 2.0.0
 
 Major release with various backwards compatibility breaking changes (generally related to the configuration). The 2.0 lifecycle will act as a mostly easy upgrade that supports past users looking to move to the much faster new Coverage Adapter.
