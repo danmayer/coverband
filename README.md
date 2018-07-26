@@ -57,7 +57,7 @@ Details on a example Sinatra app
 
 Follow the below section to install and configure Coverband.
 
-![coverband installation](https://raw.githubusercontent.com/danmayer/coverband/blob/master/docs/coverband-install-resize.gif)
+![coverband installation](https://raw.githubusercontent.com/danmayer/coverband/master/docs/coverband-install-resize.gif)
 
 ## Prerequisites
 
