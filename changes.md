@@ -12,6 +12,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
    * add built-in support for easy loading via Railties
    * expects to add safe list support to force reload files one wants coverage on that may happen outside of the standard load order
    * built in support for activejob, sidekiq, and other common frameworks
+* code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
 
 # Released
 
