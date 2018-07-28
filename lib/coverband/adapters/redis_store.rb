@@ -7,35 +7,41 @@ module Coverband
 
       def initialize(redis, opts = {})
         @redis = redis
+        @ttl             = opts[:ttl]
+        @redis_namespace = opts[:redis_namespace]
       end
 
       def clear!
-        @redis.smembers(BASE_KEY).each { |key| @redis.del("#{BASE_KEY}.#{key}") }
-        @redis.del(BASE_KEY)
+        @redis.smembers(base_key).each { |key| @redis.del("#{base_key}.#{key}") }
+        @redis.del(base_key)
+      end
+
+      def base_key
+        @base_key ||= [BASE_KEY, @redis_namespace].compact.join('.')
       end
 
       def save_report(report)
-        store_array(BASE_KEY, report.keys)
+        store_array(base_key, report.keys)
 
         report.each do |file, lines|
-          store_map("#{BASE_KEY}.#{file}", lines)
+          store_map("#{base_key}.#{file}", lines)
         end
       end
 
       def coverage
         data = {}
-        redis.smembers(BASE_KEY).each do |key|
+        redis.smembers(base_key).each do |key|
           data[key] = covered_lines_for_file(key)
         end
         data
       end
 
       def covered_files
-        redis.smembers(BASE_KEY)
+        redis.smembers(base_key)
       end
 
       def covered_lines_for_file(file)
-        @redis.hgetall("#{BASE_KEY}.#{file}")
+        @redis.hgetall("#{base_key}.#{file}")
       end
 
       private
@@ -49,11 +55,13 @@ module Coverband
           values = Hash[values.map { |k, val| [k.to_s, val] }]
           values.merge!(existing) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
           redis.mapped_hmset(key, values)
+          redis.expire(key, @ttl) if @ttl
         end
       end
 
       def store_array(key, values)
         redis.sadd(key, values) unless values.empty?
+        redis.expire(key, @ttl) if @ttl
         values
       end
     end

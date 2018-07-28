@@ -6,7 +6,7 @@ module Coverband
                   :ignore, :additional_files, :percentage, :verbose,
                   :reporter, :startup_delay, :memory_caching,
                   :include_gems, :s3_bucket,
-                  :collector, :disable_on_failure_for
+                  :collector, :disable_on_failure_for, :redis_namespace, :redis_ttl
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
     def initialize
@@ -33,6 +33,8 @@ module Coverband
       @s3_bucket = nil
       @s3_access_key_id = nil
       @s3_secret_access_key = nil
+      @redis_namespace = nil
+      @redis_ttl = nil
     end
 
     def logger
@@ -63,8 +65,9 @@ module Coverband
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store
-      elsif defined?(Redis) && store.is_a?(Redis)
-        @store = Coverband::Adapters::RedisStore.new(redis)
+      elsif defined?(Redis) && redis && redis.is_a?(Redis)
+        @store = Coverband::Adapters::RedisStore.new(redis, ttl: Coverband.configuration.redis_ttl,
+                                                            redis_namespace: Coverband.configuration.redis_namespace)
       elsif store.is_a?(String)
         @store = Coverband::Adapters::FileStore.new(coverage_file)
       end
