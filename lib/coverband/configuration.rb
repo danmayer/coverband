@@ -5,8 +5,8 @@ module Coverband
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :percentage, :verbose,
                   :reporter, :startup_delay, :memory_caching,
-                  :include_gems, :s3_bucket,
-                  :collector, :disable_on_failure_for, :redis_namespace, :redis_ttl
+                  :include_gems, :collector, :disable_on_failure_for,
+                  :redis_namespace, :redis_ttl
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
     def initialize
