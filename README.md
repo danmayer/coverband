@@ -216,7 +216,7 @@ bundle install
 
 # create config/coverband.rb
 # copy the config from the readme
-# If you don't set REDIS_URL, remove that to use default localhose
+# If you don't set REDIS_URL, remove that to use default localhost
 
 rails generate scaffold blogs
 bundle exec rake db:migrate
