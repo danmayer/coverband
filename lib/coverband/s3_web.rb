@@ -7,7 +7,11 @@ module Coverband
     set :public_folder, proc(){ File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path) }
 
     get '/' do
-      s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
+      html = s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
+      # hack the static HTML assets to account for where this was mounted
+      html = html.gsub("src='", "src='#{request.path}")
+      html = html.gsub("href='", "href='#{request.path}")
+      html
     end
 
     private

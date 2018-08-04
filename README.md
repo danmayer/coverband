@@ -218,6 +218,7 @@ bundle install
 # copy the config from the readme
 # If you don't set REDIS_URL, remove that to use default localhost
 
+# Make some code so we can look at the coverage
 rails generate scaffold blogs
 bundle exec rake db:migrate
 
@@ -403,6 +404,59 @@ Coverband::Reporter.report :additional_scov_data => [data]
 ```
 
 You can also pass a `:additional_scov_data => [data]` option to `Coverband::Reporter.get_current_scov_data` to write out merged data.
+
+### Writing Coverband Results to S3
+
+If you add some additional Coverband configuration your coverage html report will be written directly to S3, update `config/coverband.rb` like below.
+
+```
+  # configure S3 integration
+  config.s3_bucket = 'coverband-demo'
+  config.s3_region = 'us-east-1'
+  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
+  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
+```
+
+### Viewing / Hosting S3 Coverband results in app
+
+Beyond writing to S3 you can host the S3 file with a build in Sintatra app in Coverband. Just configure your Rails route `config/routes.rb`
+
+```
+Rails.application.routes.draw do
+  # ... lots of routes
+  mount Coverband::S3Web, at: '/coverage'
+end
+```
+
+__NOTE__: ADD PASSWORD PROTECTION OR YOU CAN EXPOSE ALL YOUR SOURCE CODE
+
+It is easy to add some basic protect around the coverage data, below shows how you can use devise or basic auth, by adding a bit of code to your `config/routes.rb` file.
+
+```
+# protect with existing Rails devise configuration
+devise_constraint = lambda do |request|
+  request.env['warden'] && request.env['warden'].authenticate? && request.env['warden'].user.admin?
+end
+
+# protect with http basic auth
+# curl --user foo:bar http://localhost:3000/coverage
+basic_constraint = lambda do |request|
+  return true if Rails.env.development?
+  if ActionController::HttpAuthentication::Basic.has_basic_credentials?(request)
+    credentials = ActionController::HttpAuthentication::Basic.decode_credentials(request)
+    email, password = credentials.split(':')
+
+    email == 'foo' && password = 'bar'
+  end
+end
+
+Rails.application.routes.draw do
+  # ... lots of routes
+  constraints basic_constraint do
+    mount Coverband::S3Web, at: '/coverage'
+  end
+end
+```
 
 # Contributing To Coverband
 

@@ -116,6 +116,11 @@ module Coverband
         else
           ::Coverage.start
         end
+        if Coverband.configuration.safe_reload_files
+          Coverband.configuration.safe_reload_files.each do |safe_file|
+            load safe_file
+          end
+        end
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
