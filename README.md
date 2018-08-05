@@ -318,7 +318,7 @@ Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 678
 ```
 You can also do this with the included rake tasks.
 
-### Manual configuration (for example for background jobs)
+### Manual Configuration (for example for background jobs)
 
 It is easy to use Coverband outside of a Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
 
@@ -364,6 +364,54 @@ coverband.sample {
   #code to sample coverband
 }
 ```
+
+### Manual Configuration (for cron jobs / Raketasks)
+
+A question about [supporting cron jobs and Rake tasks](https://github.com/danmayer/coverband/issues/106) was asked by [@ndbroadbent](https://github.com/ndbroadbent), there are a couple ways to go about it including his good suggestion.
+
+He extended the Coverband Rake tasks by adding `lib/tasks/coverband.rake` with support to wrap all Rake tasks with coverband support.
+
+```
+require 'coverband'
+Coverband.configure
+require 'coverband/tasks'
+
+# Wrap all Rake tasks with Coverband
+current_tasks = Rake.application.top_level_tasks
+if current_tasks.any? && current_tasks.none? { |t| t.to_s.match?(/^coverband:/) }
+  current_tasks.unshift 'coverband:start'
+  current_tasks.push 'coverband:stop_and_save'
+end
+
+namespace :coverband do
+  task :start do
+    Coverband::Base.instance.start
+  end
+
+  task :stop_and_save do
+    Coverband::Base.instance.stop
+    Coverband::Base.instance.save
+  end
+end
+```
+
+That is a interesting approach and if you Run all your cron jobs as Rake tasks might work well for you. In a production application where we run Coverband, we run all of our Cron jobs with the `rails runner` script. We took this alternative approach which will wrap all runner jobs with Coverband recording, by creating `lib/railties/coverage_runner.rb`.
+
+```
+require 'rails'
+
+# Capture code coverage during our cron jobs
+class CoverageRunner < ::Rails::Railtie
+  runner do
+    Coverband::Collectors::Base.instance.start
+    at_exit do
+      Coverband::Collectors::Base.instance.report_coverage
+    end
+  end
+end
+```
+
+ 
 
 ### Verbose Debug / Development Mode
 
@@ -481,9 +529,9 @@ If you submit a change please make sure the tests and benchmarks are passing.
 ### Known Issues
 
 * __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
+  * related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. 
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
-* the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option.
-* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting to record the baseline..
+* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting to record the baseline.
 
 ### Debugging Redis Store
 
@@ -554,6 +602,7 @@ Similar format to redis store, but array with integer values
 
 ### Todo
 
+* Sinatra App with admin controls
 * graphite adapters (it would allow passing in date ranges on usage)
 * perf test for array vs hash
 * redis pipeline around hash (or batch get then push)
