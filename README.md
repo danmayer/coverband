@@ -411,7 +411,21 @@ class CoverageRunner < ::Rails::Railtie
 end
 ```
 
- 
+### safe_reload_files: Forcing Coverband to Track Coverage on Files loaded during boot
+
+The way Coverband is built it will record and report code usage in production for anything `required` or `loaded` after calling `Coverband.start`. This means some of Rails initial files and Gems are loaded before you can generally call `Coverband.start` for example if you use the `application.rb` to initialize and start Coverband, that file will be reported as having no coverage, as it can't possibly start Coverband before the file is loaded. 
+
+The `safe_reload_files` reload option in the configuration options can help to ensure you can track any files you want regardless of them loading before Coverband. For example if I wanted to show the coverage of `config/coverband.rb` which has to be loaded before calling `Coverband.start` I could do that by adding that path to the `safe_reload_files` option.
+
+```
+Coverband.configure do |config|
+  # ... a bunch of other options
+  # using the new safe reload to enforce files loaded
+  config.safe_reload_files = ['config/coverband.rb']
+end
+```
+By adding any files above you will get reporting on those files as part of your coverage runtime report.
+
 
 ### Verbose Debug / Development Mode
 
