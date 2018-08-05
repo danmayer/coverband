@@ -298,7 +298,7 @@ This should auto-open in your browser, but if it doesn't the output file should 
 
 If you use SimpleCov to generate code coverage for your tests. You might have setup a `.simplecov` file to help control and focus it's output. Often the settings you want for your test's code coverage report are different than what you want Coverband to be reporting on. Since Coverband uses the SimpleCov HTML formatter to prepare it's report.
 
-So if you had something like this in a `.simplecov` file in the root of your project
+So if you had something like this in a `.simplecov` file in the root of your project, as reported in [issue 83](https://github.com/danmayer/coverband/issues/83)
 
 ```
 require 'simplecov'
