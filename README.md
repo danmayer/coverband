@@ -427,6 +427,21 @@ end
 By adding any files above you will get reporting on those files as part of your coverage runtime report.
 
 
+### Collecting Gem / Library Usage
+
+By default Coverband has assumed you are trying to track your application code usage not all the supporting framework and library (Gems) code usage. There has been some good points and reasons folks want to track library usage, for example to find out which Gems they aren't actually using in production. See some of the discussion on [issue 21](https://github.com/danmayer/coverband/issues/21).
+
+* Using the Tracepoint Collector
+   * just make sure to set `Coverband.configuration.include_gems = true` in your config options
+   * note by tracking all the additional usage this can have significant performance impacts of the Tracepoint implementation
+* Using the Coverage Collector
+   * use the `safe_reload_files` feature to add the path of all gem files you wish to track
+   * --- or ---
+   * ensure you call `Coverband.start` before loading all your gems
+      * while possible this is currently hard as Rails and most environments load your whole Gemfile
+      * looking for an improve and easier way to support this.  
+
+
 ### Verbose Debug / Development Mode
 
 Note: To debug issues getting coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
