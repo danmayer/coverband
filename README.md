@@ -288,11 +288,35 @@ end
 
 ### View Coverage
 
-You can view the report different ways, but the easiest is the Rake task which opens the Simplecov formated HTML.
+You can view the report different ways, but the easiest is the Rake task which opens the SimpleCov formatted HTML.
 
 `bundle exec rake coverband:coverage`
 
 This should auto-open in your browser, but if it doesn't the output file should be in `coverage/index.html`
+
+### Conflicting .Simplecov: Issue with Missing or 0% Coverage Report
+
+If you use SimpleCov to generate code coverage for your tests. You might have setup a `.simplecov` file to help control and focus it's output. Often the settings you want for your test's code coverage report are different than what you want Coverband to be reporting on. Since Coverband uses the SimpleCov HTML formatter to prepare it's report.
+
+So if you had something like this in a `.simplecov` file in the root of your project
+
+```
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter 'app/admin'
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
+  add_filter 'userevents'
+end
+```
+
+You could see some confusing results... To avoid this issue Coverband has a Rake task that will ignore all Simplecov filters.
+
+`rake coverband:coverage_no_filters`
+
+This will build the report after disabling any `.simplecov` applied settings.
 
 ### Clear Coverage
 
