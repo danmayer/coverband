@@ -22,6 +22,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   * https://github.com/danmayer/coverband/pull/98 
 * Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
   * https://github.com/danmayer/coverband/pull/100
+* added redis improvements allowing namespace and TTL thx @oded-zahavi 
 * fix warnings about duplicate method definition 
 * Add support for safe_reload_files based on full file path 
 * Add support for Sinatra admin control endpoints
