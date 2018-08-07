@@ -11,7 +11,32 @@ module Coverband
       # hack the static HTML assets to account for where this was mounted
       html = html.gsub("src='", "src='#{request.path}")
       html = html.gsub("href='", "href='#{request.path}")
+      html = html.gsub("loading.gif", "#{request.path}loading.gif")
+      html = html.gsub("/images/", "#{request.path}/images/")
       html
+    end
+
+    post '/update_report' do
+      Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+      notice = "coverband coverage updated"
+      redirect "/?notice=#{notice}", 301
+    end
+
+    post '/clear' do
+      Coverband.configuration.store.clear!
+      notice = "coverband coverage cleared"
+      redirect "/?notice=#{notice}", 301
+    end
+
+    post '/reload_files' do
+      if Coverband.configuration.safe_reload_files
+        Coverband.configuration.safe_reload_files.each do |safe_file|
+          load safe_file
+        end
+      end
+      Coverband.configure
+      notice = "coverband files reloaded"
+      redirect "/?notice=#{notice}", 301
     end
 
     private

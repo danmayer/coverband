@@ -16,12 +16,16 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Released
 
-### 2.x.x TBD
+### 2.0.1
 
-* add support for fine grained S3 congiguration via Coverband config, thanks @a0s
+* add support for fine grained S3 configuration via Coverband config, thanks @a0s
   * https://github.com/danmayer/coverband/pull/98 
 * Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
-  * https://github.com/danmayer/coverband/pull/100 
+  * https://github.com/danmayer/coverband/pull/100
+* fix warnings about duplicate method definition 
+* Add support for safe_reload_files based on full file path 
+* Add support for Sinatra admin control endpoints
+* improved documentation
 
 ### 2.0.0
 
