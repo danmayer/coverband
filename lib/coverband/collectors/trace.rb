@@ -23,6 +23,7 @@ module Coverband
         if @verbose
           @logger.info 'error stating recording coverage'
           @logger.info "error: #{err.inspect} #{err.message}"
+          @logger.info err.backtrace
         end
       end
 
@@ -60,6 +61,7 @@ module Coverband
         if @verbose
           @logger.info 'coverage missing'
           @logger.info "error: #{err.inspect} #{err.message}"
+          @logger.info err.backtrace
         end
       end
 
