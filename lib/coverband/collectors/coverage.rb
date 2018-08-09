@@ -18,7 +18,7 @@ module Coverband
         end
 
         if failed_recently?
-          @logger.info 'coverage reporting standing-by because of recent failure' if @verbose
+          @logger.error 'coverage reporting standing-by because of recent failure' if @verbose
           return
         end
 
@@ -39,8 +39,8 @@ module Coverband
           @store.save_report(@file_line_usage)
           @file_line_usage.clear
         elsif @verbose
-          @logger.info 'coverage report: '
-          @logger.info @file_line_usage.inspect
+          @logger.debug 'coverage report: '
+          @logger.debug @file_line_usage.inspect
         end
       # StandardError might be better option
       # coverband previously had RuntimeError here
@@ -49,9 +49,9 @@ module Coverband
       rescue StandardError => err
         failed!
         if @verbose
-          @logger.info 'coverage missing'
-          @logger.info "error: #{err.inspect} #{err.message}"
-          @logger.info err.backtrace
+          @logger.error 'coverage missing'
+          @logger.error "error: #{err.inspect} #{err.message}"
+          @logger.error err.backtrace
         end
       end
 

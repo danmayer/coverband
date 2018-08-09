@@ -9,13 +9,13 @@ module Coverband
 
         if Coverband.configuration.verbose
           Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
-          Coverband.configuration.logger.info "additional data:\n #{additional_coverage_data}"
+          Coverband.configuration.logger.debug "additional data:\n #{additional_coverage_data}"
         end
 
         scov_style_report = report_scov_with_additional_data(store, additional_coverage_data, roots)
 
         if Coverband.configuration.verbose
-          Coverband.configuration.logger.info "report:\n #{scov_style_report.inspect}"
+          Coverband.configuration.logger.debug "report:\n #{scov_style_report.inspect}"
         end
         scov_style_report
       end
