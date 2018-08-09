@@ -21,9 +21,9 @@ module Coverband
       rescue RuntimeError => err
         failed!
         if @verbose
-          @logger.info 'error stating recording coverage'
-          @logger.info "error: #{err.inspect} #{err.message}"
-          @logger.info err.backtrace
+          @logger.error 'error stating recording coverage'
+          @logger.error "error: #{err.inspect} #{err.message}"
+          @logger.error err.backtrace
         end
       end
 
@@ -40,7 +40,7 @@ module Coverband
         unset_tracer
 
         if failed_recently?
-          @logger.info 'coverage reporting standing-by because of recent failure' if @verbose
+          @logger.error 'coverage reporting standing-by because of recent failure' if @verbose
           return
         end
 
@@ -59,9 +59,9 @@ module Coverband
       rescue RuntimeError => err
         failed!
         if @verbose
-          @logger.info 'coverage missing'
-          @logger.info "error: #{err.inspect} #{err.message}"
-          @logger.info err.backtrace
+          @logger.error 'coverage missing'
+          @logger.error "error: #{err.inspect} #{err.message}"
+          @logger.error err.backtrace
         end
       end
 

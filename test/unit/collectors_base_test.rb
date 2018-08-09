@@ -63,7 +63,6 @@ class CollectorsBaseTest < Test::Unit::TestCase
     assert_equal false, coverband.instance_variable_get('@enabled')
     logger.expects(:info).at_least_once
     coverband.start
-    logger.info(1 + 1)
     coverband.stop
     coverband.save
   end
