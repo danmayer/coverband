@@ -9,8 +9,8 @@ namespace :coverband do
           require_dependency file
         rescue Exception => err
           if Coverband.configuration.verbose
-            Coverband.configuration.logger.info "error adding file to baseline: #{file}"
-            Coverband.configuration.logger.info "error: #{err}"
+            Coverband.configuration.logger.error "error adding file to baseline: #{file}"
+            Coverband.configuration.logger.error "error: #{err}"
           end
         end
       end
