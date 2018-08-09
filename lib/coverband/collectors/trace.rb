@@ -45,7 +45,7 @@ module Coverband
         end
 
         if @verbose
-          @logger.info "coverband file usage: #{file_usage.inspect}"
+          @logger.debug "coverband file usage: #{file_usage.inspect}"
           output_file_line_usage if @verbose == 'debug'
         end
 
