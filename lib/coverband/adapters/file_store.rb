@@ -27,7 +27,12 @@ module Coverband
             results[file] = values
           end
         end
-        File.open(path, 'w') { |f| f.write(results.to_json) }
+        mutex = Mutex.new
+        Thread.new do
+          mutex.synchronize do
+            File.open(path, 'w') { |f| f.write(results.to_json) }
+          end
+        end
       end
 
       def coverage
