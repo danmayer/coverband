@@ -87,7 +87,7 @@ module Coverband
       end
 
       def output_file_line_usage
-        @logger.info 'coverband debug coverband file:line usage:'
+        @logger.debug 'coverband debug coverband file:line usage:'
         @file_line_usage.sort_by { |_key, value| value.length }.each do |pair|
           file = pair.first
           lines = pair.last
