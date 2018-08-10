@@ -11,6 +11,7 @@ namespace :coverband do
           if Coverband.configuration.verbose
             Coverband.configuration.logger.error "error adding file to baseline: #{file}"
             Coverband.configuration.logger.error "error: #{err}"
+            Coverband.configuration.logger.error "#{err.backtrace}"
           end
         end
       end
