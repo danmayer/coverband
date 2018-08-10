@@ -17,19 +17,20 @@ module Coverband
       end
 
       def save_report(report)
-        results = existing_data(path)
-        report.each_pair do |file, values|
-          if results.key?(file)
-            # convert the keys to "3" opposed to 3
-            values = JSON.parse(values.to_json)
-            results[file].merge!(values) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
-          else
-            results[file] = values
-          end
-        end
         mutex = Mutex.new
         Thread.new do
           mutex.synchronize do
+
+            results = existing_data(path)
+            report.each_pair do |file, values|
+              if results.key?(file)
+                # convert the keys to "3" opposed to 3
+                values = JSON.parse(values.to_json)
+                results[file].merge!(values) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
+              else
+                results[file] = values
+              end
+            end
             File.open(path, 'w') { |f| f.write(results.to_json) }
           end
         end

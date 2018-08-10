@@ -4,6 +4,8 @@ namespace :coverband do
   def safely_import_files(files_to_cover)
     if files_to_cover.any?
       files = Coverband::Baseline.exclude_files(files_to_cover)
+      Coverband.configuration.logger.error "FIRST FILE: #{files[0]}"
+
       files.each do |file|
         begin
           require_dependency file
@@ -11,7 +13,8 @@ namespace :coverband do
           if Coverband.configuration.verbose
             Coverband.configuration.logger.error "error adding file to baseline: #{file}"
             Coverband.configuration.logger.error "error: #{err}"
-            Coverband.configuration.logger.error "#{err.backtrace}"
+            Coverband.configuration.logger.error "#{err.backtrace.join("\n")}"
+            exit
           end
         end
       end
