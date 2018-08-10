@@ -23,9 +23,7 @@ module Coverband
 
       def save_report(files)
         filtered_files = filter(files)
-        if filtered_files.any?
-          store.save_report(filtered_files)
-        end
+        store.save_report(filtered_files) if filtered_files.any?
       end
 
       # rubocop:disable Lint/IneffectiveAccessModifier

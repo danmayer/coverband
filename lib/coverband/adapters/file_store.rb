@@ -3,24 +3,13 @@
 module Coverband
   module Adapters
     class FileStore < Base
-      attr_accessor :path, :status
+      attr_accessor :path
 
       def initialize(path, _opts = {})
         @path = path
-        @status  = :free
 
         config_dir = File.dirname(@path)
         Dir.mkdir config_dir unless File.exist?(config_dir)
-      end
-
-      def wait_for_free
-        i = 0
-        until @status == :free do
-          raise "status is: '#{@status}' within '#{i}' attempts " if i > 10
-          sleep 1
-          i+=1
-        end
-        true
       end
 
       def clear!
@@ -38,10 +27,7 @@ module Coverband
             results[file] = values
           end
         end
-        wait_for_free
-        @status  = :recording
         File.open(path, 'w') { |f| f.write(results.to_json) }
-        @status  = :free
       end
 
       def coverage
