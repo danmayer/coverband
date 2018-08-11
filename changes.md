@@ -21,7 +21,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 * fix possible nil error on files that changed since initial recording @viktor-silakov
 * add improve error logging in verbose mode (stacktrace) @viktor-silakov 
 * improved logging level support @viktor-silakov 
-
+* launch Coverband demo and integrate into Readme / Documentation
 
 ### 2.0.1
 

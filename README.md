@@ -4,6 +4,7 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
 
 <p align="center">
   <a href="#key-features">Key Features</a> •
+  <a href="#coverband-demo">Coverband Demo</a> •
   <a href="#how-to-use">How To Use</a> •
   <a href="#installation">Installation</a> •
   <a href="#configuration">Configuration</a> •
@@ -17,10 +18,18 @@ Note: Coverband is not intended for test code coverage, for that just check out 
 
 ## Key Features
 
-* Allows sampling to avoid the performance overhead on every request.
+The primary goal of Coverband is giving deep insight into your production runtime usage of your application code, while having the least impact on performance possible.
+
+* Low performance overhead
+* Various controls from sampling, data collection rate, etc to further control performance
 * Ignore directories to avoid overhead data collection on vendor, lib, etc.
-* Take a baseline to get initial app execution during app initialization. (the baseline is important because some code is executed during app load, but might not be invoked during any requests, think prefetching, initial cache builds, setting constants, etc...)
-* Development mode for additional code usage details (number of LOC execution during single request, etc).
+* Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
+* Easy setup for any Ruby Rack based web framework (Rails, Sinatra, etc)
+* Allows for integration with any other Ruby application flows (background jobs, crons, scripts)
+
+## Coverband Demo
+
+Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with configuration and understanding of basic usage.
 
 # How To Use
 
