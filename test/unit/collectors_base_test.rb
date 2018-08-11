@@ -49,6 +49,7 @@ class CollectorsBaseTest < Test::Unit::TestCase
     coverband.instance_variable_set('@store', nil)
     assert_equal false, coverband.instance_variable_get('@enabled')
     logger.expects(:info).at_least_once
+    logger.stubs('debug')
     coverband.sample { 1 + 1 }
     assert_equal true, coverband.instance_variable_get('@enabled')
   end
@@ -62,6 +63,7 @@ class CollectorsBaseTest < Test::Unit::TestCase
     coverband.instance_variable_set('@store', nil)
     assert_equal false, coverband.instance_variable_get('@enabled')
     logger.expects(:info).at_least_once
+    logger.stubs('debug')
     coverband.start
     coverband.stop
     coverband.save
@@ -73,6 +75,7 @@ class CollectorsBaseTest < Test::Unit::TestCase
     coverband.instance_variable_set('@sample_percentage', 100.0)
     coverband.instance_variable_set('@verbose', true)
     Coverband.configuration.logger.stubs('info')
+    Coverband.configuration.logger.stubs('debug')
     store = Coverband::Adapters::RedisStore.new(Redis.new)
     coverband.instance_variable_set('@store', store)
     store.expects(:save_report).once.with(has_entries(dog_file => {5 => 5}))
