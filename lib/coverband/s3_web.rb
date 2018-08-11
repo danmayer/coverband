@@ -6,6 +6,19 @@ module Coverband
   class S3Web < Sinatra::Base
     set :public_folder, proc(){ File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path) }
 
+    get '/actions' do
+      base_path = request.path.gsub('/actions','')
+      html = "<html>"
+      html += "<ul>"
+      html += "<li><a href='#{base_path}'>view coverage report</a></li>"
+      html += "<li><a href='#{base_path}/update_report'>update coverage report</a></li>"
+      html += "<li><a href='#{base_path}/clear'>clear coverage report</a></li>"
+      html += "<li><a href='#{base_path}/reload_files'>reload Coverband files</a></li>"
+      html += "</ul>"
+      html += "</html>"
+      html
+    end
+
     get '/' do
       html = s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
       # hack the static HTML assets to account for where this was mounted
