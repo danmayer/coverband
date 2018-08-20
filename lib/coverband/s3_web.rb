@@ -3,23 +3,45 @@
 require 'sinatra/base'
 
 module Coverband
+  # TODO can we drop sinatra as a requirement and go to pure rack
+  # TODO move to reports and drop need for S3 allow reading from adapters?
   class S3Web < Sinatra::Base
+    # replace this sinatra feature with https://www.rubydoc.info/gems/rack/Rack/Static
     set :public_folder, proc(){ File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path) }
 
-    get '/actions' do
-      base_path = request.path.gsub('/actions','')
+    def button(url,title)
+      button = "<form action='#{url}' method='post'>"
+      button += "<button type='submit'>#{title}</button>"
+      button += '</form>'
+    end
+
+    # This method should get the root mounted endpoint
+    # for example if the app is mounted like so:
+    # mount Coverband::S3Web, at: '/coverage'
+    # "/coverage/collect_coverage?" become:
+    # /coverage/
+    def base_path
+      request.path.match("\/.*\/")[0]
+    end
+
+    # todo move to file or template
+    # todo header footer, coverband version, link to coverband home
+    get '/' do
       html = "<html>"
+      html += "<strong>Notice:</strong> #{Rack::Utils.escape_html(params['notice'])}<br/>" if params['notice']
       html += "<ul>"
-      html += "<li><a href='#{base_path}'>view coverage report</a></li>"
-      html += "<li><a href='#{base_path}/update_report'>update coverage report</a></li>"
-      html += "<li><a href='#{base_path}/clear'>clear coverage report</a></li>"
-      html += "<li><a href='#{base_path}/reload_files'>reload Coverband files</a></li>"
+      html += "<li><a href='#{base_path}'>Coverband Web Admin Index</a></li>"
+      html += "<li><a href='#{base_path}show'>view coverage report</a></li>"
+      html += "<li>#{button("#{base_path}collect_coverage",'update coverage data (collect coverage)')}</li>"
+      html += "<li>#{button("#{base_path}update_report",'update coverage report (rebuild report)')}</li>"
+      html += "<li>#{button("#{base_path}clear",'clear coverage report')}</li>"
+      html += "<li>#{button("#{base_path}reload_files",'reload Coverband files')}</li>"
       html += "</ul>"
       html += "</html>"
       html
     end
 
-    get '/' do
+    get '/show' do
       html = s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
       # hack the static HTML assets to account for where this was mounted
       html = html.gsub("src='", "src='#{request.path}")
@@ -32,13 +54,19 @@ module Coverband
     post '/update_report' do
       Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
       notice = "coverband coverage updated"
-      redirect "/?notice=#{notice}", 301
+      redirect "#{base_path}?notice=#{notice}", 301
+    end
+
+    post '/collect_coverage' do
+      Coverband::Collectors::Base.instance.report_coverage
+      notice = "coverband coverage collected"
+      redirect "#{base_path}?notice=#{notice}", 301
     end
 
     post '/clear' do
       Coverband.configuration.store.clear!
       notice = "coverband coverage cleared"
-      redirect "/?notice=#{notice}", 301
+      redirect "#{base_path}?notice=#{notice}", 301
     end
 
     post '/reload_files' do
@@ -47,9 +75,10 @@ module Coverband
           load safe_file
         end
       end
+      # force reload
       Coverband.configure
       notice = "coverband files reloaded"
-      redirect "/?notice=#{notice}", 301
+      redirect "#{base_path}?notice=#{notice}", 301
     end
 
     private

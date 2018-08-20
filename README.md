@@ -664,20 +664,20 @@ Similar format to redis store, but array with integer values
 
 ### Todo
 
-* Sinatra App with admin controls
+* rackup / how to run webapp via rake
+  * move off sinatra to pure rack 
 * graphite adapters (it would allow passing in date ranges on usage)
 * perf test for array vs hash
 * redis pipeline around hash (or batch get then push)
-* pass in namespace to redis (coverage vs baseline)
-* what about having baseline a onetime recording into redis no merge later
 * move to SimpleCov console out, or make similar console tabular output
-* Fix network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
+* Improve network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 * Possibly add ability to record code run for a given route
+* integrate recording with deploy tag or deploy timestamp
+   *  diff code usage across deployed versions 
 * Improve client code api, around manual usage of sampling (like event usage)
 * ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 * Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
-* mountable rack app to view coverage similar to flipper-ui
 * support runner, active job, etc without needed extra config (improved railtie integration)
 
 # Resources

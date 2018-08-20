@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# possibly move to / make an adapter or more likely a reporter
 class S3ReportWriter
   def initialize(bucket_name, options = {})
     @bucket_name = bucket_name
