@@ -19,3 +19,8 @@ desc 'load irb with this gem'
 task :console do
   exec 'irb -I lib -r coverband'
 end
+
+desc 'start webserver'
+task :server do
+  exec 'ruby -I lib -r coverband lib/coverband/s3_web.rb'
+end

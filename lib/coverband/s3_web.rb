@@ -9,20 +9,6 @@ module Coverband
     # replace this sinatra feature with https://www.rubydoc.info/gems/rack/Rack/Static
     set :public_folder, proc(){ File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path) }
 
-    def button(url,title)
-      button = "<form action='#{url}' method='post'>"
-      button += "<button type='submit'>#{title}</button>"
-      button += '</form>'
-    end
-
-    # This method should get the root mounted endpoint
-    # for example if the app is mounted like so:
-    # mount Coverband::S3Web, at: '/coverage'
-    # "/coverage/collect_coverage?" become:
-    # /coverage/
-    def base_path
-      request.path.match("\/.*\/")[0]
-    end
 
     # todo move to file or template
     # todo header footer, coverband version, link to coverband home
@@ -83,6 +69,21 @@ module Coverband
 
     private
 
+    def button(url,title)
+      button = "<form action='#{url}' method='post'>"
+      button += "<button type='submit'>#{title}</button>"
+      button += '</form>'
+    end
+
+    # This method should get the root mounted endpoint
+    # for example if the app is mounted like so:
+    # mount Coverband::S3Web, at: '/coverage'
+    # "/coverage/collect_coverage?" become:
+    # /coverage/
+    def base_path
+      request.path.match("\/.*\/") ? request.path.match("\/.*\/")[0] : '/'
+    end
+
     def s3
       begin
         require 'aws-sdk'
@@ -100,5 +101,11 @@ module Coverband
         Aws::S3::Client.new(client_options)
       end
     end
+
+    # start the server if ruby file executed directly
+    # ruby -I lib -r coverband lib/coverband/s3_web.rb
+    # this is really just for testing and development because without configuration
+    # Coverband can't do much
+    run! if app_file == $0
   end
 end

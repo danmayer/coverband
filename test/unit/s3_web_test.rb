@@ -16,7 +16,13 @@ module Coverband
     end
 
     # TODO add tests for all endpoints
-    test 'renders content from the coverband/index.html object' do
+    test 'renders index content' do
+      get '/'
+      assert last_response.ok?
+      assert_match 'Coverband Web Admin Index', last_response.body
+    end
+
+    test 'renders show content' do
       Coverband.configuration.s3_bucket = 'coverage-bucket'
       s3 = mock('s3')
       Aws::S3::Client.expects(:new).returns(s3)
