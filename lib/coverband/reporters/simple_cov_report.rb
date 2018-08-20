@@ -3,6 +3,18 @@
 module Coverband
   module Reporters
     class SimpleCovReport < Base
+
+      def self.normalize_scov_report(report)
+        report.inject({}) do |mem, (file, cover_hits)|
+          mem.merge(
+              { file => (
+              scov = SimpleCov::LinesClassifier.new.classify(File.foreach(file))
+              cover_hits.map.with_index { |cover_hits, ind| cover_hits.to_i + scov[ind] unless scov[ind].nil? }
+              ) }
+          )
+        end
+      end
+
       def self.report(store, options = {})
         begin
           require 'simplecov'
@@ -11,7 +23,7 @@ module Coverband
           return
         end
 
-        scov_style_report = super(store, options)
+        scov_style_report = normalize_scov_report(super(store, options))
 
         open_report = options.fetch(:open_report) { true }
 
@@ -39,9 +51,9 @@ module Coverband
         end
 
         s3_writer_options = {
-          region: Coverband.configuration.s3_region,
-          access_key_id: Coverband.configuration.s3_access_key_id,
-          secret_access_key: Coverband.configuration.s3_secret_access_key
+            region: Coverband.configuration.s3_region,
+            access_key_id: Coverband.configuration.s3_access_key_id,
+            secret_access_key: Coverband.configuration.s3_secret_access_key
         }
         S3ReportWriter.new(Coverband.configuration.s3_bucket, s3_writer_options).persist! if Coverband.configuration.s3_bucket
       end
