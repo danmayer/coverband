@@ -35,15 +35,14 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 
 Below is my Coverband workflow, which hopefully will help other best use this library.
 
-* install coverband.
-* take baseline measurment: `rake coverband:baseline` (__note: never run baseline on production__)
-* validate baseline with  `rake coverband:coverage`
+* install coverband
+* start your app and hit a few endpoints
+* validate data collection and code coverage with  `rake coverband:coverage`
 * test setup in development (hit endpoints and generate new report)
 * deploy to staging and verify functionality
 * deploy to production and verify functionality
-* every 2 weeks or with major releases
+* every 2 weeks or so, with major releases
    * clear old coverage: `rake coverband:clear`
-   * take new baseline: `rake coverband:baseline`
    * deploy and verify coverage is matching expectations
 * __COVERAGE DRIFT__
    * if you never clear you have lines of code drift from when they were recorded
@@ -147,8 +146,7 @@ require 'coverband/tasks'
 This should give you access to a number of Coverband tasks
 
 ```bash
-bundle exec rake -T coverband
-rake coverband:baseline      # record coverband coverage baseline
+rake -T coverband
 rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
@@ -203,10 +201,10 @@ run ActionController::Dispatcher.new
 
 # Verify Correct Installation
 
-* Gather baseline metrics: run `bundle exec rake coverband:baseline` (__note: never run baseline on production__)
-* run `bundle exec rake coverband:coverage` this will show app initialization coverage
+* boot up your application
+* run `rake coverband:coverage` this will show app initialization coverage
 * run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 0)
-* run `bundle exec rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+* run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
 ## Installation Script
 
@@ -229,7 +227,7 @@ bundle install
 
 # Make some code so we can look at the coverage
 rails generate scaffold blogs
-bundle exec rake db:migrate
+rake db:migrate
 
 # open Rakefile, add lines
 require 'coverband'
@@ -242,10 +240,9 @@ rake -T coverband
 # configure config/application.rb
 # copy lines from readme
 
-
-rake coverband:baseline
+# start up your app
 rake coverband:coverage
-# view baseline coverage
+# view boot up coverage
 
 rails s
 
@@ -265,67 +262,13 @@ rake coverband:coverage
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
 
-### Coverband Baseline
-
-__TLDR:__ Baseline is app initialization coverage, not captured during runtime.
-
-Before starting a service verify your baseline by running `rake coverband:baseline` followed by `rake coverband:coverage` to view what your baseline coverage looks like before any runtime traffic has been recorded.
-
-The baseline seems to cause some confusion. Basically, when Coverband records code usage, it will not request initial startup code like method definition, it covers what it hit during run time. This would produce a fairly odd view of code usage. To cover things like defining routes, dynamic methods, and the like Coverband records a baseline. The baseline should capture coverage of app initialization and boot up, we don't want to do this on deploy as it can be slow. So we take a recording of boot up as a one time baseline Rake task `bundle exec rake coverband:baseline`.
-
-1. Start your server with `rails s` or `rackup config.ru`.
-2. Hit your development server exercising the endpoints you want to verify Coverband is recording (you should see debug outputs in your server console)
-3. Run `rake coverband:coverage` again, previously it should have only shown the baseline data of your app initializing. After using it in development it should show increased coverage from the actions you have exercised.
-
-Note: if you use `rails s` and data isn't recorded, make sure it is using your `config.ru`.
-
-### Baseline Missing data
-
-The default Coverband baseline task will try to detect your app as either Rack or Rails environment. It will load the app to take a baseline reading. The baseline coverage is important because some code is executed during app load, but might not be invoked during any requests, think prefetching, initial cache builds, setting constants, etc. If the baseline task doesn't load your app well you can override the default baseline to create a better baseline yourself. Below for example is how I take a baseline on a pretty simple Sinatra app.
-
-```ruby
-namespace :coverband do
-  desc "get coverage baseline"
-  task :baseline_app do
-    Coverband::Reporter.baseline {
-      require 'sinatra'
-      require './app.rb'
-    }
-  end
-end
-```
-
 ### View Coverage
 
 You can view the report different ways, but the easiest is the Rake task which opens the SimpleCov formatted HTML.
 
-`bundle exec rake coverband:coverage`
+`rake coverband:coverage`
 
 This should auto-open in your browser, but if it doesn't the output file should be in `coverage/index.html`
-
-### Conflicting .Simplecov: Issue with Missing or 0% Coverage Report
-
-If you use SimpleCov to generate code coverage for your tests. You might have setup a `.simplecov` file to help control and focus it's output. Often the settings you want for your test's code coverage report are different than what you want Coverband to be reporting on. Since Coverband uses the SimpleCov HTML formatter to prepare it's report.
-
-So if you had something like this in a `.simplecov` file in the root of your project, as reported in [issue 83](https://github.com/danmayer/coverband/issues/83)
-
-```
-require 'simplecov'
-
-SimpleCov.start do
-  add_filter 'app/admin'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-  add_filter 'userevents'
-end
-```
-
-You could see some confusing results... To avoid this issue Coverband has a Rake task that will ignore all Simplecov filters.
-
-`rake coverband:coverage_no_filters`
-
-This will build the report after disabling any `.simplecov` applied settings.
 
 ### Clear Coverage
 
@@ -568,6 +511,30 @@ Rails.application.routes.draw do
 end
 ```
 
+### Conflicting .Simplecov: Issue with Missing or 0% Coverage Report
+
+If you use SimpleCov to generate code coverage for your tests. You might have setup a `.simplecov` file to help control and focus it's output. Often the settings you want for your test's code coverage report are different than what you want Coverband to be reporting on. Since Coverband uses the SimpleCov HTML formatter to prepare it's report.
+
+So if you had something like this in a `.simplecov` file in the root of your project, as reported in [issue 83](https://github.com/danmayer/coverband/issues/83)
+
+```
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter 'app/admin'
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
+  add_filter 'userevents'
+end
+```
+
+You could see some confusing results... To avoid this issue Coverband has a Rake task that will ignore all Simplecov filters.
+
+`rake coverband:coverage_no_filters`
+
+This will build the report after disabling any `.simplecov` applied settings.
+
 # Contributing To Coverband
 
 If you are working on adding features, PRs, or bugfixes to Coverband this section should help get you going.
@@ -576,24 +543,24 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Make sure all tests are passing (run `bundle install`, make sure Redis is running, and then execute `bundle exec rake test`)
+5. Make sure all tests are passing (run `bundle install`, make sure Redis is running, and then execute `rake test`)
 6. Create new Pull Request
 
 ### Tests & Benchmarks
 
 If you submit a change please make sure the tests and benchmarks are passing.
 
-* run tests: `bundle exec rake`
+* run tests: `rake`
 * view test coverage: `open coverage/index.html`
 * run the benchmarks before and after your change to see impact
-   * `bundle exec rake benchmarks` 
+   * `rake benchmarks` 
 
 ### Known Issues
 
 * __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   * related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. 
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
-* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting to record the baseline.
+* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library.
 
 ### Debugging Redis Store
 

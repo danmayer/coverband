@@ -2,8 +2,16 @@
 
 module Coverband
   module Collectors
+    ###
+    # NOTE: While this still works it is slower than Coverage.
+    # I recommend using the Coverage adapter.
+    # As baseline is removed the Trace collector also doesn't have a good way
+    # to collect initial code usage during app boot up.
+    #
+    # I am leaving Trace around as I believe there are some interesting use cases
+    # also, it illustrates an alternative collector, and I have some others I would like to implement
+    ###
     class Trace < Base
-
       def reset_instance
         super
         @tracer_set = false

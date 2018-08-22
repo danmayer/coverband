@@ -59,11 +59,6 @@ end
 
 require 'coverband'
 
-unless File.exist?('./tmp/coverband_baseline.json')
-  `mkdir -p ./tmp`
-  `touch ./tmp/coverband_baseline.json`
-end
-
 Coverband.configure do |config|
   config.root              = Dir.pwd
   config.root_paths        = ['/app/']
