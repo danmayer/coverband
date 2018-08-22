@@ -6,12 +6,11 @@ module Coverband
   # TODO can we drop sinatra as a requirement and go to pure rack
   # TODO move to reports and drop need for S3 allow reading from adapters?
   class S3Web < Sinatra::Base
-    # replace this sinatra feature with https://www.rubydoc.info/gems/rack/Rack/Static
-    set :public_folder, proc(){ File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path) }
-
+    use Rack::Static,
+        root: File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path),
+        urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/]
 
     # todo move to file or template
-    # todo header footer, coverband version, link to coverband home
     get '/' do
       html = "<html>"
       html += "<strong>Notice:</strong> #{Rack::Utils.escape_html(params['notice'])}<br/>" if params['notice']
@@ -23,6 +22,9 @@ module Coverband
       html += "<li>#{button("#{base_path}clear",'clear coverage report')}</li>"
       html += "<li>#{button("#{base_path}reload_files",'reload Coverband files')}</li>"
       html += "</ul>"
+      html += "<br/>"
+      html += "version: #{Coverband::VERSION}<br/>"
+      html += "<a href='https://github.com/danmayer/coverband'>Coverband</a>"
       html += "</html>"
       html
     end
@@ -30,10 +32,10 @@ module Coverband
     get '/show' do
       html = s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
       # hack the static HTML assets to account for where this was mounted
-      html = html.gsub("src='", "src='#{request.path}")
-      html = html.gsub("href='", "href='#{request.path}")
-      html = html.gsub("loading.gif", "#{request.path}loading.gif")
-      html = html.gsub("/images/", "#{request.path}/images/")
+      html = html.gsub("src='", "src='#{base_path}")
+      html = html.gsub("href='", "href='#{base_path}")
+      html = html.gsub("loading.gif", "#{base_path}loading.gif")
+      html = html.gsub("/images/", "#{base_path}images/")
       html
     end
 
@@ -83,6 +85,7 @@ module Coverband
     def base_path
       request.path.match("\/.*\/") ? request.path.match("\/.*\/")[0] : '/'
     end
+
 
     def s3
       begin
