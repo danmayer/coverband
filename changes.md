@@ -14,7 +14,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
    * built in support for activejob, sidekiq, and other common frameworks
 * code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
 
-# Released
+# Alpha 
 
 ### 2.0.2
 
@@ -22,6 +22,10 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 * add improve error logging in verbose mode (stacktrace) @viktor-silakov 
 * improved logging level support @viktor-silakov 
 * launch Coverband demo and integrate into Readme / Documentation
+* fix on baseline to show an issue by @viktor-silakov
+* remove all coverband:baseline related features and documentation
+
+# Released
 
 ### 2.0.1
 
