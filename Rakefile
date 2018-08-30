@@ -22,5 +22,5 @@ end
 
 desc 'start webserver'
 task :server do
-  exec 'ruby -I lib -r coverband lib/coverband/s3_web.rb'
+  exec 'rackup -I lib'
 end

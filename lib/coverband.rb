@@ -15,6 +15,7 @@ require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
 require 'coverband/reporters/console_report'
+require 'coverband/reporters/web'
 require 'coverband/middleware'
 require 'coverband/s3_report_writer'
 
