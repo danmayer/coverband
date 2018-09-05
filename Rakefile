@@ -20,6 +20,8 @@ task :console do
   exec 'irb -I lib -r coverband'
 end
 
+# This is really just for testing and development because without configuration
+# Coverband can't do much
 desc 'start webserver'
 task :server do
   exec 'rackup -I lib'

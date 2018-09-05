@@ -4,22 +4,37 @@ require 'rack'
 
 module Coverband
   module Reporters
-    # TODO: can we drop sinatra as a requirement and go to pure rack
     # TODO: move to reports and drop need for S3 allow reading from adapters?
     class Web
       attr_reader :request
 
-      # use Rack::Static,
-      #      root: File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path),
-      #      urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/]
+      def initialize
+        @static = Rack::Static.new(self,
+          root: File.expand_path('public', Gem::Specification.find_by_name('simplecov-html').full_gem_path),
+          urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/]
+        )
+      end
 
       def call(env)
         @request = Rack::Request.new(env)
 
         if request.post?
-          clear
+          case request.path_info
+          when /\/clear/
+            clear
+          when /\/update_report/
+            update_report
+          when /\/collect_coverage/
+            collect_coverage
+          when /\/reload_files/
+            reload_files
+          else
+            [404, {'Content-Type' => 'text/html'}, ['404 error!']]
+          end
         else
           case request.path_info
+          when /.*\.(css|js|gif|png)/
+            @static.call(env)
           when /\/show/
             [200, {'Content-Type' => 'text/html'}, [show]]
           when /\//
@@ -59,18 +74,18 @@ module Coverband
         html
       end
 
-      # post '/update_report' do
-      #   Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
-      #   notice = "coverband coverage updated"
-      #   redirect "#{base_path}?notice=#{notice}", 301
-      # end
-      #
-      # post '/collect_coverage' do
-      #   Coverband::Collectors::Base.instance.report_coverage
-      #   notice = "coverband coverage collected"
-      #   redirect "#{base_path}?notice=#{notice}", 301
-      # end
-      #
+      def update_report
+        Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+        notice = 'coverband coverage updated'
+        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
+      end
+
+      def collect_coverage
+        Coverband::Collectors::Base.instance.report_coverage
+        notice = 'coverband coverage collected'
+        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
+      end
+
       def clear
         Coverband.configuration.store.clear!
         notice = 'coverband coverage cleared'
@@ -123,12 +138,6 @@ module Coverband
           Aws::S3::Client.new(client_options)
         end
       end
-
-      # # start the server if ruby file executed directly
-      # # ruby -I lib -r coverband lib/coverband/s3_web.rb
-      # # this is really just for testing and development because without configuration
-      # # Coverband can't do much
-      #run Coverband::S3Web #if app_file == $0
     end
   end
 end
