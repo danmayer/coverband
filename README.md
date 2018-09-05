@@ -477,7 +477,7 @@ Beyond writing to S3 you can host the S3 file with a build in Sintatra app in Co
 ```
 Rails.application.routes.draw do
   # ... lots of routes
-  mount Coverband::S3Web, at: '/coverage'
+  mount Coverband::Reporters::Web.new, at: '/coverage'
 end
 ```
 
@@ -506,7 +506,7 @@ end
 Rails.application.routes.draw do
   # ... lots of routes
   constraints basic_constraint do
-    mount Coverband::S3Web, at: '/coverage'
+    mount Coverband::Reporters::Web.new, at: '/coverage'
   end
 end
 ```
