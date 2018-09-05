@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'aws-sdk'
-require File.expand_path('../../lib/coverband/s3_web', File.dirname(__FILE__))
+require File.expand_path('../../lib/coverband/reporters/web', File.dirname(__FILE__))
 require 'rack/test'
 
 ENV['RACK_ENV'] = 'test'
@@ -12,7 +12,7 @@ module Coverband
     include Rack::Test::Methods
 
     def app
-      Coverband::S3Web
+      Coverband::Reporters::Web.new
     end
 
     # TODO add tests for all endpoints

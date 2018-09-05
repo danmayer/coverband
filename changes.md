@@ -24,6 +24,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 * launch Coverband demo and integrate into Readme / Documentation
 * fix on baseline to show an issue by @viktor-silakov
 * remove all coverband:baseline related features and documentation
+* dropped Sinatra requirement for web mountable page
 
 # Released
 
