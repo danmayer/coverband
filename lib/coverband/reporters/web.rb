@@ -20,6 +20,8 @@ module Coverband
 
         if request.post?
           case request.path_info
+          when /\/collect_update_and_view/
+            collect_update_and_view
           when /\/clear/
             clear
           when /\/update_report/
@@ -51,6 +53,7 @@ module Coverband
         html += "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params['notice'])}<br/>" if request.params['notice']
         html += "<ul>"
         html += "<li><a href='#{base_path}'>Coverband Web Admin Index</a></li>"
+        html += "<li>#{button("#{base_path}collect_update_and_view",'collect data, update report, & view')}</li>"
         html += "<li><a href='#{base_path}show'>view coverage report</a></li>"
         html += "<li>#{button("#{base_path}collect_coverage",'update coverage data (collect coverage)')}</li>"
         html += "<li>#{button("#{base_path}update_report",'update coverage report (rebuild report)')}</li>"
@@ -72,6 +75,12 @@ module Coverband
         html = html.gsub("loading.gif", "#{base_path}loading.gif")
         html = html.gsub("/images/", "#{base_path}images/")
         html
+      end
+
+      def collect_update_and_view
+        collect_coverage
+        update_report
+        [301, { 'Location' => "#{base_path}show" }, []]
       end
 
       def update_report

@@ -632,8 +632,7 @@ Similar format to redis store, but array with integer values
 
 ### Todo
 
-* rackup / how to run webapp via rake
-  * move off sinatra to pure rack 
+* add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
 * graphite adapters (it would allow passing in date ranges on usage)
 * perf test for array vs hash
 * redis pipeline around hash (or batch get then push)
