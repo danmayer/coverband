@@ -9,7 +9,8 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
   <a href="#installation">Installation</a> •
   <a href="#configuration">Configuration</a> •
   <a href="#usage">Usage</a> •
-  <a href="#license">License</a>
+  <a href="#license">License</a> •
+  <a href="/changes.md">Change Log / Roadmap</a>
 </p>
 
 A gem to measure production code usage, showing each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like usage during background jobs).
