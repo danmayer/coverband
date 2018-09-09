@@ -7,29 +7,31 @@ require 'rack/test'
 
 ENV['RACK_ENV'] = 'test'
 
-module Coverband
-  class S3WebTest < Test::Unit::TestCase
-    include Rack::Test::Methods
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
+  module Coverband
+    class S3WebTest < Test::Unit::TestCase
+      include Rack::Test::Methods
 
-    def app
-      Coverband::Reporters::Web.new
-    end
+      def app
+        Coverband::Reporters::Web.new
+      end
 
-    # TODO add tests for all endpoints
-    test 'renders index content' do
-      get '/'
-      assert last_response.ok?
-      assert_match 'Coverband Web Admin Index', last_response.body
-    end
+      # TODO add tests for all endpoints
+      test 'renders index content' do
+        get '/'
+        assert last_response.ok?
+        assert_match 'Coverband Web Admin Index', last_response.body
+      end
 
-    test 'renders show content' do
-      Coverband.configuration.s3_bucket = 'coverage-bucket'
-      s3 = mock('s3')
-      Aws::S3::Client.expects(:new).returns(s3)
-      s3.expects(:get_object).with(bucket: 'coverage-bucket', key: 'coverband/index.html').returns mock('response', body: mock('body', read: 'content'))
-      get '/show'
-      assert last_response.ok?
-      assert_equal 'content', last_response.body
+      test 'renders show content' do
+        Coverband.configuration.s3_bucket = 'coverage-bucket'
+        s3 = mock('s3')
+        Aws::S3::Client.expects(:new).returns(s3)
+        s3.expects(:get_object).with(bucket: 'coverage-bucket', key: 'coverband/index.html').returns mock('response', body: mock('body', read: 'content'))
+        get '/show'
+        assert last_response.ok?
+        assert_equal 'content', last_response.body
+      end
     end
   end
 end
