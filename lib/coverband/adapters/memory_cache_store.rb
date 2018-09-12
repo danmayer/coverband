@@ -9,16 +9,18 @@ module Coverband
     class MemoryCacheStore < Base
       attr_accessor :store
 
+      @@files_cache = {}
+
       def initialize(store)
         @store = store
       end
 
-      def self.reset!
-        files_cache.clear
+      def self.clear!
+        @@files_cache.clear
       end
 
       def clear!
-        self.class.reset!
+        self.class.clear!
       end
 
       def save_report(files)
@@ -26,28 +28,26 @@ module Coverband
         store.save_report(filtered_files) if filtered_files.any?
       end
 
-      # rubocop:disable Lint/IneffectiveAccessModifier
       private
 
-      def self.files_cache
-        @files_cache ||= {}
-      end
-
       def files_cache
-        self.class.files_cache
+        @@files_cache
       end
 
       def filter(files)
-        files.each_with_object({}) do |(file, lines), filtered_file_hash|
-          # first time we see a file, we pre-init the in memory cache to whatever is in store(redis)
-          line_cache = files_cache[file] ||= Set.new(store.covered_lines_for_file(file))
-          lines.reject! do |line|
-            line_cache.include?(line) ? true : (line_cache << line && false)
+        files.each_with_object({}) do |(file, covered_lines), filtered_file_hash|
+          if covered_lines != cached_file(file)
+            files_cache[file] = covered_lines
+            filtered_file_hash[file] = covered_lines
           end
-          filtered_file_hash[file] = lines if lines.any?
         end
       end
-      # rubocop:enable Lint/IneffectiveAccessModifier
+
+      def cached_file(file)
+        files_cache[file]  ||= store.covered_lines_for_file(file).each_with_object({}) do |(line_number, value), hash|
+          hash[line_number.to_i] = value.to_i
+        end
+      end
     end
   end
 end
