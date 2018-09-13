@@ -71,7 +71,7 @@ module Coverband
         @store = Coverband::Adapters::RedisStore.new(redis, ttl: Coverband.configuration.redis_ttl,
                                                             redis_namespace: Coverband.configuration.redis_namespace)
       elsif store.is_a?(String)
-        @store = Coverband::Adapters::FileStore.new(coverage_file)
+        @store = Coverband::Adapters::FileStore.new(store)
       end
     end
   end
