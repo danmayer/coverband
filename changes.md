@@ -30,6 +30,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 * fix on baseline to show an issue by @viktor-silakov
 * remove all coverband:baseline related features and documentation
 * dropped Sinatra requirement for web mountable page
+* fix on filestore by @danrabinowitz 
 * fixes to the MemoryCacheStore by @kbaum
 
 ### 2.0.1
