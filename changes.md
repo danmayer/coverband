@@ -14,29 +14,33 @@ Will be the fully modern release that drops maintenance legacy support in favor 
    * built in support for activejob, sidekiq, and other common frameworks
 * code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
 
-# Alpha 
+# Alpha
+
+### ???
+
+
+# Released
 
 ### 2.0.2
 
 * fix possible nil error on files that changed since initial recording @viktor-silakov
-* add improve error logging in verbose mode (stacktrace) @viktor-silakov 
-* improved logging level support @viktor-silakov 
+* add improve error logging in verbose mode (stacktrace) @viktor-silakov
+* improved logging level support @viktor-silakov
 * launch Coverband demo and integrate into Readme / Documentation
 * fix on baseline to show an issue by @viktor-silakov
 * remove all coverband:baseline related features and documentation
 * dropped Sinatra requirement for web mountable page
-
-# Released
+* fixes to the MemoryCacheStore by @kbaum
 
 ### 2.0.1
 
 * add support for fine grained S3 configuration via Coverband config, thanks @a0s
-  * https://github.com/danmayer/coverband/pull/98 
+  * https://github.com/danmayer/coverband/pull/98
 * Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
   * https://github.com/danmayer/coverband/pull/100
-* added redis improvements allowing namespace and TTL thx @oded-zahavi 
-* fix warnings about duplicate method definition 
-* Add support for safe_reload_files based on full file path 
+* added redis improvements allowing namespace and TTL thx @oded-zahavi
+* fix warnings about duplicate method definition
+* Add support for safe_reload_files based on full file path
 * Add support for Sinatra admin control endpoints
 * improved documentation
 
