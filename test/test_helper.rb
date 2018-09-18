@@ -60,10 +60,10 @@ end
 require 'coverband'
 
 Coverband.configure do |config|
-  config.root              = Dir.pwd
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
-  config.percentage        = 100.0
-  config.reporter          = 'std_out'
-  config.store             = Coverband::Adapters::RedisStore.new(Redis.new)
+  config.root                = Dir.pwd
+  config.root_paths          = ['/app/']
+  config.ignore              = ['vendor']
+  config.reporting_frequency = 100.0
+  config.reporter            = 'std_out'
+  config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
 end

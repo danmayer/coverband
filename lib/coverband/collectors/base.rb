@@ -45,9 +45,8 @@ module Coverband
         @enabled = false
         @file_line_usage = {}
         @ignored_files = Set.new
-        @startup_delay = Coverband.configuration.startup_delay
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
-        @sample_percentage = Coverband.configuration.percentage
+        @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
         @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
         @verbose  = Coverband.configuration.verbose
