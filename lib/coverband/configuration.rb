@@ -3,8 +3,8 @@
 module Coverband
   class Configuration
     attr_accessor :redis, :root_paths, :root,
-                  :ignore, :additional_files, :percentage, :verbose,
-                  :reporter, :startup_delay, :memory_caching,
+                  :ignore, :additional_files, :verbose,
+                  :reporter, :memory_caching,
                   :include_gems, :collector, :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files
@@ -13,24 +13,18 @@ module Coverband
 
     def initialize
       @root = Dir.pwd
-      @redis = nil
       @root_paths = []
       @ignore = []
       @additional_files = []
-      @include_gems = false
-      @percentage = 0.0
+      @reporting_frequency = 0.0
       @verbose = false
       @reporter = 'scov'
-      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
-        @collector = 'trace'
-      else
-        @collector = 'coverage'
-      end
+      @collector = 'coverage'
       @logger = Logger.new(STDOUT)
-      @startup_delay = 0
       @memory_caching = false
       @store = nil
-      @disable_on_failure_for = nil
+
+      # TODO: should we push these to adapter configs
       @s3_region = nil
       @s3_bucket = nil
       @s3_access_key_id = nil

@@ -3,7 +3,7 @@
 module Coverband
   module Adapters
     class RedisStore < Base
-      BASE_KEY = 'coverband2'
+      BASE_KEY = 'coverband3'
 
       def initialize(redis, opts = {})
         @redis = redis

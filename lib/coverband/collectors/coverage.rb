@@ -17,11 +17,6 @@ module Coverband
           return
         end
 
-        if failed_recently?
-          @logger.error 'coverage reporting standing-by because of recent failure' if @verbose
-          return
-        end
-
         new_results = nil
         @semaphore.synchronize { new_results = new_coverage(::Coverage.peek_result.dup) }
         new_results.each_pair do |file, line_counts|

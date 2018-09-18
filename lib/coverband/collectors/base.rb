@@ -43,12 +43,10 @@ module Coverband
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
         @enabled = false
-        @disable_on_failure_for = Coverband.configuration.disable_on_failure_for
         @file_line_usage = {}
         @ignored_files = Set.new
         @startup_delay = Coverband.configuration.startup_delay
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
-        @ignore_patterns += ['gems'] unless Coverband.configuration.include_gems
         @sample_percentage = Coverband.configuration.percentage
         @store = Coverband.configuration.store
         @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
@@ -111,11 +109,6 @@ module Coverband
 
       def failed!
         self.failed_at = Time.now
-      end
-
-      def failed_recently?
-        return false unless @disable_on_failure_for && failed_at
-        failed_at + @disable_on_failure_for > Time.now
       end
 
       def initialize
