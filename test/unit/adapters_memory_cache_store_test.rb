@@ -69,15 +69,5 @@ module Coverband
       @memory_store.save_report(report_first_request)
       @memory_store.save_report(report_second_request)
     end
-
-    test 'it initializes cache with what is in store' do
-      data = {
-        'file1' => { 1 => 0, 2 => 1, 3 => 0 },
-        'file2' => { 1 => 5, 2 => 2 }
-      }
-      Coverband::Adapters::RedisStore.new(@redis).save_report(data)
-      @store.expects(:save_report).never
-      @memory_store.save_report(data)
-    end
   end
 end

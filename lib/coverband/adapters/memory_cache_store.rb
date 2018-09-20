@@ -36,7 +36,7 @@ module Coverband
 
       def filter(files)
         files.each_with_object({}) do |(file, covered_lines), filtered_file_hash|
-          unless coverage_equivalent?(covered_lines, cached_file(file))
+          unless coverage_equivalent?(covered_lines, files_cache[file])
             files_cache[file] = covered_lines
             filtered_file_hash[file] = covered_lines
           end
@@ -48,14 +48,10 @@ module Coverband
       end
 
       def normalized_report(report)
-        report.each_with_object({}) do |(line_number,value), new_report|
-          new_report[line_number] = 1 if value > 0
-        end
-      end
-
-      def cached_file(file)
-        files_cache[file]  ||= store.covered_lines_for_file(file).each_with_object({}) do |(line_number, value), hash|
-          hash[line_number.to_i] = value.to_i
+        if report
+          report.each_with_object({}) do |(line_number,value), new_report|
+            new_report[line_number] = 1 if value > 0
+          end
         end
       end
     end
