@@ -103,21 +103,6 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
       coverband.save
     end
 
-    test 'coverage should count line numbers only the new calls' do
-      dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
-      coverband.instance_variable_set('@sample_percentage', 100.0)
-      coverband.instance_variable_set('@store', nil)
-      original_count = Coverage.peek_result[dog_file][4]
-      coverband.start
-      100.times { Dog.new.bark }
-      coverband.stop
-      coverband.save
-      assert_equal (original_count + 100), coverband.instance_variable_get('@file_line_usage')[dog_file][5]
-      50.times { Dog.new.bark }
-      coverband.save
-      assert_equal 50, coverband.instance_variable_get('@file_line_usage')[dog_file][5]
-    end
-
     test 'coverage should count line numbers' do
       dog_file = File.expand_path('./dog.rb', File.dirname(__FILE__))
       coverband.instance_variable_set('@sample_percentage', 100.0)

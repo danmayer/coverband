@@ -22,9 +22,7 @@ module Coverband
           return
         end
 
-        new_results = nil
-        @semaphore.synchronize { new_results = new_coverage(::Coverage.peek_result.dup) }
-        new_results.each_pair do |file, line_counts|
+        ::Coverage.peek_result.dup.each_pair do |file, line_counts|
           next if @ignored_files.include?(file)
           next unless track_file?(file)
           add_file(file, line_counts)
@@ -56,36 +54,6 @@ module Coverband
       end
 
       private
-
-      def array_diff(latest, original)
-        latest.map.with_index { |v, i| (v && original[i]) ? v - original[i] : nil }
-      end
-
-      def previous_results
-        @@previous_results
-      end
-
-      def add_previous_results(val)
-        @@previous_results = val
-      end
-
-      def new_coverage(current_coverage)
-        if previous_results
-          new_results = {}
-          current_coverage.each_pair do |file, line_counts|
-            if previous_results[file]
-              new_results[file] = array_diff(line_counts, previous_results[file])
-            else
-              new_results[file] = line_counts
-            end
-          end
-        else
-          new_results = current_coverage
-        end
-
-        add_previous_results(current_coverage)
-        new_results.dup
-      end
 
       # TODO this seems like a dumb conversion for the already good coverage format
       # coverage is 0 based other implementation matches line number
