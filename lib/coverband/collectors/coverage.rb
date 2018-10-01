@@ -11,7 +11,7 @@ module Coverband
         # noop
       end
 
-      def report_coverage
+      def report_coverage_potentially_forked
         unless @enabled
           @logger.info 'coverage disabled' if @verbose
           return

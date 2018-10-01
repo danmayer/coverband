@@ -54,6 +54,7 @@ module Coverband
         @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
+        @fork_reporting   = Coverband.configuration.fork_reporting
         @current_thread = Thread.current
         Thread.current[:coverband_instance] = nil
         self
@@ -76,8 +77,20 @@ module Coverband
         raise 'abstract'
       end
 
-      def report_coverage
+      def report_coverage_potentially_forked
         raise 'abstract'
+      end
+
+      def report_coverage
+        if @fork_reporting
+          pid = Process.fork do
+            puts 'reporting in fork'
+            report_coverage_potentially_forked
+          end
+          Process.detach pid
+        else
+          report_coverage_potentially_forked
+        end
       end
 
       protected

@@ -7,7 +7,7 @@ module Coverband
                   :reporter, :startup_delay, :memory_caching,
                   :include_gems, :collector, :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
-                  :safe_reload_files
+                  :safe_reload_files, :fork_reporting
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
@@ -37,6 +37,7 @@ module Coverband
       @s3_secret_access_key = nil
       @redis_namespace = nil
       @redis_ttl = nil
+      @fork_reporting = false
     end
 
     def logger
