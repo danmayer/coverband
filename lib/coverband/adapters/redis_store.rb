@@ -23,9 +23,10 @@ module Coverband
       def save_report(report)
         store_array(base_key, report.keys)
 
-        report.each do |file, lines|
-          store_map("#{base_key}.#{file}", lines)
-        end
+        file_keys = report.keys.map {|file| "#{base_key}.#{file}"}
+        existing_records = existing_records(file_keys)
+        combined_report = combined_report(file_keys, report, existing_records)
+        pipelined_save(combined_report)
       end
 
       def coverage
@@ -47,16 +48,42 @@ module Coverband
       private
 
       attr_reader :redis
-
-      def store_map(key, values)
-        unless values.empty?
-          existing = redis.hgetall(key)
-          # in redis all keys are strings
-          values = Hash[values.map { |k, val| [k.to_s, val] }]
-          values.merge!(existing) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
-          redis.mapped_hmset(key, values)
-          redis.expire(key, @ttl) if @ttl
+      
+      def pipelined_save(combined_report)
+        redis.pipelined do
+          combined_report.each do |file, values|
+            existing = values[:existing]
+            new = values[:new]
+            unless values.empty?
+              # in redis all file_keys are strings
+              new_string_values = Hash[new.map {|k, val| [k.to_s, val]}]
+              new_string_values.merge!(existing) {|_k, old_v, new_v| old_v.to_i + new_v.to_i}
+              redis.mapped_hmset(file, new_string_values)
+              redis.expire(file, @ttl) if @ttl
+            end
+          end
         end
+      end
+
+      def existing_records(file_keys)
+        redis.pipelined do
+          file_keys.each do |key|
+            redis.hgetall(key)
+          end
+        end
+      end
+
+      def combined_report(file_keys, report, existing_records)
+        combined_report = {}
+
+        file_keys.each_with_index do |key, i|
+          combined_report[key] = {
+            new: report.values[i],
+            existing: existing_records[i]
+          }
+        end
+        
+        return combined_report
       end
 
       def store_array(key, values)
