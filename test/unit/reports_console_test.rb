@@ -15,6 +15,15 @@ class SimpleCovReportTest < Test::Unit::TestCase
     {'1' => '1', '2' => '2'}
   end
 
+  def combined_report
+    {
+      "#{BASE_KEY}.test/unit/dog.rb" => {
+        new: example_hash,
+        existing: {}
+      }
+    }
+  end
+
   test 'report data' do
     Coverband.configure do |config|
       config.redis             = @redis
@@ -25,7 +34,7 @@ class SimpleCovReportTest < Test::Unit::TestCase
     Coverband::Reporters::ConsoleReport.expects(:current_root).returns('./test/unit')
 
     @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:store_map, "#{BASE_KEY}.test/unit/dog.rb", example_hash)
+    @store.send(:pipelined_save, combined_report)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
     expected = {"test/unit/dog.rb"=>[1, 2, nil, nil, nil, nil, nil]}

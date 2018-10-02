@@ -17,13 +17,13 @@ class RedisTest < Test::Unit::TestCase
 
   def test_coverage
     @redis.sadd(BASE_KEY, 'dog.rb')
-    @store.send(:store_map, "#{BASE_KEY}.dog.rb", example_hash)
-    expected = { 'dog.rb' => example_hash }
+    @store.send(:pipelined_save, combined_report)
+    expected = {'dog.rb' => example_hash}
     assert_equal expected, @store.coverage
   end
 
   def test_covered_lines_for_file
-    @store.send(:store_map, "#{BASE_KEY}.dog.rb", example_hash)
+    @store.send(:pipelined_save, combined_report)
     assert_equal [["1", "1"], ["2", "2"]], @store.covered_lines_for_file('dog.rb').sort
   end
 
@@ -46,6 +46,15 @@ class RedisTest < Test::Unit::TestCase
   end
 
   private
+
+  def combined_report
+    {
+      "#{BASE_KEY}.dog.rb" => {
+        new: example_hash,
+        existing: {}
+      }
+    }
+  end
 
   def test_data
     {
