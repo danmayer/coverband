@@ -5,10 +5,19 @@ module Coverband
     class RedisStore < Base
       BASE_KEY = 'coverband2'
 
+      attr_accessor :checksum_generator
+
+      class ChecksumGenerator
+        def generate(file)
+          Digest::MD5.file(file).hexdigest
+        end
+      end
+
       def initialize(redis, opts = {})
         @redis = redis
         @ttl             = opts[:ttl]
         @redis_namespace = opts[:redis_namespace]
+        @checksum_generator = opts[:checksum_generator] || ChecksumGenerator.new
       end
 
       def clear!
@@ -24,7 +33,7 @@ module Coverband
         store_array(base_key, report.keys)
 
         report.each do |file, lines|
-          store_map("#{base_key}.#{file}", lines)
+          store_map("#{base_key}.#{file}", @checksum_generator.generate(file), lines)
         end
       end
 
@@ -41,20 +50,22 @@ module Coverband
       end
 
       def covered_lines_for_file(file)
-        @redis.hgetall("#{base_key}.#{file}")
+        @redis.hgetall("#{base_key}.#{file}").reject { |key, _value| key == 'checksum' }
       end
 
       private
 
       attr_reader :redis
 
-      def store_map(key, values)
+      def store_map(key, checksum, values)
         unless values.empty?
           existing = redis.hgetall(key)
           # in redis all keys are strings
           values = Hash[values.map { |k, val| [k.to_s, val] }]
-          values.merge!(existing) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
-          redis.mapped_hmset(key, values)
+          unless checksum != existing['checksum']
+            values.merge!(existing) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
+          end
+          redis.mapped_hmset(key, values.merge('checksum' => checksum))
           redis.expire(key, @ttl) if @ttl
         end
       end

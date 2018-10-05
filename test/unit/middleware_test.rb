@@ -2,6 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('../fake_app/basic_rack', File.dirname(__FILE__))
+require File.expand_path('./dummy_checksum_generator', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Test::Unit::TestCase
@@ -80,13 +81,16 @@ class MiddlewareTest < Test::Unit::TestCase
     assert_equal false, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
     Coverband::Collectors::Base.instance.instance_variable_set('@sample_percentage', 100.0)
     fake_redis = Redis.new
-    redis_store = Coverband::Adapters::RedisStore.new(fake_redis)
+    redis_store = Coverband::Adapters::RedisStore.new(
+      fake_redis,
+      checksum_generator: DummyChecksumGenerator.new('fakechecksum')
+    )
     redis_store.clear!
     Coverband::Collectors::Base.instance.reset_instance
     Coverband::Collectors::Base.instance.instance_variable_set('@store', redis_store)
     fake_redis.expects(:sadd).at_least_once
     fake_redis.expects(:mapped_hmset).at_least_once
-    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", '7' => 1)
+    fake_redis.expects(:mapped_hmset).at_least_once.with("#{BASE_KEY}.#{basic_rack_ruby_file}", 'checksum' => 'fakechecksum', '7' => 1)
     middleware.call(request)
     assert_equal true, Coverband::Collectors::Base.instance.instance_variable_get('@enabled')
   end

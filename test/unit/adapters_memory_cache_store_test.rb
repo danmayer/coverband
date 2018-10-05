@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('./dummy_checksum_generator', File.dirname(__FILE__))
 
 module Coverband
   class MemoryCacheStoreTest < Test::Unit::TestCase
     def setup
       Adapters::MemoryCacheStore.clear!
       @redis = Redis.new
-      @store = Coverband::Adapters::RedisStore.new(@redis)
+      @store = Coverband::Adapters::RedisStore.new(
+        @redis,
+        checksum_generator: DummyChecksumGenerator.new('fakechecksum')
+      )
       @store.clear!
       @memory_store = Adapters::MemoryCacheStore.new(@store)
     end
@@ -30,9 +34,9 @@ module Coverband
       @store.expects(:save_report).once.with data
       2.times { @memory_store.save_report data }
     end
-    
+
     test 'it filters coverage for files with same exact data' do
- 
+
       report_first_request = {
         'file1' => { 1 => 0, 2 => 1, 3 => 0 },
         'file2' => { 1 => 5, 2 => 2 }
@@ -58,7 +62,11 @@ module Coverband
         'file1' => { 1 => 0, 2 => 1, 3 => 0 },
         'file2' => { 1 => 5, 2 => 2 }
       }
-      Coverband::Adapters::RedisStore.new(@redis).save_report(data)
+      existing_store = Coverband::Adapters::RedisStore.new(
+        @redis,
+        checksum_generator: DummyChecksumGenerator.new('fakechecksum')
+      )
+      existing_store.save_report(data)
       @store.expects(:save_report).never
       @memory_store.save_report(data)
     end
