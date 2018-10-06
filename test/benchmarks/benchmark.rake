@@ -164,7 +164,7 @@ namespace :benchmarks do
       line_numbers = 24.times.each_with_object({}) do |line, line_hash|
         line_hash[(line + 1).to_s] = 0
       end
-      hash["file#{file_number+1}.rb"] = line_numbers
+      hash["file#{file_number + 1}.rb"] = line_numbers
     end
   end
 
