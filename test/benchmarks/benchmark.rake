@@ -138,12 +138,12 @@ namespace :benchmarks do
     10_000.times { Dog.new.bark }
   end
 
+  # puts "benchmark for: #{Coverband.configuration.inspect}"
+  # puts "store: #{Coverband.configuration.store.inspect}"
   def run_work(hold_work = false)
     suite = GCSuite.new
-    #puts "benchmark for: #{Coverband.configuration.inspect}"
-    #puts "store: #{Coverband.configuration.store.inspect}"
     Benchmark.ips do |x|
-      x.config(:time => 12, :warmup => 5, :suite => suite)
+      x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
         Coverband::Collectors::Base.instance.sample do
           work
@@ -157,6 +157,32 @@ namespace :benchmarks do
       x.compare!
     end
     Coverband::Collectors::Base.instance.reset_instance
+  end
+
+  def fake_report
+    2934.times.each_with_object({}) do |file_number, hash|
+      line_numbers = 24.times.each_with_object({}) do |line, line_hash|
+        line_hash[(line + 1).to_s] = 0
+      end
+      hash["file#{file_number+1}.rb"] = line_numbers
+    end
+  end
+
+  def reporting_speed
+    report = fake_report
+    store = Coverband::Adapters::RedisStore.new(Redis.new)
+
+    5.times { store.save_report(report) }
+    Benchmark.ips do |x|
+      x.config(time: 15, warmup: 5)
+      x.report('store_reports') { store.save_report(report) }
+    end
+  end
+
+  desc 'runs benchmarks on reporting large files to redis'
+  task redis_reporting: [:setup] do
+    puts 'runs benchmarks on reporting large files to redis'
+    reporting_speed
   end
 
   desc 'runs benchmarks on default redis setup'
