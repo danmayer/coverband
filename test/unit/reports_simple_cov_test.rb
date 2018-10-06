@@ -15,6 +15,15 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     {'1' => '1', '2' => '2'}
   end
 
+  def combined_report
+    {
+      "#{BASE_KEY}.test/unit/dog.rb" => {
+        new: example_hash,
+        existing: {}
+      }
+    }
+  end
+
   test 'generate scov report' do
     Coverband.configure do |config|
       config.redis             = @redis
@@ -26,7 +35,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     Coverband.configuration.logger.stubs('info')
 
     @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:store_map, "#{BASE_KEY}.test/unit/dog.rb", example_hash)
+    @store.send(:pipelined_save, combined_report)
 
     SimpleCov.expects(:track_files)
     SimpleCov.expects(:add_not_loaded_files).returns({})
@@ -48,7 +57,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/tmp/root_dir')
 
     @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:store_map, "#{BASE_KEY}.test/unit/dog.rb", example_hash)
+    @store.send(:pipelined_save, combined_report)
     SimpleCov.expects(:track_files)
     SimpleCov.expects(:add_not_loaded_files).returns('fake_file.rb' => [1])
     SimpleCov::Result.any_instance.expects(:format!)
