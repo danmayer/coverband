@@ -36,16 +36,22 @@ module Coverband
 
       def filter(files)
         files.each_with_object({}) do |(file, covered_lines), filtered_file_hash|
-          if covered_lines != cached_file(file)
+          unless coverage_equivalent?(covered_lines, files_cache[file])
             files_cache[file] = covered_lines
             filtered_file_hash[file] = covered_lines
           end
         end
       end
 
-      def cached_file(file)
-        files_cache[file]  ||= store.covered_lines_for_file(file).each_with_object({}) do |(line_number, value), hash|
-          hash[line_number.to_i] = value.to_i
+      def coverage_equivalent?(coverage1, coverage2)
+        normalized_report(coverage1) == normalized_report(coverage2)
+      end
+
+      def normalized_report(report)
+        if report
+          report.each_with_object({}) do |(line_number,value), new_report|
+            new_report[line_number] = 1 if value > 0
+          end
         end
       end
     end
