@@ -159,13 +159,24 @@ namespace :benchmarks do
     Coverband::Collectors::Base.instance.reset_instance
   end
 
+  def fake_line_numbers
+    24.times.each_with_object({}) do |line, line_hash|
+      line_hash[(line + 1).to_s] = rand(5)
+    end
+  end
+
   def fake_report
     2934.times.each_with_object({}) do |file_number, hash|
-      line_numbers = 24.times.each_with_object({}) do |line, line_hash|
-        line_hash[(line + 1).to_s] = 0
-      end
-      hash["file#{file_number + 1}.rb"] = line_numbers
+      hash["file#{file_number + 1}.rb"] = fake_line_numbers
     end
+  end
+
+  def adjust_report(report)
+    report.keys.each do |file|
+      next unless rand < 0.15
+      report[file] = fake_line_numbers
+    end
+    report
   end
 
   def reporting_speed
@@ -179,11 +190,42 @@ namespace :benchmarks do
     end
   end
 
+  def reporting_memorycache_speed
+    report = fake_report
+    redis_store = Coverband::Adapters::RedisStore.new(Redis.new)
+    cache_store = Coverband::Adapters::MemoryCacheStore.new(redis_store)
+
+    5.times do
+      redis_store.save_report(report)
+      cache_store.save_report(report)
+      adjust_report(report)
+    end
+    Benchmark.ips do |x|
+      x.config(time: 15, warmup: 5)
+      x.report('store_redis_reports') do
+        redis_store.save_report(report)
+        adjust_report(report)
+      end
+      x.report('store_cache_reports') do
+        cache_store.save_report(report)
+        adjust_report(report)
+      end
+      x.compare!
+    end
+  end
+
   desc 'runs benchmarks on reporting large files to redis'
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large files to redis'
     reporting_speed
   end
+
+  desc 'runs benchmarks on reporting large files to redis using memory cache'
+  task cache_reporting: [:setup] do
+    puts 'runs benchmarks on reporting large files to redis using memory cache'
+    reporting_memorycache_speed
+  end
+
 
   desc 'runs benchmarks on default redis setup'
   task run_redis: [:setup, :setup_redis] do
