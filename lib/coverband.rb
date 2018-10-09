@@ -35,7 +35,8 @@ module Coverband
     elsif File.exist?(configuration_file)
       require configuration_file
     else
-      raise ArgumentError, "configure requires a block, #{CONFIG_FILE} in project, or file path passed in configure"
+      msg = "configure requires a block, #{CONFIG_FILE} in project, or file path passed in configure"
+      raise ArgumentError, msg
     end
   end
 

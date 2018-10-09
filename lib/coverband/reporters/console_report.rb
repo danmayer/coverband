@@ -2,6 +2,9 @@
 
 module Coverband
   module Reporters
+    ###
+    # Console Report allows for simple reporting via the command line.
+    ###
     class ConsoleReport < Base
       def self.report(store, options = {})
         scov_style_report = super(store, options)

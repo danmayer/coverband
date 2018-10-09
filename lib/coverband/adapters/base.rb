@@ -11,7 +11,7 @@ module Coverband
         raise 'abstract'
       end
 
-      def save_report(report)
+      def save_report(_report)
         raise 'abstract'
       end
 
@@ -23,7 +23,7 @@ module Coverband
         raise 'abstract'
       end
 
-      def covered_lines_for_file(file)
+      def covered_lines_for_file(_file)
         raise 'abstract'
       end
     end

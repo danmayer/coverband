@@ -6,7 +6,7 @@ module Coverband
       BASE_KEY = 'coverband3'
 
       def initialize(redis, opts = {})
-        @redis = redis
+        @redis           = redis
         @ttl             = opts[:ttl]
         @redis_namespace = opts[:redis_namespace]
       end

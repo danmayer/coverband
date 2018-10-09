@@ -4,7 +4,7 @@ module Coverband
   class Configuration
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :verbose,
-                  :reporter, :memory_caching, :reporting_frequency,
+                  :reporter, :reporting_frequency,
                   :include_gems, :collector, :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files
@@ -21,7 +21,6 @@ module Coverband
       @reporter = 'scov'
       @collector = 'coverage'
       @logger = Logger.new(STDOUT)
-      @memory_caching = false
       @store = nil
 
       # TODO: should we push these to adapter configs

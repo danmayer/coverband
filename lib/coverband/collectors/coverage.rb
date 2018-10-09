@@ -88,13 +88,8 @@ module Coverband
         new_results.dup
       end
 
-      # TODO this seems like a dumb conversion for the already good coverage format
-      # coverage is 0 based other implementation matches line number
       def add_file(file, line_counts)
-        @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
-        line_counts.each_with_index do |line_count, index|
-          @file_line_usage[file][(index + 1)] = line_count if line_count
-        end
+        @file_line_usage[file] = line_counts
       end
 
       def file_usage

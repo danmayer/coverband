@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Coverband
-  class Middleware
+  class Background
     def initialize(app)
       @app = app
     end

@@ -7,9 +7,7 @@ module Coverband
   module Collectors
     class Base
       def self.instance
-        if Coverband.configuration.collector == 'trace'
-          Thread.current[:coverband_instance] ||= Coverband::Collectors::Trace.new
-        elsif Coverband.configuration.collector == 'coverage'
+        if Coverband.configuration.collector == 'coverage'
           Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
         else
           raise 'select valid collector [trace, coverage]'
@@ -37,32 +35,22 @@ module Coverband
       def save
         @enabled = true
         report_coverage
-        @enabled = false
+        @enabled = true
       end
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
-        @enabled = false
+        @enabled = true
         @file_line_usage = {}
         @ignored_files = Set.new
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
         @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
-        @store = Coverband::Adapters::MemoryCacheStore.new(@store) if Coverband.configuration.memory_caching
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         Thread.current[:coverband_instance] = nil
         self
-      end
-
-      def configure_sampling
-        if @startup_delay != 0 || (rand * 100.0) > @sample_percentage
-          @startup_delay -= 1 if @startup_delay > 0
-          @enabled = false
-        else
-          @enabled = true
-        end
       end
 
       def record_coverage
