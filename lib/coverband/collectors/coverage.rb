@@ -36,7 +36,7 @@ module Coverband
         end
 
         if @store
-          @store.save_report(@file_line_usage)
+          @store.save_report(files_with_line_usage)
           @file_line_usage.clear
         elsif @verbose
           @logger.debug 'coverage report: '
@@ -56,6 +56,12 @@ module Coverband
       end
 
       private
+
+      def files_with_line_usage
+        @file_line_usage.select do |_file_name, coverage|
+          coverage.values.any? { |value| value != 0 }
+        end
+      end
 
       def array_diff(latest, original)
         latest.map.with_index { |v, i| (v && original[i]) ? v - original[i] : nil }
