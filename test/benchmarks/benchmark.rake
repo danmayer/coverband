@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 namespace :benchmarks do
-
   # https://github.com/evanphx/benchmark-ips
   # Enable and start GC before each job run. Disable GC afterwards.
   #
@@ -48,7 +47,7 @@ namespace :benchmarks do
     require 'benchmark'
     require 'benchmark/ips'
 
-    # TODO ok this is interesting and weird
+    # TODO: ok this is interesting and weird
     # basically the earlier I require coverage and
     # then require files the larger perf impact
     # this is somewhat expected but can lead to significant perf diffs
@@ -67,6 +66,16 @@ namespace :benchmarks do
     require File.join(File.dirname(__FILE__), 'dog')
   end
 
+  def benchmark_redis_store
+    redis = if ENV['REDIS_TEST_URL']
+              Redis.new(url: ENV['REDIS_TEST_URL'])
+            else
+              Redis.new
+            end
+    Coverband::Adapters::RedisStore.new(redis,
+                                        redis_namespace: 'coverband_bench')
+  end
+
   desc 'set up coverband tracepoint Redis'
   task :setup_redis do
     Coverband.configure do |config|
@@ -76,7 +85,7 @@ namespace :benchmarks do
       config.logger             = $stdout
       config.collector          = 'trace'
       config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.store              = benchmark_redis_store
     end
   end
 
@@ -88,7 +97,8 @@ namespace :benchmarks do
       config.logger             = $stdout
       config.collector          = 'trace'
       config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      config.store              = Coverband::Adapters::FileStore.new('/tmp/benchmark_store.json')
+      file_path                 = '/tmp/benchmark_store.json'
+      config.store              = Coverband::Adapters::FileStore.new(file_path)
     end
   end
 
@@ -104,7 +114,7 @@ namespace :benchmarks do
       config.logger             = $stdout
       config.collector          = 'coverage'
       config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      config.store              = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.store              = benchmark_redis_store
     end
   end
 
@@ -181,7 +191,7 @@ namespace :benchmarks do
 
   def reporting_speed
     report = fake_report
-    store = Coverband::Adapters::RedisStore.new(Redis.new)
+    store = benchmark_redis_store
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
@@ -192,7 +202,7 @@ namespace :benchmarks do
 
   def reporting_memorycache_speed
     report = fake_report
-    redis_store = Coverband::Adapters::RedisStore.new(Redis.new)
+    redis_store = benchmark_redis_store
     cache_store = Coverband::Adapters::MemoryCacheStore.new(redis_store)
 
     5.times do
@@ -214,18 +224,17 @@ namespace :benchmarks do
     end
   end
 
-  desc 'runs benchmarks on reporting large files to redis'
+  desc 'runs benchmarks on reporting large sets of files to redis'
   task redis_reporting: [:setup] do
-    puts 'runs benchmarks on reporting large files to redis'
+    puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed
   end
 
-  desc 'runs benchmarks on reporting large files to redis using memory cache'
+  desc 'benchmarks: reporting large sets of files to redis using memory cache'
   task cache_reporting: [:setup] do
-    puts 'runs benchmarks on reporting large files to redis using memory cache'
+    puts 'benchmarks: reporting large sets of files to redis using memory cache'
     reporting_memorycache_speed
   end
-
 
   desc 'runs benchmarks on default redis setup'
   task run_redis: [:setup, :setup_redis] do
@@ -247,11 +256,13 @@ namespace :benchmarks do
 
   desc 'compare Coverband Ruby Coverage with normal Ruby'
   task :compare_coverage do
-    puts 'comparing with Coverage loaded and not, this takes some time for output...'
+    puts 'comparing Coverage loaded/not, this takes some time for output...'
     puts `COVERAGE=true rake benchmarks:run_coverage`
     puts `rake benchmarks:run_coverage`
   end
 end
 
 desc 'runs benchmarks'
-task benchmarks: ['benchmarks:run_file', 'benchmarks:run_redis', 'benchmarks:compare_coverage']
+task benchmarks: ['benchmarks:run_file',
+                  'benchmarks:run_redis',
+                  'benchmarks:compare_coverage']
