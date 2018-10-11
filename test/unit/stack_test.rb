@@ -13,7 +13,8 @@ class StackTest < Test::Unit::TestCase
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
     end
     Coverband.configuration.store.clear!
-    #Coverband::Collectors::Base.instance.record_coverage
+    # TODO move to API
+    Coverband::Collectors::Base.instance.record_coverage
     @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
     require @rack_file
   end
@@ -23,13 +24,17 @@ class StackTest < Test::Unit::TestCase
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    expected = {"3"=>"1", "5"=>"1", "6"=>"1", "7"=>"1"}
+    expected = [nil, nil, 1, nil, 1, 1, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
 
     # additional calls increase count by 1
     middleware.call(request)
-    expected = {"3"=>"1", "5"=>"1", "6"=>"1", "7"=>"2"}
+    expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
+
+    expected = {}
+    actual = Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+    assert_equal expected, actual
   end
 
   private

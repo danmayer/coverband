@@ -12,7 +12,7 @@ module Coverband
         end
 
         scov_style_report = super(store, options)
-
+        #require 'byebug'; byebug
         open_report = options.fetch(:open_report) { true }
 
         # set root to show files if user has simplecov profiles
@@ -43,7 +43,7 @@ module Coverband
           access_key_id: Coverband.configuration.s3_access_key_id,
           secret_access_key: Coverband.configuration.s3_secret_access_key
         }
-        S3ReportWriter.new(Coverband.configuration.s3_bucket, s3_writer_options).persist! if Coverband.configuration.s3_bucket
+        Coverband::Adapters::S3ReportWriter.new(Coverband.configuration.s3_bucket, s3_writer_options).persist! if Coverband.configuration.s3_bucket
       end
     end
   end

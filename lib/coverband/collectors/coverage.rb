@@ -89,7 +89,14 @@ module Coverband
       end
 
       def add_file(file, line_counts)
+        #straight coverage data
         @file_line_usage[file] = line_counts
+
+        #old ways
+        # @file_line_usage[file] = Hash.new(0) unless @file_line_usage.include?(file)
+        # line_counts.each_with_index do |line_count, index|
+        #   @file_line_usage[file][(index + 1)] = line_count if line_count
+        # end
       end
 
       def file_usage
