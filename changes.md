@@ -21,15 +21,14 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 * drop Tracepoint
 * background thread reporter
 
+# Released
+
 # 2.0.3
 
 * don''t include docs in the gemfile thanks @bquorning
 * pipeline_redis to reduce network overhead thanks @Kallin
 * various additional benchmarks @danmayer
 * Filter out files with no coverage thanks  @kbaum
-
-
-# Released
 
 ### 2.0.2
 
