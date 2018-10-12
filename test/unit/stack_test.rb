@@ -13,8 +13,7 @@ class StackTest < Test::Unit::TestCase
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
     end
     Coverband.configuration.store.clear!
-    # TODO move to API
-    Coverband::Collectors::Base.instance.record_coverage
+    Coverband.start
     @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
     require @rack_file
   end
@@ -32,7 +31,8 @@ class StackTest < Test::Unit::TestCase
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
 
-    expected = {}
+    expected = nil
+    # TODO: read the html to test it matches expectations? or return data as a hash?
     actual = Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
     assert_equal expected, actual
   end

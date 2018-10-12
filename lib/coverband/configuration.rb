@@ -5,7 +5,7 @@ module Coverband
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :verbose,
                   :reporter, :reporting_frequency,
-                  :include_gems, :collector, :disable_on_failure_for,
+                  :collector, :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files
 

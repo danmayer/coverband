@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ####
-# TODO refactor this along with the coverage and trace collector
+# TODO refactor this if we only have one collector this could go away
 ####
 module Coverband
   module Collectors
@@ -14,28 +14,8 @@ module Coverband
         end
       end
 
-      def start
-        @enabled = true
-        record_coverage
-      end
-
-      def stop
-        @enabled = false
-        stop_coverage
-      end
-
-      def sample
-        configure_sampling
-        record_coverage
-        result = yield
-        report_coverage
-        result
-      end
-
       def save
-        @enabled = true
         report_coverage
-        @enabled = true
       end
 
       def reset_instance
@@ -53,14 +33,6 @@ module Coverband
         self
       end
 
-      def record_coverage
-        raise 'abstract'
-      end
-
-      def stop_coverage
-        raise 'abstract'
-      end
-
       def report_coverage
         raise 'abstract'
       end
@@ -76,7 +48,7 @@ module Coverband
         @file_line_usage.sort_by { |_key, value| value.length }.each do |pair|
           file = pair.first
           lines = pair.last
-          @logger.info "file: #{file} => #{lines.sort_by { |_key, value| value }}"
+          @logger.info "file: #{file} => #{lines}"
         end
       end
 

@@ -2,16 +2,6 @@
 
 module Coverband
   class Background
-    def initialize(app)
-      @app = app
-    end
-
-    def call(env)
-      Coverband::Collectors::Base.instance.configure_sampling
-      Coverband::Collectors::Base.instance.record_coverage
-      @app.call(env)
-    ensure
-      Coverband::Collectors::Base.instance.report_coverage
-    end
+    # TODO: stub to implement background thread recording
   end
 end
