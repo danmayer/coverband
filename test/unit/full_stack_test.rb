@@ -3,14 +3,16 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
-class StackTest < Test::Unit::TestCase
+class FullStackTest < Test::Unit::TestCase
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
   TEST_RACK_APP = '../fake_app/basic_rack.rb'.freeze
 
   def setup
+    Coverband::Collectors::Base.instance.reset_instance
     Coverband.configure do |config|
       config.reporting_frequency = 100.0
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.s3_bucket = nil
     end
     Coverband.configuration.store.clear!
     Coverband.start

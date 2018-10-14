@@ -2,26 +2,26 @@
 
 module Coverband
   module Reporters
+    ###
+    # This is the base clase for report generation
+    # it helps with filtering, normalization, etc for final reprort generation
+    ###
     class Base
-      def self.report(store, options = {})
-        roots = get_roots
-        additional_coverage_data = options.fetch(:additional_scov_data) { [] }
+      def self.report(store, _options = {})
+        scov_style_report = get_current_scov_data_imp(store, root_paths)
 
         if Coverband.configuration.verbose
-          Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
-          Coverband.configuration.logger.debug "additional data:\n #{additional_coverage_data}"
-        end
-
-        scov_style_report = store.coverage
-        #report_scov_with_additional_data(store, additional_coverage_data, roots)
-
-        if Coverband.configuration.verbose
-          Coverband.configuration.logger.debug "report:\n #{scov_style_report.inspect}"
+          msg = "report:\n #{scov_style_report.inspect}"
+          Coverband.configuration.logger.debug msg
         end
         scov_style_report
       end
 
-      def self.get_roots
+      # protected
+      # below are all not public API
+      # but as they are class methods protected doesn't really do anything
+
+      def self.root_paths
         roots = Coverband.configuration.root_paths
         roots << "#{current_root}/"
         roots
@@ -31,19 +31,26 @@ module Coverband
         File.expand_path(Coverband.configuration.root)
       end
 
-      protected
-
       def self.fix_file_names(report_hash, roots)
-        fixed_report = {} # normalize names across servers
-        report_hash.each_pair do |key, values|
+        if Coverband.configuration.verbose
+          Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
+        end
+
+        fixed_report = {}
+        # normalize names across servers
+        report_hash.each_pair do |key, vals|
           filename = filename_from_key(key, roots)
-          fixed_report[filename] = values
+          if fixed_report.key?(filename)
+            fixed_report[filename] = merge_arrays(fixed_report[filename], vals)
+          else
+            fixed_report[filename] = vals
+          end
         end
         fixed_report
       end
 
-      # > merge_arrays([0,0,1,0,1],[nil,0,1,0,0])
-      # [0,0,1,0,1]
+      # > merge_arrays([nil,0,0,1,0,1],[nil,nil,0,1,0,0])
+      # > [nil,0,0,1,0,1]
       def self.merge_arrays(first, second)
         merged = []
         longest = first.length > second.length ? first : second
@@ -55,20 +62,6 @@ module Coverband
         end
 
         merged
-      end
-
-      # > merge_existing_coverage({"file.rb" => [0,1,2,nil,nil,nil]}, {"file.rb" => [0,1,2,nil,0,1,2]})
-      # expects = {"file.rb" => [0,2,4,nil,0,1,2]}
-      def self.merge_existing_coverage(scov_style_report, existing_coverage)
-        existing_coverage.each_pair do |file_key, existing_lines|
-          next if Coverband.configuration.ignore.any? { |i| file_key.match(i) }
-          scov_style_report[file_key] = if current_line_hits = scov_style_report[file_key]
-                                          merge_arrays(current_line_hits, existing_lines)
-                                        else
-                                          existing_lines
-                                        end
-        end
-        scov_style_report
       end
 
       def self.filename_from_key(key, roots)
@@ -83,62 +76,23 @@ module Coverband
         filename
       end
 
-      # > line_hash(store, 'hearno/script/tester.rb', ['/app/', '/Users/danmayer/projects/hearno/'])
-      # {"/Users/danmayer/projects/hearno/script/tester.rb"=>[1, nil, 1, 2, nil, nil, nil]}
-      def self.line_hash(store, key, roots)
-        filename = filename_from_key(key, roots)
-        if File.exist?(filename)
-          count = File.foreach(filename).inject(0) { |c, _line| c + 1 }
-          line_array = Array.new(count, nil)
-
-          lines_hit = store.covered_lines_for_file(key)
-          if lines_hit.is_a?(Array)
-            line_array.each_with_index { |_, index| line_array[index] = 1 if lines_hit.include?((index + 1)) }
-          else
-            line_array.each_with_index { |_, index| line_array[index] = (line_array[index].to_i + lines_hit[(index + 1).to_s].to_i) if lines_hit.keys.include?((index + 1).to_s) }
-          end
-          { filename => line_array }
-        else
-          Coverband.configuration.logger.info "file #{filename} not found in project"
-          nil
-        end
-      end
-
+      ###
+      # why do we need to merge covered files data?
+      # basically because paths on machines or deployed hosts could be different, so
+      # two different keys could point to the same filename or `line_key`
+      # this logic should be pushed to base report
+      # TODO: think we are filtering based on ignore while sending to the store
+      # and as we pull it out here
+      ###
       def self.get_current_scov_data_imp(store, roots)
         scov_style_report = {}
-
-        ###
-        # why do we need to merge covered files data?
-        # basically because paths on machines or deployed hosts could be different, so
-        # two different keys could point to the same filename or `line_key`
-        # this logic should be pushed to base report
-        ###
-        store.covered_files.each do |key|
+        store.coverage.each_pair do |key, line_data|
           next if Coverband.configuration.ignore.any? { |i| key.match(i) }
-          line_data = line_hash(store, key, roots)
-
           next unless line_data
-          line_key = line_data.keys.first
-          previous_line_hash = scov_style_report[line_key]
-
-          if previous_line_hash
-            line_data[line_key] = merge_arrays(line_data[line_key], previous_line_hash)
-          end
-
-          scov_style_report.merge!(line_data)
+          scov_style_report[key] = line_data
         end
 
         scov_style_report = fix_file_names(scov_style_report, roots)
-        scov_style_report
-      end
-
-      def self.report_scov_with_additional_data(store, additional_scov_data, roots)
-        scov_style_report = get_current_scov_data_imp(store, roots)
-
-        additional_scov_data.each do |data|
-          scov_style_report = merge_existing_coverage(scov_style_report, data)
-        end
-
         scov_style_report
       end
     end

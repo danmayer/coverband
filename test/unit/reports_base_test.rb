@@ -57,54 +57,6 @@ class ReportsBaseTest < Test::Unit::TestCase
     assert_equal '/full/remote_app/path/is/a/path.rb', Coverband::Reporters::Base.filename_from_key(key, roots)
   end
 
-  test 'line_hash gets correct hash entry for a line key' do
-    @fake_redis = fake_redis
-    store = Coverband::Adapters::RedisStore.new(@fake_redis)
-
-    Coverband.configure do |config|
-      config.redis             = @fake_redis
-      config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
-    end
-
-    key = '/full/remote_app/path/is/a/path.rb'
-    # the code takes config.root expands and adds a '/'
-    roots = ['/app/', '/full/remote_app/path/']
-
-    lines_hit = [1, 3, 6]
-    store.stubs(:covered_lines_for_file).returns(lines_hit)
-    # expects to show hit counts on 1,3,6
-    expected = { '/full/remote_app/path/is/a/path.rb' => [1, nil, 1, nil, nil, 1] }
-    File.stubs(:exist?).returns(true)
-    File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
-
-    assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
-  end
-
-  test 'line_hash adjusts relative paths' do
-    @fake_redis = fake_redis
-    store = Coverband::Adapters::RedisStore.new(@fake_redis)
-
-    Coverband.configure do |config|
-      config.redis             = @fake_redis
-      config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
-    end
-
-    key = './is/a/path.rb'
-    # the code takes config.root expands and adds a '/'
-    roots = ['/app/', '/full/remote_app/path/']
-
-    lines_hit = [1, 3, 6]
-    store.stubs(:covered_lines_for_file).returns(lines_hit)
-    # expects to show hit counts on 1,3,6
-    expected = { '/full/remote_app/path/is/a/path.rb' => [1, nil, 1, nil, nil, 1] }
-    File.stubs(:exist?).returns(true)
-    File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
-
-    assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
-  end
-
   test '#merge_arrays basic merge preserves order and counts' do
     first = [0, 0, 1, 0, 1]
     second = [nil, 0, 1, 0, 0]
@@ -121,46 +73,35 @@ class ReportsBaseTest < Test::Unit::TestCase
     assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
   end
 
-  test '#merge_existing_coverage basic merge preserves order and counts different lengths' do
-    first = { 'file.rb' => [0, 1, 2, nil, nil, nil] }
-    second = { 'file.rb' => [0, 1, 2, nil, 0, 1, 2] }
-    expects = { 'file.rb' => [0, 2, 4, nil, 0, 1, 2] }
+  test '#merge_arrays basic merge preserves nils' do
+    first = [0, 1, 2, nil, nil, nil]
+    second = [0, 1, 2, nil, 0, 1, 2]
+    expects = [0, 2, 4, nil, 0, 1, 2]
 
-    assert_equal expects, Coverband::Reporters::Base.merge_existing_coverage(first, second)
-  end
-
-  test '#merge_existing_coverage mismatched' do
-    first = { 'file.rb' => [0, 1, 2, nil, nil, nil] }
-    second = { 'diff.rb' => [0, 1, 2, nil, 0, 1, 2] }
-    expects = { 'file.rb' => [0, 1, 2, nil, nil, nil],
-                'diff.rb' => [0, 1, 2, nil, 0, 1, 2] }
-
-    assert_equal expects, Coverband::Reporters::Base.merge_existing_coverage(first, second)
+    assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
   end
 
   test "#get_current_scov_data_imp doesn't ignore folders with default ignore keys" do
-    @fake_redis = fake_redis
-    store = Coverband::Adapters::RedisStore.new(@fake_redis)
+    @redis = Redis.new
+    store = Coverband::Adapters::RedisStore.new(@redis)
+    store.clear!
 
     Coverband.configure do |config|
-      config.redis             = @fake_redis
       config.reporter          = 'std_out'
-      config.ignore            = %w[vendor .erb$ .slim$]
+      config.ignore            = %w(vendor .erb$ .slim$)
       config.root              = '/full/remote_app/path'
+      config.store             = store
     end
 
     key = '/a_path/that_has_erb_in/thepath.rb'
     roots = ['/app/', '/full/remote_app/path/']
 
     lines_hit = [1, 3, 6]
-    store.stubs(:covered_lines_for_file).returns(lines_hit)
-    # expects to show hit counts on 1,3,6
-    expected = { '/a_path/that_has_erb_in/thepath.rb' => [1, nil, 1, nil, nil, 1] }
+    store.stubs(:coverage).returns(key => lines_hit)
+    expected = { key => [1, 3, 6] }
     File.stubs(:exist?).returns(true)
     File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
 
-    # assert_equal expected, Coverband::Reporters::Base.line_hash(store, key, roots)
-    store.expects(:covered_files).returns([key])
     assert_equal expected, Coverband::Reporters::Base.get_current_scov_data_imp(store, roots)
   end
 end

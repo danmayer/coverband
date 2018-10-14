@@ -7,8 +7,8 @@ class RedisTest < Test::Unit::TestCase
 
   def setup
     @redis = Redis.new
-    @redis.flushdb
     @store = Coverband::Adapters::RedisStore.new(@redis)
+    @store.clear!
   end
 
   def test_coverage
@@ -22,17 +22,17 @@ class RedisTest < Test::Unit::TestCase
     @store.save_report(expected)
     assert_equal expected, @store.coverage
     @store.save_report(expected)
-    assert_equal [0, 2, 4], @store.coverage['dog.rb']
+    assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']
   end
 
   def test_covered_lines_for_file
     expected = basic_coverage
     @store.save_report(expected)
-    assert_equal example_line, @store.covered_lines_for_file('dog.rb')
+    assert_equal example_line, @store.covered_lines_for_file('app_path/dog.rb')
   end
 
   def test_covered_lines_when_null
-    assert_equal nil, @store.covered_lines_for_file('dog.rb')
+    assert_equal nil, @store.covered_lines_for_file('app_path/dog.rb')
   end
 
   def test_clear

@@ -16,6 +16,10 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
         Coverband::Reporters::Web.new
       end
 
+      def teardown
+        Coverband.configuration.s3_bucket = nil
+      end
+
       # TODO add tests for all endpoints
       test 'renders index content' do
         get '/'

@@ -7,8 +7,8 @@ class SimpleCovReportTest < Test::Unit::TestCase
 
   def setup
     @redis = Redis.new
-    @redis.flushdb
     @store = Coverband::Adapters::RedisStore.new(@redis)
+    @store.clear!
   end
 
   test 'report data' do
@@ -18,11 +18,13 @@ class SimpleCovReportTest < Test::Unit::TestCase
       config.reporting_frequency = 100.0
     end
     Coverband.configuration.logger.stubs('info')
-    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('./test/unit')
+    Coverband::Reporters::ConsoleReport
+      .expects(:current_root)
+      .returns('app_path')
     @store.send(:save_report, basic_coverage)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
-    expected = {"test/unit/dog.rb"=>[0, 1, 2]}
+    expected = { 'app_path/dog.rb' => [0, 1, 2] }
     assert_equal(expected, report)
   end
 end
