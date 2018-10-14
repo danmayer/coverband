@@ -7,48 +7,50 @@ module Coverband
     # TODO: nothing currently handles relative path
     # ensuring it is the same across deployments etc
     # could be handled during collection, storing, or processing for reporting
+    # TODO: look at alternatives to semaphore
+    # StandardError seems line be better option
+    # coverband previously had RuntimeError here
+    # but runtime error can let a large number of error crash this method
+    # and this method is currently in a ensure block in middleware and threads
     ###
     class Coverage < Base
       def report_coverage
-        unless @enabled
-          @logger.info 'coverage disabled' if @verbose
+        return unless ready_to_report?
+        unless @store
+          @logger.debug 'no store set, no-op'
           return
         end
-
-        new_results = nil
-        @semaphore.synchronize { new_results = new_coverage(::Coverage.peek_result.dup) }
-        new_results.each_pair do |file, line_counts|
-          next if @ignored_files.include?(file)
-          next unless track_file?(file)
-          add_file(file, line_counts)
-        end
-
-        if @verbose
-          @logger.debug "coverband file usage: #{file_usage.inspect}"
-          output_file_line_usage if @verbose == 'debug'
-        end
-
-        if @store
-          @store.save_report(files_with_line_usage)
-          @file_line_usage.clear
-        elsif @verbose
-          @logger.debug 'coverage report: '
-          @logger.debug @file_line_usage.inspect
-        end
-      # StandardError might be better option
-      # coverband previously had RuntimeError here
-      # but runtime error can let a large number of error crash this method
-      # and this method is currently in a ensure block in middleware
+        new_results = get_new_coverage_results
+        add_filtered_files(new_results)
+        @store.save_report(files_with_line_usage)
+        @file_line_usage.clear
       rescue StandardError => err
-        failed!
         if @verbose
-          @logger.error 'coverage missing'
+          @logger.error 'coverage failed to store'
           @logger.error "error: #{err.inspect} #{err.message}"
           @logger.error err.backtrace
         end
       end
 
       private
+
+      def add_filtered_files(new_results)
+        new_results.each_pair do |file, line_counts|
+          next if @ignored_files.include?(file)
+          next unless track_file?(file)
+          add_file(file, line_counts)
+        end
+      end
+
+      def ready_to_report?
+        (rand * 100.0) >= (100.0 - @reporting_frequency)
+      end
+
+      def get_new_coverage_results
+        coverage_results = nil
+        @semaphore.synchronize { coverage_results = new_coverage(::Coverage.peek_result.dup) }
+        coverage_results
+      end
 
       def files_with_line_usage
         @file_line_usage.select do |_file_name, coverage|
@@ -88,14 +90,6 @@ module Coverband
 
       def add_file(file, line_counts)
         @file_line_usage[file] = line_counts
-      end
-
-      def file_usage
-        hash = {}
-        @file_line_usage.each do |file, lines|
-          hash[file] = lines.values.compact.inject(0, :+)
-        end
-        hash.sort_by { |_key, value| value }
       end
 
       def initialize

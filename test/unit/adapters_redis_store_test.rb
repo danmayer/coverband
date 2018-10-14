@@ -5,14 +5,6 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 class RedisTest < Test::Unit::TestCase
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
-  def example_line
-    [0, 1, 2]
-  end
-
-  def basic_coverage
-    { 'dog.rb' => example_line }
-  end
-
   def setup
     @redis = Redis.new
     @redis.flushdb

@@ -20,7 +20,6 @@ module Coverband
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
-        @enabled = true
         @file_line_usage = {}
         @ignored_files = Set.new
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
@@ -40,35 +39,12 @@ module Coverband
       protected
 
       def track_file?(file)
-        @ignore_patterns.none? { |pattern| file.include?(pattern) } && file.start_with?(@project_directory)
-      end
-
-      def output_file_line_usage
-        @logger.debug 'coverband debug coverband file:line usage:'
-        @file_line_usage.sort_by { |_key, value| value.length }.each do |pair|
-          file = pair.first
-          lines = pair.last
-          @logger.info "file: #{file} => #{lines}"
-        end
+        @ignore_patterns.none? do |pattern|
+          file.include?(pattern)
+        end && file.start_with?(@project_directory)
       end
 
       private
-
-      def failed_at_thread_key
-        "__#{self.class.name}__failed_at"
-      end
-
-      def failed_at
-        Thread.current[failed_at_thread_key]
-      end
-
-      def failed_at=(time)
-        Thread.current[failed_at_thread_key] = time
-      end
-
-      def failed!
-        self.failed_at = Time.now
-      end
 
       def initialize
         reset_instance

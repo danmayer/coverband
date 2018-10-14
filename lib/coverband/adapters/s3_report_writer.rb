@@ -2,6 +2,12 @@
 
 module Coverband
   module Adapters
+    ###
+    # TODO: this is currently a html report writer
+    # this should support writing coverage the current method should be fine
+    # to write every report to S3 and sum them later or use the 2 pass
+    # method we do for redis if in a background thread
+    ###
     class S3ReportWriter
       def initialize(bucket_name, options = {})
         @bucket_name = bucket_name
@@ -11,7 +17,8 @@ module Coverband
         begin
           require 'aws-sdk'
         rescue StandardError
-          Coverband.configuration.logger.error "coverband requires 'aws-sdk' in order use S3ReportWriter."
+          err_msg = 'coverband requires aws-sdk in order use S3ReportWriter.'
+          Coverband.configuration.logger.error err_msg
           return
         end
       end

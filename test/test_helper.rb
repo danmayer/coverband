@@ -37,6 +37,14 @@ def test(name, &block)
   end
 end
 
+def example_line
+  [0, 1, 2]
+end
+
+def basic_coverage
+  { 'dog.rb' => example_line }
+end
+
 def fake_redis
   @redis ||= begin
     redis = OpenStruct.new
