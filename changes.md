@@ -16,7 +16,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - or middleware reporting
 - improved web reporting
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
-- additional adapters including Memcache and ActiveRecord
+- additional adapters including Memcache, S3, and ActiveRecord
 
 ### Coverband_jam_session
 
@@ -31,6 +31,12 @@ This is a possible gem to host experimental or more complex features, which woul
 # Alpha
 
 ### Coverband 3.0
+
+* drops Tracepoint
+* drops Ruby <= 2.3.0
+* rewrites redis store, for 60X perf
+* drops various other features not needed without Tracepoint
+* standardizes on Coverage array format vs sparse hash
 
 # Released
 
