@@ -54,7 +54,7 @@ module Coverband
 
       def files_with_line_usage
         @file_line_usage.select do |_file_name, coverage|
-          coverage.values.any? { |value| value != 0 }
+          coverage.any? { |value| value && value.nonzero? }
         end
       end
 
