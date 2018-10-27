@@ -30,11 +30,14 @@ module Coverband
       protected
 
       def merge_reports(new_report, old_report)
-        new_report.each_pair do |file, line_counts|
-          new_report[file] = if old_report[file]
-                               array_add(line_counts, old_report[file])
+        keys = (new_report.keys + old_report.keys).uniq
+        keys.each do |file|
+          new_report[file] = if new_report[file] && old_report[file]
+                               array_add(new_report[file], old_report[file])
+                             elsif new_report[file]
+                               new_report[file]
                              else
-                               line_counts
+                               old_report[file]
                              end
         end
         new_report

@@ -14,8 +14,8 @@ module Coverband
     # and this method is currently in a ensure block in middleware and threads
     ###
     class Coverage < Base
-      def report_coverage
-        return unless ready_to_report?
+      def report_coverage(force_report = false)
+        return if !ready_to_report? && !force_report
         unless @store
           @logger.debug 'no store set, no-op'
           return
@@ -113,6 +113,7 @@ module Coverband
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
+        #@logger.debug 'Coverband: coverage started'
       end
     end
   end

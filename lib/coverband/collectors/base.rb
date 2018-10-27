@@ -10,7 +10,7 @@ module Coverband
         if Coverband.configuration.collector == 'coverage'
           Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
         else
-          raise 'select valid collector [trace, coverage]'
+          raise 'select valid collector [coverage]'
         end
       end
 
