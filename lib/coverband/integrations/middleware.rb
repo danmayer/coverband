@@ -9,7 +9,7 @@ module Coverband
     def call(env)
       @app.call(env)
     ensure
-      Coverband::Collectors::Base.instance.report_coverage
+      Coverband::Collectors::Coverage.instance.report_coverage
     end
   end
 end

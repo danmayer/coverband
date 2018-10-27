@@ -9,18 +9,16 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
 
     def setup
       Coverband.configure do |config|
-        config.collector = 'coverage'
-        config.store     = Coverband::Adapters::RedisStore.new(Redis.new)
+        config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       end
-      @coverband = Coverband::Collectors::Base.instance.reset_instance
+      @coverband = Coverband::Collectors::Coverage.instance.reset_instance
     end
 
     def teardown
       Thread.current[:coverband_instance] = nil
       Coverband.configure do |config|
-        config.collector = 'coverage'
       end
-      @coverband = Coverband::Collectors::Base.instance.reset_instance
+      @coverband = Coverband::Collectors::Coverage.instance.reset_instance
     end
 
     test 'gets coverage instance' do

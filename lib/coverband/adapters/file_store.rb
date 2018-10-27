@@ -3,7 +3,7 @@
 module Coverband
   module Adapters
     ###
-    # Filesote store a merged coverage file to local disk
+    # FilesStore store a merged coverage file to local disk
     # Generally this is for testing and development
     # Not recommended for production deployment
     ###

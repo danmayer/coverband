@@ -5,7 +5,7 @@ module Coverband
     attr_accessor :redis, :root_paths, :root,
                   :ignore, :additional_files, :verbose,
                   :reporter, :reporting_frequency,
-                  :collector, :disable_on_failure_for,
+                  :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files
 
@@ -19,7 +19,6 @@ module Coverband
       @reporting_frequency = 0.0
       @verbose = false
       @reporter = 'scov'
-      @collector = 'coverage'
       @logger = Logger.new(STDOUT)
       @store = nil
 

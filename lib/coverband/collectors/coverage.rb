@@ -3,17 +3,31 @@
 module Coverband
   module Collectors
     ###
-    # TODO: likely flatten and remove the collectors and base
-    # TODO: nothing currently handles relative path
-    # ensuring it is the same across deployments etc
-    # could be handled during collection, storing, or processing for reporting
     # TODO: look at alternatives to semaphore
     # StandardError seems line be better option
     # coverband previously had RuntimeError here
     # but runtime error can let a large number of error crash this method
     # and this method is currently in a ensure block in middleware and threads
     ###
-    class Coverage < Base
+    class Coverage
+      def self.instance
+        Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
+      end
+
+      def reset_instance
+        @project_directory = File.expand_path(Coverband.configuration.root)
+        @file_line_usage = {}
+        @ignored_files = Set.new
+        @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
+        @reporting_frequency = Coverband.configuration.reporting_frequency
+        @store = Coverband.configuration.store
+        @verbose  = Coverband.configuration.verbose
+        @logger   = Coverband.configuration.logger
+        @current_thread = Thread.current
+        Thread.current[:coverband_instance] = nil
+        self
+      end
+
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         unless @store
@@ -30,6 +44,14 @@ module Coverband
           @logger.error "error: #{err.inspect} #{err.message}"
           @logger.error err.backtrace
         end
+      end
+
+      protected
+
+      def track_file?(file)
+        @ignore_patterns.none? do |pattern|
+          file.include?(pattern)
+        end && file.start_with?(@project_directory)
       end
 
       private
@@ -113,7 +135,6 @@ module Coverband
         @semaphore = Mutex.new
         @@previous_results = nil
         reset_instance
-        #@logger.debug 'Coverband: coverage started'
       end
     end
   end

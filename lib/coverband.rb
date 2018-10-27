@@ -8,8 +8,7 @@ require 'coverband/configuration'
 require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/file_store'
-require 'coverband/adapters/s3_report_writer'
-require 'coverband/collectors/base'
+require 'coverband/utils/s3_report_writer'
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
@@ -44,6 +43,6 @@ module Coverband
   end
 
   def self.start
-    Coverband::Collectors::Base.instance
+    Coverband::Collectors::Coverage.instance
   end
 end

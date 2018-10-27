@@ -155,18 +155,18 @@ namespace :benchmarks do
     Benchmark.ips do |x|
       x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
-        Coverband::Collectors::Base.instance.sample do
+        Coverband::Collectors::Coverage.instance.sample do
           work
         end
       end
-      Coverband::Collectors::Base.instance.stop
+      Coverband::Collectors::Coverage.instance.stop
       x.report 'no coverband' do
         work
       end
       x.hold! 'temp_results' if hold_work
       x.compare!
     end
-    Coverband::Collectors::Base.instance.reset_instance
+    Coverband::Collectors::Coverage.instance.reset_instance
   end
 
   def fake_line_numbers

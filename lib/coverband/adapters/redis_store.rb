@@ -6,7 +6,7 @@ module Coverband
     # RedisStore store a merged coverage file to redis
     ###
     class RedisStore < Base
-      BASE_KEY = 'coverband3'.freeze
+      BASE_KEY = 'coverband3'
 
       def initialize(redis, opts = {})
         @redis           = redis

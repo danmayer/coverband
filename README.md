@@ -179,7 +179,7 @@ module MyApplication
     # any files that get loaded as part of railties will have no coverage
     config.before_initialize do
       require 'coverage'
-      Coverband::Collectors::Base.instance.start
+      Coverband::Collectors::Coverage.instance.start
     end
 
   end
@@ -380,9 +380,9 @@ require 'rails'
 # Capture code coverage during our cron jobs
 class CoverageRunner < ::Rails::Railtie
   runner do
-    Coverband::Collectors::Base.instance.start
+    Coverband::Collectors::Coverage.instance.start
     at_exit do
-      Coverband::Collectors::Base.instance.report_coverage
+      Coverband::Collectors::Coverage.instance.report_coverage
     end
   end
 end

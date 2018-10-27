@@ -8,7 +8,7 @@ class FullStackTest < Test::Unit::TestCase
   TEST_RACK_APP = '../fake_app/basic_rack.rb'.freeze
 
   def setup
-    Coverband::Collectors::Base.instance.reset_instance
+    Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
       config.reporting_frequency = 100.0
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
