@@ -201,7 +201,7 @@ namespace :benchmarks do
     puts 'coverage loaded'
     puts `COVERAGE=true rake benchmarks:run_file`
     puts 'just the work'
-    puts `rake benchmarks:run_redis`
+    puts `rake benchmarks:run_file`
   end
 
   desc 'compare Coverband Ruby Coverage with Redis and normal Ruby'
