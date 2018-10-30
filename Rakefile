@@ -4,7 +4,9 @@ require 'bundler/gem_tasks'
 
 import 'test/benchmarks/benchmark.rake'
 
-task default: :test
+task default: [:test, :benchmarks]
+
+task :test
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
