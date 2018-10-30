@@ -13,7 +13,9 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - background reporting
   - or middleware reporting
 - Support for file versions
-  - md5 or release tags  
+  - md5 or release tags
+  - add coverage timerange support
+- Drop Simplecov dependency 
 
 ### Coverband 3.0.X
 
@@ -27,6 +29,7 @@ Will be a stable and fast release that drops maintenance legacy support in favor
 - improved web reporting
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
 - additional adapters: Memcache, S3, and ActiveRecord
+- add additional config / protection options on Coverage clear
 
 ### Coverband_jam_session
 

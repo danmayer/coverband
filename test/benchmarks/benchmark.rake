@@ -40,7 +40,7 @@ namespace :benchmarks do
     # rubocop:enable Style/IfUnlessModifier
   end
 
-  desc 'setup standard benchmark'
+  # desc 'setup standard benchmark'
   task :setup do
     clone_classifier
     $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
@@ -57,7 +57,6 @@ namespace :benchmarks do
     # make sure to be plugged in while benchmarking ;) Otherwise you get very unreliable results
     require 'classifier-reborn'
     if ENV['COVERAGE']
-      puts 'Coverage library loaded and started'
       require 'coverage'
       ::Coverage.start
     end
@@ -76,7 +75,7 @@ namespace :benchmarks do
                                         redis_namespace: 'coverband_bench')
   end
 
-  desc 'set up coverband tracepoint Redis'
+  # desc 'set up coverband with Redis'
   task :setup_redis do
     Coverband.configure do |config|
       config.redis               = Redis.new
@@ -87,7 +86,7 @@ namespace :benchmarks do
     end
   end
 
-  desc 'set up coverband tracepoint filestore'
+  # desc 'set up coverband with filestore'
   task :setup_file do
     Coverband.configure do |config|
       config.root                = Dir.pwd
@@ -95,20 +94,6 @@ namespace :benchmarks do
       config.logger              = $stdout
       file_path                  = '/tmp/benchmark_store.json'
       config.store               = Coverband::Adapters::FileStore.new(file_path)
-    end
-  end
-
-  ###
-  # This benchmark always needs to be run last
-  # as requiring coverage changes how Ruby interprets the code
-  ###
-  desc 'set up coverband with coverage Redis'
-  task :setup_coverage do
-    Coverband.configure do |config|
-      config.root                = Dir.pwd
-      config.reporting_frequency = 100.0
-      config.logger              = $stdout
-      config.store              = benchmark_redis_store
     end
   end
 
@@ -149,11 +134,9 @@ namespace :benchmarks do
     Benchmark.ips do |x|
       x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
-        # Coverband.start do
-        #   work
-        # end
+        work
+        Coverband::Collectors::Coverage.instance.report_coverage
       end
-      Coverband::Collectors::Coverage.instance.stop
       x.report 'no coverband' do
         work
       end
@@ -200,33 +183,38 @@ namespace :benchmarks do
     reporting_speed
   end
 
-  desc 'runs benchmarks on default redis setup'
+  # desc 'runs benchmarks on default redis setup'
   task run_redis: [:setup, :setup_redis] do
     puts 'Coverband configured with default Redis store'
-    run_work
-  end
-
-  desc 'runs benchmarks file store'
-  task run_file: [:setup, :setup_file] do
-    puts 'Coverband configured with file store'
-    run_work
-  end
-
-  desc 'runs benchmarks coverage'
-  task run_coverage: [:setup, :setup_coverage] do
-    puts 'Coverband Coverage configured with to use default Redis store'
     run_work(true)
   end
 
-  desc 'compare Coverband Ruby Coverage with normal Ruby'
-  task :compare_coverage do
+  # desc 'runs benchmarks file store'
+  task run_file: [:setup, :setup_file] do
+    puts 'Coverband configured with file store'
+    run_work(true)
+  end
+
+  desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'
+  task :compare_file do
     puts 'comparing Coverage loaded/not, this takes some time for output...'
-    puts `COVERAGE=true rake benchmarks:run_coverage`
-    puts `rake benchmarks:run_coverage`
+    puts 'coverage loaded'
+    puts `COVERAGE=true rake benchmarks:run_file`
+    puts 'just the work'
+    puts `rake benchmarks:run_redis`
+  end
+
+  desc 'compare Coverband Ruby Coverage with Redis and normal Ruby'
+  task :compare_redis do
+    puts 'comparing Coverage loaded/not, this takes some time for output...'
+    puts 'coverage loaded'
+    puts `COVERAGE=true rake benchmarks:run_redis`
+    puts 'just the work'
+    puts `rake benchmarks:run_redis`
   end
 end
 
 desc 'runs benchmarks'
-task benchmarks: ['benchmarks:run_file',
-                  'benchmarks:run_redis',
-                  'benchmarks:compare_coverage']
+task benchmarks: ['benchmarks:redis_reporting',
+                  'benchmarks:compare_file',
+                  'benchmarks:compare_redis']
