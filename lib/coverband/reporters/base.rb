@@ -36,17 +36,15 @@ module Coverband
           Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
         end
 
-        fixed_report = {}
         # normalize names across servers
-        report_hash.each_pair do |key, vals|
+        report_hash.each_with_object({}) do |(key, vals), fixed_report|
           filename = filename_from_key(key, roots)
-          if fixed_report.key?(filename)
-            fixed_report[filename] = merge_arrays(fixed_report[filename], vals)
-          else
-            fixed_report[filename] = vals
-          end
+          fixed_report[filename] = if fixed_report.key?(filename)
+                                     merge_arrays(fixed_report[filename], vals)
+                                   else
+                                     vals
+                                   end
         end
-        fixed_report
       end
 
       # > merge_arrays([nil,0,0,1,0,1],[nil,nil,0,1,0,0])
