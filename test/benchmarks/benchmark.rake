@@ -79,26 +79,22 @@ namespace :benchmarks do
   desc 'set up coverband tracepoint Redis'
   task :setup_redis do
     Coverband.configure do |config|
-      config.redis              = Redis.new
-      config.root               = Dir.pwd
-      config.percentage         = 100.0
-      config.logger             = $stdout
-      config.collector          = 'trace'
-      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      config.store              = benchmark_redis_store
+      config.redis               = Redis.new
+      config.root                = Dir.pwd
+      config.reporting_frequency = 100.0
+      config.logger              = $stdout
+      config.store               = benchmark_redis_store
     end
   end
 
   desc 'set up coverband tracepoint filestore'
   task :setup_file do
     Coverband.configure do |config|
-      config.root               = Dir.pwd
-      config.percentage         = 100.0
-      config.logger             = $stdout
-      config.collector          = 'trace'
-      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
-      file_path                 = '/tmp/benchmark_store.json'
-      config.store              = Coverband::Adapters::FileStore.new(file_path)
+      config.root                = Dir.pwd
+      config.reporting_frequency = 100.0
+      config.logger              = $stdout
+      file_path                  = '/tmp/benchmark_store.json'
+      config.store               = Coverband::Adapters::FileStore.new(file_path)
     end
   end
 
@@ -109,11 +105,9 @@ namespace :benchmarks do
   desc 'set up coverband with coverage Redis'
   task :setup_coverage do
     Coverband.configure do |config|
-      config.root               = Dir.pwd
-      config.percentage         = 100.0
-      config.logger             = $stdout
-      config.collector          = 'coverage'
-      config.memory_caching     = ENV['MEMORY_CACHE'] ? true : false
+      config.root                = Dir.pwd
+      config.reporting_frequency = 100.0
+      config.logger              = $stdout
       config.store              = benchmark_redis_store
     end
   end
@@ -155,9 +149,9 @@ namespace :benchmarks do
     Benchmark.ips do |x|
       x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
-        Coverband::Collectors::Coverage.instance.sample do
-          work
-        end
+        # Coverband.start do
+        #   work
+        # end
       end
       Coverband::Collectors::Coverage.instance.stop
       x.report 'no coverband' do
@@ -200,51 +194,21 @@ namespace :benchmarks do
     end
   end
 
-  def reporting_memorycache_speed
-    report = fake_report
-    redis_store = benchmark_redis_store
-    cache_store = Coverband::Adapters::MemoryCacheStore.new(redis_store)
-
-    5.times do
-      redis_store.save_report(report)
-      cache_store.save_report(report)
-      adjust_report(report)
-    end
-    Benchmark.ips do |x|
-      x.config(time: 15, warmup: 5)
-      x.report('store_redis_reports') do
-        redis_store.save_report(report)
-        adjust_report(report)
-      end
-      x.report('store_cache_reports') do
-        cache_store.save_report(report)
-        adjust_report(report)
-      end
-      x.compare!
-    end
-  end
-
   desc 'runs benchmarks on reporting large sets of files to redis'
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed
   end
 
-  desc 'benchmarks: reporting large sets of files to redis using memory cache'
-  task cache_reporting: [:setup] do
-    puts 'benchmarks: reporting large sets of files to redis using memory cache'
-    reporting_memorycache_speed
-  end
-
   desc 'runs benchmarks on default redis setup'
   task run_redis: [:setup, :setup_redis] do
-    puts 'Coverband tracepoint configured with default Redis store'
+    puts 'Coverband configured with default Redis store'
     run_work
   end
 
   desc 'runs benchmarks file store'
   task run_file: [:setup, :setup_file] do
-    puts 'Coverband tracepoint configured with file store'
+    puts 'Coverband configured with file store'
     run_work
   end
 

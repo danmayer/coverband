@@ -1,11 +1,9 @@
 # Future Roadmap
 
-### Coverband 3.0
+### Coverband 4.0
 
 Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
 
-- expects to drop Tracepoint collection engine
-- expects to drop anything below Ruby 2.3
 - Release will be aimed as significantly simplifying ease of use
   - near zero config setup for Rails apps
   - add built-in support for easy loading via Railties
@@ -14,9 +12,21 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - options on reporting
   - background reporting
   - or middleware reporting
+- Support for file versions
+  - md5 or release tags  
+
+### Coverband 3.0.X
+
+Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
+
+- expects to drop Tracepoint collection engine
+- expects to drop anything below Ruby 2.3
+- release begins to simplify ease of use
+  - drop collectors adapter
+  - reduced configuration options
 - improved web reporting
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
-- additional adapters including Memcache, S3, and ActiveRecord
+- additional adapters: Memcache, S3, and ActiveRecord
 
 ### Coverband_jam_session
 
@@ -30,12 +40,13 @@ This is a possible gem to host experimental or more complex features, which woul
 
 # Alpha
 
-### Coverband 3.0
+### Coverband 3.0.0
 
 * drops Tracepoint
 * drops Ruby <= 2.3.0
 * rewrites redis store, for 60X perf
 * drops various other features not needed without Tracepoint
+* drops memory cache
 * standardizes on Coverage array format vs sparse hash
 
 # Released
