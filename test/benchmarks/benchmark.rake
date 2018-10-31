@@ -35,7 +35,7 @@ namespace :benchmarks do
   def clone_classifier
     # rubocop:disable Style/IfUnlessModifier
     unless Dir.exist? classifier_dir
-      system "git clone git@github.com:jekyll/classifier-reborn.git #{classifier_dir}"
+      system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}"
     end
     # rubocop:enable Style/IfUnlessModifier
   end
