@@ -304,6 +304,23 @@ def after_perform(*args)
 end
 ```
 
+or sidekiq middleware:
+
+```ruby
+  # capture code usage in background jobs
+  class CoverbandMiddleware
+    def call(_worker, _msg, _queue)
+      Coverband.start
+      yield
+    ensure
+      Coverband::Collectors::Coverage.instance.report_coverage
+    end
+  end
+  
+  ...
+  chain.add Sidekiq::CoverbandMiddleware
+```
+
 In general you can run Coverband anywhere by using the lines below. This can be useful to wrap all cron jobs, background jobs, or other code run outside of web requests. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs.
 
 
