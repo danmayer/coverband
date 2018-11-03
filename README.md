@@ -110,23 +110,15 @@ You need to configure cover band you can either do that passing in all configura
 #config/coverband.rb
 Coverband.configure do |config|
   config.root              = Dir.pwd
-  config.collector         = 'coverage'
-  config.redis             = Redis.new(url: ENV['REDIS_URL']) if defined? Redis
-  # TODO NOTE THIS IS A ISSUE IN THE 2.0 release you set something like redis and the store
-  # I need to look a bit more at this but got one bug report quickly after release
-  # (even though test builds didnt need)
-  config.store             = Redis.new(url: ENV['REDIS_URL']) if defined? Redis
+  config.store             = Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['REDIS_URL'])) if defined? Redis
   config.ignore            = %w[vendor .erb$ .slim$]
   # add paths that you deploy to that might be different than your local dev root path
   config.root_paths        = []
 
-  # reporting frequency
+  # reporting frequency, how often coverage data is sent to the store
   # if you are debugging changes to coverband I recommend setting to 100.0
-  # otherwise it is find to report slowly over time with less performance impact
-  # with the Coverage collector coverage is ALWAYS captured this is just how frequently
-  # it is reported to your back end store.
-  config.percentage        = Rails.env.production? ? 1.0 : 100.0
-  config.logger            = Rails.logger
+  config.reporting_frequency = Rails.env.production? ? 1.0 : 100.0
+  config.logger              = Rails.logger
 
   # config options false, true, or 'debug'. Always use false in production
   # true and debug can give helpful and interesting code usage information
@@ -143,7 +135,7 @@ Either add the below to your `Rakefile` or to a file included in your Rakefile s
 ```ruby
 require 'coverband'
 Coverband.configure
-require 'coverband/tasks'
+require 'coverband/utils/tasks'
 ```
 This should give you access to a number of Coverband tasks
 
@@ -179,10 +171,8 @@ module MyApplication
     # if one uses before_eager_load as I did previously
     # any files that get loaded as part of railties will have no coverage
     config.before_initialize do
-      require 'coverage'
-      Coverband::Collectors::Coverage.instance.start
+       Coverband.start
     end
-
   end
 end
 ```
@@ -208,9 +198,9 @@ run ActionController::Dispatcher.new
 * run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 0)
 * run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
-## Installation Script
+## Installation Session
 
-These are the steps show in setting up coverband in the gif in the readme.
+These are the steps taken to install and configure Coverband
 
 ```
 rails new coverage_example
@@ -219,7 +209,7 @@ atom .
 
 # open Gemfile, add lines
 gem 'redis'
-gem 'coverband', '>= 2.0.0.alpha1', require: false
+gem 'coverband', '>= 3.0.0.alpha2', require: false
 
 bundle install
 
@@ -234,7 +224,7 @@ rake db:migrate
 # open Rakefile, add lines
 require 'coverband'
 Coverband.configure
-require 'coverband/tasks'
+require 'coverband/utils/tasks'
 
 # verify rake
 rake -T coverband
@@ -260,7 +250,7 @@ rake coverband:coverage
 
 ### Example apps
 
-- [Rails 5.1.x App](https://github.com/danmayer/coverage_rails_benchmark)
+- [Rails 5.2.x App](https://github.com/danmayer/coverage_demo)
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
 
@@ -280,7 +270,7 @@ If your code has changed and your coverage line data doesn't seem to match run t
 
 ### Automated Clearing Line Coverage Data
 
-After a deploy where code has changed significantly.
+After a deploy where code has changed significantly. This is to avoid coverage drift
 
 The line numbers previously recorded in Redis may no longer match the current state of the files.
 If being slightly out of sync isn't as important as gathering data over a long period,
@@ -305,20 +295,11 @@ For example if you had a base Resque class, you could use the `before_perform` a
 ```ruby
 require 'coverband'
 Coverband.configure
-
-def before_perform(*args)
-  if (rand * 100.0) <= Coverband.configuration.percentage
-    @recording_samples = true
-    Coverband::Base.instance.start
-  else
-    @recording_samples = false
-  end
-end
+Coverband.start
 
 def after_perform(*args)
   if @recording_samples
-    Coverband::Base.instance.stop
-    Coverband::Base.instance.save
+     Coverband::Collectors::Coverage.instance.report_coverage
   end
 end
 ```
@@ -329,18 +310,11 @@ In general you can run Coverband anywhere by using the lines below. This can be 
 ```ruby
 require "coverband"
 Coverband.configure
+Coverband.start
 
-coverband = Coverband::Base.instance
+# do whatever
+Coverband::Collectors::Coverage.instance.report_coverage
 
-#manual
-coverband.start
-coverband.stop
-coverband.save
-
-#sampling
-coverband.sample {
-  #code to sample coverband
-}
 ```
 
 ### Manual Configuration (for cron jobs / Raketasks)
@@ -352,7 +326,7 @@ He extended the Coverband Rake tasks by adding `lib/tasks/coverband.rake` with s
 ```
 require 'coverband'
 Coverband.configure
-require 'coverband/tasks'
+require 'coverband/utils/tasks'
 
 # Wrap all Rake tasks with Coverband
 current_tasks = Rake.application.top_level_tasks
@@ -363,12 +337,11 @@ end
 
 namespace :coverband do
   task :start do
-    Coverband::Base.instance.start
+    Coverband.start
   end
 
   task :stop_and_save do
-    Coverband::Base.instance.stop
-    Coverband::Base.instance.save
+    Coverband::Collectors::Coverage.instance.report_coverage
   end
 end
 ```
@@ -381,7 +354,7 @@ require 'rails'
 # Capture code coverage during our cron jobs
 class CoverageRunner < ::Rails::Railtie
   runner do
-    Coverband::Collectors::Coverage.instance.start
+    Coverband.start
     at_exit do
       Coverband::Collectors::Coverage.instance.report_coverage
     end
@@ -443,22 +416,6 @@ If you are trying to debug locally wondering what code is being run during a req
       [[448, 1], [202, 1],
       ...
      [517, 1617], [516, 38577]]
-
-### Merge coverage data over time
-
-If you are clearing data on every deploy. You might want to write the data out to a file first. Then you could merge the data into the final results later.
-
-__note:__ I don't actually recommend clearing on every deploy, but only following significant releases where many line numbers would be off. If you follow that approach you don't need to merge data over time as this example shows how.
-
-```ruby
-data = JSON.generate Coverband::Reporter.get_current_scov_data
-File.write("blah.json", data)
-# Then later on, pass it in to the html reporter:
-data = JSON.parse(File.read("blah.json"))
-Coverband::Reporter.report :additional_scov_data => [data]
-```
-
-You can also pass a `:additional_scov_data => [data]` option to `Coverband::Reporter.get_current_scov_data` to write out merged data.
 
 ### Writing Coverband Results to S3
 
@@ -573,101 +530,6 @@ What files have been synced to Redis?
 What is the coverage data in Redis?
 
 `Coverband.configuration.store.coverage`
-
-### Internal Formats
-
-If you are doing development having some documented examples of various internal data formats can be helpfu....
-
-The format we get from TracePoint, Coverage, Internal Representations, and Used by SimpleCov for reporting have traditionally varied a bit. We can document the differences in formats here.
-
-#### Coverage
-
-```
->> require 'coverage'
-=> true
->> Coverage.start
-=> nil
->> require './test/unit/dog.rb'
-=> true
->>  5.times { Dog.new.bark }
-=> 5
->> Coverage.peek_result
-=> {"/Users/danmayer/projects/coverband/test/unit/dog.rb"=>[nil, nil, 1, 1, 5, nil, nil]}
-```
-
-#### SimpleCov
-
-The same format, but relative paths.
-
-```
-{"test/unit/dog.rb"=>[1, 2, nil, nil, nil, nil, nil]}
-```
-
-#### Redis Store
-
-We store relative path in Redis, the Redis hash stores line numbers -> count (as strings).
-
-```
-# Array
-["test/unit/dog.rb"]
-
-# Hash
-{"test/unit/dog.rb"=>{"1"=>"1", "2"=>"2"}}
-```
-
-#### File Store
-
-Similar format to redis store, but array with integer values
-
-```
-{"test/unit/dog.rb"=>{"1"=>1, "2"=>2}}
-```
-
-# Future Coverband
-
-### Alternative Redis formats
-
-* Look at alternative storage formats for Redis
-  * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
-  * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
-
-### Todo
-
-* add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
-* graphite adapters (it would allow passing in date ranges on usage)
-* perf test for array vs hash
-* redis pipeline around hash (or batch get then push)
-* move to SimpleCov console out, or make similar console tabular output
-* Improve network performance by logging to files that purge later (like NR) (far more time lost in TracePoint than sending files, hence not a high priority, but would be cool)
-* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
-* Possibly add ability to record code run for a given route
-* integrate recording with deploy tag or deploy timestamp
-   *  diff code usage across deployed versions 
-* Improve client code api, around manual usage of sampling (like event usage)
-* ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
-* Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
-* support runner, active job, etc without needed extra config (improved railtie integration)
-
-# Resources
-
-These notes of kind of for myself, but if anyone is seriously interested in contributing to the project, these resources might be helpful. I learned a lot looking at various existing projects and open source code.
-
-##### Ruby Std-lib Coverage
-
-* [Ruby Coverage docs](https://ruby-doc.org/stdlib-2.5.0/libdoc/coverage/rdoc/Coverage.html)
-
-##### Other
-
-* [erb code coverage](http://stackoverflow.com/questions/13030909/how-to-test-code-coverage-for-rails-erb-templates)
-* [more erb code coverage](https://github.com/colszowka/simplecov/issues/38)
-* [erb syntax](http://stackoverflow.com/questions/7996695/rails-erb-syntax) parse out and mark lines as important
-* [ruby 2 tracer](https://github.com/brightbox/deb-ruby2.0/blob/master/lib/tracer.rb)
-* [coveralls hosted code coverage tracking](https://coveralls.io/docs/ruby) currently for test coverage but might be a good partner for production coverage
-* [simplecov usage example](http://www.cakesolutions.net/teamblogs/brief-introduction-to-rspec-and-simplecov-for-ruby) copy some of the syntax sugar setup for cover band
-* [Jruby coverage bug](https://github.com/jruby/jruby/issues/1196)
-* [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)
-* [learn from stackprof](https://github.com/tmm1/stackprof#readme)
-* I believe there are possible ways to get even better data using the new [Ruby2 TracePoint API](http://www.ruby-doc.org/core/TracePoint.html)
 
 # License
 

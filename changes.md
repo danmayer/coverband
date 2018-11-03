@@ -1,5 +1,24 @@
 # Future Roadmap
 
+### Research Alternative Redis formats
+
+* Look at alternative storage formats for Redis
+  * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
+  * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
+* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
+
+### Feature Ideas
+
+* add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
+* graphite adapters (it would allow passing in date ranges on usage)
+* move to SimpleCov console out, or make similar console tabular output
+* Possibly add ability to record code run for a given route
+* integrate recording with deploy tag or deploy timestamp
+   *  diff code usage across deployed versions 
+* Improve client code api, around manual usage of sampling (like event usage)
+* ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+* Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
+
 ### Coverband 4.0
 
 Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
