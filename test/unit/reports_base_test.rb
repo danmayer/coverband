@@ -13,7 +13,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # the code takes config.root expands and adds a '/' for the final path in roots
     roots = ['/app/', '/full/remote_app/path/']
 
-    assert_equal '/full/remote_app/path/is/a/path.rb', Coverband::Reporters::Base.filename_from_key(key, roots)
+    expected_path = '/full/remote_app/path/is/a/path.rb'
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
   test 'filename_from_key fix filename a changing deploy path with double quotes' do
@@ -27,7 +28,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # note to get regex to work for changing deploy directories it must be double escaped in double quotes or use single qoutes
     roots = ['/box/apps/app_name/releases/\\d+/', '/full/remote_app/path/']
 
-    assert_equal '/full/remote_app/path/app/models/user.rb', Coverband::Reporters::Base.filename_from_key(key, roots)
+    expected_path = '/full/remote_app/path/app/models/user.rb'
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
   test 'filename_from_key fix filename a changing deploy path with single quotes' do
@@ -41,7 +43,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # note to get regex to work for changing deploy directories it must be double escaped in double quotes or use single qoutes
     roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
 
-    assert_equal '/full/remote_app/path/app/models/user.rb', Coverband::Reporters::Base.filename_from_key(key, roots)
+    expected_path = '/full/remote_app/path/app/models/user.rb'
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
   test 'filename_from_key leave filename from a key with a local path' do
@@ -54,7 +57,8 @@ class ReportsBaseTest < Test::Unit::TestCase
     # the code takes config.root expands and adds a '/' for the final path in roots
     roots = ['/app/', '/full/remote_app/path/']
 
-    assert_equal '/full/remote_app/path/is/a/path.rb', Coverband::Reporters::Base.filename_from_key(key, roots)
+    expected_path = '/full/remote_app/path/is/a/path.rb'
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
   test '#merge_arrays basic merge preserves order and counts' do
@@ -62,7 +66,7 @@ class ReportsBaseTest < Test::Unit::TestCase
     second = [nil, 0, 1, 0, 0]
     expects = [0, 0, 2, 0, 1]
 
-    assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
+    assert_equal expects, Coverband::Reporters::Base.send(:merge_arrays, first, second)
   end
 
   test '#merge_arrays basic merge preserves order and counts different lengths' do
@@ -70,7 +74,7 @@ class ReportsBaseTest < Test::Unit::TestCase
     second = [nil, 0, 1, 0, 0, 0, 0, 1]
     expects = [0, 0, 2, 0, 1, 0, 0, 1]
 
-    assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
+    assert_equal expects, Coverband::Reporters::Base.send(:merge_arrays, first, second)
   end
 
   test '#merge_arrays basic merge preserves nils' do
@@ -78,7 +82,7 @@ class ReportsBaseTest < Test::Unit::TestCase
     second = [0, 1, 2, nil, 0, 1, 2]
     expects = [0, 2, 4, nil, 0, 1, 2]
 
-    assert_equal expects, Coverband::Reporters::Base.merge_arrays(first, second)
+    assert_equal expects, Coverband::Reporters::Base.send(:merge_arrays, first, second)
   end
 
   test "#get_current_scov_data_imp doesn't ignore folders with default ignore keys" do
@@ -102,6 +106,6 @@ class ReportsBaseTest < Test::Unit::TestCase
     File.stubs(:exist?).returns(true)
     File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
 
-    assert_equal expected, Coverband::Reporters::Base.get_current_scov_data_imp(store, roots)
+    assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)
   end
 end

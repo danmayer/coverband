@@ -7,91 +7,91 @@ module Coverband
     # it helps with filtering, normalization, etc for final reprort generation
     ###
     class Base
-      def self.report(store, _options = {})
-        scov_style_report = get_current_scov_data_imp(store, root_paths)
+      class << self
+        def report(store, _options = {})
+          scov_style_report = get_current_scov_data_imp(store, root_paths)
 
-        if Coverband.configuration.verbose
-          msg = "report:\n #{scov_style_report.inspect}"
-          Coverband.configuration.logger.debug msg
-        end
-        scov_style_report
-      end
-
-      # protected
-      # below are all not public API
-      # but as they are class methods protected doesn't really do anything
-
-      def self.root_paths
-        roots = Coverband.configuration.root_paths
-        roots << "#{current_root}/"
-        roots
-      end
-
-      def self.current_root
-        File.expand_path(Coverband.configuration.root)
-      end
-
-      def self.fix_file_names(report_hash, roots)
-        if Coverband.configuration.verbose
-          Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
+          if Coverband.configuration.verbose
+            msg = "report:\n #{scov_style_report.inspect}"
+            Coverband.configuration.logger.debug msg
+          end
+          scov_style_report
         end
 
-        # normalize names across servers
-        report_hash.each_with_object({}) do |(key, vals), fixed_report|
-          filename = filename_from_key(key, roots)
-          fixed_report[filename] = if fixed_report.key?(filename)
-                                     merge_arrays(fixed_report[filename], vals)
-                                   else
-                                     vals
-                                   end
-        end
-      end
+        protected
 
-      # > merge_arrays([nil,0,0,1,0,1],[nil,nil,0,1,0,0])
-      # > [nil,0,0,1,0,1]
-      def self.merge_arrays(first, second)
-        merged = []
-        longest = first.length > second.length ? first : second
-
-        longest.each_with_index do |_line, index|
-          merged[index] = if first[index] || second[index]
-                            (first[index].to_i + second[index].to_i)
-                          end
+        def root_paths
+          roots = Coverband.configuration.root_paths
+          roots << "#{current_root}/"
+          roots
         end
 
-        merged
-      end
-
-      def self.filename_from_key(key, roots)
-        filename = key
-        roots.each do |root|
-          filename = filename.gsub(/^#{root}/, './')
-        end
-        # the filename for  SimpleCov is expected to be a full path.
-        # roots.last should be roots << current_root}/
-        # a fully expanded path of config.root
-        filename = filename.gsub('./', roots.last)
-        filename
-      end
-
-      ###
-      # why do we need to merge covered files data?
-      # basically because paths on machines or deployed hosts could be different, so
-      # two different keys could point to the same filename or `line_key`
-      # this logic should be pushed to base report
-      # TODO: think we are filtering based on ignore while sending to the store
-      # and as we pull it out here
-      ###
-      def self.get_current_scov_data_imp(store, roots)
-        scov_style_report = {}
-        store.coverage.each_pair do |key, line_data|
-          next if Coverband.configuration.ignore.any? { |i| key.match(i) }
-          next unless line_data
-          scov_style_report[key] = line_data
+        def current_root
+          File.expand_path(Coverband.configuration.root)
         end
 
-        scov_style_report = fix_file_names(scov_style_report, roots)
-        scov_style_report
+        def fix_file_names(report_hash, roots)
+          if Coverband.configuration.verbose
+            Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
+          end
+
+          # normalize names across servers
+          report_hash.each_with_object({}) do |(key, vals), fixed_report|
+            filename = filename_from_key(key, roots)
+            fixed_report[filename] = if fixed_report.key?(filename)
+                                       merge_arrays(fixed_report[filename], vals)
+                                     else
+                                       vals
+                                     end
+          end
+        end
+
+        # > merge_arrays([nil,0,0,1,0,1],[nil,nil,0,1,0,0])
+        # > [nil,0,0,1,0,1]
+        def merge_arrays(first, second)
+          merged = []
+          longest = first.length > second.length ? first : second
+
+          longest.each_with_index do |_line, index|
+            merged[index] = if first[index] || second[index]
+                              (first[index].to_i + second[index].to_i)
+                            end
+          end
+
+          merged
+        end
+
+        def filename_from_key(key, roots)
+          filename = key
+          roots.each do |root|
+            filename = filename.gsub(/^#{root}/, './')
+          end
+          # the filename for  SimpleCov is expected to be a full path.
+          # roots.last should be roots << current_root}/
+          # a fully expanded path of config.root
+          filename = filename.gsub('./', roots.last)
+          filename
+        end
+
+        ###
+        # why do we need to merge covered files data?
+        # basically because paths on machines or deployed hosts could be different, so
+        # two different keys could point to the same filename or `line_key`
+        # this logic should be pushed to base report
+        # TODO: think we are filtering based on ignore while sending to the store
+        # and as we also pull it out here
+        ###
+        def get_current_scov_data_imp(store, roots)
+          scov_style_report = {}
+          store.coverage.each_pair do |key, line_data|
+            next if Coverband.configuration.ignore.any? { |i| key.match(i) }
+            next unless line_data
+            scov_style_report[key] = line_data
+          end
+
+          scov_style_report = fix_file_names(scov_style_report, roots)
+          scov_style_report
+        end
       end
     end
   end
