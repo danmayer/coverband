@@ -30,6 +30,7 @@ Will be a stable and fast release that drops maintenance legacy support in favor
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
 - additional adapters: Memcache, S3, and ActiveRecord
 - add additional config / protection options on Coverage clear
+- add memory benchmarks showing memory overhead of coverband
 
 ### Coverband_jam_session
 
@@ -47,6 +48,7 @@ This is a possible gem to host experimental or more complex features, which woul
 
 * drops Tracepoint
 * drops Ruby <= 2.3.0
+* drops JSON gem
 * rewrites redis store, for 60X perf
 * drops various other features not needed without Tracepoint
 * drops memory cache
