@@ -199,7 +199,16 @@ namespace :benchmarks do
   task :coverband_demo do
     # for local testing
     # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
-    puts `ab -n 500 -c 5 "https://coverband-demo.herokuapp.com/posts"`
+    puts `ab -n 2000 -c 10 "https://coverband-demo.herokuapp.com/posts"`
+  end
+
+  desc 'benchmarks external requests to coverband_demo site'
+  task :coverband_demo_graph do
+    # for local testing
+    # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
+    puts `ab -n 2000 -c 10 -g tmp/ab_brench.tsv "https://coverband-demo.herokuapp.com/posts"`
+    puts `test/benchmarks/graph_bench.sh`
+    `open tmp/timeseries.jpg`
   end
 
   desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'
