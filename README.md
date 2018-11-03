@@ -46,6 +46,8 @@ Below is my Coverband workflow, which hopefully will help other best use this li
    * clear old coverage: `rake coverband:clear`
    * deploy and verify coverage is matching expectations
 * __COVERAGE DRIFT__
+   * we are working to address this early in the 3.0.x feature set
+      * https://github.com/danmayer/coverband/issues/118  
    * if you never clear you have lines of code drift from when they were recorded
    * if you clear on every deploy you don't capture as useful of data
    * there is a tradeoff on accuracy and data value
@@ -70,8 +72,7 @@ Follow the below section to install and configure Coverband.
 
 ## Prerequisites
 
-* Coverband requires Ruby 2.1 to run the older and slower implementation (TracePoint).
-* Modern Coverband Ruby 2.3+ is recommended, this runs the (Coverage) implementation.
+* Coverband 3.0 requres Ruby 2.3+
 
 ## Gem Installation
 

@@ -195,6 +195,13 @@ namespace :benchmarks do
     run_work(true)
   end
 
+  desc 'benchmarks external requests to coverband_demo site'
+  task :coverband_demo do
+    # for local testing
+    # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
+    puts `ab -n 500 -c 5 "https://coverband-demo.herokuapp.com/posts"`
+  end
+
   desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'
   task :compare_file do
     puts 'comparing Coverage loaded/not, this takes some time for output...'
