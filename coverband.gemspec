@@ -36,5 +36,5 @@ Gem::Specification.new do |spec|
 
   # todo make an optional dependency for simplecov reports
   # also likely should just require simplecov-html not the whole lib
-  spec.add_runtime_dependency 'simplecov-html', '> 0.10.0'
+  spec.add_runtime_dependency 'simplecov', '> 0.11.1'
 end
