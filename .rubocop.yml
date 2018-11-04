@@ -1,0 +1,73 @@
+AllCops:
+  TargetRubyVersion: 2.4
+  Exclude:
+    - docs/**/*
+Documentation:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Metrics/LineLength:
+  Max: 120
+Metrics/BlockNesting:
+  Max: 5
+Bundler/OrderedGems:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false
+Metrics/AbcSize:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/BlockNesting:
+  Max: 10
+Metrics/ModuleLength:
+  Enabled: false
+Metrics/ParameterLists:
+  Max: 10
+Naming/AccessorMethodName:
+  Enabled: false
+Naming/PredicateName:
+  Enabled: false
+Style/FormatStringToken:
+  Enabled: false
+Style/TernaryParentheses:
+  Enabled: false
+Style/MutableConstant:
+  Enabled: false
+Style/FrozenStringLiteralComment:
+  Enabled: true
+Style/GuardClause:
+  Enabled: true
+Style/NumericPredicate:
+  Enabled: false
+Style/NumericLiterals:
+  Enabled: false
+Style/NumericLiteralPrefix:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/MethodMissingSuper:
+  Enabled: true
+Style/MissingRespondToMissing:
+  Enabled: false
+Performance/Casecmp:
+  Enabled: false
+Layout/EmptyLinesAroundArguments:
+  Enabled: true
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+Layout/MultilineOperationIndentation:
+  Enabled: true
+Lint/RescueException:
+  Enabled: true
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+Style/FormatString:
+  Enabled: true
+Security/Eval:
+  Enabled: true
+

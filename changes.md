@@ -1,25 +1,85 @@
 # Future Roadmap
 
-### Coverband 3.0
+### Research Alternative Redis formats
+
+* Look at alternative storage formats for Redis
+  * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
+  * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
+* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
+
+
+### Coverband 4.0
 
 Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
 
-* expects to drop Tracepoint collection engine
-* expects to drop anything below Ruby 2.3
-* Release will be aimed as significantly simplifying ease of use
-   * expects to drop the concept of baseline recordings
-   * improve support for eager-loading
-   * add built-in support for easy loading via Railties
-   * expects to add safe list support to force reload files one wants coverage on that may happen outside of the standard load order
-   * built in support for activejob, sidekiq, and other common frameworks
-* code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
+- Release will be aimed as significantly simplifying ease of use
+  - near zero config setup for Rails apps
+  - add built-in support for easy loading via Railties
+  - built in support for activejob, sidekiq, and other common frameworks
+  - reduced configuration options
+- options on reporting
+  - background reporting
+  - or middleware reporting
+- Support for file versions
+  - md5 or release tags
+  - add coverage timerange support
+- Drop Simplecov dependency 
+
+### Coverband 3.0.X
+
+Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
+
+- expects to drop Tracepoint collection engine
+- expects to drop anything below Ruby 2.3
+- release begins to simplify ease of use
+  - drop collectors adapter
+  - reduced configuration options
+- improved web reporting
+  - no longer relying directly on HTML in S3 but dynamically generated from any adapter
+  - lists current config options
+  - eventually allow updating remote config
+  - full theming
+  - list redis data dump for debugging
+- additional adapters: Memcache, S3, and ActiveRecord
+- add additional config / protection options on Coverage clear
+- add memory benchmarks showing memory overhead of coverband
+- add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
+
+### Coverband_jam_session
+
+This is a possible gem to host experimental or more complex features, which would require tuning, configuration, and performance trade offs. If something is really valuable it could be promoted into the main line.
+
+Feature Ideas:
+
+- statsd adapters (it would allow passing in date ranges on usage)
+- move to SimpleCov console out, or make similar console tabular output
+- Possibly add ability to record code run for a given route
+- integrate recording with deploy tag or deploy timestamp
+   - diff code usage across deployed versions
+   - what methods increased usage or decreased
+- Improve client code api, around manual usage of sampling (like event usage)
+- ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+- Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
+- additional adapters (tracepoint, ruby-profiler, etc)
+- code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
+- tagging of reported Coverage
+- allow only to collect coverage based on route (limiting or scoped coverage)
+- coverage over some other variable like a set of alpha users
 
 # Alpha
 
-### 3.0.0
+### Coverband 3.0.0
 
-* drop Tracepoint
-* background thread reporter
+* drops Tracepoint
+* drops Ruby <= 2.3.0
+* drops JSON Gem dependency
+* drops various other features not needed without Tracepoint
+   * memory cache, sampling, restricted to app folders, etc 
+* standardizes on Coverage array format vs sparse hash
+* rewrites store methods, for 60X perf
+  * implemented for Redis and File store
+* improved mountable web interface
+
 
 # Released
 
@@ -44,50 +104,50 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 ### 2.0.1
 
-* add support for fine grained S3 configuration via Coverband config, thanks @a0s
-  * https://github.com/danmayer/coverband/pull/98
-* Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
-  * https://github.com/danmayer/coverband/pull/100
-* added redis improvements allowing namespace and TTL thx @oded-zahavi
-* fix warnings about duplicate method definition
-* Add support for safe_reload_files based on full file path
-* Add support for Sinatra admin control endpoints
-* improved documentation
+- add support for fine grained S3 configuration via Coverband config, thanks @a0s
+  - https://github.com/danmayer/coverband/pull/98
+- Using the file argument to self.configure in lib/coverband.rb, thanks @ThomasOwens
+  - https://github.com/danmayer/coverband/pull/100
+- added redis improvements allowing namespace and TTL thx @oded-zahavi
+- fix warnings about duplicate method definition
+- Add support for safe_reload_files based on full file path
+- Add support for Sinatra admin control endpoints
+- improved documentation
 
 ### 2.0.0
 
 Major release with various backwards compatibility breaking changes (generally related to the configuration). The 2.0 lifecycle will act as a mostly easy upgrade that supports past users looking to move to the much faster new Coverage Adapter.
 
-* Continues to support Ruby 2.0 and up
-* supports multiple collect engines, introducing the concept of multiple collector adapters
-* extends the concepts of multiple storage adapters, enabling additional authors to help support Kafka, graphite, other adapters
-* old require based loading, but working towards deprecating the entire baseline concept
-* Introduces massive performance enhancements by moving to Ruby `Coverage` based collection
-   * Opposed to sampling this is now a reporting frequency, when using `Coverage` collector
-* Reduced configuration complexity
-* Refactoring the code preparing for more varied storage and reporting options
-* Drop Redis as a gem runtime_dependency
+- Continues to support Ruby 2.0 and up
+- supports multiple collect engines, introducing the concept of multiple collector adapters
+- extends the concepts of multiple storage adapters, enabling additional authors to help support Kafka, graphite, other adapters
+- old require based loading, but working towards deprecating the entire baseline concept
+- Introduces massive performance enhancements by moving to Ruby `Coverage` based collection
+  - Opposed to sampling this is now a reporting frequency, when using `Coverage` collector
+- Reduced configuration complexity
+- Refactoring the code preparing for more varied storage and reporting options
+- Drop Redis as a gem runtime_dependency
 
 ### 1.5.0
 
 This is a significant release with significant refactoring a stepping stone for a 2.0 release.
 
-* staging a changes.md document!
-* refactored out full abstraction for stores
-* supports hit counts vs binary covered / not covered for lines
-  * this will let you find density of code usage just not if it was used
-  * this is a slight performance hit, so you can fall back to the old system if you want `redisstore.new(@redis, array: true)`
-  * this is the primary new feature in 1.5.0
-* Redis has configurable base name, so I can safely change storage formats between releases
-* improved documentation
-* supports `SimpleCov.root`
-* show files that were never touched
-* apply coverband filters to ignore files in report not just collection
-* improved test coverage
-* improved benchmarks including support for multiple stores ;)
+- staging a changes.md document!
+- refactored out full abstraction for stores
+- supports hit counts vs binary covered / not covered for lines
+  - this will let you find density of code usage just not if it was used
+  - this is a slight performance hit, so you can fall back to the old system if you want `redisstore.new(@redis, array: true)`
+  - this is the primary new feature in 1.5.0
+- Redis has configurable base name, so I can safely change storage formats between releases
+- improved documentation
+- supports `SimpleCov.root`
+- show files that were never touched
+- apply coverband filters to ignore files in report not just collection
+- improved test coverage
+- improved benchmarks including support for multiple stores ;)
 
 ### 1.3.1
 
-* This was a small fix release addressing some issues
-* mostly readme updates
-* last release prior to having a changes document!
+- This was a small fix release addressing some issues
+- mostly readme updates
+- last release prior to having a changes document!

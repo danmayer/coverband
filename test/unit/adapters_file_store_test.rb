@@ -28,8 +28,8 @@ class AdaptersFileStoreTest < Test::Unit::TestCase
   end
 
   def test_save_report
-    @store.save_report('cat.rb' => { 1 => 1 })
-    assert_equal @store.covered_lines_for_file('cat.rb')['1'], 1
+    @store.send(:save_report, 'cat.rb' => [0,1])
+    assert_equal @store.covered_lines_for_file('cat.rb')[1], 1
   end
 
   private

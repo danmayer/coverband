@@ -24,7 +24,7 @@ module Coverband
         access_key_id: '',
         secret_access_key: ''
       }
-      S3ReportWriter.new('coverage-bucket', s3_writer_options).persist!
+      Coverband::Utils::S3ReportWriter.new('coverage-bucket', s3_writer_options).persist!
     end
   end
 end

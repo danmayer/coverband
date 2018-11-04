@@ -7,37 +7,24 @@ class SimpleCovReportTest < Test::Unit::TestCase
 
   def setup
     @redis = Redis.new
-    @redis.flushdb
     @store = Coverband::Adapters::RedisStore.new(@redis)
-  end
-
-  def example_hash
-    {'1' => '1', '2' => '2'}
-  end
-
-  def combined_report
-    {
-      "#{BASE_KEY}.test/unit/dog.rb" => {
-        new: example_hash,
-        existing: {}
-      }
-    }
+    @store.clear!
   end
 
   test 'report data' do
     Coverband.configure do |config|
-      config.redis             = @redis
-      config.reporter          = 'std_out'
-      config.store             = @store
+      config.reporter            = 'std_out'
+      config.store               = @store
+      config.reporting_frequency = 100.0
     end
     Coverband.configuration.logger.stubs('info')
-    Coverband::Reporters::ConsoleReport.expects(:current_root).returns('./test/unit')
-
-    @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:pipelined_save, combined_report)
+    Coverband::Reporters::ConsoleReport
+      .expects(:current_root)
+      .returns('app_path')
+    @store.send(:save_report, basic_coverage)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
-    expected = {"test/unit/dog.rb"=>[1, 2, nil, nil, nil, nil, nil]}
+    expected = { 'app_path/dog.rb' => [0, 1, 2] }
     assert_equal(expected, report)
   end
 end

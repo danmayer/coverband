@@ -2,6 +2,11 @@
 
 module Coverband
   module Adapters
+    ###
+    # FilesStore store a merged coverage file to local disk
+    # Generally this is for testing and development
+    # Not recommended for production deployment
+    ###
     class FileStore < Base
       attr_accessor :path
 
@@ -17,17 +22,8 @@ module Coverband
       end
 
       def save_report(report)
-        results = existing_data(path)
-        report.each_pair do |file, values|
-          if results.key?(file)
-            # convert the keys to "3" opposed to 3
-            values = JSON.parse(values.to_json)
-            results[file].merge!(values) { |_k, old_v, new_v| old_v.to_i + new_v.to_i }
-          else
-            results[file] = values
-          end
-        end
-        File.open(path, 'w') { |f| f.write(results.to_json) }
+        merge_reports(report, coverage)
+        save_coverage(report)
       end
 
       def coverage
@@ -45,6 +41,10 @@ module Coverband
       end
 
       private
+
+      def save_coverage(report)
+        File.open(path, 'w') { |f| f.write(report.to_json) }
+      end
 
       def existing_data(path)
         if File.exist?(path)

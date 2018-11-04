@@ -7,12 +7,8 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
 
   def setup
     @redis = Redis.new
-    @redis.flushdb
     @store = Coverband::Adapters::RedisStore.new(@redis)
-  end
-
-  def example_hash
-    {'1' => '1', '2' => '2'}
+    @store.clear!
   end
 
   def combined_report
@@ -26,16 +22,13 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
 
   test 'generate scov report' do
     Coverband.configure do |config|
-      config.redis             = @redis
       config.reporter          = 'scov'
-      config.s3_bucket         = nil
       config.store             = @store
+      config.s3_bucket         = nil
       config.ignore            = ['notsomething.rb']
     end
     Coverband.configuration.logger.stubs('info')
-
-    @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:pipelined_save, combined_report)
+    @store.send(:save_report, basic_coverage)
 
     SimpleCov.expects(:track_files)
     SimpleCov.expects(:add_not_loaded_files).returns({})
@@ -43,32 +36,5 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     SimpleCov.stubs(:root)
 
     Coverband::Reporters::SimpleCovReport.report(@store, open_report: false)
-  end
-
-  test 'generate scov report with additional data' do
-    Coverband.configure do |config|
-      config.redis             = @redis
-      config.reporter          = 'scov'
-      config.s3_bucket         = nil
-      config.store             = @store
-      config.ignore            = ['notsomething.rb']
-    end
-
-    Coverband::Reporters::SimpleCovReport.expects(:current_root).at_least_once.returns('/tmp/root_dir')
-
-    @redis.sadd(BASE_KEY, 'test/unit/dog.rb')
-    @store.send(:pipelined_save, combined_report)
-    SimpleCov.expects(:track_files)
-    SimpleCov.expects(:add_not_loaded_files).returns('fake_file.rb' => [1])
-    SimpleCov::Result.any_instance.expects(:format!)
-    SimpleCov.stubs(:root)
-
-
-    Coverband.configuration.logger.stubs('info')
-    additional_data = [
-      fake_coverage_report
-    ]
-
-    Coverband::Reporters::SimpleCovReport.report(@store, open_report: false, additional_scov_data: additional_data)
   end
 end

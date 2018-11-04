@@ -2,94 +2,59 @@
 
 module Coverband
   module Adapters
+    ###
+    # RedisStore store a merged coverage file to redis
+    ###
     class RedisStore < Base
-      BASE_KEY = 'coverband2'
+      BASE_KEY = 'coverband3'
 
       def initialize(redis, opts = {})
-        @redis = redis
+        @redis           = redis
         @ttl             = opts[:ttl]
         @redis_namespace = opts[:redis_namespace]
       end
 
       def clear!
-        @redis.smembers(base_key).each { |key| @redis.del("#{base_key}.#{key}") }
         @redis.del(base_key)
       end
 
-      def base_key
-        @base_key ||= [BASE_KEY, @redis_namespace].compact.join('.')
-      end
-
       def save_report(report)
-        store_array(base_key, report.keys)
-
-        file_keys = report.keys.map {|file| "#{base_key}.#{file}"}
-        existing_records = existing_records(file_keys)
-        combined_report = combined_report(file_keys, report, existing_records)
-        pipelined_save(combined_report)
+        # Note: This could lead to slight races
+        # where multiple processes pull the old coverage and add to it then push
+        # the Coverband 2 had the same issue,
+        # and the tradeoff has always been acceptable
+        merge_reports(report, coverage)
+        save_coverage(base_key, report)
       end
 
       def coverage
-        data = {}
-        redis.smembers(base_key).each do |key|
-          data[key] = covered_lines_for_file(key)
-        end
-        data
+        get_report(base_key)
       end
 
       def covered_files
-        redis.smembers(base_key)
+        coverage.keys
       end
 
       def covered_lines_for_file(file)
-        @redis.hgetall("#{base_key}.#{file}")
+        coverage[file]
       end
 
       private
 
       attr_reader :redis
-      
-      def pipelined_save(combined_report)
-        redis.pipelined do
-          combined_report.each do |file, values|
-            existing = values[:existing]
-            new = values[:new]
-            unless values.empty?
-              # in redis all file_keys are strings
-              new_string_values = Hash[new.map {|k, val| [k.to_s, val]}]
-              new_string_values.merge!(existing) {|_k, old_v, new_v| old_v.to_i + new_v.to_i}
-              redis.mapped_hmset(file, new_string_values)
-              redis.expire(file, @ttl) if @ttl
-            end
-          end
-        end
+
+      def base_key
+        @base_key ||= [BASE_KEY, @redis_namespace].compact.join('.')
       end
 
-      def existing_records(file_keys)
-        redis.pipelined do
-          file_keys.each do |key|
-            redis.hgetall(key)
-          end
-        end
-      end
-
-      def combined_report(file_keys, report, existing_records)
-        combined_report = {}
-
-        file_keys.each_with_index do |key, i|
-          combined_report[key] = {
-            new: report.values[i],
-            existing: existing_records[i]
-          }
-        end
-        
-        return combined_report
-      end
-
-      def store_array(key, values)
-        redis.sadd(key, values) unless values.empty?
+      def save_coverage(key, data)
+        redis.set key, data.to_json
         redis.expire(key, @ttl) if @ttl
-        values
+      end
+
+      def get_report(key)
+        data = redis.get key
+        data ? JSON.parse(data) : {}
       end
     end
   end

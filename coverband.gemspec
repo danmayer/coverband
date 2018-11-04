@@ -21,7 +21,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'aws-sdk', '~> 2'
   spec.add_development_dependency 'bundler', '~> 1.3'
-  spec.add_development_dependency 'classifier-reborn'
   spec.add_development_dependency 'mocha', '~> 0.14.0'
   spec.add_development_dependency 'rack'
   spec.add_development_dependency 'rack-test'
@@ -29,11 +28,12 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'redis'
   spec.add_development_dependency 'benchmark-ips'
+  # used for benchmarking and tests
+  spec.add_development_dependency 'classifier-reborn'
   # add when debugging
   # require 'byebug'; byebug
-  #spec.add_development_dependency 'byebug'
-  # deprecate when dropping support for older ruby
-  spec.add_runtime_dependency 'json'
+  spec.add_development_dependency 'byebug'
+
   # todo make an optional dependency for simplecov reports
   # also likely should just require simplecov-html not the whole lib
   spec.add_runtime_dependency 'simplecov', '> 0.11.1'

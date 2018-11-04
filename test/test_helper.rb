@@ -14,7 +14,7 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
-TEST_COVERAGE_FILE = '/tmp/fake_file.json'
+TEST_COVERAGE_FILE = '/tmp/fake_file.json'.freeze
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -37,33 +37,34 @@ def test(name, &block)
   end
 end
 
+def example_line
+  [0, 1, 2]
+end
+
+def basic_coverage
+  { 'app_path/dog.rb' => example_line }
+end
+
 def fake_redis
   @redis ||= begin
     redis = OpenStruct.new
-    # mocha requires method to exist to mock it
-    def redis.smembers(key); end
-    def redis.hgetall(key); end
     redis
   end
 end
 
-def fake_coverband_members
-  ['/Users/danmayer/projects/hearno/script/tester.rb',
-   '/Users/danmayer/projects/hearno/app/controllers/application_controller.rb',
-   '/Users/danmayer/projects/hearno/app/models/account.rb']
-end
-
 def fake_coverage_report
-  { '/Users/danmayer/projects/hearno/script/tester.rb' => [1, nil, 1, 1, nil, nil, nil] }
+  file_name = '/Users/danmayer/projects/hearno/script/tester.rb'
+  { file_name => [1, nil, 1, 1, nil, nil, nil] }
 end
 
 require 'coverband'
 
 Coverband.configure do |config|
-  config.root              = Dir.pwd
-  config.root_paths        = ['/app/']
-  config.ignore            = ['vendor']
-  config.percentage        = 100.0
-  config.reporter          = 'std_out'
-  config.store             = Coverband::Adapters::RedisStore.new(Redis.new)
+  config.root                = Dir.pwd
+  config.s3_bucket           = nil
+  config.root_paths          = ['/app_path/']
+  config.ignore              = ['vendor']
+  config.reporting_frequency = 100.0
+  config.reporter            = 'std_out'
+  config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
 end
