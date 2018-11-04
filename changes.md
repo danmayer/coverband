@@ -8,7 +8,7 @@
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 
 
-### Coverband 4.0
+### Coverband 4.X
 
 Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
 
@@ -25,7 +25,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - add coverage timerange support
 - Drop Simplecov dependency 
 
-### Coverband 3.0.X
+### Coverband 3.X
 
 Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
 
@@ -68,6 +68,13 @@ Feature Ideas:
 
 # Alpha
 
+### Coverband 3.0.1
+
+* ??? ;)
+
+
+# Released
+
 ### Coverband 3.0.0
 
 * drops Tracepoint
@@ -80,8 +87,6 @@ Feature Ideas:
   * implemented for Redis and File store
 * improved mountable web interface
 
-
-# Released
 
 # 2.0.3
 
