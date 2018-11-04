@@ -7,17 +7,6 @@
   * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
 * Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 
-### Feature Ideas
-
-* add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
-* graphite adapters (it would allow passing in date ranges on usage)
-* move to SimpleCov console out, or make similar console tabular output
-* Possibly add ability to record code run for a given route
-* integrate recording with deploy tag or deploy timestamp
-   *  diff code usage across deployed versions 
-* Improve client code api, around manual usage of sampling (like event usage)
-* ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
-* Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
 
 ### Coverband 4.0
 
@@ -50,11 +39,23 @@ Will be a stable and fast release that drops maintenance legacy support in favor
 - additional adapters: Memcache, S3, and ActiveRecord
 - add additional config / protection options on Coverage clear
 - add memory benchmarks showing memory overhead of coverband
+- add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
 
 ### Coverband_jam_session
 
-This is a possible gem to host experimental or more complex features, which would require tuning, configuration, and performance trade offs
+This is a possible gem to host experimental or more complex features, which would require tuning, configuration, and performance trade offs. If something is really valuable it could be promoted into the main line.
 
+Feature Ideas:
+
+- statsd adapters (it would allow passing in date ranges on usage)
+- move to SimpleCov console out, or make similar console tabular output
+- Possibly add ability to record code run for a given route
+- integrate recording with deploy tag or deploy timestamp
+   - diff code usage across deployed versions
+   - what methods increased usage or decreased
+- Improve client code api, around manual usage of sampling (like event usage)
+- ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
+- Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
 - additional adapters (tracepoint, ruby-profiler, etc)
 - code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
 - tagging of reported Coverage
@@ -67,11 +68,14 @@ This is a possible gem to host experimental or more complex features, which woul
 
 * drops Tracepoint
 * drops Ruby <= 2.3.0
-* drops JSON gem
-* rewrites redis store, for 60X perf
+* drops JSON Gem dependency
 * drops various other features not needed without Tracepoint
-* drops memory cache
+   * memory cache, sampling, restricted to app folders, etc 
 * standardizes on Coverage array format vs sparse hash
+* rewrites store methods, for 60X perf
+  * implemented for Redis and File store
+* improved mountable web interface
+
 
 # Released
 
