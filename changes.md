@@ -36,6 +36,10 @@ Will be a stable and fast release that drops maintenance legacy support in favor
   - reduced configuration options
 - improved web reporting
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
+  - lists current config options
+  - eventually allow updating remote config
+  - full theming
+  - list redis data dump for debugging
 - additional adapters: Memcache, S3, and ActiveRecord
 - add additional config / protection options on Coverage clear
 - add memory benchmarks showing memory overhead of coverband
