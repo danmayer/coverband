@@ -19,22 +19,28 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
+  # to test support for sdk 1, uncomment this line
+  # spec.add_development_dependency 'aws-sdk', '~> 1'
+  # to test sdk 2 use this one
   spec.add_development_dependency 'aws-sdk', '~> 2'
+  spec.add_development_dependency 'benchmark-ips'
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'mocha', '~> 0.14.0'
   spec.add_development_dependency 'rack'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'redis'
-  spec.add_development_dependency 'benchmark-ips'
+
+  spec.add_development_dependency 'test-unit'
+
   # used for benchmarking and tests
   spec.add_development_dependency 'classifier-reborn'
   # add when debugging
   # require 'byebug'; byebug
   spec.add_development_dependency 'byebug'
 
-  # todo make an optional dependency for simplecov reports
+  # TODO: make an optional dependency for simplecov reports
   # also likely should just require simplecov-html not the whole lib
+  # I tried this but it was harder than I thought
   spec.add_runtime_dependency 'simplecov', '> 0.11.1'
 end

@@ -71,7 +71,7 @@ module Coverband
       end
 
       def show
-        html = s3.get_object(bucket: Coverband.configuration.s3_bucket, key: 'coverband/index.html').body.read
+        html = Coverband::Utils::S3Report.instance.retrieve
         # HACK: the static HTML assets to link to the path where this was mounted
         html = html.gsub("src='", "src='#{base_path}")
         html = html.gsub("href='", "href='#{base_path}")
@@ -126,29 +126,11 @@ module Coverband
 
       # This method should get the root mounted endpoint
       # for example if the app is mounted like so:
-      # mount Coverband::S3Web, at: '/coverage'
+      # mount Coverband::Web, at: '/coverage'
       # "/coverage/collect_coverage?" become:
       # /coverage/
       def base_path
         request.path.match("\/.*\/") ? request.path.match("\/.*\/")[0] : '/'
-      end
-
-      def s3
-        begin
-          require 'aws-sdk'
-        rescue StandardError
-          Coverband.configuration.logger.error "coverband requires 'aws-sdk' in order use S3ReportWriter."
-          return
-        end
-        @s3 ||= begin
-          client_options = {
-            region: Coverband.configuration.s3_region,
-            access_key_id: Coverband.configuration.s3_access_key_id,
-            secret_access_key: Coverband.configuration.s3_secret_access_key
-          }
-          client_options = {} if client_options.values.any?(&:nil?)
-          Aws::S3::Client.new(client_options)
-        end
       end
     end
   end

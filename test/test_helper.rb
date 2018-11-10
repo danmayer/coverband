@@ -14,10 +14,12 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
-TEST_COVERAGE_FILE = '/tmp/fake_file.json'.freeze
+TEST_COVERAGE_FILE = '/tmp/fake_file.json'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
+
+Mocha::Configuration.prevent(:stubbing_method_unnecessarily)
 Mocha::Configuration.prevent(:stubbing_non_existent_method)
 
 def test(name, &block)
