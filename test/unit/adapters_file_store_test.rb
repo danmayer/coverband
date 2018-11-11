@@ -10,8 +10,8 @@ class AdaptersFileStoreTest < Test::Unit::TestCase
   end
 
   def test_covered_lines_for_file
-    assert_equal @store.covered_lines_for_file('dog.rb')['1'],  1
-    assert_equal @store.covered_lines_for_file('dog.rb')['2'],  2
+    assert_equal @store.covered_lines_for_file('dog.rb')[0],  1
+    assert_equal @store.covered_lines_for_file('dog.rb')[1],  2
   end
 
   def test_covered_lines_when_null
@@ -28,7 +28,8 @@ class AdaptersFileStoreTest < Test::Unit::TestCase
   end
 
   def test_save_report
-    @store.send(:save_report, 'cat.rb' => [0,1])
+    mock_file_hash
+    @store.send(:save_report, 'cat.rb' => [0, 1])
     assert_equal @store.covered_lines_for_file('cat.rb')[1], 1
   end
 
@@ -36,7 +37,10 @@ class AdaptersFileStoreTest < Test::Unit::TestCase
 
   def test_data
     {
-      'dog.rb' => { 1 => 1, 2 => 2 }
+      'dog.rb' => { 'data' => [1, 2, nil],
+                    'file_hash' => 'abcd',
+                    'first_updated_at' => 1541968729,
+                    'last_updated_at' => 1541968729 }
     }
   end
 end

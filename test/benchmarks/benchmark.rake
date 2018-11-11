@@ -169,6 +169,18 @@ namespace :benchmarks do
   def reporting_speed
     report = fake_report
     store = benchmark_redis_store
+    store.clear!
+
+    ###
+    # this is a hack because in the benchmark we don't have real files
+    ###
+    def store.file_hash(file)
+      if @file_hash_cache[file]
+        @file_hash_cache[file]
+      else
+        @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
+      end
+    end
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|

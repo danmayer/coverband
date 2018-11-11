@@ -18,6 +18,7 @@ class SimpleCovReportTest < Test::Unit::TestCase
       config.reporting_frequency = 100.0
     end
     Coverband.configuration.logger.stubs('info')
+    mock_file_hash
     Coverband::Reporters::ConsoleReport
       .expects(:current_root)
       .returns('app_path')
