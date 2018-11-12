@@ -70,7 +70,9 @@ Feature Ideas:
 
 ### Coverband 3.0.1
 
-* ??? ;)
+* update documentation around verification steps (https://github.com/danmayer/coverband/issues/135), thanks @kbaum
+* resolve coverage drift issue, https://github.com/danmayer/coverband/issues/118, thanks @dnasseri and @kbaum
+* first version of background thread coverage reporting https://github.com/danmayer/coverband/pull/138, thanks @kbaum
 
 
 # Released
