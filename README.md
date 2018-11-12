@@ -194,8 +194,9 @@ run ActionController::Dispatcher.new
 # Verify Correct Installation
 
 * boot up your application
+* run app and hit a controller (via a web request, at least one request must complete)
 * run `rake coverband:coverage` this will show app initialization coverage
-* run app and hit a controller (hit at least +1 time over your `config.startup_delay` setting default is 0)
+* make another request, or enough that your reporting frequency will trigger
 * run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
 ## Installation Session
