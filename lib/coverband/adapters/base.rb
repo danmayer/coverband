@@ -17,12 +17,12 @@ module Coverband
       # and the tradeoff has always been acceptable
       def save_report(report)
         data = report.dup
-        merge_reports(data, get_full_report)
+        merge_reports(data, get_report)
         save_coverage(data)
       end
 
       def coverage
-        simple_report(get_full_report)
+        simple_report(get_report)
       end
 
       def covered_files
@@ -43,16 +43,8 @@ module Coverband
         raise 'abstract'
       end
 
-      def get_full_report
-        get_report
-      end
-
       def file_hash(file)
-        if @file_hash_cache[file]
-          @file_hash_cache[file]
-        else
-          @file_hash_cache[file] = Digest::MD5.file(file).hexdigest
-        end
+        @file_hash_cache[file] ||= Digest::MD5.file(file).hexdigest
       end
 
       def expand_report(report)
@@ -65,7 +57,6 @@ module Coverband
           }
           report[key] = extended_data
         end
-        report
       end
 
       def merge_reports(new_report, old_report)
@@ -99,11 +90,9 @@ module Coverband
       end
 
       def simple_report(report)
-        simple = {}
-        report.each_pair do |key, extended_data|
+        report.each_with_object({}) do |(key, extended_data), simple|
           simple[key] = extended_data['data']
         end
-        simple
       end
     end
   end
