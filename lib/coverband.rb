@@ -14,6 +14,7 @@ require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
 require 'coverband/reporters/console_report'
 require 'coverband/integrations/background'
+require 'coverband/integrations/rack_server_check'
 require 'coverband/reporters/web'
 require 'coverband/integrations/middleware'
 require 'coverband/integrations/background'
@@ -45,5 +46,6 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
+    Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
 end

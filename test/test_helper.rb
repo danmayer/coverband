@@ -7,6 +7,7 @@ require 'mocha/setup'
 require 'ostruct'
 require 'json'
 require 'redis'
+require 'pry-byebug'
 
 SimpleCov.start do
   add_filter 'specs/ruby/1.9.1/gems/'
