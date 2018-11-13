@@ -169,6 +169,18 @@ namespace :benchmarks do
   def reporting_speed
     report = fake_report
     store = benchmark_redis_store
+    store.clear!
+
+    ###
+    # this is a hack because in the benchmark we don't have real files
+    ###
+    def store.file_hash(file)
+      if @file_hash_cache[file]
+        @file_hash_cache[file]
+      else
+        @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
+      end
+    end
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
@@ -198,7 +210,7 @@ namespace :benchmarks do
   desc 'benchmarks external requests to coverband_demo site'
   task :coverband_demo do
     # for local testing
-    # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
+    # puts `ab -n 500 -c 5 "http://127.0.0.1:3000/posts"`
     puts `ab -n 2000 -c 10 "https://coverband-demo.herokuapp.com/posts"`
   end
 
@@ -206,6 +218,7 @@ namespace :benchmarks do
   task :coverband_demo_graph do
     # for local testing
     # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
+    #puts `ab -n 500 -c 10 -g tmp/ab_brench.tsv "http://127.0.0.1:3000/posts"`
     puts `ab -n 2000 -c 10 -g tmp/ab_brench.tsv "https://coverband-demo.herokuapp.com/posts"`
     puts `test/benchmarks/graph_bench.sh`
     `open tmp/timeseries.jpg`

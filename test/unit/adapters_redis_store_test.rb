@@ -12,27 +12,30 @@ class RedisTest < Test::Unit::TestCase
   end
 
   def test_coverage
+    mock_file_hash
     expected = basic_coverage
     @store.save_report(expected)
     assert_equal expected, @store.coverage
   end
 
   def test_coverage_increments
-    expected = basic_coverage
-    @store.save_report(expected)
+    mock_file_hash
+    expected = basic_coverage.dup
+    @store.save_report(basic_coverage.dup)
     assert_equal expected, @store.coverage
-    @store.save_report(expected)
+    @store.save_report(basic_coverage.dup)
     assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']
   end
 
   def test_covered_lines_for_file
+    mock_file_hash
     expected = basic_coverage
     @store.save_report(expected)
     assert_equal example_line, @store.covered_lines_for_file('app_path/dog.rb')
   end
 
   def test_covered_lines_when_null
-    assert_equal nil, @store.covered_lines_for_file('app_path/dog.rb')
+    assert_equal [], @store.covered_lines_for_file('app_path/dog.rb')
   end
 
   def test_clear
@@ -41,15 +44,6 @@ class RedisTest < Test::Unit::TestCase
   end
 
   private
-
-  def combined_report
-    {
-      "#{BASE_KEY}.dog.rb" => {
-        new: example_hash,
-        existing: {}
-      }
-    }
-  end
 
   def test_data
     {

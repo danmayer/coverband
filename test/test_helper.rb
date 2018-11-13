@@ -37,6 +37,12 @@ def test(name, &block)
   end
 end
 
+def mock_file_hash
+  mock_file = mock('mock_file')
+  mock_file.expects(:hexdigest).at_least_once.returns('abcd')
+  Digest::MD5.expects(:file).at_least_once.returns(mock_file)
+end
+
 def example_line
   [0, 1, 2]
 end

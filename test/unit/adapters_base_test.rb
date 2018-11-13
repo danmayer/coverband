@@ -6,23 +6,44 @@ class AdaptersBaseTest < Test::Unit::TestCase
   def setup
     @test_file_path = '/tmp/coverband_filestore_test_path.json'
     @store = Coverband::Adapters::FileStore.new(@test_file_path)
+    mock_file_hash
   end
 
   def test_covered_merge
-    old_report = { '/Users/danmayer/projects/coverband_demo/config/coverband.rb' => [5, 7, nil],
-                   '/Users/danmayer/projects/coverband_demo/config/initializers/assets.rb' => [5, 5, nil],
-                   '/Users/danmayer/projects/coverband_demo/config/initializers/cookies_serializer.rb' => [5, 5, nil] }
-    new_report = { '/Users/danmayer/projects/coverband_demo/config/coverband.rb' => [5, 7, nil],
-                   '/Users/danmayer/projects/coverband_demo/config/initializers/filter_logging.rb' => [5, 5, nil],
-                   '/Users/danmayer/projects/coverband_demo/config/initializers/wrap_parameters.rb' => [5, 5, nil],
-                   '/Users/danmayer/projects/coverband_demo/app/controllers/application_controller.rb' => [5, 5, nil] }
+    old_time = 1541958097
+    current_time = Time.now.to_i
+    old_data = {
+      'first_updated_at' => old_time,
+      'last_updated_at' => current_time,
+      'file_hash' => 'abcd',
+      'data' => [5, 7, nil]
+    }
+    old_report = { '/projects/coverband_demo/config/coverband.rb' => old_data,
+                   '/projects/coverband_demo/config/initializers/assets.rb' => old_data,
+                   '/projects/coverband_demo/config/initializers/cookies_serializer.rb' => old_data }
+    new_report = { '/projects/coverband_demo/config/coverband.rb' => [5, 7, nil],
+                   '/projects/coverband_demo/config/initializers/filter_logging.rb' => [5, 7, nil],
+                   '/projects/coverband_demo/config/initializers/wrap_parameters.rb' => [5, 7, nil],
+                   '/projects/coverband_demo/app/controllers/application_controller.rb' => [5, 7, nil] }
+    expected_merge = {
+      'first_updated_at' => old_time,
+      'last_updated_at' => current_time,
+      'file_hash' => 'abcd',
+      'data' => [10, 14, nil]
+    }
+    new_data = {
+      'first_updated_at' => current_time,
+      'last_updated_at' => current_time,
+      'file_hash' => 'abcd',
+      'data' => [5, 7, nil]
+    }
     expected_result = {
-      '/Users/danmayer/projects/coverband_demo/app/controllers/application_controller.rb' => [5, 5, nil],
-      '/Users/danmayer/projects/coverband_demo/config/coverband.rb' => [10, 14, nil],
-      '/Users/danmayer/projects/coverband_demo/config/initializers/assets.rb' => [5, 5, nil],
-      '/Users/danmayer/projects/coverband_demo/config/initializers/cookies_serializer.rb' => [5, 5, nil],
-      '/Users/danmayer/projects/coverband_demo/config/initializers/filter_logging.rb' => [5, 5, nil],
-      '/Users/danmayer/projects/coverband_demo/config/initializers/wrap_parameters.rb' => [5, 5, nil]
+      '/projects/coverband_demo/app/controllers/application_controller.rb' => new_data,
+      '/projects/coverband_demo/config/coverband.rb' => expected_merge,
+      '/projects/coverband_demo/config/initializers/assets.rb' => old_data,
+      '/projects/coverband_demo/config/initializers/cookies_serializer.rb' => old_data,
+      '/projects/coverband_demo/config/initializers/filter_logging.rb' => new_data,
+      '/projects/coverband_demo/config/initializers/wrap_parameters.rb' => new_data
     }
     assert_equal expected_result, @store.send(:merge_reports, new_report, old_report)
   end

@@ -11,15 +11,6 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     @store.clear!
   end
 
-  def combined_report
-    {
-      "#{BASE_KEY}.test/unit/dog.rb" => {
-        new: example_hash,
-        existing: {}
-      }
-    }
-  end
-
   test 'generate scov report' do
     Coverband.configure do |config|
       config.reporter          = 'scov'
@@ -28,6 +19,7 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
       config.ignore            = ['notsomething.rb']
     end
     Coverband.configuration.logger.stubs('info')
+    mock_file_hash
     @store.send(:save_report, basic_coverage)
 
     SimpleCov.expects(:track_files)

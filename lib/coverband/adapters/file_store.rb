@@ -8,9 +8,8 @@ module Coverband
     # Not recommended for production deployment
     ###
     class FileStore < Base
-      attr_accessor :path
-
       def initialize(path, _opts = {})
+        super()
         @path = path
 
         config_dir = File.dirname(@path)
@@ -21,32 +20,15 @@ module Coverband
         File.delete(path) if File.exist?(path)
       end
 
-      def save_report(report)
-        merge_reports(report, coverage)
-        save_coverage(report)
-      end
-
-      def coverage
-        existing_data(path)
-      end
-
-      def covered_files
-        report = existing_data(path)
-        existing_data(path).merge(report).keys || []
-      end
-
-      def covered_lines_for_file(file)
-        report = existing_data(path)
-        report[file] || []
-      end
-
       private
+
+      attr_accessor :path
 
       def save_coverage(report)
         File.open(path, 'w') { |f| f.write(report.to_json) }
       end
 
-      def existing_data(path)
+      def get_report
         if File.exist?(path)
           JSON.parse(File.read(path))
         else
