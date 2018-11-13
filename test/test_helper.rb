@@ -75,3 +75,9 @@ Coverband.configure do |config|
   config.reporter            = 'std_out'
   config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
 end
+
+Coverband::Configuration.class_eval do
+  def test_env
+    true
+  end
+end

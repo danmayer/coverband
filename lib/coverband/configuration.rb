@@ -8,7 +8,7 @@ module Coverband
                   :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
-                  :background_reporting_sleep_seconds
+                  :background_reporting_sleep_seconds, :test_env
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
@@ -30,6 +30,7 @@ module Coverband
       @s3_secret_access_key = nil
       @redis_namespace = nil
       @redis_ttl = nil
+      @test_env = nil
       @background_reporting_sleep_seconds = 30
     end
 
