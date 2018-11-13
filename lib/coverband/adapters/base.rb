@@ -48,10 +48,11 @@ module Coverband
       end
 
       def expand_report(report)
+        report_time = Time.now.to_i
         report.each_pair do |key, line_data|
           extended_data = {
-            'first_updated_at' => Time.now.to_i,
-            'last_updated_at' => Time.now.to_i,
+            'first_updated_at' => report_time,
+            'last_updated_at' => report_time,
             'file_hash' => file_hash(key),
             'data' => line_data
           }
