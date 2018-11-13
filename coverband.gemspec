@@ -28,11 +28,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'redis'
   spec.add_development_dependency 'benchmark-ips'
+  spec.add_development_dependency 'm'
+
   # used for benchmarking and tests
   spec.add_development_dependency 'classifier-reborn'
   # add when debugging
   # require 'byebug'; byebug
-  spec.add_development_dependency 'byebug'
+  spec.add_development_dependency 'pry-byebug'
 
   # todo make an optional dependency for simplecov reports
   # also likely should just require simplecov-html not the whole lib

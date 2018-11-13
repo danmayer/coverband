@@ -29,5 +29,12 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
       assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class
     end
 
+    test 'reports coverage in background when background reporting enabled' do
+      Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
+      @coverband.reset_instance
+      Coverband::Background.expects(:start)
+      @coverband.report_coverage
+    end
+
   end
 end
