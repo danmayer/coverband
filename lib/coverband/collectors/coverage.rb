@@ -24,6 +24,7 @@ module Coverband
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
+        @test_env = Coverband.configuration.test_env
         @background_reporting_enabled = Coverband.configuration.background_reporting_enabled
         Thread.current[:coverband_instance] = nil
         self
@@ -47,6 +48,7 @@ module Coverband
           @logger.error "error: #{err.inspect} #{err.message}"
           @logger.error err.backtrace
         end
+        raise err if @test_env
       end
 
       protected
