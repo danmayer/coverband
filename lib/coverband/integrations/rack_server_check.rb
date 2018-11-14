@@ -3,7 +3,25 @@
 module Coverband
   class RackServerCheck
     def self.running?
-      Kernel.caller_locations.any? { |line| line.path.include?('lib/rack/') }
+      new(Kernel.caller_locations).running?
+    end
+
+    def initialize(stack)
+      @stack = stack
+    end
+
+    def running?
+      rack_server? || rails_server?
+    end
+
+    def rack_server?
+      @stack.any? { |line| line.path.include?('lib/rack/') }
+    end
+
+    def rails_server?
+      @stack.any? do |location|
+        location.path.include?('rails/commands/commands_tasks.rb') && location.label == 'server'
+      end
     end
   end
 end
