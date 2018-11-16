@@ -77,6 +77,7 @@ Feature Ideas:
 * first version of background thread coverage reporting https://github.com/danmayer/coverband/pull/138, thanks @kbaum
 * auto-detection of Rack & Rails thanks @kbaum
 * improved tests allowing exceptions to raise in tests @kbaum
+* add support for both aws-sdk 1.x and 2.x thanks @jared
 
 # Released
 
