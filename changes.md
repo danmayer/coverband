@@ -30,7 +30,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
 
 - expects to drop Tracepoint collection engine
-- expects to drop anything below Ruby 2.3
+- drop anything below Ruby 2.3
 - release begins to simplify ease of use
   - drop collectors adapter
   - reduced configuration options
@@ -44,6 +44,8 @@ Will be a stable and fast release that drops maintenance legacy support in favor
 - add additional config / protection options on Coverage clear
 - add memory benchmarks showing memory overhead of coverband
 - add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
+- add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
+   - more details in this issue: https://github.com/danmayer/coverband/issues/118 
 
 ### Coverband_jam_session
 
@@ -71,9 +73,10 @@ Feature Ideas:
 ### Coverband 3.0.1
 
 * update documentation around verification steps (https://github.com/danmayer/coverband/issues/135), thanks @kbaum
-* resolve coverage drift issue, https://github.com/danmayer/coverband/issues/118, thanks @dnasseri and @kbaum
+* resolve coverage drift issue, https://github.com/danmayer/coverband/issues/118, thanks for MD5 hash ideas @dnasseri and @kbaum
 * first version of background thread coverage reporting https://github.com/danmayer/coverband/pull/138, thanks @kbaum
-
+* auto-detection of Rack & Rails thanks @kbaum
+* improved tests allowing exceptions to raise in tests @kbaum
 
 # Released
 
