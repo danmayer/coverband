@@ -38,13 +38,7 @@ module Coverband
           Coverband.configuration.logger.info "report is ready and viewable: open #{SimpleCov.coverage_dir}/index.html"
         end
 
-        s3_writer_options = {
-          region: Coverband.configuration.s3_region,
-          access_key_id: Coverband.configuration.s3_access_key_id,
-          secret_access_key: Coverband.configuration.s3_secret_access_key
-        }
-        Coverband::Utils::S3ReportWriter.new(Coverband.configuration.s3_bucket,
-                                                s3_writer_options).persist! if Coverband.configuration.s3_bucket
+        Coverband::Utils::S3Report.instance.persist! if Coverband.configuration.s3_bucket
       end
     end
   end

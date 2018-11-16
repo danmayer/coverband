@@ -103,8 +103,6 @@ class ReportsBaseTest < Test::Unit::TestCase
     lines_hit = [1, 3, 6]
     store.stubs(:coverage).returns(key => lines_hit)
     expected = { key => [1, 3, 6] }
-    File.stubs(:exist?).returns(true)
-    File.stubs(:foreach).returns(['line 1', 'line2', 'line3', 'line4', 'line5', 'line6'])
 
     assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)
   end

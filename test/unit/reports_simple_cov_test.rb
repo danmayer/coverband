@@ -26,7 +26,6 @@ class ReportsSimpleCovTest < Test::Unit::TestCase
     SimpleCov.expects(:add_not_loaded_files).returns({})
     SimpleCov::Result.any_instance.expects(:format!)
     SimpleCov.stubs(:root)
-
     Coverband::Reporters::SimpleCovReport.report(@store, open_report: false)
   end
 end

@@ -29,9 +29,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
 
       test 'renders show content' do
         Coverband.configuration.s3_bucket = 'coverage-bucket'
-        s3 = mock('s3')
-        Aws::S3::Client.expects(:new).returns(s3)
-        s3.expects(:get_object).with(bucket: 'coverage-bucket', key: 'coverband/index.html').returns mock('response', body: mock('body', read: 'content'))
+        Coverband::Utils::S3Report.any_instance.expects(:retrieve).returns('content')
         get '/show'
         assert last_response.ok?
         assert_equal 'content', last_response.body
