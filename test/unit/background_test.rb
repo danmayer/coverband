@@ -8,6 +8,8 @@ class BackgroundTest < Test::Unit::TestCase
     Coverband::Background.expects(:loop).yields
     Coverband::Collectors::Coverage.instance.expects(:report_coverage)
     Coverband::Background.expects(:sleep).with(30)
+    Coverband::Background.expects(:at_exit).yields
+    Coverband::Collectors::Coverage.instance.expects(:report_coverage)
     2.times { Coverband::Background.start }
   end
 end
