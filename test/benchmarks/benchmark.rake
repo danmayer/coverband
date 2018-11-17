@@ -166,11 +166,7 @@ namespace :benchmarks do
     report
   end
 
-  def reporting_speed
-    report = fake_report
-    store = benchmark_redis_store
-    store.clear!
-
+  def mock_files(store)
     ###
     # this is a hack because in the benchmark we don't have real files
     ###
@@ -181,12 +177,49 @@ namespace :benchmarks do
         @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
       end
     end
+  end
+
+  def reporting_speed
+    report = fake_report
+    store = benchmark_redis_store
+    store.clear!
+    mock_files(store)
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
       x.report('store_reports') { store.save_report(report) }
     end
+  end
+
+  def measure_memory
+    require 'memory_profiler'
+    report = fake_report
+    store = benchmark_redis_store
+    store.clear!
+    mock_files(store)
+
+    # warmup
+    3.times { store.save_report(report) }
+
+    previous_out = $stdout
+    capture = StringIO.new
+    $stdout = capture
+
+    MemoryProfiler.report do
+      10.times { store.save_report(report) }
+    end.pretty_print
+    data = $stdout.string
+    $stdout = previous_out
+    raise 'leaking memory!!!' unless data.match('Total retained:  0 bytes')
+  ensure
+    $stdout = previous_out
+  end
+
+  desc 'runs memory reporting on Redis store'
+  task memory_reporting: [:setup] do
+    puts 'runs memory benchmarking to ensure we dont leak'
+    measure_memory
   end
 
   desc 'runs benchmarks on reporting large sets of files to redis'
@@ -218,7 +251,7 @@ namespace :benchmarks do
   task :coverband_demo_graph do
     # for local testing
     # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
-    #puts `ab -n 500 -c 10 -g tmp/ab_brench.tsv "http://127.0.0.1:3000/posts"`
+    # puts `ab -n 500 -c 10 -g tmp/ab_brench.tsv "http://127.0.0.1:3000/posts"`
     puts `ab -n 2000 -c 10 -g tmp/ab_brench.tsv "https://coverband-demo.herokuapp.com/posts"`
     puts `test/benchmarks/graph_bench.sh`
     `open tmp/timeseries.jpg`
