@@ -470,21 +470,20 @@ end
 
 # protect with http basic auth
 # curl --user foo:bar http://localhost:3000/coverage
-basic_constraint = lambda do |request|
-  return true if Rails.env.development?
-  if ActionController::HttpAuthentication::Basic.has_basic_credentials?(request)
-    credentials = ActionController::HttpAuthentication::Basic.decode_credentials(request)
-    email, password = credentials.split(':')
-
-    email == 'foo' && password = 'bar'
-  end
-end
-
 Rails.application.routes.draw do
   # ... lots of routes
-  constraints basic_constraint do
-    mount Coverband::Reporters::Web.new, at: '/coverage'
+
+  # Create a Rack wrapper around the Coverband Web Reporter to support & prompt the user for basic authentication.
+  AuthenticatedCoverband = Rack::Builder.new do 
+    use Rack::Auth::Basic do |username, password|
+      username == 'foo' && password == 'bar'
+    end
+
+    run Coverband::Reporters::Web.new 
   end
+
+  # Connect the wrapper app to your desired endpoint.
+  mount AuthenticatedCoverband, at: '/coverage'
 end
 ```
 
