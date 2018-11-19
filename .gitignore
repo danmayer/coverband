@@ -19,3 +19,4 @@ test/version_tmp
 tmp
 .byebug_history
 .env
+log/

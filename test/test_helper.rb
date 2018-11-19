@@ -68,16 +68,6 @@ end
 
 require 'coverband'
 
-Coverband.configure do |config|
-  config.root                = Dir.pwd
-  config.s3_bucket           = nil
-  config.root_paths          = ['/app_path/']
-  config.ignore              = ['vendor']
-  config.reporting_frequency = 100.0
-  config.reporter            = 'std_out'
-  config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
-end
-
 Coverband::Configuration.class_eval do
   def test_env
     true

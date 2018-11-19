@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'redis'
   spec.add_development_dependency 'test-unit'
+  spec.add_development_dependency 'rails', '~>5'
   spec.add_development_dependency 'm'
   spec.add_development_dependency 'memory_profiler'
 
