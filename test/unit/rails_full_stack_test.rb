@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require File.expand_path('../rails5_test_helper', File.dirname(__FILE__))
+require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 
-class Rails5FullStackTest < ActionDispatch::IntegrationTest
+class RailsFullStackTest < ActionDispatch::IntegrationTest
   def setup
     Coverband.configuration.store.clear!
   end
