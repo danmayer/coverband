@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    coverband (3.0.1.alpha)
+    coverband (3.0.1)
       simplecov (> 0.11.1)
 
 GEM
