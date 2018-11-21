@@ -526,7 +526,9 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 
 If you submit a change please make sure the tests and benchmarks are passing.
 
-* run tests: `rake`
+* run tests: 
+   * `bundle exec rake` 
+   * `BUNDLE_GEMFILE=Gemfile.rails4 bundle exec rake` (Same tests using rails 4 instead of 5)
 * view test coverage: `open coverage/index.html`
 * run the benchmarks before and after your change to see impact
    * `rake benchmarks` 
