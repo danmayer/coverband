@@ -70,6 +70,12 @@ Feature Ideas:
 
 # Alpha
 
+### Coverband ???
+
+* Add support for Railties integration
+
+# Released
+
 ### Coverband 3.0.1
 
 * update documentation around verification steps (https://github.com/danmayer/coverband/issues/135), thanks @kbaum
@@ -78,8 +84,8 @@ Feature Ideas:
 * auto-detection of Rack & Rails thanks @kbaum
 * improved tests allowing exceptions to raise in tests @kbaum
 * add support for both aws-sdk 1.x and 2.x thanks @jared
-
-# Released
+* adds memory test ensuring no memory leaks
+* full stack Rails tests for Rails 4 and 5 thanks @kbaum
 
 ### Coverband 3.0.0
 
