@@ -45,7 +45,8 @@ Will be a stable and fast release that drops maintenance legacy support in favor
 - add memory benchmarks showing memory overhead of coverband
 - add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
 - add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
-   - more details in this issue: https://github.com/danmayer/coverband/issues/118 
+   - more details in this issue: https://github.com/danmayer/coverband/issues/118
+- use full stack tests to prove no memory leaks when used in Rails  
 
 ### Coverband_jam_session
 
