@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 namespace :coverband do
+  Coverband.configure
+
   ###
   # note: If your project has set many simplecov filters.
   # You might want to override them and clear the filters.

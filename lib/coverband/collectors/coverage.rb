@@ -31,7 +31,7 @@ module Coverband
       end
 
       def report_coverage(force_report = false)
-        return Background.start if @background_reporting_enabled
+        return Background.start if @background_reporting_enabled && !force_report
         return if !ready_to_report? && !force_report
 
         unless @store

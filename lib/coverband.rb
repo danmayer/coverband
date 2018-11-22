@@ -9,6 +9,7 @@ require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/file_store'
 require 'coverband/utils/s3_report'
+require 'coverband/utils/railtie' if defined? ::Rails::Railtie
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
