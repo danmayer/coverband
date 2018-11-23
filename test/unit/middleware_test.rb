@@ -28,6 +28,24 @@ class MiddlewareTest < Test::Unit::TestCase
     app.call(env)
   end
 
+  test 'starts background reporter when configured' do
+    request = Rack::MockRequest.env_for('/anything.json')
+    Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
+    Coverband::Collectors::Coverage.instance.expects(:report_coverage).never
+    Coverband::Background.expects(:start)
+    middleware = Coverband::Middleware.new(fake_app)
+    middleware.call(request)
+  end
+
+  test 'reports coverage when not set to background mode' do
+    request = Rack::MockRequest.env_for('/anything.json')
+    Coverband.configuration.stubs(:background_reporting_enabled).returns(false)
+    Coverband::Collectors::Coverage.instance.expects(:report_coverage)
+    Coverband::Background.expects(:start).never
+    middleware = Coverband::Middleware.new(fake_app)
+    middleware.call(request)
+  end
+
   test 'never be report coverage with reporting_frequency of 0' do
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband::Collectors::Coverage.instance.reset_instance

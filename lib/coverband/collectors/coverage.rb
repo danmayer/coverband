@@ -24,19 +24,17 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
-        @background_reporting_enabled = Coverband.configuration.background_reporting_enabled
         Thread.current[:coverband_instance] = nil
         self
       end
 
       def report_coverage(force_report = false)
-        return Background.start if @background_reporting_enabled && !force_report
         return if !ready_to_report? && !force_report
-
         unless @store
           @logger.debug 'no store set, no-op'
           return
         end
+
         new_results = get_new_coverage_results
         add_filtered_files(new_results)
         @store.save_report(files_with_line_usage)

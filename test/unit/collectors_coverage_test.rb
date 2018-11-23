@@ -29,29 +29,19 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
       assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get('@store').class
     end
 
-    test 'reports coverage in background when background reporting enabled' do
-      Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
-      @coverband.reset_instance
-      Coverband::Background.expects(:start)
-      @coverband.report_coverage
-    end
-
     test 'report_coverage raises errors in tests' do
-      Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
       @coverband.reset_instance
-      Coverband::Background.expects(:start).raises("Oh no")
+      @coverband.expects(:ready_to_report?).raises('Oh no')
       assert_raise RuntimeError do
         @coverband.report_coverage
       end
     end
 
     test 'report_coverage does not raise errors in non-test mode' do
-      Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
       Coverband.configuration.stubs(:test_env).returns(false)
+      @coverband.expects(:ready_to_report?).raises('Oh no')
       @coverband.reset_instance
-      Coverband::Background.expects(:start).raises("Oh no")
       @coverband.report_coverage
     end
-
   end
 end
