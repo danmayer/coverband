@@ -60,25 +60,38 @@ module Coverband
     end
 
     def store
-      return @store if @store
-      @store = if ENV['REDIS_URL']
-                 Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['REDIS_URL']))
-               else
-                 Coverband::Adapters::RedisStore.new(Redis.new)
-               end
-      return @store if @store
-      raise 'no valid store configured'
+      @store ||= Coverband::Adapters::RedisStore.new(coverband_redis, redis_store_options)
     end
 
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store
       elsif defined?(Redis) && redis && redis.is_a?(Redis)
-        @store = Coverband::Adapters::RedisStore.new(redis, ttl: Coverband.configuration.redis_ttl,
-                                                            redis_namespace: Coverband.configuration.redis_namespace)
+        @store = Coverband::Adapters::RedisStore.new(redis, redis_store_options)
       elsif store.is_a?(String)
         @store = Coverband::Adapters::FileStore.new(store)
       end
+    end
+
+    private
+
+    def coverband_redis
+      # Redis doesn't default to correct local host if you pass url: nil
+      redis_url ? Redis.new(url: redis_url) : Redis.new
+    end
+
+    def redis_url
+      ENV['COVERBAND_REDIS_URL'] || ENV['REDIS_URL']
+    end
+
+    def redis_store_options
+      { ttl: Coverband.configuration.redis_ttl,
+        redis_namespace: Coverband.configuration.redis_namespace }
+    end
+
+    def redis_options
+      opts = { ttl: Coverband.configuration.redis_ttl }
+      opts.merge!(redis_namespace: Coverband.configuration.redis_namespace) if Coverband.configuration.redis_namespace
     end
   end
 end

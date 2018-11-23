@@ -17,7 +17,6 @@ module Coverband
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
         @file_line_usage = {}
-        @ignored_files = Set.new
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
         @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
@@ -63,7 +62,6 @@ module Coverband
 
       def add_filtered_files(new_results)
         new_results.each_pair do |file, line_counts|
-          next if @ignored_files.include?(file)
           next unless track_file?(file)
           add_file(file, line_counts)
         end
@@ -81,7 +79,7 @@ module Coverband
 
       def files_with_line_usage
         @file_line_usage.select do |_file_name, coverage|
-          coverage.any? { |value| value && value.nonzero? }
+          coverage.any? { |value| value&.nonzero? }
         end
       end
 
