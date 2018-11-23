@@ -15,13 +15,16 @@ module Coverband
     def initialize
       @root = Dir.pwd
       @root_paths = []
-      @ignore = []
+      @ignore = %w[vendor .erb$ .slim$]
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
       @reporter = 'scov'
-      @logger = Logger.new(STDOUT)
+      @logger = nil
       @store = nil
+      @background_reporting_enabled = true
+      @background_reporting_sleep_seconds = 30
+      @test_env = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -30,12 +33,14 @@ module Coverband
       @s3_secret_access_key = nil
       @redis_namespace = nil
       @redis_ttl = nil
-      @test_env = nil
-      @background_reporting_sleep_seconds = 30
     end
 
     def logger
-      @logger ||= Logger.new(STDOUT)
+      @logger ||= if defined?(Rails)
+                    Rails.logger
+                  else
+                    Logger.new(STDOUT)
+                  end
     end
 
     def s3_bucket
@@ -55,6 +60,12 @@ module Coverband
     end
 
     def store
+      return @store if @store
+      @store = if ENV['REDIS_URL']
+                 Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['REDIS_URL']))
+               else
+                 Coverband::Adapters::RedisStore.new(Redis.new)
+               end
       return @store if @store
       raise 'no valid store configured'
     end
