@@ -9,6 +9,7 @@ class MiddlewareTest < Test::Unit::TestCase
   def setup
     Coverband.configure do |config|
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.background_reporting_enabled = false
     end
   end
 
