@@ -60,7 +60,7 @@ module Coverband
     end
 
     def store
-      @store ||= Coverband::Adapters::RedisStore.new(coverband_redis, redis_store_options)
+      @store ||= Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
     end
 
     def store=(store)
@@ -75,11 +75,6 @@ module Coverband
 
     private
 
-    def coverband_redis
-      # Redis doesn't default to correct local host if you pass url: nil
-      redis_url ? Redis.new(url: redis_url) : Redis.new
-    end
-
     def redis_url
       ENV['COVERBAND_REDIS_URL'] || ENV['REDIS_URL']
     end
@@ -87,11 +82,6 @@ module Coverband
     def redis_store_options
       { ttl: Coverband.configuration.redis_ttl,
         redis_namespace: Coverband.configuration.redis_namespace }
-    end
-
-    def redis_options
-      opts = { ttl: Coverband.configuration.redis_ttl }
-      opts.merge!(redis_namespace: Coverband.configuration.redis_namespace) if Coverband.configuration.redis_namespace
     end
   end
 end
