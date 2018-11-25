@@ -13,45 +13,36 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
   <a href="/changes.md">Change Log / Roadmap</a>
 </p>
 
-A gem to measure production code usage, showing each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It can be used as Rack middleware, wrapping a block with sampling, or manually configured to meet any need (like usage during background jobs).
+A gem to measure production code usage, showing a counter for the number of times each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread or can be used as Rack middleware, or manually configured to meet any need.
 
-Note: Coverband is not intended for test code coverage, for that just check out [SimpleCov](https://github.com/colszowka/simplecov).
+Note: Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
 
 ## Key Features
 
 The primary goal of Coverband is giving deep insight into your production runtime usage of your application code, while having the least impact on performance possible.
 
 * Low performance overhead
-* Various controls from sampling, data collection rate, etc to further control performance
-* Ignore directories to avoid overhead data collection on vendor, lib, etc.
+* Very simple setup and configuration
+* Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
+* Easy to understand actionable insights from the report
 * Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
-* Easy setup for any Ruby Rack based web framework (Rails, Sinatra, etc)
-* Allows for integration with any other Ruby application flows (background jobs, crons, scripts)
+* Mountable web interface to easily share reports
 
 ## Coverband Demo
 
-Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with configuration and understanding of basic usage.
+Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
 
 # How To Use
 
 Below is my Coverband workflow, which hopefully will help other best use this library.
 
-* install coverband
-* start your app and hit a few endpoints
-* validate data collection and code coverage with  `rake coverband:coverage`
-* test setup in development (hit endpoints and generate new report)
-* deploy to staging and verify functionality
-* deploy to production and verify functionality
-* every 2 weeks or so, with major releases
-   * clear old coverage: `rake coverband:clear`
-   * deploy and verify coverage is matching expectations
-* __COVERAGE DRIFT__
-   * we are working to address this early in the 3.0.x feature set
-      * https://github.com/danmayer/coverband/issues/118  
-   * if you never clear you have lines of code drift from when they were recorded
-   * if you clear on every deploy you don't capture as useful of data
-   * there is a tradeoff on accuracy and data value
-   * I recommend clearing after major code changes, significant releases, or some regular schedule.
+* <a href="#installation">Install Coverband</a>
+* Start your app and hit a few endpoints
+* Validate data collection and code coverage with  `rake coverband:coverage`
+* If you see app startup and recent visits showing, setup is correct
+* I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
+* After Coverband has been verified to be working on production, I let it run for a few weeks.
+* Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
 
 ## Example Output
 
@@ -72,7 +63,7 @@ Follow the below section to install and configure Coverband.
 
 ## Prerequisites
 
-* Coverband 3.0 requres Ruby 2.3+
+* Coverband 3.0.x+ requires Ruby 2.3+
 
 ## Gem Installation
 
@@ -96,48 +87,11 @@ $ gem install coverband
 
 # Configuration
 
-After you have the gem, you will want to setup the needed integration:
+After you have the gem, you may need to configure additional options:
 
-1. Coverband Config File Setup
-2. Configure Rake
-3. Insert Coverband Rack Middleware
+### 1. Verify Rake
 
-### 1. Coverband Config File Setup
-
-You need to configure cover band you can either do that passing in all configuration options to `Coverband.configure` in block format, or a simpler style is to call `Coverband.configure` with nothing while will load `config/coverband.rb` expecting it to configure the app correctly. Below is an example config file for a Rails 5 app:
-
-```ruby
-#config/coverband.rb
-Coverband.configure do |config|
-  config.root              = Dir.pwd
-  config.store             = Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['REDIS_URL'])) if defined? Redis
-  config.ignore            = %w[vendor .erb$ .slim$]
-  # add paths that you deploy to that might be different than your local dev root path
-  config.root_paths        = []
-
-  # reporting frequency, how often coverage data is sent to the store
-  # if you are debugging changes to coverband I recommend setting to 100.0
-  config.reporting_frequency = Rails.env.production? ? 1.0 : 100.0
-  config.logger              = Rails.logger
-
-  # config options false, true, or 'debug'. Always use false in production
-  # true and debug can give helpful and interesting code usage information
-  # they both increase the performance overhead of the gem a little.
-  # they can also help with initially debugging the installation.
-  # config.verbose           = 'debug'
-end
-```
-
-### 2. Configure Rake
-
-Either add the below to your `Rakefile` or to a file included in your Rakefile such as `lib/tasks/coverband.rake` if you want to break it up that way.
-
-```ruby
-require 'coverband'
-Coverband.configure
-require 'coverband/utils/tasks'
-```
-This should give you access to a number of Coverband tasks
+After installing the gem in Rails you should have these Rake tasks
 
 ```bash
 rake -T coverband
@@ -145,37 +99,36 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-### 3. Configure Rack to use the Coverband middleware
+### 2. Coverband Config File Setup
 
-The middleware is what makes Coverband gather metrics while a webapp app runs.
+You may need to configure Coverband you can either do that passing in all configuration options to `Coverband.configure` in block format, or a simpler style is to call `Coverband.configure` with no params which will load `config/coverband.rb` expecting it to configure the app correctly.
+
+* See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
+* I strongly recommend setting up the S3 report adapter, which can't be automatically configured
+* By default Coverband will try to stored data to Redis
+	* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
+
+ Below is an example config file for a Rails 5 app:
+
+```ruby
+#config/coverband.rb
+Coverband.configure do |config|
+  # configure S3 integration
+  config.s3_bucket = 'coverband-demo'
+  config.s3_region = 'us-east-1'
+  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
+  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
+
+  # config options false, true, or 'debug'. Always use false in production
+  # true and debug can give helpful and interesting code usage information
+  # they both increase the performance overhead of the gem a little.
+  # they can also help with initially debugging the installation.
+  config.verbose = false
+end```
 
 #### For Rails apps
 
-There are a number of options for starting Coverband and when to insert it into your middleware stack. At the moment this is my recommendation, to ensure you capture usage data on any files required by other plugins.
-
-Then add the middleware to your Rails rake middle ware stack:
-
-```ruby
-# config/application.rb
-[...]
-
-module MyApplication
-  class Application < Rails::Application
-    [...]
-
-    # Coverband needs to be setup before any of the initializers to capture usage of them
-    require 'coverband'
-    Coverband.configure
-    config.middleware.use Coverband::Middleware
-
-    # if one uses before_eager_load as I did previously
-    # any files that get loaded as part of railties will have no coverage
-    config.before_initialize do
-       Coverband.start
-    end
-  end
-end
-```
+The Railtie integration means you shouldn't need to do anything anything else.
 
 #### For Sinatra apps
 
@@ -199,54 +152,6 @@ run ActionController::Dispatcher.new
 * make another request, or enough that your reporting frequency will trigger
 * run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
-## Installation Session
-
-These are the steps taken to install and configure Coverband
-
-```
-rails new coverage_example
-cd coverage_example
-atom .
-
-# open Gemfile, add lines
-gem 'redis'
-gem 'coverband', '>= 3.0.0.alpha2', require: false
-
-bundle install
-
-# create config/coverband.rb
-# copy the config from the readme
-# If you don't set REDIS_URL, remove that to use default localhost
-
-# Make some code so we can look at the coverage
-rails generate scaffold blogs
-rake db:migrate
-
-# open Rakefile, add lines
-require 'coverband'
-Coverband.configure
-require 'coverband/utils/tasks'
-
-# verify rake
-rake -T coverband
-
-# configure config/application.rb
-# copy lines from readme
-
-# start up your app
-rake coverband:coverage
-# view boot up coverage
-
-rails s
-
-open http://localhost:3000/blogs
-
-# click around some to trigger usage
-
-# view updated coverage
-rake coverband:coverage
-```
-
 # Usage
 
 ### Example apps
@@ -265,31 +170,35 @@ This should auto-open in your browser, but if it doesn't the output file should 
 
 ### Clear Coverage
 
-If your code has changed and your coverage line data doesn't seem to match run time. You probably need to clear your old line data... You will need to run this in the environment you wish to clear the data from.
+Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coberband itself.
 
 `rake coverband:clear`
 
-### Automated Clearing Line Coverage Data
+### Adding Rake Tasks outside of Rails
 
-After a deploy where code has changed significantly. This is to avoid coverage drift
+Rails apps should automaticallly include the tasks via the Railtie.
 
-The line numbers previously recorded in Redis may no longer match the current state of the files.
-If being slightly out of sync isn't as important as gathering data over a long period,
-you can live with minor inconsistency for some files.
-
-As often as you like or as part of a deploy hook you can clear the recorded Coverband data with the following command.
+For non Rails apps, either add the below to your `Rakefile` or to a file included in your `Rakefile` such as `lib/tasks/coverband.rake` if you want to break it up that way.
 
 ```ruby
-# defaults to the currently configured Coverband.configuration.redis
-Coverband::Reporter.clear_coverage
-# or pass in the current target redis
-Coverband::Reporter.clear_coverage(Redis.new(:host => 'target.com', :port => 6789))
+require 'coverband'
+Coverband.configure
+require 'coverband/utils/tasks'
 ```
-You can also do this with the included rake tasks.
+
+Verify it works
+
+```bash
+rake -T coverband
+rake coverband:clear         # reset coverband coverage data
+rake coverband:coverage      # report runtime coverband code coverage
+```
 
 ### Manual Configuration (for example for background jobs)
 
-It is easy to use Coverband outside of a Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
+__NOTE:__ There should be no reason to manually configure anything for Rails apps, this should only be needed for non-Rails based Ruby applications.
+
+It is easy to use Coverband outside of a Rails Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
 
 For example if you had a base Resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
 
@@ -305,6 +214,7 @@ def after_perform(*args)
 end
 ```
 
+(no need to do this for Rails, but a Rack app maybe)
 or sidekiq middleware:
 
 ```ruby
@@ -336,6 +246,8 @@ Coverband::Collectors::Coverage.instance.report_coverage
 ```
 
 ### Manual Configuration (for cron jobs / Raketasks)
+
+__NOTE:__ There should be no reason to manually configure anything for Rails apps, this should only be needed for non-Rails based Ruby applications.
 
 A question about [supporting cron jobs and Rake tasks](https://github.com/danmayer/coverband/issues/106) was asked by [@ndbroadbent](https://github.com/ndbroadbent), there are a couple ways to go about it including his good suggestion.
 
@@ -400,9 +312,6 @@ By adding any files above you will get reporting on those files as part of your 
 
 By default Coverband has assumed you are trying to track your application code usage not all the supporting framework and library (Gems) code usage. There has been some good points and reasons folks want to track library usage, for example to find out which Gems they aren't actually using in production. See some of the discussion on [issue 21](https://github.com/danmayer/coverband/issues/21).
 
-* Using the Tracepoint Collector
-   * just make sure to set `Coverband.configuration.include_gems = true` in your config options
-   * note by tracking all the additional usage this can have significant performance impacts of the Tracepoint implementation
 * Using the Coverage Collector
    * use the `safe_reload_files` feature to add the path of all gem files you wish to track
    * --- or ---
@@ -413,7 +322,7 @@ By default Coverband has assumed you are trying to track your application code u
 
 ### Verbose Debug / Development Mode
 
-Note: To debug issues getting coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
+Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
 
 ---
 
@@ -536,7 +445,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 ### Known Issues
 
 * __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
-  * related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. 
+  * related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
 * If you have SimpleCov filters, you need to clear them prior to generating your coverage report. As the filters will be applied to Coverband as well and can often filter out everything we are recording.
 * coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library.
 

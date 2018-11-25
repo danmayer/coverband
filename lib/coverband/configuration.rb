@@ -2,10 +2,9 @@
 
 module Coverband
   class Configuration
-    attr_accessor :redis, :root_paths, :root,
+    attr_accessor :root_paths, :root,
                   :ignore, :additional_files, :verbose,
                   :reporter, :reporting_frequency,
-                  :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env
@@ -15,7 +14,7 @@ module Coverband
     def initialize
       @root = Dir.pwd
       @root_paths = []
-      @ignore = %w[vendor .erb$ .slim$]
+      @ignore = %w(vendor .erb$ .slim$)
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
