@@ -222,6 +222,12 @@ namespace :benchmarks do
     measure_memory
   end
 
+  desc 'runs memory leak check via Rails tests'
+  task memory_rails: [:setup] do
+    puts 'runs memory rails test to ensure we dont leak'
+    puts `COVERBAND_MEMORY_TEST=true bundle exec m test/unit/rails_full_stack_test.rb:22`
+  end
+
   desc 'runs benchmarks on reporting large sets of files to redis'
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'

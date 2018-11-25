@@ -24,6 +24,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
+        @@previous_results = nil
         Thread.current[:coverband_instance] = nil
         self
       end
@@ -70,9 +71,7 @@ module Coverband
       end
 
       def get_new_coverage_results
-        coverage_results = nil
-        @semaphore.synchronize { coverage_results = new_coverage(::Coverage.peek_result.dup) }
-        coverage_results
+        @semaphore.synchronize { new_coverage(::Coverage.peek_result.dup) }
       end
 
       def files_with_line_usage
