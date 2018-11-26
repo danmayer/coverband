@@ -5,9 +5,9 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#coverband-demo">Coverband Demo</a> •
-  <a href="#how-to-use">How To Use</a> •
   <a href="#installation">Installation</a> •
   <a href="#configuration">Configuration</a> •
+  <a href="#how-to-use">How To Use</a> •
   <a href="#usage">Usage</a> •
   <a href="#license">License</a> •
   <a href="/changes.md">Change Log / Roadmap</a>
@@ -31,16 +31,6 @@ The primary goal of Coverband is giving deep insight into your production runtim
 ## Coverband Demo
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
-
-## Example Output
-
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
-
-Index Page
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
-
-Details on a example Sinatra app
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
 
 
 # Installation
@@ -155,6 +145,16 @@ Below is my Coverband workflow, which hopefully will help other best use this li
 - [Rails 5.2.x App](https://github.com/danmayer/coverage_demo)
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
+
+### Example Output
+
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
+
+Index Page
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
+
+Details on a example Sinatra app
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
 
 ### View Coverage
 

@@ -65,10 +65,8 @@ module Coverband
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store
-      elsif defined?(Redis) && redis && redis.is_a?(Redis)
-        @store = Coverband::Adapters::RedisStore.new(redis, redis_store_options)
-      elsif store.is_a?(String)
-        @store = Coverband::Adapters::FileStore.new(store)
+      else
+        raise 'please pass in an subclass of Coverband::Adapters for supported stores'
       end
     end
 
