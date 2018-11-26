@@ -32,18 +32,6 @@ The primary goal of Coverband is giving deep insight into your production runtim
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
 
-# How To Use
-
-Below is my Coverband workflow, which hopefully will help other best use this library.
-
-* <a href="#installation">Install Coverband</a>
-* Start your app and hit a few endpoints
-* Validate data collection and code coverage with  `rake coverband:coverage`
-* If you see app startup and recent visits showing, setup is correct
-* I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
-* After Coverband has been verified to be working on production, I let it run for a few weeks.
-* Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
-
 ## Example Output
 
 Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
@@ -60,10 +48,6 @@ Details on a example Sinatra app
 Follow the below section to install and configure Coverband.
 
 ![coverband installation](https://raw.githubusercontent.com/danmayer/coverband/master/docs/coverband-install-resize.gif)
-
-## Prerequisites
-
-* Coverband 3.0.x+ requires Ruby 2.3+
 
 ## Gem Installation
 
@@ -151,6 +135,18 @@ run ActionController::Dispatcher.new
 * run `rake coverband:coverage` this will show app initialization coverage
 * make another request, or enough that your reporting frequency will trigger
 * run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+
+# How To Use
+
+Below is my Coverband workflow, which hopefully will help other best use this library.
+
+* <a href="#installation">Install Coverband</a>
+* Start your app and hit a few endpoints
+* Validate data collection and code coverage with  `rake coverband:coverage`
+* If you see app startup and recent visits showing, setup is correct
+* I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
+* After Coverband has been verified to be working on production, I let it run for a few weeks.
+* Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
 
 # Usage
 
@@ -419,6 +415,11 @@ You could see some confusing results... To avoid this issue Coverband has a Rake
 `rake coverband:coverage_no_filters`
 
 This will build the report after disabling any `.simplecov` applied settings.
+
+# Prerequisites
+
+* Coverband 3.0.X+ requires Ruby 2.3+
+* Coverband currently requires Redis for production usage
 
 # Contributing To Coverband
 

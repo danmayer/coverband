@@ -78,7 +78,6 @@ namespace :benchmarks do
   # desc 'set up coverband with Redis'
   task :setup_redis do
     Coverband.configure do |config|
-      config.redis               = Redis.new
       config.root                = Dir.pwd
       config.reporting_frequency = 100.0
       config.logger              = $stdout
