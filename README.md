@@ -15,7 +15,7 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
 
 A gem to measure production code usage, showing a counter for the number of times each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread or can be used as Rack middleware, or manually configured to meet any need.
 
-Note: Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
+__Note:__ Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
 
 ## Key Features
 
@@ -35,35 +35,43 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 
 # Installation
 
-Follow the below section to install and configure Coverband.
-
-![coverband installation](https://raw.githubusercontent.com/danmayer/coverband/master/docs/coverband-install-resize.gif)
+Coverband should be near zero config for Rails apps, if you have an issue with that, please [file an issue](https://github.com/danmayer/coverband/issues).
 
 ## Gem Installation
 
-Add this line to your application's Gemfile:
+Add this line to your application's `Gemfile`, remember to `bundle install` after updating:
 
 ```bash
 gem 'coverband'
 ```
 
-And then execute:
+## Rails
 
-```bash
-$ bundle
+The Railtie integration means you shouldn't need to do anything anything else.
+
+* By default Coverband will try to stored data to Redis
+	* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
+
+## Sinatra
+
+For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
+
+```ruby
+require File.dirname(__FILE__) + '/config/environment'
+
+require 'coverband'
+Coverband.configure
+Coverband.start
+
+use Coverband::Middleware
+run ActionController::Dispatcher.new
 ```
 
-Or install it yourself as:
+# Report Generation
 
-```bash
-$ gem install coverband
-```
+There are two primary ways to generate and view the report
 
-# Configuration
-
-After you have the gem, you may need to configure additional options:
-
-### 1. Verify Rake
+## Rake Tasks
 
 After installing the gem in Rails you should have these Rake tasks
 
@@ -73,7 +81,91 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-### 2. Coverband Config File Setup
+You can view the report different ways, but the easiest is the Rake task which opens the SimpleCov formatted HTML.
+
+`rake coverband:coverage`
+
+This should auto-open in your browser, but if it doesn't the output file should be in `coverage/index.html`
+
+## Viewing the Report in App
+
+First setup Coverband to [write reports to S3](#writing-coverband-results-to-s3) you can host the S3 file with a built in rack app in Coverband. Just configure your Rails route `config/routes.rb`
+
+```
+Rails.application.routes.draw do
+  # ... lots of routes
+  mount Coverband::Reporters::Web.new, at: '/coverage'
+end
+```
+
+__NOTE__: ADD PASSWORD PROTECTION OR YOU CAN EXPOSE ALL YOUR SOURCE CODE
+
+It is easy to add some basic protect around the coverage data, below shows how you can use devise or basic auth, by adding a bit of code to your `config/routes.rb` file.
+
+```
+# protect with existing Rails devise configuration
+devise_constraint = lambda do |request|
+  request.env['warden'] && request.env['warden'].authenticate? && request.env['warden'].user.admin?
+end
+
+# protect with http basic auth
+# curl --user foo:bar http://localhost:3000/coverage
+Rails.application.routes.draw do
+  # ... lots of routes
+
+  # Create a Rack wrapper around the Coverband Web Reporter to support & prompt the user for basic authentication.
+  AuthenticatedCoverband = Rack::Builder.new do 
+    use Rack::Auth::Basic do |username, password|
+      username == 'foo' && password == 'bar'
+    end
+
+    run Coverband::Reporters::Web.new 
+  end
+
+  # Connect the wrapper app to your desired endpoint.
+  mount AuthenticatedCoverband, at: '/coverage'
+end
+```
+
+# Verify Correct Installation
+
+* boot up your application
+* run app and hit a controller (via a web request, at least one request must complete)
+* run `rake coverband:coverage` this will show app initialization coverage
+* make another request, or enough that your reporting frequency will trigger
+* run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+
+# How To Use
+
+Below is my Coverband workflow, which hopefully will help other best use this library.
+
+* <a href="#installation">Install Coverband</a>
+* Start your app and hit a few endpoints
+* Validate data collection and code coverage with  `rake coverband:coverage`
+* If you see app startup and recent visits showing, setup is correct
+* I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
+* After Coverband has been verified to be working on production, I let it run for a few weeks.
+* Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
+
+# Advanced Usage
+
+### Example apps
+
+- [Rails 5.2.x App](https://github.com/danmayer/coverage_demo)
+- [Sinatra app](https://github.com/danmayer/churn-site)
+- [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
+
+### Example Output
+
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
+
+Index Page
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
+
+Details on a example Sinatra app
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
+
+### Advanced Coverband Config
 
 You may need to configure Coverband you can either do that passing in all configuration options to `Coverband.configure` in block format, or a simpler style is to call `Coverband.configure` with no params which will load `config/coverband.rb` expecting it to configure the app correctly.
 
@@ -98,71 +190,20 @@ Coverband.configure do |config|
   # they both increase the performance overhead of the gem a little.
   # they can also help with initially debugging the installation.
   config.verbose = false
-end```
-
-#### For Rails apps
-
-The Railtie integration means you shouldn't need to do anything anything else.
-
-#### For Sinatra apps
-
-For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
-
-```ruby
-require File.dirname(__FILE__) + '/config/environment'
-
-require 'coverband'
-Coverband.configure
-
-use Coverband::Middleware
-run ActionController::Dispatcher.new
+end
 ```
 
-# Verify Correct Installation
+### Writing Coverband Results to S3
 
-* boot up your application
-* run app and hit a controller (via a web request, at least one request must complete)
-* run `rake coverband:coverage` this will show app initialization coverage
-* make another request, or enough that your reporting frequency will trigger
-* run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+If you add some additional Coverband configuration your coverage html report will be written directly to S3, update `config/coverband.rb` like below.
 
-# How To Use
-
-Below is my Coverband workflow, which hopefully will help other best use this library.
-
-* <a href="#installation">Install Coverband</a>
-* Start your app and hit a few endpoints
-* Validate data collection and code coverage with  `rake coverband:coverage`
-* If you see app startup and recent visits showing, setup is correct
-* I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
-* After Coverband has been verified to be working on production, I let it run for a few weeks.
-* Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
-
-# Usage
-
-### Example apps
-
-- [Rails 5.2.x App](https://github.com/danmayer/coverage_demo)
-- [Sinatra app](https://github.com/danmayer/churn-site)
-- [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
-
-### Example Output
-
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
-
-Index Page
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
-
-Details on a example Sinatra app
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
-
-### View Coverage
-
-You can view the report different ways, but the easiest is the Rake task which opens the SimpleCov formatted HTML.
-
-`rake coverband:coverage`
-
-This should auto-open in your browser, but if it doesn't the output file should be in `coverage/index.html`
+```
+  # configure S3 integration
+  config.s3_bucket = 'coverband-demo'
+  config.s3_region = 'us-east-1'
+  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
+  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
+```
 
 ### Clear Coverage
 
@@ -340,57 +381,6 @@ If you are trying to debug locally wondering what code is being run during a req
       ...
      [517, 1617], [516, 38577]]
 
-### Writing Coverband Results to S3
-
-If you add some additional Coverband configuration your coverage html report will be written directly to S3, update `config/coverband.rb` like below.
-
-```
-  # configure S3 integration
-  config.s3_bucket = 'coverband-demo'
-  config.s3_region = 'us-east-1'
-  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
-  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
-```
-
-### Viewing / Hosting S3 Coverband results in app
-
-Beyond writing to S3 you can host the S3 file with a build in Sintatra app in Coverband. Just configure your Rails route `config/routes.rb`
-
-```
-Rails.application.routes.draw do
-  # ... lots of routes
-  mount Coverband::Reporters::Web.new, at: '/coverage'
-end
-```
-
-__NOTE__: ADD PASSWORD PROTECTION OR YOU CAN EXPOSE ALL YOUR SOURCE CODE
-
-It is easy to add some basic protect around the coverage data, below shows how you can use devise or basic auth, by adding a bit of code to your `config/routes.rb` file.
-
-```
-# protect with existing Rails devise configuration
-devise_constraint = lambda do |request|
-  request.env['warden'] && request.env['warden'].authenticate? && request.env['warden'].user.admin?
-end
-
-# protect with http basic auth
-# curl --user foo:bar http://localhost:3000/coverage
-Rails.application.routes.draw do
-  # ... lots of routes
-
-  # Create a Rack wrapper around the Coverband Web Reporter to support & prompt the user for basic authentication.
-  AuthenticatedCoverband = Rack::Builder.new do 
-    use Rack::Auth::Basic do |username, password|
-      username == 'foo' && password == 'bar'
-    end
-
-    run Coverband::Reporters::Web.new 
-  end
-
-  # Connect the wrapper app to your desired endpoint.
-  mount AuthenticatedCoverband, at: '/coverage'
-end
-```
 
 ### Conflicting .Simplecov: Issue with Missing or 0% Coverage Report
 
