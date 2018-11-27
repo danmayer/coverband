@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'json'
+require 'redis'
 
 require 'coverband/version'
 require 'coverband/configuration'
@@ -47,5 +48,12 @@ module Coverband
   def self.start
     Coverband::Collectors::Coverage.instance
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
+  end
+
+  unless ENV['COVERBAND_DISABLE_AUTO_START']
+    # Coverband should be setup as early as possible
+    # to capture usage of things loaded by initializers or other Rails engines
+    configure
+    start
   end
 end

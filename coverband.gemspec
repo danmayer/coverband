@@ -25,14 +25,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'aws-sdk', '~> 2'
   spec.add_development_dependency 'benchmark-ips'
   spec.add_development_dependency 'bundler', '~> 1.3'
+  spec.add_development_dependency 'm'
+  spec.add_development_dependency 'memory_profiler'
   spec.add_development_dependency 'mocha', '~> 0.14.0'
   spec.add_development_dependency 'rack'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'redis'
   spec.add_development_dependency 'test-unit'
-  spec.add_development_dependency 'm'
-  spec.add_development_dependency 'memory_profiler'
 
   # used for benchmarking and tests
   spec.add_development_dependency 'classifier-reborn'
@@ -40,6 +39,12 @@ Gem::Specification.new do |spec|
   # require 'byebug'; byebug
   spec.add_development_dependency 'pry-byebug'
 
+  # TODO: Remove when other production adapters exist
+  # because the default configuration of redis store, we really do require
+  # redis now. I was reluctant to add this, but until we offer another production
+  # quality adapter, I think this is more honest about requirements and reduces confusion
+  # without this there was a race condition on calling coverband configure before redis was loaded
+  spec.add_runtime_dependency 'redis'
   # TODO: make an optional dependency for simplecov reports
   # also likely should just require simplecov-html not the whole lib
   # I tried this but it was harder than I thought
