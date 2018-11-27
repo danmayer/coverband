@@ -100,7 +100,7 @@ end
 
 __NOTE__: ADD PASSWORD PROTECTION OR YOU CAN EXPOSE ALL YOUR SOURCE CODE
 
-It is easy to add some basic protect around the coverage data, below shows how you can use devise or basic auth, by adding a bit of code to your `config/routes.rb` file.
+It is easy to add basic protection around the coverage data, below shows how you can use devise or basic auth, by adding a bit of code to your `config/routes.rb` file.
 
 ```
 # protect with existing Rails devise configuration
@@ -203,6 +203,15 @@ If you add some additional Coverband configuration your coverage html report wil
   config.s3_region = 'us-east-1'
   config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
   config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
+```
+
+Alternatively, Coverband if you don't set via the `config.s3_*` accessor methods will look for the standard S3 environment variables.
+
+```
+ENV['AWS_BUCKET']
+ENV['AWS_REGION']
+ENV['AWS_ACCESS_KEY_ID']
+ENV['AWS_SECRET_ACCESS_KEY']
 ```
 
 ### Clear Coverage
