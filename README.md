@@ -4,9 +4,9 @@ Build Status: [![Build Status](https://travis-ci.org/danmayer/coverband.svg?bran
 
 <p align="center">
   <a href="#key-features">Key Features</a> •
-  <a href="#coverband-demo">Coverband Demo</a> •
   <a href="#installation">Installation</a> •
   <a href="#configuration">Configuration</a> •
+  <a href="#coverband-demo">Coverband Demo</a> •
   <a href="#how-to-use">How To Use</a> •
   <a href="#usage">Usage</a> •
   <a href="#license">License</a> •
@@ -27,10 +27,6 @@ The primary goal of Coverband is giving deep insight into your production runtim
 * Easy to understand actionable insights from the report
 * Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 * Mountable web interface to easily share reports
-
-## Coverband Demo
-
-Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
 
 
 # Installation
@@ -77,8 +73,8 @@ After installing the gem in Rails you should have these Rake tasks
 
 ```bash
 rake -T coverband
-rake coverband:clear         # reset coverband coverage data
-rake coverband:coverage      # report runtime coverband code coverage
+rake coverband:coverage      # report runtime Coverband code coverage
+rake coverband:clear         # reset Coverband coverage data, helpful for development, debugging, etc
 ```
 
 You can view the report different ways, but the easiest is the Rake task which opens the SimpleCov formatted HTML.
@@ -135,6 +131,10 @@ end
 * make another request, or enough that your reporting frequency will trigger
 * run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
+# Coverband Demo
+
+Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
+
 # How To Use
 
 Below is my Coverband workflow, which hopefully will help other best use this library.
@@ -146,8 +146,6 @@ Below is my Coverband workflow, which hopefully will help other best use this li
 * I generally configure the mountable web endpoint to [view the data via the web-app](https://github.com/danmayer/coverband#viewing--hosting-s3-coverband-results-in-app)
 * After Coverband has been verified to be working on production, I let it run for a few weeks.
 * Then I view the report and start submitting PRs for the team to review delete large related sets of code that no longer are in use.
-
-# Advanced Usage
 
 ### Example apps
 
@@ -358,12 +356,13 @@ By adding any files above you will get reporting on those files as part of your 
 
 By default Coverband has assumed you are trying to track your application code usage not all the supporting framework and library (Gems) code usage. There has been some good points and reasons folks want to track library usage, for example to find out which Gems they aren't actually using in production. See some of the discussion on [issue 21](https://github.com/danmayer/coverband/issues/21).
 
-* Using the Coverage Collector
-   * use the `safe_reload_files` feature to add the path of all gem files you wish to track
-   * --- or ---
-   * ensure you call `Coverband.start` before loading all your gems
-      * while possible this is currently hard as Rails and most environments load your whole Gemfile
-      * looking for an improve and easier way to support this.  
+How to collect gem usage with Coverband:
+
+* use the `safe_reload_files` feature to add the path of all gem files you wish to track
+* --- or ---
+* ensure you call `Coverband.start` before loading all your gems
+   * while possible this is currently hard as Rails and most environments load your whole Gemfile
+   * we are looking for an improve and easier way to support this.  
 
 
 ### Verbose Debug / Development Mode
