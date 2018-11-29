@@ -50,14 +50,11 @@ The Railtie integration means you shouldn't need to do anything anything else.
 
 ## Sinatra
 
-For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage.
+For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
 
 ```ruby
-require File.dirname(__FILE__) + '/config/environment'
-
 require 'coverband'
-Coverband.configure
-Coverband.start
+require File.dirname(__FILE__) + '/config/environment'
 
 use Coverband::Middleware
 run ActionController::Dispatcher.new
@@ -238,105 +235,7 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-### Manual Configuration (for example for background jobs)
-
-__NOTE:__ There should be no reason to manually configure anything for Rails apps, this should only be needed for non-Rails based Ruby applications.
-
-It is easy to use Coverband outside of a Rails Rack environment. Make sure you configure Coverband in whatever environment you are using (such as `config/initializers/*.rb`). Then you can hook into before and after events to add coverage around background jobs, or for any non Rack code.
-
-For example if you had a base Resque class, you could use the `before_perform` and `after_perform` hooks to add Coverband
-
-```ruby
-require 'coverband'
-Coverband.configure
-Coverband.start
-
-def after_perform(*args)
-  if @recording_samples
-     Coverband::Collectors::Coverage.instance.report_coverage
-  end
-end
-```
-
-(no need to do this for Rails, but a Rack app maybe)
-or sidekiq middleware:
-
-```ruby
-  # capture code usage in background jobs
-  class CoverbandMiddleware
-    def call(_worker, _msg, _queue)
-      Coverband.start
-      yield
-    ensure
-      Coverband::Collectors::Coverage.instance.report_coverage
-    end
-  end
-  
-  ...
-  chain.add Sidekiq::CoverbandMiddleware
-```
-
-In general you can run Coverband anywhere by using the lines below. This can be useful to wrap all cron jobs, background jobs, or other code run outside of web requests. I recommend trying to run both background and cron jobs at 100% coverage as the performance impact is less important and often old code hides around those jobs.
-
-
-```ruby
-require "coverband"
-Coverband.configure
-Coverband.start
-
-# do whatever
-Coverband::Collectors::Coverage.instance.report_coverage
-
-```
-
-### Manual Configuration (for cron jobs / Raketasks)
-
-__NOTE:__ There should be no reason to manually configure anything for Rails apps, this should only be needed for non-Rails based Ruby applications.
-
-A question about [supporting cron jobs and Rake tasks](https://github.com/danmayer/coverband/issues/106) was asked by [@ndbroadbent](https://github.com/ndbroadbent), there are a couple ways to go about it including his good suggestion.
-
-He extended the Coverband Rake tasks by adding `lib/tasks/coverband.rake` with support to wrap all Rake tasks with coverband support.
-
-```
-require 'coverband'
-Coverband.configure
-require 'coverband/utils/tasks'
-
-# Wrap all Rake tasks with Coverband
-current_tasks = Rake.application.top_level_tasks
-if current_tasks.any? && current_tasks.none? { |t| t.to_s.match?(/^coverband:/) }
-  current_tasks.unshift 'coverband:start'
-  current_tasks.push 'coverband:stop_and_save'
-end
-
-namespace :coverband do
-  task :start do
-    Coverband.start
-  end
-
-  task :stop_and_save do
-    Coverband::Collectors::Coverage.instance.report_coverage
-  end
-end
-```
-
-That is a interesting approach and if you Run all your cron jobs as Rake tasks might work well for you. In a production application where we run Coverband, we run all of our Cron jobs with the `rails runner` script. We took this alternative approach which will wrap all runner jobs with Coverband recording, by creating `lib/railties/coverage_runner.rb`.
-
-```
-require 'rails'
-
-# Capture code coverage during our cron jobs
-class CoverageRunner < ::Rails::Railtie
-  runner do
-    Coverband.start
-    at_exit do
-      Coverband::Collectors::Coverage.instance.report_coverage
-    end
-  end
-end
-```
-
-### safe_reload_files: Forcing Coverband to Track Coverage on Files loaded during boot
+### Forcing Coverband to Track Coverage on files loaded during boot `safe_reload_files`
 
 The way Coverband is built it will record and report code usage in production for anything `required` or `loaded` after calling `Coverband.start`. This means some of Rails initial files and Gems are loaded before you can generally call `Coverband.start` for example if you use the `application.rb` to initialize and start Coverband, that file will be reported as having no coverage, as it can't possibly start Coverband before the file is loaded. 
 
@@ -360,9 +259,9 @@ How to collect gem usage with Coverband:
 
 * use the `safe_reload_files` feature to add the path of all gem files you wish to track
 * --- or ---
-* ensure you call `Coverband.start` before loading all your gems
+* ensure you call `require 'coverband'` which triggers `Coverband.start` before loading all your gems
    * while possible this is currently hard as Rails and most environments load your whole Gemfile
-   * we are looking for an improve and easier way to support this.  
+   * we are looking for an improve and easier way to support this.
 
 
 ### Verbose Debug / Development Mode
