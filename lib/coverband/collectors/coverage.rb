@@ -31,10 +31,7 @@ module Coverband
 
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
-        unless @store
-          @logger.debug 'no store set, no-op'
-          return
-        end
+        raise 'no Coverband store set' unless @store
 
         new_results = get_new_coverage_results
         add_filtered_files(new_results)
