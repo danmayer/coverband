@@ -2,10 +2,9 @@
 
 module Coverband
   class Configuration
-    attr_accessor :redis, :root_paths, :root,
+    attr_accessor :root_paths, :root,
                   :ignore, :additional_files, :verbose,
                   :reporter, :reporting_frequency,
-                  :disable_on_failure_for,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env
@@ -15,13 +14,16 @@ module Coverband
     def initialize
       @root = Dir.pwd
       @root_paths = []
-      @ignore = []
+      @ignore = %w(vendor .erb$ .slim$)
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
       @reporter = 'scov'
-      @logger = Logger.new(STDOUT)
+      @logger = nil
       @store = nil
+      @background_reporting_enabled = true
+      @background_reporting_sleep_seconds = 30
+      @test_env = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -30,12 +32,14 @@ module Coverband
       @s3_secret_access_key = nil
       @redis_namespace = nil
       @redis_ttl = nil
-      @test_env = nil
-      @background_reporting_sleep_seconds = 30
     end
 
     def logger
-      @logger ||= Logger.new(STDOUT)
+      @logger ||= if defined?(Rails)
+                    Rails.logger
+                  else
+                    Logger.new(STDOUT)
+                  end
     end
 
     def s3_bucket
@@ -55,19 +59,26 @@ module Coverband
     end
 
     def store
-      return @store if @store
-      raise 'no valid store configured'
+      @store ||= Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
     end
 
     def store=(store)
       if store.is_a?(Coverband::Adapters::Base)
         @store = store
-      elsif defined?(Redis) && redis && redis.is_a?(Redis)
-        @store = Coverband::Adapters::RedisStore.new(redis, ttl: Coverband.configuration.redis_ttl,
-                                                            redis_namespace: Coverband.configuration.redis_namespace)
-      elsif store.is_a?(String)
-        @store = Coverband::Adapters::FileStore.new(store)
+      else
+        raise 'please pass in an subclass of Coverband::Adapters for supported stores'
       end
+    end
+
+    private
+
+    def redis_url
+      ENV['COVERBAND_REDIS_URL'] || ENV['REDIS_URL']
+    end
+
+    def redis_store_options
+      { ttl: Coverband.configuration.redis_ttl,
+        redis_namespace: Coverband.configuration.redis_namespace }
     end
   end
 end

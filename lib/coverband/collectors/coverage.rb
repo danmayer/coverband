@@ -17,7 +17,6 @@ module Coverband
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
         @file_line_usage = {}
-        @ignored_files = Set.new
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
         @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
@@ -25,19 +24,15 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
-        @background_reporting_enabled = Coverband.configuration.background_reporting_enabled
+        @@previous_results = nil
         Thread.current[:coverband_instance] = nil
         self
       end
 
       def report_coverage(force_report = false)
-        return Background.start if @background_reporting_enabled
         return if !ready_to_report? && !force_report
+        raise 'no Coverband store set' unless @store
 
-        unless @store
-          @logger.debug 'no store set, no-op'
-          return
-        end
         new_results = get_new_coverage_results
         add_filtered_files(new_results)
         @store.save_report(files_with_line_usage)
@@ -63,7 +58,6 @@ module Coverband
 
       def add_filtered_files(new_results)
         new_results.each_pair do |file, line_counts|
-          next if @ignored_files.include?(file)
           next unless track_file?(file)
           add_file(file, line_counts)
         end
@@ -74,14 +68,12 @@ module Coverband
       end
 
       def get_new_coverage_results
-        coverage_results = nil
-        @semaphore.synchronize { coverage_results = new_coverage(::Coverage.peek_result.dup) }
-        coverage_results
+        @semaphore.synchronize { new_coverage(::Coverage.peek_result.dup) }
       end
 
       def files_with_line_usage
         @file_line_usage.select do |_file_name, coverage|
-          coverage.any? { |value| value && value.nonzero? }
+          coverage.any? { |value| value&.nonzero? }
         end
       end
 

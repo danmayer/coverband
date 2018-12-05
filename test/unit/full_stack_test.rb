@@ -5,7 +5,7 @@ require 'rack'
 
 class FullStackTest < Test::Unit::TestCase
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
-  TEST_RACK_APP = '../fake_app/basic_rack.rb'.freeze
+  TEST_RACK_APP = '../fake_app/basic_rack.rb'
 
   def setup
     Coverband::Collectors::Coverage.instance.reset_instance
@@ -13,6 +13,7 @@ class FullStackTest < Test::Unit::TestCase
       config.reporting_frequency = 100.0
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       config.s3_bucket = nil
+      config.background_reporting_enabled = false
     end
     Coverband.configuration.store.clear!
     Coverband.start

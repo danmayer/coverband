@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'json'
+require 'redis'
 
 require 'coverband/version'
 require 'coverband/configuration'
@@ -9,6 +10,7 @@ require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
 require 'coverband/adapters/file_store'
 require 'coverband/utils/s3_report'
+require 'coverband/utils/railtie' if defined? ::Rails::Railtie
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/simple_cov_report'
@@ -35,8 +37,7 @@ module Coverband
     elsif File.exist?(configuration_file)
       require configuration_file
     else
-      msg = "configure requires a block, #{CONFIG_FILE} in project, or file path passed in configure"
-      raise ArgumentError, msg
+      configuration.logger&.debug('using default configuration')
     end
   end
 
@@ -47,5 +48,12 @@ module Coverband
   def self.start
     Coverband::Collectors::Coverage.instance
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
+  end
+
+  unless ENV['COVERBAND_DISABLE_AUTO_START']
+    # Coverband should be setup as early as possible
+    # to capture usage of things loaded by initializers or other Rails engines
+    configure
+    start
   end
 end

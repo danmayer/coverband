@@ -9,7 +9,11 @@ module Coverband
     def call(env)
       @app.call(env)
     ensure
-      Coverband::Collectors::Coverage.instance.report_coverage
+      if Coverband.configuration.background_reporting_enabled
+        Coverband::Background.start
+      else
+        Coverband::Collectors::Coverage.instance.report_coverage
+      end
     end
   end
 end

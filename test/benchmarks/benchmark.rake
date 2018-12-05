@@ -78,7 +78,6 @@ namespace :benchmarks do
   # desc 'set up coverband with Redis'
   task :setup_redis do
     Coverband.configure do |config|
-      config.redis               = Redis.new
       config.root                = Dir.pwd
       config.reporting_frequency = 100.0
       config.logger              = $stdout
@@ -220,6 +219,12 @@ namespace :benchmarks do
   task memory_reporting: [:setup] do
     puts 'runs memory benchmarking to ensure we dont leak'
     measure_memory
+  end
+
+  desc 'runs memory leak check via Rails tests'
+  task memory_rails: [:setup] do
+    puts 'runs memory rails test to ensure we dont leak'
+    puts `COVERBAND_MEMORY_TEST=true bundle exec m test/unit/rails_full_stack_test.rb:22`
   end
 
   desc 'runs benchmarks on reporting large sets of files to redis'

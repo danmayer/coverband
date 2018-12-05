@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 namespace :coverband do
+  Coverband.configure
+
   ###
-  # note: If your project has set many simplecov filters.
+  # NOTE: If your project has set many simplecov filters.
   # You might want to override them and clear the filters.
   # Or run the task `coverage_no_filters` below.
   ###
-  desc 'report runtime coverband code coverage'
+  desc 'report runtime Coverband code coverage'
   task coverage: :environment do
     if Coverband.configuration.reporter == 'scov'
       Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store)
@@ -30,11 +32,9 @@ namespace :coverband do
   end
 
   ###
-  # You likely want to clear coverage after significant code changes.
-  # You may want to have a hook that saves current coverband data on deploy
-  # and then resets the coverband store data.
+  # clear data helpful for development or after configuration issues
   ###
-  desc 'reset coverband coverage data'
+  desc 'reset Coverband coverage data, helpful for development, debugging, etc'
   task clear: :environment do
     Coverband.configuration.store.clear!
   end

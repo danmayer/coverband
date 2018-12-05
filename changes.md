@@ -23,30 +23,20 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - Support for file versions
   - md5 or release tags
   - add coverage timerange support
-- Drop Simplecov dependency 
-
-### Coverband 3.X
-
-Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
-
-- expects to drop Tracepoint collection engine
-- drop anything below Ruby 2.3
-- release begins to simplify ease of use
-  - drop collectors adapter
-  - reduced configuration options
+- Drop Simplecov dependency
 - improved web reporting
   - no longer relying directly on HTML in S3 but dynamically generated from any adapter
   - lists current config options
   - eventually allow updating remote config
   - full theming
-  - list redis data dump for debugging
+  - list redis data dump for debugging 
 - additional adapters: Memcache, S3, and ActiveRecord
-- add additional config / protection options on Coverage clear
-- add memory benchmarks showing memory overhead of coverband
 - add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
+- Add detailed Gem usage report, if we collect and send gem usage we can give percentage of gem code used, which should help application developers know when to remove gem dependencies (0%) or perhaps inline single methods for little usage (using <= 5%) for example.
+- add additional config / protection options on Coverage clear
 - add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
-   - more details in this issue: https://github.com/danmayer/coverband/issues/118
-- use full stack tests to prove no memory leaks when used in Rails  
+   - more details in this issue: https://github.com/danmayer/coverband/issues/118 
+- Make good video on setup, install, usage 
 
 ### Coverband_jam_session
 
@@ -68,14 +58,35 @@ Feature Ideas:
 - tagging of reported Coverage
 - allow only to collect coverage based on route (limiting or scoped coverage)
 - coverage over some other variable like a set of alpha users
+- document how to use this on staging / selenium test suite runs
+   - possible add API to pull report at end of run 
 
 # Alpha
 
-### Coverband ???
+### Coverband 4.0.0
 
 * Add support for Railties integration
+* Reduce configuration options
+* Default to background reporting vs middleware reporting
+* Resolves issue requiring submitting initial coverage data pre-fork
+* Simplified setup with just works sensible defaults for configuration out of the box
+* Fixes on the pilot release of background reporting in 3.0.1
+* Rake tasks automatically configured
+* Updated and simplified documentation
 
 # Released
+
+### Coverband 3.X
+
+Will be a stable and fast release that drops maintenance legacy support in favor of increased performance and maintainability.
+
+- expects to drop Tracepoint collection engine
+- drop anything below Ruby 2.3
+- release begins to simplify ease of use
+  - drop collectors adapter
+  - reduced configuration options
+- add memory benchmarks showing memory overhead of coverband
+- use full stack tests to prove no memory leaks when used in Rails 
 
 ### Coverband 3.0.1
 
