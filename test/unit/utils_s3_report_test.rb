@@ -4,9 +4,7 @@ require 'aws-sdk'
 module Coverband
   class S3ReportTest < Test::Unit::TestCase
     def html_version
-      Gem::Specification.find_by_name('simplecov-html').version.version.to_s
-    rescue StandardError
-      '0.10.1'
+      Coverband::VERSION
     end
 
     test 'it writes the coverage report to s3' do

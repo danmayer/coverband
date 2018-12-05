@@ -9,7 +9,7 @@ ENV['RACK_ENV'] = 'test'
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
   module Coverband
-    class S3WebTest < Test::Unit::TestCase
+    class WebTest < Test::Unit::TestCase
       include Rack::Test::Methods
 
       def app
@@ -20,7 +20,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
         Coverband.configuration.s3_bucket = nil
       end
 
-      # TODO add tests for all endpoints
+      # TODO: add tests for all endpoints
       test 'renders index content' do
         get '/'
         assert last_response.ok?
@@ -28,8 +28,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
       end
 
       test 'renders show content' do
-        Coverband.configuration.s3_bucket = 'coverage-bucket'
-        Coverband::Utils::S3Report.any_instance.expects(:retrieve).returns('content')
+        Coverband::Reporters::HTMLReport.expects(:report).returns('content')
         get '/show'
         assert last_response.ok?
         assert_equal 'content', last_response.body

@@ -34,9 +34,9 @@ class FullStackTest < Test::Unit::TestCase
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
 
-    expected = nil
+    # expected = nil
     # TODO: read the html to test it matches expectations? or return data as a hash?
-    # actual = Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+    # actual = Coverband::Reporters::HTMLReport.report(Coverband.configuration.store, open_report: false)
     # assert_equal expected, actual
   end
 

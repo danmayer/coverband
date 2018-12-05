@@ -52,10 +52,8 @@ module Coverband
       private
 
       def coverage_content
-        version = Gem::Specification.find_by_name('simplecov-html').version.version
-        File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/#{version}/", '')
-      rescue StandardError
-        File.read("#{SimpleCov.coverage_dir}/index.html").to_s.gsub('./assets/0.10.1/', '')
+        version = Coverband::VERSION
+        File.read("#{Coverband.configuration.root}/coverage/index.html").gsub("./assets/#{version}/", '')
       end
 
       def object

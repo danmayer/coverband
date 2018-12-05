@@ -2,11 +2,10 @@
 
 ### Research Alternative Redis formats
 
-* Look at alternative storage formats for Redis
-  * [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
-  * [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
-* Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
-
+- Look at alternative storage formats for Redis
+  - [redis bitmaps](http://blog.getspool.com/2011/11/29/fast-easy-realtime-metrics-using-redis-bitmaps/)
+  - [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
+- Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 
 ### Coverband 4.X
 
@@ -29,14 +28,14 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - lists current config options
   - eventually allow updating remote config
   - full theming
-  - list redis data dump for debugging 
+  - list redis data dump for debugging
 - additional adapters: Memcache, S3, and ActiveRecord
 - add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
 - Add detailed Gem usage report, if we collect and send gem usage we can give percentage of gem code used, which should help application developers know when to remove gem dependencies (0%) or perhaps inline single methods for little usage (using <= 5%) for example.
 - add additional config / protection options on Coverage clear
 - add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
-   - more details in this issue: https://github.com/danmayer/coverband/issues/118 
-- Make good video on setup, install, usage 
+  - more details in this issue: https://github.com/danmayer/coverband/issues/118
+- Make good video on setup, install, usage
 
 ### Coverband_jam_session
 
@@ -48,8 +47,8 @@ Feature Ideas:
 - move to SimpleCov console out, or make similar console tabular output
 - Possibly add ability to record code run for a given route
 - integrate recording with deploy tag or deploy timestamp
-   - diff code usage across deployed versions
-   - what methods increased usage or decreased
+  - diff code usage across deployed versions
+  - what methods increased usage or decreased
 - Improve client code api, around manual usage of sampling (like event usage)
 - ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 - Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
@@ -59,25 +58,29 @@ Feature Ideas:
 - allow only to collect coverage based on route (limiting or scoped coverage)
 - coverage over some other variable like a set of alpha users
 - document how to use this on staging / selenium test suite runs
-   - possible add API to pull report at end of run 
+  - possible add API to pull report at end of run
 
 # Alpha
 
-???
+### Coverband 4.0.1.alpha
+
+- drops simplecov runtime dependency
+  - still used to measure our own code coverage ;)
+- thanks SimpleCov for all the years of solid HTML reporting, and support!
 
 # Released
 
 ### Coverband 4.0.0
 
-* Add support for Railties integration
-* Reduce configuration options
-* Default to background reporting vs middleware reporting
-* Resolves issue requiring submitting initial coverage data pre-fork
-* Simplified setup with just works sensible defaults for configuration out of the box
-* Fixes on the pilot release of background reporting in 3.0.1
-* Rake tasks automatically configured
-* Updated and simplified documentation
-* Thanks to Kbaum for all the extensive feedback on the PR
+- Add support for Railties integration
+- Reduce configuration options
+- Default to background reporting vs middleware reporting
+- Resolves issue requiring submitting initial coverage data pre-fork
+- Simplified setup with just works sensible defaults for configuration out of the box
+- Fixes on the pilot release of background reporting in 3.0.1
+- Rake tasks automatically configured
+- Updated and simplified documentation
+- Thanks to Kbaum for all the extensive feedback on the PR
 
 ### Coverband 3.X
 
@@ -89,50 +92,49 @@ Will be a stable and fast release that drops maintenance legacy support in favor
   - drop collectors adapter
   - reduced configuration options
 - add memory benchmarks showing memory overhead of coverband
-- use full stack tests to prove no memory leaks when used in Rails 
+- use full stack tests to prove no memory leaks when used in Rails
 
 ### Coverband 3.0.1
 
-* update documentation around verification steps (https://github.com/danmayer/coverband/issues/135), thanks @kbaum
-* resolve coverage drift issue, https://github.com/danmayer/coverband/issues/118, thanks for MD5 hash ideas @dnasseri and @kbaum
-* first version of background thread coverage reporting https://github.com/danmayer/coverband/pull/138, thanks @kbaum
-* auto-detection of Rack & Rails thanks @kbaum
-* improved tests allowing exceptions to raise in tests @kbaum
-* add support for both aws-sdk 1.x and 2.x thanks @jared
-* adds memory test ensuring no memory leaks
-* full stack Rails tests for Rails 4 and 5 thanks @kbaum
+- update documentation around verification steps (https://github.com/danmayer/coverband/issues/135), thanks @kbaum
+- resolve coverage drift issue, https://github.com/danmayer/coverband/issues/118, thanks for MD5 hash ideas @dnasseri and @kbaum
+- first version of background thread coverage reporting https://github.com/danmayer/coverband/pull/138, thanks @kbaum
+- auto-detection of Rack & Rails thanks @kbaum
+- improved tests allowing exceptions to raise in tests @kbaum
+- add support for both aws-sdk 1.x and 2.x thanks @jared
+- adds memory test ensuring no memory leaks
+- full stack Rails tests for Rails 4 and 5 thanks @kbaum
 
 ### Coverband 3.0.0
 
-* drops Tracepoint
-* drops Ruby <= 2.3.0
-* drops JSON Gem dependency
-* drops various other features not needed without Tracepoint
-   * memory cache, sampling, restricted to app folders, etc 
-* standardizes on Coverage array format vs sparse hash
-* rewrites store methods, for 60X perf
-  * implemented for Redis and File store
-* improved mountable web interface
-
+- drops Tracepoint
+- drops Ruby <= 2.3.0
+- drops JSON Gem dependency
+- drops various other features not needed without Tracepoint
+  - memory cache, sampling, restricted to app folders, etc
+- standardizes on Coverage array format vs sparse hash
+- rewrites store methods, for 60X perf
+  - implemented for Redis and File store
+- improved mountable web interface
 
 # 2.0.3
 
-* don''t include docs in the gemfile thanks @bquorning
-* pipeline_redis to reduce network overhead thanks @Kallin
-* various additional benchmarks @danmayer
-* Filter out files with no coverage thanks  @kbaum
+- don''t include docs in the gemfile thanks @bquorning
+- pipeline_redis to reduce network overhead thanks @Kallin
+- various additional benchmarks @danmayer
+- Filter out files with no coverage thanks @kbaum
 
 ### 2.0.2
 
-* fix possible nil error on files that changed since initial recording @viktor-silakov
-* add improve error logging in verbose mode (stacktrace) @viktor-silakov
-* improved logging level support @viktor-silakov
-* launch Coverband demo and integrate into Readme / Documentation
-* fix on baseline to show an issue by @viktor-silakov
-* remove all coverband:baseline related features and documentation
-* dropped Sinatra requirement for web mountable page
-* fix on filestore by @danrabinowitz
-* fixes to the MemoryCacheStore by @kbaum
+- fix possible nil error on files that changed since initial recording @viktor-silakov
+- add improve error logging in verbose mode (stacktrace) @viktor-silakov
+- improved logging level support @viktor-silakov
+- launch Coverband demo and integrate into Readme / Documentation
+- fix on baseline to show an issue by @viktor-silakov
+- remove all coverband:baseline related features and documentation
+- dropped Sinatra requirement for web mountable page
+- fix on filestore by @danrabinowitz
+- fixes to the MemoryCacheStore by @kbaum
 
 ### 2.0.1
 

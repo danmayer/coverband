@@ -31,9 +31,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rack'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'test-unit'
 
-  # used for benchmarking and tests
+  # TODO: used for benchmarking and tests I think we have other better benchmarking
+  # perhaps time to drop this and refactor.
   spec.add_development_dependency 'classifier-reborn'
   # add when debugging
   # require 'byebug'; byebug
@@ -45,8 +47,4 @@ Gem::Specification.new do |spec|
   # quality adapter, I think this is more honest about requirements and reduces confusion
   # without this there was a race condition on calling coverband configure before redis was loaded
   spec.add_runtime_dependency 'redis'
-  # TODO: make an optional dependency for simplecov reports
-  # also likely should just require simplecov-html not the whole lib
-  # I tried this but it was harder than I thought
-  spec.add_runtime_dependency 'simplecov', '> 0.11.1'
 end

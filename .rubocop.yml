@@ -50,10 +50,6 @@ Style/NumericLiteralPrefix:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
-Style/MethodMissingSuper:
-  Enabled: true
-Style/MissingRespondToMissing:
-  Enabled: false
 Performance/Casecmp:
   Enabled: false
 Layout/EmptyLinesAroundArguments:
