@@ -63,6 +63,10 @@ Feature Ideas:
 
 # Alpha
 
+???
+
+# Released
+
 ### Coverband 4.0.0
 
 * Add support for Railties integration
@@ -73,8 +77,7 @@ Feature Ideas:
 * Fixes on the pilot release of background reporting in 3.0.1
 * Rake tasks automatically configured
 * Updated and simplified documentation
-
-# Released
+* Thanks to Kbaum for all the extensive feedback on the PR
 
 ### Coverband 3.X
 
