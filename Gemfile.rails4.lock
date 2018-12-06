@@ -1,9 +1,8 @@
 PATH
   remote: .
   specs:
-    coverband (4.0.0)
+    coverband (4.0.1.alpha)
       redis
-      simplecov (> 0.11.1)
 
 GEM
   remote: https://rubygems.org/
@@ -158,6 +157,7 @@ DEPENDENCIES
   rack-test
   rails (~> 4)
   rake
+  simplecov
   test-unit
 
 BUNDLED WITH
