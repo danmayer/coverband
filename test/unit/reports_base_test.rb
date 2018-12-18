@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class ReportsBaseTest < Test::Unit::TestCase
+class ReportsBaseTest < Minitest::Test
   test 'filename_from_key fix filename from a key with a swappable path' do
     Coverband.configure do |config|
       config.reporter          = 'std_out'

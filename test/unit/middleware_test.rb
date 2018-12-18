@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
-class MiddlewareTest < Test::Unit::TestCase
+class MiddlewareTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup

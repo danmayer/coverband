@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
-class FullStackTest < Test::Unit::TestCase
+class FullStackTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
   TEST_RACK_APP = '../fake_app/basic_rack.rb'
 

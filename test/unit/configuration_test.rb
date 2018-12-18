@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class BaseTest < Test::Unit::TestCase
+class BaseTest < Minitest::Test
   def setup
     Coverband.configure do |config|
       config.root                = Dir.pwd

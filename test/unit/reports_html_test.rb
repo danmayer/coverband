@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class ReportHTMLTest < Test::Unit::TestCase
+class ReportHTMLTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup

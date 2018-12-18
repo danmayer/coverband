@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'simplecov'
-require 'test/unit'
+require 'minitest/autorun'
 require 'mocha/setup'
 require 'ostruct'
 require 'json'

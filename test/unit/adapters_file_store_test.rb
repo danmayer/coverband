@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class AdaptersFileStoreTest < Test::Unit::TestCase
+class AdaptersFileStoreTest < Minitest::Test
   def setup
     @test_file_path = '/tmp/coverband_filestore_test_path.json'
     File.open(@test_file_path, 'w') { |f| f.write(test_data.to_json) }

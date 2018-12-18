@@ -9,7 +9,7 @@ ENV['RACK_ENV'] = 'test'
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
   module Coverband
-    class WebTest < Test::Unit::TestCase
+    class WebTest < Minitest::Test
       include Rack::Test::Methods
 
       def app

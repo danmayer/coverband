@@ -2,7 +2,7 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class BackgroundTest < Test::Unit::TestCase
+class BackgroundTest < Minitest::Test
   def setup
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|

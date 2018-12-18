@@ -2,7 +2,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'aws-sdk'
 
 module Coverband
-  class S3ReportTest < Test::Unit::TestCase
+  class S3ReportTest < Minitest::Test
     def html_version
       Coverband::VERSION
     end
