@@ -29,8 +29,7 @@ module Coverband
   end
 
   def self.configure(file = nil)
-    configuration_file = file || CONFIG_FILE
-
+    configuration_file = file || ENV.fetch('COVERBAND_CONFIG', CONFIG_FILE)
     configuration
     if block_given?
       yield(configuration)

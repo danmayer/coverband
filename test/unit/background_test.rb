@@ -8,6 +8,7 @@ class BackgroundTest < Test::Unit::TestCase
     Coverband.configure do |config|
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       config.background_reporting_enabled = true
+      config.background_reporting_sleep_seconds = 30
     end
     Coverband::Background.instance_variable_set(:@background_reporting_running, nil)
   end
