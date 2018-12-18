@@ -12,6 +12,10 @@ module Coverband
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
     def initialize
+      reset
+    end
+
+    def reset
       @root = Dir.pwd
       @root_paths = []
       @ignore = %w(vendor .erb$ .slim$)
