@@ -19,6 +19,7 @@ class Test::Unit::TestCase
   def teardown
     Coverband.configuration.reset
     Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband::Background.stop
   end
 end
 
