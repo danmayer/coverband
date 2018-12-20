@@ -2,9 +2,21 @@
 
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 
+require 'capybara/rails'
+require 'capybara/minitest'
+
 class RailsFullStackTest < ActionDispatch::IntegrationTest
   def teardown
     ENV['COVERBAND_CONFIG'] = nil
+  end
+
+  include Capybara::DSL
+  include Capybara::Minitest::Assertions
+
+  def setup
+    Coverband::Test.reset
+    Capybara.default_driver = :selenium_chrome_headless
+    Capybara.server = :webrick
   end
 
   test 'this is how we do it' do
