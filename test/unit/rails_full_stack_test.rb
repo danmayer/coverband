@@ -3,12 +3,7 @@
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 
 class RailsFullStackTest < ActionDispatch::IntegrationTest
-  def setup
-    Coverband.configuration.store.clear!
-  end
-
   def teardown
-    Coverband::Background.stop
     ENV['COVERBAND_CONFIG'] = nil
   end
 
