@@ -39,7 +39,7 @@ module Coverband
     if block_given?
       yield(configuration)
     elsif File.exist?(configuration_file)
-      require configuration_file
+      load configuration_file
     else
       configuration.logger&.debug('using default configuration')
     end
