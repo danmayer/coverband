@@ -3,21 +3,31 @@
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 
 class RailsFullStackTest < ActionDispatch::IntegrationTest
+  include Capybara::DSL
+  include Capybara::Minitest::Assertions
+
   def setup
-    Coverband.configuration.store.clear!
+    Coverband::Test.reset
+    #The normal relative directory lookup of coverband won't work for our dummy rails project
+    Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
+    Coverband.start
   end
 
   def teardown
-    Coverband::Background.stop
+    Capybara.reset_sessions!
+    Capybara.use_default_driver
     ENV['COVERBAND_CONFIG'] = nil
   end
 
   test 'this is how we do it' do
-    get '/dummy/show'
-    assert_response :success
-    assert_equal 'I am no dummy', response.body
+    visit '/dummy/show'
+    assert_content('I am no dummy')
     sleep 0.2
-    assert_equal [1, 1, 1, nil, nil], Coverband.configuration.store.coverage["#{Rails.root}/app/controllers/dummy_controller.rb"]
+    visit '/coverage'
+    click_link "view coverage report"
+    within page.find('a',  text: /dummy_controller.rb/).find(:xpath, "../..") do
+      assert_selector('td', text: '100.0 %')
+    end
   end
 
   ###
