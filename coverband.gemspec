@@ -7,7 +7,7 @@ require 'coverband/version'
 Gem::Specification.new do |spec|
   spec.name          = 'coverband'
   spec.version       = Coverband::VERSION
-  spec.authors       = ['Dan Mayer']
+  spec.authors       = ['Dan Mayer', 'Karl Baum']
   spec.email         = ['dan@mayerdan.com']
   spec.description   = 'Rack middleware to help measure production code usage (LOC runtime usage)'
   spec.summary       = 'Rack middleware to help measure production code usage (LOC runtime usage)'
