@@ -6,10 +6,6 @@ require 'capybara/rails'
 require 'capybara/minitest'
 
 class RailsFullStackTest < ActionDispatch::IntegrationTest
-  def teardown
-    ENV['COVERBAND_CONFIG'] = nil
-  end
-
   include Capybara::DSL
   include Capybara::Minitest::Assertions
 
@@ -17,14 +13,25 @@ class RailsFullStackTest < ActionDispatch::IntegrationTest
     Coverband::Test.reset
     Capybara.default_driver = :selenium_chrome_headless
     Capybara.server = :webrick
+    Coverband.configure("#{Rails.root}/config/coverband.rb")
+    Coverband.start
+  end
+
+  def teardown
+    Capybara.reset_sessions!
+    Capybara.use_default_driver
+    ENV['COVERBAND_CONFIG'] = nil
   end
 
   test 'this is how we do it' do
-    get '/dummy/show'
-    assert_response :success
-    assert_equal 'I am no dummy', response.body
+    visit '/dummy/show'
+    assert_content('I am no dummy')
     sleep 0.2
-    assert_equal [1, 1, 1, nil, nil], Coverband.configuration.store.coverage["#{Rails.root}/app/controllers/dummy_controller.rb"]
+    visit '/coverage'
+    click_link "view coverage report"
+    within page.find('a',  text: /dummy_controller.rb/).find(:xpath, "../..") do
+      assert_selector('td', text: '100.0 %')
+    end
   end
 
   ###
