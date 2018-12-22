@@ -186,7 +186,7 @@ module Coverband
         skipping = false
 
         lines.each do |line|
-          if false # SimpleCov::LinesClassifier.no_cov_line?(line.src)
+          if Coverband::Utils::LinesClassifier.no_cov_line?(line.src)
             skipping = !skipping
             line.skipped!
           elsif skipping

@@ -5,7 +5,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 ####
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov-html
 # initial version of test pulled into Coverband from Simplecov 12/17/2018
-###
+####
 describe Coverband::Utils::LinesClassifier do
   describe '#classify' do
     def subject
@@ -24,7 +24,7 @@ describe Coverband::Utils::LinesClassifier do
           'end'
         ]
 
-        assert_equal classified_lines.length, 7
+        assert_equal 7, classified_lines.length
         assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::RELEVANT })
       end
 
@@ -33,7 +33,7 @@ describe Coverband::Utils::LinesClassifier do
           "bytes = \"\xF1t\xEBrn\xE2ti\xF4n\xE0liz\xE6ti\xF8n\""
         ]
 
-        assert_equal classified_lines.length, 1
+        assert_equal 1, classified_lines.length
         assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::RELEVANT })
       end
     end
@@ -46,7 +46,7 @@ describe Coverband::Utils::LinesClassifier do
           "\t\t"
         ]
 
-        assert_equal classified_lines.length, 3
+        assert_equal 3, classified_lines.length
         assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
       end
 
@@ -58,7 +58,7 @@ describe Coverband::Utils::LinesClassifier do
             "\t# Leading tab comment"
           ]
 
-          assert_equal classified_lines.length, 3
+          assert_equal 3, classified_lines.length
           assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
         end
 
@@ -67,7 +67,7 @@ describe Coverband::Utils::LinesClassifier do
             'puts "#{var}"'
           ]
 
-          assert_equal classified_lines.length, 1
+          assert_equal 1, classified_lines.length
           assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::RELEVANT })
         end
       end
@@ -81,7 +81,7 @@ describe Coverband::Utils::LinesClassifier do
             '# :nocov:'
           ]
 
-          assert_equal classified_lines.length, 4
+          assert_equal 4, classified_lines.length
           assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
         end
 
@@ -97,7 +97,7 @@ describe Coverband::Utils::LinesClassifier do
             "puts 'Ditto'"
           ]
 
-          assert_equal classified_lines.length, 8
+          assert_equal 8, classified_lines.length
 
           assert(classified_lines[0..2].all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
           assert(classified_lines[3..4].all? { |line| line == Coverband::Utils::LinesClassifier::RELEVANT })

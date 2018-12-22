@@ -43,6 +43,7 @@ module Coverband
       end
 
       # Returns a Hash of groups for this result. Define groups using SimpleCov.add_group 'Models', 'app/models'
+      # Coverband doesn't currently support groups
       def groups
         @groups ||= [] # SimpleCov.grouped(files)
       end
