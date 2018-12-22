@@ -15,7 +15,7 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
-class Test::Unit::TestCase
+class Minitest::Test
   def teardown
     Coverband.configuration.store.clear!
     Coverband.configuration.reset
