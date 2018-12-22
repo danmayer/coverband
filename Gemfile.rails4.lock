@@ -85,7 +85,6 @@ GEM
       metaclass (~> 0.0.1)
     nokogiri (1.8.5)
       mini_portile2 (~> 2.3.0)
-    power_assert (1.1.3)
     pry (0.12.2)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
@@ -133,8 +132,6 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    test-unit (3.2.8)
-      power_assert
     thor (0.20.3)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
@@ -151,6 +148,7 @@ DEPENDENCIES
   coverband!
   m
   memory_profiler
+  minitest
   mocha (~> 0.14.0)
   pry-byebug
   rack
@@ -158,7 +156,6 @@ DEPENDENCIES
   rails (~> 4)
   rake
   simplecov
-  test-unit
 
 BUNDLED WITH
    1.16.2
