@@ -7,12 +7,17 @@ class RailsFullStackTest < ActionDispatch::IntegrationTest
     Coverband.configuration.store.clear!
   end
 
+  def teardown
+    Coverband::Background.stop
+    ENV['COVERBAND_CONFIG'] = nil
+  end
+
   test 'this is how we do it' do
     get '/dummy/show'
     assert_response :success
     assert_equal 'I am no dummy', response.body
-    # fixed in other branch restore this test
-    # assert_equal [1, 1, 1, nil, nil], Coverband.configuration.store.coverage["#{Rails.root}/app/controllers/dummy_controller.rb"]
+    sleep 0.2
+    assert_equal [1, 1, 1, nil, nil], Coverband.configuration.store.coverage["#{Rails.root}/app/controllers/dummy_controller.rb"]
   end
 
   ###

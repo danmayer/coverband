@@ -15,6 +15,15 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
+class Test::Unit::TestCase
+  def teardown
+    Coverband.configuration.store.clear!
+    Coverband.configuration.reset
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband::Background.stop
+  end
+end
+
 TEST_COVERAGE_FILE = '/tmp/fake_file.json'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
