@@ -15,17 +15,19 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
-module Coverband::Test
-  def self.reset
-    Coverband.configuration.store.clear!
-    Coverband.configuration.reset
-    Coverband::Collectors::Coverage.instance.reset_instance
-    Coverband::Background.stop
-  end
+module Coverband
+  module Test
+    def self.reset
+      Coverband.configuration.store.clear!
+      Coverband.configuration.reset
+      Coverband::Collectors::Coverage.instance.reset_instance
+      Coverband::Background.stop
+    end
 
-  def setup
-    super
-    Coverband::Test.reset
+    def setup
+      super
+      Coverband::Test.reset
+    end
   end
 end
 

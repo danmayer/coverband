@@ -5,7 +5,7 @@
 .yardoc
 .idea/
 .ruby-version
-Gemfile.lock
+Gemfile*lock
 InstalledFiles
 _yardoc
 coverage
