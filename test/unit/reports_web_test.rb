@@ -17,6 +17,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
       end
 
       def teardown
+        super
         Coverband.configuration.s3_bucket = nil
       end
 

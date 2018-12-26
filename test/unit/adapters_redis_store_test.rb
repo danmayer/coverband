@@ -6,6 +6,7 @@ class RedisTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup
+    super
     @redis = Redis.new
     @store = Coverband::Adapters::RedisStore.new(@redis)
     @store.clear!

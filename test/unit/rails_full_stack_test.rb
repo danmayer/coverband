@@ -2,21 +2,21 @@
 
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 
-class RailsFullStackTest < ActionDispatch::IntegrationTest
+class RailsFullStackTest < Minitest::Test
   include Capybara::DSL
   include Capybara::Minitest::Assertions
 
   def setup
-    Coverband::Test.reset
+    super
     #The normal relative directory lookup of coverband won't work for our dummy rails project
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
     Coverband.start
   end
 
   def teardown
+    super
     Capybara.reset_sessions!
     Capybara.use_default_driver
-    ENV['COVERBAND_CONFIG'] = nil
   end
 
   test 'this is how we do it' do
@@ -45,8 +45,8 @@ class RailsFullStackTest < ActionDispatch::IntegrationTest
 
       # warmup
       3.times do
-        get '/dummy/show'
-        assert_response :success
+        visit '/dummy/show'
+        assert_content('I am no dummy')
         Coverband::Collectors::Coverage.instance.report_coverage(true)
       end
 
@@ -56,8 +56,8 @@ class RailsFullStackTest < ActionDispatch::IntegrationTest
 
       MemoryProfiler.report do
         15.times do
-          get '/dummy/show'
-          assert_response :success
+          visit '/dummy/show'
+          assert_content('I am no dummy')
           Coverband::Collectors::Coverage.instance.report_coverage(true)
           # this is expected to retain memory across requests
           # clear it to remove the false positive from test

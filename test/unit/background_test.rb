@@ -10,12 +10,17 @@ class BackgroundTest < Minitest::Test
       config.background_reporting_enabled = true
       config.background_reporting_sleep_seconds = 30
     end
+    Coverband::Background.stop
+  end
+
+  class ThreadDouble
+    def exit
+    end
   end
 
   def test_start
-    Thread.expects(:new).yields.returns(:thread)
+    Thread.expects(:new).yields.returns(ThreadDouble.new)
     Coverband::Background.expects(:loop).yields
-
     Coverband::Background.expects(:sleep).with(30)
     Coverband::Background.expects(:at_exit).returns(false)
     Coverband::Collectors::Coverage.instance.expects(:report_coverage).once

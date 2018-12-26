@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'simplecov'
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 require 'ostruct'
 require 'json'
 require 'redis'
@@ -22,12 +22,15 @@ module Coverband::Test
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband::Background.stop
   end
-end
 
-class Minitest::Test
   def setup
+    super
     Coverband::Test.reset
   end
+end
+
+Minitest::Test.class_eval do
+  prepend Coverband::Test
 end
 
 TEST_COVERAGE_FILE = '/tmp/fake_file.json'

@@ -8,6 +8,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
     attr_accessor :coverband
 
     def setup
+      super
       Coverband.configure do |config|
         config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       end

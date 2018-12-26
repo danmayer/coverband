@@ -8,3 +8,4 @@ require 'capybara/minitest'
 
 #Our coverage report is wrapped in display:none as of now
 Capybara.ignore_hidden_elements = false
+require 'mocha/minitest'
