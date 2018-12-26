@@ -36,6 +36,8 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
   - more details in this issue: https://github.com/danmayer/coverband/issues/118
 - Make good video on setup, install, usage
+- See if we can add support for views / templates
+  - using this technique https://github.com/ioquatix/covered 	
 
 ### Coverband_jam_session
 
