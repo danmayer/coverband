@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'simplecov'
 require 'test/unit'
-require 'mocha/setup'
+require 'mocha/test_unit'
 require 'ostruct'
 require 'json'
 require 'redis'
