@@ -4,6 +4,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class BaseTest < Minitest::Test
   def setup
+    super
     Coverband.configure do |config|
       config.root                = Dir.pwd
       config.s3_bucket           = nil

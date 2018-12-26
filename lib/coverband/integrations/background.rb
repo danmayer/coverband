@@ -8,20 +8,19 @@ module Coverband
       @semaphore.synchronize do
         if @thread
           @thread.exit
-          @background_reporting_running = false
+          @thread = nil
         end
       end
     end
 
     def self.start
-      return if @background_reporting_running
+      return if @thread
 
       logger = Coverband.configuration.logger
       @semaphore.synchronize do
-        return if @background_reporting_running
+        binding.pry if defined?($debug) && $debug
+        return if @thread
         logger&.debug('Coverband: Starting background reporting')
-
-        @background_reporting_running = true
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
         @thread = Thread.new do
           loop do
@@ -30,11 +29,12 @@ module Coverband
             sleep(sleep_seconds)
           end
         end
-
-        at_exit do
-          Coverband::Collectors::Coverage.instance.report_coverage(true)
-          logger&.debug('Coverband: Reported coverage before exit')
-        end
+        binding.pry if defined?($debug) && $debug
+      end
+      at_exit do
+        stop
+        Coverband::Collectors::Coverage.instance.report_coverage(true)
+        logger&.debug('Coverband: Reported coverage before exit')
       end
     end
   end

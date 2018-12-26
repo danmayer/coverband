@@ -7,6 +7,7 @@ class MiddlewareTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup
+    super
     Coverband.configure do |config|
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       config.background_reporting_enabled = false

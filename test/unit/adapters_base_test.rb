@@ -4,6 +4,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class AdaptersBaseTest < Minitest::Test
   def setup
+    super
     @test_file_path = '/tmp/coverband_filestore_test_path.json'
     @store = Coverband::Adapters::FileStore.new(@test_file_path)
     mock_file_hash
