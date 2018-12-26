@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
-require 'aws-sdk'
+require 'aws-sdk-s3'
 require File.expand_path('../../lib/coverband/reporters/web', File.dirname(__FILE__))
 require 'rack/test'
 

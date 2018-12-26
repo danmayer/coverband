@@ -67,6 +67,7 @@ Feature Ideas:
 - drops simplecov runtime dependency
   - still used to measure our own code coverage ;)
 - thanks SimpleCov for all the years of solid HTML reporting, and support!
+- reduced the S3 dependencies to minimal set (not loading all of aws-sdk), ensured they are optional
 
 # Released
 

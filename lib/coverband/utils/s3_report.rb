@@ -24,7 +24,7 @@ module Coverband
         @access_key_id = options[:access_key_id]
         @secret_access_key = options[:secret_access_key]
         begin
-          require 'aws-sdk'
+          require 'aws-sdk-s3'
         rescue StandardError
           err_msg = 'coverband requires aws-sdk in order use S3Report.'
           Coverband.configuration.logger.error err_msg
