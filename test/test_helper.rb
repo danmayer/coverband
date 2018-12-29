@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rubygems'
+require 'coveralls'
 require 'simplecov'
 require 'test/unit'
 require 'mocha/setup'
@@ -8,6 +9,8 @@ require 'ostruct'
 require 'json'
 require 'redis'
 require 'pry-byebug'
+
+Coveralls.wear!
 
 SimpleCov.start do
   add_filter 'specs/ruby/1.9.1/gems/'
