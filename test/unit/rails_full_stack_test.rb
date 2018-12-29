@@ -24,7 +24,6 @@ class RailsFullStackTest < Minitest::Test
     assert_content('I am no dummy')
     sleep 0.2
     visit '/coverage'
-    click_link "view coverage report"
     within page.find('a',  text: /dummy_controller.rb/).find(:xpath, "../..") do
       assert_selector('td', text: '100.0 %')
     end
