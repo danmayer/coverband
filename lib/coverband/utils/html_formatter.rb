@@ -13,7 +13,11 @@ require 'time'
 module Coverband
   module Utils
     class HTMLFormatter
-      def initialize(report)
+      attr_reader :notice, :base_path
+
+      def initialize(report, options = {})
+        @notice = options.fetch(:notice) { nil }
+        @base_path = options.fetch(:base_path) { nil }
         @coverage_result = Coverband::Utils::Result.new(report)
       end
 
@@ -23,6 +27,15 @@ module Coverband
 
       def format_html!
         format_html(@coverage_result)
+      end
+
+      def format_template(file)
+        template(file).result(binding)
+      end
+
+      def self.render(file, base_path, notice)
+        instance = new({}, base_path: base_path, notice: notice)
+        instance.format_template(file)
       end
 
       private
@@ -59,6 +72,12 @@ module Coverband
 
       def assets_path(name)
         File.join('./assets', Coverband::VERSION, name)
+      end
+
+      def button(url, title)
+        button = "<form action='#{url}' method='post'>"
+        button += "<button type='submit'>#{title}</button>"
+        button + '</form>'
       end
 
       # Returns the html for the given source_file
