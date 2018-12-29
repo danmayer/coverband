@@ -29,15 +29,6 @@ module Coverband
         format_html(@coverage_result)
       end
 
-      def format_template(file)
-        template(file).result(binding)
-      end
-
-      def self.render(file, base_path, notice)
-        instance = new({}, base_path: base_path, notice: notice)
-        instance.format_template(file)
-      end
-
       private
 
       def format(result)
@@ -71,12 +62,18 @@ module Coverband
       end
 
       def assets_path(name)
-        File.join('./assets', Coverband::VERSION, name)
+        if base_path
+          File.join(base_path, name)
+        else
+          File.join(name)
+        end
       end
 
-      def button(url, title)
-        button = "<form action='#{url}' method='post'>"
-        button += "<button type='submit'>#{title}</button>"
+      def button(url, title, opts = {})
+        delete = opts.fetch(:delete) { false }
+        button_css = delete ? 'coveraband-button del' : 'coveraband-button'
+        button = "<form action='#{url}' class='coverband-admin-form' method='post'>"
+        button += "<button class='#{button_css}' type='submit'>#{title}</button>"
         button + '</form>'
       end
 

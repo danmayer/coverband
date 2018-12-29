@@ -7,6 +7,8 @@ module Coverband
         scov_style_report = super(store, options)
         open_report = options.fetch(:open_report) { true }
         html = options.fetch(:html) { false }
+        notice = options.fetch(:notice) { nil }
+        base_path = options.fetch(:base_path) { nil }
 
         # list all files, even if not tracked by Coverband (0% coverage)
         tracked_glob = "#{current_root}/{app,lib,config}/**/*.{rb}"
@@ -19,7 +21,9 @@ module Coverband
         end
 
         if html
-          Coverband::Utils::HTMLFormatter.new(filtered_report_files).format_html!
+          Coverband::Utils::HTMLFormatter.new(filtered_report_files,
+                                              base_path: base_path,
+                                              notice: notice).format_html!
         else
           Coverband::Utils::HTMLFormatter.new(filtered_report_files).format!
           if open_report
