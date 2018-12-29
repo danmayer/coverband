@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
 
   # used for benchmarking and tests
   spec.add_development_dependency 'classifier-reborn'
+  spec.add_development_dependency 'coveralls'
   # add when debugging
   # require 'byebug'; byebug
   spec.add_development_dependency 'pry-byebug'
