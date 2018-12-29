@@ -18,7 +18,7 @@ class FullStackTest < Minitest::Test
     Coverband.configuration.store.clear!
     Coverband.start
     @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
-    require @rack_file
+    load @rack_file
   end
 
   test 'call app' do
