@@ -1,0 +1,15 @@
+<html>
+  <%= notice %>
+  <ul>
+    <li><a href='<%= base_path %>'>Coverband Web Admin Index</a></li>
+    <li><%= button("#{base_path}collect_update_and_view", 'collect data, update report, & view') %></li>
+    <li><a href='<%= base_path %>show'>view coverage report</a></li>
+    <li><%= button("#{base_path}collect_coverage", 'update coverage data (collect coverage)') %></li>
+    <li><%= button("#{base_path}update_report", 'update coverage report (rebuild report)') %></li>
+    <li><%= button("#{base_path}clear", 'clear coverage report') %></li>
+    <li><%= button("#{base_path}reload_files", 'reload Coverband files') %></li>
+  </ul>
+  <br/>
+  version: <%= Coverband::VERSION %><br/>
+  <a href='https://github.com/danmayer/coverband'>Coverband</a>
+</html>

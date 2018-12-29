@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'rack'
+require 'erb'
 
 module Coverband
   module Reporters
-    # TODO: move to reports and drop need for S3 allow reading from adapters?
     class Web
       attr_reader :request
 
@@ -47,32 +47,15 @@ module Coverband
         end
       end
 
-      # TODO: move to file or template
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params['notice'])}<br/>"
         notice = request.params['notice'] ? notice : ''
-        %(
-<html>
-  #{notice}
-  <ul>
-    <li><a href='#{base_path}'>Coverband Web Admin Index</a></li>
-    <li>#{button("#{base_path}collect_update_and_view", 'collect data, update report, & view')}</li>
-    <li><a href='#{base_path}show'>view coverage report</a></li>
-    <li>#{button("#{base_path}collect_coverage", 'update coverage data (collect coverage)')}</li>
-    <li>#{button("#{base_path}update_report", 'update coverage report (rebuild report)')}</li>
-    <li>#{button("#{base_path}clear", 'clear coverage report')}</li>
-    <li>#{button("#{base_path}reload_files", 'reload Coverband files')}</li>
-  </ul>
-  <br/>
-  version: #{Coverband::VERSION}<br/>
-  <a href='https://github.com/danmayer/coverband'>Coverband</a>
-</html>
-)
+        template('index').result(binding)
       end
 
       def show
         html = Coverband::Reporters::HTMLReport.report(Coverband.configuration.store,
-                                                            html: true, open_report: false)
+                                                       html: true, open_report: false)
         fix_html_paths(html)
       end
 
@@ -112,6 +95,11 @@ module Coverband
 
       private
 
+      # Returns the an erb instance for the template of given name
+      def template(name)
+        ERB.new(File.read(File.join(File.dirname(__FILE__), '../../../views/', "#{name}.erb")))
+      end
+
       def fix_html_paths(html)
         # HACK: the static HTML assets to link to the path where this was mounted
         html = html.gsub("src='", "src='#{base_path}")
@@ -133,7 +121,7 @@ module Coverband
       # "/coverage/collect_coverage?" become:
       # /coverage/
       def base_path
-        request.path.match("\/.*\/") ? request.path.match("\/.*\/")[0] : '/'
+        request.path =~ "\/.*\/" ? request.path.match("\/.*\/")[0] : '/'
       end
     end
   end
