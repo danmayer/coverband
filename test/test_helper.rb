@@ -3,8 +3,8 @@
 require 'rubygems'
 require 'coveralls'
 require 'simplecov'
-require 'test/unit'
-require 'mocha/setup'
+require 'minitest/autorun'
+require 'mocha/minitest'
 require 'ostruct'
 require 'json'
 require 'redis'
@@ -18,13 +18,24 @@ SimpleCov.start do
   add_filter '/config/'
 end
 
-class Test::Unit::TestCase
-  def teardown
-    Coverband.configuration.store.clear!
-    Coverband.configuration.reset
-    Coverband::Collectors::Coverage.instance.reset_instance
-    Coverband::Background.stop
+module Coverband
+  module Test
+    def self.reset
+      Coverband.configuration.store.clear!
+      Coverband.configuration.reset
+      Coverband::Collectors::Coverage.instance.reset_instance
+      Coverband::Background.stop
+    end
+
+    def setup
+      super
+      Coverband::Test.reset
+    end
   end
+end
+
+Minitest::Test.class_eval do
+  prepend Coverband::Test
 end
 
 TEST_COVERAGE_FILE = '/tmp/fake_file.json'
@@ -76,6 +87,24 @@ end
 def fake_coverage_report
   file_name = '/Users/danmayer/projects/hearno/script/tester.rb'
   { file_name => [1, nil, 1, 1, nil, nil, nil] }
+end
+
+def source_fixture(filename)
+  File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', filename))
+end
+
+# Taken from http://stackoverflow.com/questions/4459330/how-do-i-temporarily-redirect-stderr-in-ruby
+def capture_stderr
+  # The output stream must be an IO-like object. In this case we capture it in
+  # an in-memory IO object so we can return the string value. You can assign any
+  # IO object here.
+  previous_stderr = $stderr
+  $stderr = StringIO.new
+  yield
+  $stderr.string
+ensure
+  # Restore the previous value of stderr (typically equal to STDERR).
+  $stderr = previous_stderr
 end
 
 require 'coverband'

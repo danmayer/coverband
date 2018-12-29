@@ -4,10 +4,11 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require File.expand_path('./dog', File.dirname(__FILE__))
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
-  class CollectorsCoverageTest < Test::Unit::TestCase
+  class CollectorsCoverageTest < Minitest::Test
     attr_accessor :coverband
 
     def setup
+      super
       Coverband.configure do |config|
         config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       end
@@ -32,7 +33,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
     test 'report_coverage raises errors in tests' do
       @coverband.reset_instance
       @coverband.expects(:ready_to_report?).raises('Oh no')
-      assert_raise RuntimeError do
+      assert_raises RuntimeError do
         @coverband.report_coverage
       end
     end

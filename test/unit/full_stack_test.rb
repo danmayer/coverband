@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
-class FullStackTest < Test::Unit::TestCase
+class FullStackTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
   TEST_RACK_APP = '../fake_app/basic_rack.rb'
 
@@ -34,9 +34,9 @@ class FullStackTest < Test::Unit::TestCase
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
 
-    expected = nil
+    # expected = nil
     # TODO: read the html to test it matches expectations? or return data as a hash?
-    # actual = Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+    # actual = Coverband::Reporters::HTMLReport.report(Coverband.configuration.store, open_report: false)
     # assert_equal expected, actual
   end
 

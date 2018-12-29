@@ -2,10 +2,11 @@
 
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
-class SimpleCovReportTest < Test::Unit::TestCase
+class HTMLReportTest < Minitest::Test
   BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
 
   def setup
+    super
     @redis = Redis.new
     @store = Coverband::Adapters::RedisStore.new(@redis)
     @store.clear!

@@ -10,8 +10,6 @@ Metrics/LineLength:
   Max: 120
 Metrics/BlockNesting:
   Max: 5
-Bundler/OrderedGems:
-  Enabled: false
 Metrics/CyclomaticComplexity:
   Enabled: false
 Metrics/PerceivedComplexity:
@@ -20,19 +18,13 @@ Metrics/AbcSize:
   Enabled: false
 Metrics/ClassLength:
   Enabled: false
-Metrics/BlockLength:
-  Enabled: false
-Metrics/BlockNesting:
-  Max: 10
 Metrics/ModuleLength:
   Enabled: false
 Metrics/ParameterLists:
   Max: 10
-Naming/AccessorMethodName:
+Style/AccessorMethodName:
   Enabled: false
-Naming/PredicateName:
-  Enabled: false
-Style/FormatStringToken:
+Style/PredicateName:
   Enabled: false
 Style/TernaryParentheses:
   Enabled: false
@@ -50,17 +42,11 @@ Style/NumericLiteralPrefix:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
-Style/MethodMissingSuper:
-  Enabled: true
-Style/MissingRespondToMissing:
-  Enabled: false
 Performance/Casecmp:
   Enabled: false
-Layout/EmptyLinesAroundArguments:
+Style/MultilineMethodCallIndentation:
   Enabled: true
-Layout/MultilineMethodCallIndentation:
-  Enabled: true
-Layout/MultilineOperationIndentation:
+Style/MultilineOperationIndentation:
   Enabled: true
 Lint/RescueException:
   Enabled: true
@@ -68,6 +54,6 @@ Lint/ShadowingOuterLocalVariable:
   Enabled: true
 Style/FormatString:
   Enabled: true
-Security/Eval:
+Lint/Eval:
   Enabled: true
 

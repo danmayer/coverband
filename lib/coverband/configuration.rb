@@ -39,7 +39,7 @@ module Coverband
     end
 
     def logger
-      @logger ||= if defined?(Rails)
+      @logger ||= if defined?(Rails.logger)
                     Rails.logger
                   else
                     Logger.new(STDOUT)

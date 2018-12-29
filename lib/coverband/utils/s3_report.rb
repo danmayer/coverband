@@ -24,7 +24,7 @@ module Coverband
         @access_key_id = options[:access_key_id]
         @secret_access_key = options[:secret_access_key]
         begin
-          require 'aws-sdk'
+          require 'aws-sdk-s3'
         rescue StandardError
           err_msg = 'coverband requires aws-sdk in order use S3Report.'
           Coverband.configuration.logger.error err_msg
@@ -52,10 +52,8 @@ module Coverband
       private
 
       def coverage_content
-        version = Gem::Specification.find_by_name('simplecov-html').version.version
-        File.read("#{SimpleCov.coverage_dir}/index.html").gsub("./assets/#{version}/", '')
-      rescue StandardError
-        File.read("#{SimpleCov.coverage_dir}/index.html").to_s.gsub('./assets/0.10.1/', '')
+        version = Coverband::VERSION
+        File.read("#{Coverband.configuration.root}/coverage/index.html").gsub("./assets/#{version}/", '')
       end
 
       def object

@@ -9,7 +9,7 @@ module Coverband
       attr_reader :request
 
       def initialize
-        full_path = Gem::Specification.find_by_name('simplecov-html').full_gem_path
+        full_path = Gem::Specification.find_by_name('coverband').full_gem_path
         @static = Rack::Static.new(self,
                                    root: File.expand_path('public', full_path),
                                    urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/])
@@ -71,13 +71,9 @@ module Coverband
       end
 
       def show
-        html = Coverband::Utils::S3Report.instance.retrieve
-        # HACK: the static HTML assets to link to the path where this was mounted
-        html = html.gsub("src='", "src='#{base_path}")
-        html = html.gsub("href='", "href='#{base_path}")
-        html = html.gsub('loading.gif', "#{base_path}loading.gif")
-        html = html.gsub('/images/', "#{base_path}images/")
-        html
+        html = Coverband::Reporters::HTMLReport.report(Coverband.configuration.store,
+                                                            html: true, open_report: false)
+        fix_html_paths(html)
       end
 
       def collect_update_and_view
@@ -87,7 +83,7 @@ module Coverband
       end
 
       def update_report
-        Coverband::Reporters::SimpleCovReport.report(Coverband.configuration.store, open_report: false)
+        Coverband::Reporters::HTMLReport.report(Coverband.configuration.store, open_report: false)
         notice = 'coverband coverage updated'
         [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
       end
@@ -105,10 +101,8 @@ module Coverband
       end
 
       def reload_files
-        if Coverband.configuration.safe_reload_files
-          Coverband.configuration.safe_reload_files.each do |safe_file|
-            load safe_file
-          end
+        Coverband.configuration&.safe_reload_files&.each do |safe_file|
+          load safe_file
         end
         # force reload
         Coverband.configure
@@ -117,6 +111,15 @@ module Coverband
       end
 
       private
+
+      def fix_html_paths(html)
+        # HACK: the static HTML assets to link to the path where this was mounted
+        html = html.gsub("src='", "src='#{base_path}")
+        html = html.gsub("href='", "href='#{base_path}")
+        html = html.gsub('loading.gif', "#{base_path}loading.gif")
+        html = html.gsub('/images/', "#{base_path}images/")
+        html.gsub("./assets/#{Coverband::VERSION}/", '')
+      end
 
       def button(url, title)
         button = "<form action='#{url}' method='post'>"
