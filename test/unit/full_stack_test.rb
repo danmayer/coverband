@@ -8,6 +8,7 @@ class FullStackTest < Minitest::Test
   TEST_RACK_APP = '../fake_app/basic_rack.rb'
 
   def setup
+    super
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
       config.reporting_frequency = 100.0
@@ -35,11 +36,6 @@ class FullStackTest < Minitest::Test
     sleep(0.1)
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
-
-    # expected = nil
-    # TODO: read the html to test it matches expectations? or return data as a hash?
-    # actual = Coverband::Reporters::HTMLReport.report(Coverband.configuration.store, open_report: false)
-    # assert_equal expected, actual
   end
 
   private
