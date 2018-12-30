@@ -64,14 +64,24 @@ Feature Ideas:
 
 # Alpha
 
-### Coverband 4.0.1.alpha
+### Coverband 4.0.2.alpha
 
-- drops simplecov runtime dependency
-  - still used to measure our own code coverage ;)
-- thanks SimpleCov for all the years of solid HTML reporting, and support!
-- reduced the S3 dependencies to minimal set (not loading all of aws-sdk), ensured they are optional
+- ?
 
 # Released
+
+### Coverband 4.0.1
+
+- drops Simplecov runtime dependency
+  - still used to measure our own code coverage ;)
+- thanks SimpleCov for all the years of solid HTML reporting, and support!
+- reduced the S3 dependencies to minimal set (not loading all of aws-sdk, only aws-sdk-s3), ensured they are optional
+- Improved Coverband web admin
+- Coverage reports include timestamps of Coverage collection
+- Added Coveralls to the dev process thanks @dondonz 
+- now tested under Ruby 2.6.0 thanks @Kbaum
+- improved full stack testing for Rails 5 & 4
+- warning before clear coverage on coverband web
 
 ### Coverband 4.0.0
 

@@ -26,11 +26,13 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
+    sleep(0.1)
     expected = [nil, nil, 1, nil, 1, 1, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
+    sleep(0.1)
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
