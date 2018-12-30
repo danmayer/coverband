@@ -91,12 +91,9 @@ module Coverband
         @filename = filename
         if file_data.is_a?(Hash)
           @coverage = file_data['data']
-          begin
-            @first_updated_at = Time.at(file_data['first_updated_at'])
-            @last_updated_at = Time.at(file_data['last_updated_at'])
-          rescue TypeError
-            @first_updated_at = @last_updated_at = NOT_AVAILABLE
-          end
+          @first_updated_at = @last_updated_at = NOT_AVAILABLE
+          @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
+          @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
         else
           @coverage = file_data
           @first_updated_at = NOT_AVAILABLE

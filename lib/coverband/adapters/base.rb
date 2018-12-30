@@ -31,7 +31,7 @@ module Coverband
 
       # TODO: deprecate / remove?
       def covered_lines_for_file(file)
-        coverage[file] ? (coverage[file]['data'] || []) : []
+        Array(coverage.dig(file, 'data'))
       end
 
       protected
