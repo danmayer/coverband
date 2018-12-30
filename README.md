@@ -148,18 +148,12 @@ Below is my Coverband workflow, which hopefully will help other best use this li
 
 The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
 
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web.png)
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_update.png)
 > The web index as available on the Coverband Demo site
 
-* __collect data, update report, & view:__ This does everything need to view up to date Coverage 
-   * it triggers a coverage collection on the current webserver process
-   * it generates a new html coverage report and pushes it to S3
-   * it then loads that report for you to view
-* __view coverage report:__ Don't need to update the data just view the current report
-* __update coverage data (collect coverage):__ This triggers coverage collection on the current webserver process
-* __update coverage report (rebuild report):__ This will rebuild the HTML report from the latest available data
-* __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
+* __force coverage collection:__ This triggers coverage collection on the current webserver process
 * __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot)
+* __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
 
 ### Example apps
 

@@ -123,8 +123,10 @@ module Coverband
         "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
       end
 
+      # a bug that existed in simplecov was not checking that root was at the start of the file name
+      # I had previously patched this in my local Rails app
       def shortened_filename(source_file)
-        source_file.filename.sub(Coverband.configuration.root, '.').gsub(/^\.\//, '')
+        source_file.filename.sub(%r{^#{Coverband.configuration.root}}, '.').gsub(/^\.\//, '')
       end
 
       def link_to_source_file(source_file)
