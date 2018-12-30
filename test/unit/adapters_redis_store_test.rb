@@ -16,16 +16,22 @@ class RedisTest < Minitest::Test
     mock_file_hash
     expected = basic_coverage
     @store.save_report(expected)
-    assert_equal expected, @store.coverage
+    assert_equal expected.keys, @store.coverage.keys
+    @store.coverage.each_pair do |key, data|
+      assert_equal expected[key], data['data']
+    end
   end
 
   def test_coverage_increments
     mock_file_hash
     expected = basic_coverage.dup
     @store.save_report(basic_coverage.dup)
-    assert_equal expected, @store.coverage
+    assert_equal expected.keys, @store.coverage.keys
+    @store.coverage.each_pair do |key, data|
+      assert_equal expected[key], data['data']
+    end
     @store.save_report(basic_coverage.dup)
-    assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']
+    assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']['data']
   end
 
   def test_covered_lines_for_file

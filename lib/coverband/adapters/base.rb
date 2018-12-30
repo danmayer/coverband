@@ -22,15 +22,16 @@ module Coverband
       end
 
       def coverage
-        simple_report(get_report)
+        get_report
       end
 
       def covered_files
         coverage.keys || []
       end
 
+      # TODO: deprecate / remove?
       def covered_lines_for_file(file)
-        coverage[file] || []
+        Array(coverage.dig(file, 'data'))
       end
 
       protected

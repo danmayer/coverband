@@ -27,6 +27,6 @@ class HTMLReportTest < Minitest::Test
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
     expected = { 'app_path/dog.rb' => [0, 1, 2] }
-    assert_equal(expected, report)
+    assert_equal(expected.keys, report.keys)
   end
 end

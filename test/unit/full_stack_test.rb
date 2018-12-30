@@ -27,12 +27,12 @@ class FullStackTest < Minitest::Test
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
     expected = [nil, nil, 1, nil, 1, 1, 1, nil, nil]
-    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
+    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
     expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
-    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]
+    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # expected = nil
     # TODO: read the html to test it matches expectations? or return data as a hash?

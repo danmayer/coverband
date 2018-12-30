@@ -10,7 +10,11 @@ module Coverband
         scov_style_report = super(store, options)
 
         scov_style_report.each_pair do |file, usage|
-          Coverband.configuration.logger.info "#{file}: #{usage}"
+          if usage.is_a?(Hash)
+            Coverband.configuration.logger.info "#{file}: #{usage['data']}"
+          else
+            Coverband.configuration.logger.info "#{file}: #{usage}"
+          end
         end
         scov_style_report
       end

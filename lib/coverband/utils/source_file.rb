@@ -81,9 +81,24 @@ module Coverband
       # The array of coverage data received from the Coverage.result
       attr_reader :coverage
 
-      def initialize(filename, coverage)
+      # the date this version of the file first started to record coverage
+      attr_reader :first_updated_at
+      # the date this version of the file last saw any coverage activity
+      attr_reader :last_updated_at
+      NOT_AVAILABLE = 'not available'
+
+      def initialize(filename, file_data)
         @filename = filename
-        @coverage = coverage
+        if file_data.is_a?(Hash)
+          @coverage = file_data['data']
+          @first_updated_at = @last_updated_at = NOT_AVAILABLE
+          @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
+          @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
+        else
+          @coverage = file_data
+          @first_updated_at = NOT_AVAILABLE
+          @last_updated_at = NOT_AVAILABLE
+        end
       end
 
       # The path to this source file relative to the projects directory
