@@ -20,4 +20,27 @@ class BaseTest < Minitest::Test
     coverband = Coverband::Collectors::Coverage.instance.reset_instance
     assert_equal ['vendor', 'internal:prelude', 'schema.rb'], coverband.instance_variable_get('@ignore_patterns')
   end
+
+  test 's3 options' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configure do |config|
+      config.s3_bucket = 'bucket'
+      config.s3_region = 'region'
+      config.s3_access_key_id = 'key_id'
+      config.s3_secret_access_key = 'secret'
+    end
+    assert_equal 'bucket', Coverband.configuration.s3_bucket
+    assert_equal 'region', Coverband.configuration.s3_region
+    assert_equal 'key_id', Coverband.configuration.s3_access_key_id
+    assert_equal 'secret', Coverband.configuration.s3_secret_access_key
+  end
+
+  test 'store raises issues' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    assert_raises RuntimeError do
+      Coverband.configure do |config|
+        config.store = 'fake'
+      end
+    end
+  end
 end

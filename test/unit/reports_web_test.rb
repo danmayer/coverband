@@ -21,18 +21,31 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
         Coverband.configuration.s3_bucket = nil
       end
 
-      # TODO: add tests for all endpoints
       test 'renders index content' do
         get '/'
         assert last_response.ok?
         assert_match 'Coverband Admin', last_response.body
       end
 
-      test 'renders show content' do
-        Coverband::Reporters::HTMLReport.expects(:report).returns('content')
+      test 'renders 404' do
         get '/show'
-        assert last_response.ok?
-        assert_equal 'content', last_response.body
+        assert last_response.not_found?
+        assert_equal '404 error!', last_response.body
+      end
+
+      test 'clears coverband' do
+        post '/clear'
+        assert_equal 301, last_response.status
+      end
+
+      test 'collect_coverage' do
+        post '/collect_coverage'
+        assert_equal 301, last_response.status
+      end
+
+      test 'reload_files' do
+        post '/reload_files'
+        assert_equal 301, last_response.status
       end
     end
   end

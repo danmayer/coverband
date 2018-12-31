@@ -32,7 +32,7 @@ module Coverband
           case request.path_info
           when /.*\.(css|js|gif|png)/
             @static.call(env)
-          when %r{\/}
+          when %r{\/$}
             [200, { 'Content-Type' => 'text/html' }, [index]]
           else
             [404, { 'Content-Type' => 'text/html' }, ['404 error!']]
