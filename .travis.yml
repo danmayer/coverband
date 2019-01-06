@@ -10,5 +10,5 @@ gemfile:
 services:
   - redis-server
 before_install:
-  - gem update --system
+  - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
   - gem install bundler -v '< 2'
