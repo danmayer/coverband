@@ -57,8 +57,12 @@ module Coverband
       end
 
       def clear
-        Coverband.configuration.store.clear!
-        notice = 'coverband coverage cleared'
+        if Coverband.configuration.web_enable_clear
+          Coverband.configuration.store.clear!
+          notice = 'coverband coverage cleared'
+        else
+          notice = 'web_enable_clear isnt enabled in your configuration'
+        end
         [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
       end
 

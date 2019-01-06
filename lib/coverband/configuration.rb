@@ -7,7 +7,8 @@ module Coverband
                   :reporter, :reporting_frequency,
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
-                  :background_reporting_sleep_seconds, :test_env
+                  :background_reporting_sleep_seconds, :test_env,
+                  :web_enable_clear
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
 
@@ -28,6 +29,7 @@ module Coverband
       @background_reporting_enabled = true
       @background_reporting_sleep_seconds = 30
       @test_env = nil
+      @web_enable_clear = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil

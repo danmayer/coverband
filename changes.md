@@ -66,7 +66,7 @@ Feature Ideas:
 
 ### Coverband 4.0.2.alpha
 
-- ?
+- default disabled web clear, add config option to allow it
 
 # Released
 

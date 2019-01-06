@@ -18,7 +18,9 @@
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
         <%= button("#{base_path}collect_coverage", 'force coverage collection') %> &nbsp;
         <%= button("#{base_path}reload_files", 'reload Coverband files') %> &nbsp;
-        <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
+        <% if Coverband.configuration.web_enable_clear %>
+          <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
+        <% end %>
       </div>
       <% if notice.to_s.length > 0 %>
       <div class="notice"><%= notice %></div>
