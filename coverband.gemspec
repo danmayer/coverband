@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   # to test sdk 2 use this one
   spec.add_development_dependency 'aws-sdk-s3', '~> 1'
   spec.add_development_dependency 'benchmark-ips'
-  spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'capybara'
   spec.add_development_dependency 'm'
   spec.add_development_dependency 'memory_profiler'
