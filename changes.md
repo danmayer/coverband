@@ -24,7 +24,6 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - add coverage timerange support
 - Drop Simplecov dependency
 - improved web reporting
-  - no longer relying directly on HTML in S3 but dynamically generated from any adapter
   - lists current config options
   - eventually allow updating remote config
   - full theming
@@ -32,7 +31,6 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - additional adapters: Memcache, S3, and ActiveRecord
 - add articles / podcasts like prontos readme https://github.com/prontolabs/pronto
 - Add detailed Gem usage report, if we collect and send gem usage we can give percentage of gem code used, which should help application developers know when to remove gem dependencies (0%) or perhaps inline single methods for little usage (using <= 5%) for example.
-- add additional config / protection options on Coverage clear
 - add meta data information first seen last recorded to the coverage report views (probably need to drop simplecov for that).
   - more details in this issue: https://github.com/danmayer/coverband/issues/118
 - Make good video on setup, install, usage
