@@ -10,5 +10,5 @@ gemfile:
 services:
   - redis-server
 before_install:
-    - gem update --system
-    - gem install bundler
+    - for dir in $(echo $GEM_PATH | tr ':' ' '); do gem uninstall -i $dir bundler -a -x; done
+    - gem install bundler -v '< 2'
