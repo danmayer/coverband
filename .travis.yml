@@ -12,4 +12,6 @@ services:
 before_install:
   - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
   - gem uninstall bundler || true
+  - which bundler
+  - ls /home/travis/.rvm/gems/ruby-2.3.7@global || true
   - gem install bundler -v '< 2'
