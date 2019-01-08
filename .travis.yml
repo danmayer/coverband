@@ -14,7 +14,8 @@ before_install:
   - echo $GEM_PATH
   - ls /home/travis/.rvm/gems/ruby-2.3.7/specifications || true
   - ls /home/travis/.rvm/gems/ruby-2.3.7@global/specifications || true
-  - rm /home/travis/.rvm/gems/ruby-2.3.7@global/specifications/default/bundler.gemspec || true
+  - ls /home/travis/.rvm/gems/ruby-2.3.7@global/specifications/default || true
+  - rm /home/travis/.rvm/gems/ruby-2.3.7@global/specifications/bundler-2.0.1.gemspec || true
   - gem uninstall bundler || true
   - which bundler || true
   - ls /home/travis/.rvm/gems/ruby-2.3.7@global || true
