@@ -10,7 +10,8 @@ gemfile:
 services:
   - redis-server
 before_install:
-  - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
+  - find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete
+  - ls /home/travis/.rvm/rubies/2.3.7/lib || true
   - rm /home/travis/.rvm/rubies/2.3.7/lib/ruby/gems/2.3.0/specifications/default/bundler.gemspec || true
   - gem uninstall bundler || true
   - which bundler || true
