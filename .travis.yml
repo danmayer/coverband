@@ -10,5 +10,6 @@ gemfile:
 services:
   - redis-server
 before_install:
-    - for dir in $(echo $GEM_PATH | tr ':' ' '); do gem uninstall -i $dir bundler -a -x; done
-    - gem install bundler -v '< 2'
+  - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
+  - gem uninstall bundler
+  - gem install bundler -v '< 2'
