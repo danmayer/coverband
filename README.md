@@ -157,7 +157,7 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 
 ### Example apps
 
-- [Rails 5.2.x App](https://github.com/danmayer/coverage_demo)
+- [Rails 5.2.x App](https://github.com/danmayer/coverband_demo)
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
 
