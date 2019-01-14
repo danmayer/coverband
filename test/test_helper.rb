@@ -19,12 +19,6 @@ $VERBOSE = original_verbosity
 
 Coveralls.wear!
 
-SimpleCov.start do
-  add_filter 'specs/ruby/1.9.1/gems/'
-  add_filter '/test/'
-  add_filter '/config/'
-end
-
 module Coverband
   module Test
     def self.reset

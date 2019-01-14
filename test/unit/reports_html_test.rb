@@ -39,8 +39,8 @@ class ReportHTMLTest < Minitest::Test
     @store.send(:save_report, basic_coverage)
 
     Coverband::Utils::HTMLFormatter.any_instance.expects(:format!).once
-    html = Coverband::Reporters::HTMLReport.report(@store,
-                                                   html: false,
-                                                   open_report: false)
+    Coverband::Reporters::HTMLReport.report(@store,
+                                            html: false,
+                                            open_report: false)
   end
 end
