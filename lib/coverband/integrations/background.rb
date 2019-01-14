@@ -18,7 +18,6 @@ module Coverband
 
       logger = Coverband.configuration.logger
       @semaphore.synchronize do
-        binding.pry if defined?($debug) && $debug
         return if @thread
         logger&.debug('Coverband: Starting background reporting')
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
@@ -29,7 +28,6 @@ module Coverband
             sleep(sleep_seconds)
           end
         end
-        binding.pry if defined?($debug) && $debug
       end
       at_exit do
         stop
