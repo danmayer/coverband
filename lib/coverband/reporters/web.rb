@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-require 'rack'
+begin
+  require 'rack'
+rescue LoadError
+end
 
 module Coverband
   module Reporters
