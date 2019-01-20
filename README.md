@@ -83,6 +83,17 @@ Rails.application.routes.draw do
 end
 ```
 
+### Coverband Web Endpoint
+
+The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
+
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_update.png)
+> The web index as available on the Coverband Demo site
+
+* __force coverage collection:__ This triggers coverage collection on the current webserver process
+* __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot)
+* __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
+
 ### Rake Tasks
 
 The rake task generates a report locally and opens a browser pointing to `coverage/index.html`.
@@ -90,6 +101,16 @@ The rake task generates a report locally and opens a browser pointing to `covera
 `rake coverband:coverage`
 
 This is mostly useful in your local development environment.
+
+##### Example Output
+
+Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
+
+Index Page
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
+
+Details on an example Sinatra app
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
 
 # Verify Correct Installation
 
@@ -103,32 +124,12 @@ This is mostly useful in your local development environment.
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
 
-### Coverband Web Endpoint
-
-The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
-
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_update.png)
-> The web index as available on the Coverband Demo site
-
-* __force coverage collection:__ This triggers coverage collection on the current webserver process
-* __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot)
-* __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
 
 ### Example apps
 
 - [Rails 5.2.x App](https://github.com/danmayer/coverband_demo)
 - [Sinatra app](https://github.com/danmayer/churn-site)
 - [Non Rack Ruby app](https://github.com/danmayer/coverband_examples)
-
-### Example Output
-
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
-
-Index Page
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
-
-Details on a example Sinatra app
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
 
 # Advanced Config
 
