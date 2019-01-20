@@ -260,31 +260,6 @@ If you are trying to debug locally wondering what code is being run during a req
       ...
      [517, 1617], [516, 38577]]
 
-
-### Conflicting .Simplecov: Issue with Missing or 0% Coverage Report
-
-If you use SimpleCov to generate code coverage for your tests. You might have setup a `.simplecov` file to help control and focus it's output. Often the settings you want for your test's code coverage report are different than what you want Coverband to be reporting on. Since Coverband uses the SimpleCov HTML formatter to prepare it's report.
-
-So if you had something like this in a `.simplecov` file in the root of your project, as reported in [issue 83](https://github.com/danmayer/coverband/issues/83)
-
-```
-require 'simplecov'
-
-SimpleCov.start do
-  add_filter 'app/admin'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-  add_filter 'userevents'
-end
-```
-
-You could see some confusing results... To avoid this issue Coverband has a Rake task that will ignore all Simplecov filters.
-
-`rake coverband:coverage_no_filters`
-
-This will build the report after disabling any `.simplecov` applied settings.
-
 # Prerequisites
 
 * Coverband 3.0.X+ requires Ruby 2.3+
