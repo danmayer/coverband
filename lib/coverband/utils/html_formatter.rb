@@ -35,7 +35,6 @@ module Coverband
         Dir[File.join(File.dirname(__FILE__), '../../../public/*')].each do |path|
           FileUtils.cp_r(path, asset_output_path)
         end
-        puts "mooo like a cow #{asset_output_path}"
 
         File.open(File.join(output_path, 'index.html'), 'wb') do |file|
           file.puts template('layout').result(binding)
