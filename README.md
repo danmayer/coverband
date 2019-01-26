@@ -91,7 +91,7 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 > The web index as available on the Coverband Demo site
 
 * __force coverage collection:__ This triggers coverage collection on the current webserver process
-* __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot)
+* __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot). This can be used to reload files on demand.
 * __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
 
 ### Rake Tasks
@@ -221,7 +221,7 @@ Coverband.configure do |config|
   config.safe_reload_files = ['config/coverband.rb']
 end
 ```
-By adding any files above you will get reporting on those files as part of your coverage runtime report.
+By adding any files above you will get reporting on those files as part of your coverage runtime report. The files are reloaded when Coverband first starts, you can also trigger a reload via the web interface.
 
 
 ### Collecting Gem / Library Usage
