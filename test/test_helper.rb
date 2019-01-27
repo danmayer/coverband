@@ -14,6 +14,7 @@ require 'mocha/minitest'
 require 'ostruct'
 require 'json'
 require 'redis'
+require 'resque'
 require 'pry-byebug'
 $VERBOSE = original_verbosity
 
