@@ -1,29 +1,25 @@
 <div class="file_list_container" id="<%= title_id %>">
-  <% unless options[:skip_nav] %>
-    <h2>
-      <span class="group_name"><%= title %></span>
-      (<span class="covered_percent"><span class="<%= coverage_css_class(source_files.covered_percent) %>"><%= source_files.covered_percent.round(2) %>%</span></span>
-       covered at
-       <span class="covered_strength">
-         <span class="<%= strength_css_class(source_files.covered_strength) %>">
-           <%= source_files.covered_strength.round(2) %>
-         </span>
-      </span> hits/line)
-    </h2>
-  <% end %>
-  <a name="<%= title_id %>"></a>
+  <h2>
+    <span class="group_name"><%= title %></span>
+    (<span class="covered_percent"><span class="<%= coverage_css_class(source_files.covered_percent) %>"><%= source_files.covered_percent.round(2) %>%</span></span>
+     covered at
+     <span class="covered_strength">
+       <span class="<%= strength_css_class(source_files.covered_strength) %>">
+         <%= source_files.covered_strength.round(2) %>
+       </span>
+    </span> hits/line)
+  </h2>
   <div>
     <b><%= source_files.length %></b> files in total.
     <b><%= source_files.lines_of_code %></b> relevant lines.
     <span class="green"><b><%= source_files.covered_lines %></b> lines covered</span> and
     <span class="red"><b><%= source_files.missed_lines %></b> lines missed </span>
   </div>
-  <table class="file_list">
+  <table class="gem_list">
     <thead>
       <tr>
-        <th>File</th>
+        <th>Gem</th>
         <th>% covered</th>
-        <th>Lines</th>
         <th>Relevant Lines</th>
         <th>Lines covered</th>
         <th>Lines missed</th>
@@ -34,16 +30,18 @@
       <% source_files.each do |source_file| %>
         <tr>
           <td class="strong">
-            <%= link_to_source_file(source_file) %>
+            <%= link_to_gem_list(source_file.first.gem_name) %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
-          <td><%= source_file.lines.count %></td>
-          <td><%= source_file.covered_lines.count + source_file.missed_lines.count %></td>
-          <td><%= source_file.covered_lines.count %></td>
-          <td><%= source_file.missed_lines.count %></td>
+          <td><%= source_file.covered_lines + source_file.missed_lines %></td>
+          <td><%= source_file.covered_lines %></td>
+          <td><%= source_file.missed_lines %></td>
           <td><%= source_file.covered_strength %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
 </div>
+<% source_files.each do |gem_files| %>
+  <%= formatted_file_list(gem_files.first.gem_name, gem_files, skip_nav: true) %>
+<% end %>

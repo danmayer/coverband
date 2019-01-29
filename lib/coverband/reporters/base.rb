@@ -22,6 +22,7 @@ module Coverband
 
         def root_paths
           roots = Coverband.configuration.root_paths
+          roots += Coverband.configuration.gem_paths if Coverband.configuration.track_gems
           roots << "#{current_root}/"
           roots
         end
@@ -61,16 +62,31 @@ module Coverband
           merged
         end
 
+        ###
+        # This method is responsible for finding the CURRENT LOCAL
+        # filename regardless of the paths being different on
+        # various servers or deployments
+        ###
         def filename_from_key(key, roots)
-          filename = key
+          relative_filename = key
+          local_filename = relative_filename
           roots.each do |root|
-            filename = filename.gsub(/^#{root}/, './')
+            relative_filename = relative_filename.gsub(/^#{root}/, './')
           end
           # the filename for  SimpleCov is expected to be a full path.
           # roots.last should be roots << current_root}/
           # a fully expanded path of config.root
-          filename = filename.gsub('./', roots.last)
-          filename
+          # filename = filename.gsub('./', roots.last)
+          # above only works for app files
+          # we need to rethink some of this logic
+          # gems aren't at project root and can have multiple locations
+          roots.each do |root|
+            if File.exist?(relative_filename.gsub('./', root))
+              local_filename = relative_filename.gsub('./', root)
+              break
+            end
+          end
+          local_filename
         end
 
         ###

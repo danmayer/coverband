@@ -1684,15 +1684,22 @@ $(document).ready(function() {
     if (!$(this).parent().hasClass('active')) {
       $('.group_tabs a').parent().removeClass('active');
       $(this).parent().addClass('active');
-      $('.file_list_container').hide();
-      $(".file_list_container" + $(this).attr('href')).show();
-      window.location.href = window.location.href.split('#')[0] + $(this).attr('href').replace('#', '#_');
-
-      // Force favicon reload - otherwise the location change containing anchor would drop the favicon...
-      // Works only on firefox, but still... - Anyone know a better solution to force favicon on local file?
-      $('link[rel="shortcut icon"]').remove();
-      $('head').append('<link rel="shortcut icon" type="image/png" href="'+ favicon_path +'" />');
     };
+    $('.file_list_container').hide();
+    $(".file_list_container" + $(this).attr('href')).show();
+    window.location.href = window.location.href.split('#')[0] + $(this).attr('href').replace('#', '#_');
+
+    // Force favicon reload - otherwise the location change containing anchor would drop the favicon...
+    // Works only on firefox, but still... - Anyone know a better solution to force favicon on local file?
+    $('link[rel="shortcut icon"]').remove();
+    $('head').append('<link rel="shortcut icon" type="image/png" href="'+ favicon_path +'" />');
+    return false;
+  });
+
+  $('a.gem-link').live('click', function(){
+    $('.file_list_container').hide();
+    $(".file_list_container" + $(this).attr('href')).show();
+    window.location.href = window.location.href.split('#')[0] + $(this).attr('href').replace('#', '#_');
     return false;
   });
 

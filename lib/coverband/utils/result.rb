@@ -33,7 +33,7 @@ module Coverband
         @original_result = original_result.freeze
         @files = Coverband::Utils::FileList.new(original_result.map do |filename, coverage|
           Coverband::Utils::SourceFile.new(filename, coverage) if File.file?(filename)
-        end.compact.sort_by(&:filename))
+        end.compact.sort_by(&:short_name))
         filter!
       end
 
@@ -45,7 +45,7 @@ module Coverband
       # Returns a Hash of groups for this result. Define groups using SimpleCov.add_group 'Models', 'app/models'
       # Coverband doesn't currently support groups
       def groups
-        @groups ||= [] # SimpleCov.grouped(files)
+        @groups ||= filter_to_groups(files)
       end
 
       # Applies the configured SimpleCov.formatter on this result
@@ -61,7 +61,7 @@ module Coverband
       # The command name that launched this result.
       # Delegated to SimpleCov.command_name if not set manually
       def command_name
-        @command_name ||= 'SimpleCov.command_name'
+        @command_name ||= 'Coverband'
       end
 
       # Returns a hash representation of this Result that can be used for marshalling it into JSON
@@ -98,6 +98,38 @@ module Coverband
       def coverage
         keys = original_result.keys & filenames
         Hash[keys.zip(original_result.values_at(*keys))]
+      end
+
+      #
+      # Applies the configured groups to the given array of SimpleCov::SourceFile items
+      #
+      def filter_to_groups(files)
+        grouped = {}
+        grouped_files = []
+        grouped_gems = {}
+        gem_lists = []
+        Coverband.configuration.groups.each do |name, filter|
+          if name == 'Gems'
+            gems_files = files.select { |source_file| source_file.filename =~ /#{filter}/ }
+            gems_files.each do |source_file|
+              grouped_gems[source_file.gem_name] = [] unless grouped_gems[source_file.gem_name]
+              grouped_gems[source_file.gem_name] << source_file
+            end
+            grouped_gems.each_pair do |gem, files|
+              gem_list = Coverband::Utils::FileList.new(files)
+              gem_lists << gem_list
+              grouped_files += gem_list
+            end
+            grouped[name] = Coverband::Utils::GemList.new(gem_lists)
+          else
+            grouped[name] = Coverband::Utils::FileList.new(files.select { |source_file| source_file.filename =~ /#{filter}/ })
+            grouped_files += grouped[name]
+          end
+        end
+        if !Coverband.configuration.groups.empty? && !(other_files = files.reject { |source_file| grouped_files.include?(source_file) }).empty?
+          grouped['Ungrouped'] = Coverband::Utils::FileList.new(other_files)
+        end
+        grouped
       end
 
       # Applies all configured SimpleCov filters on this result's source files

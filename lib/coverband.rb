@@ -13,6 +13,7 @@ require 'coverband/utils/s3_report'
 require 'coverband/utils/html_formatter'
 require 'coverband/utils/result'
 require 'coverband/utils/file_list'
+require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
 require 'coverband/utils/lines_classifier'
 require 'coverband/utils/railtie' if defined? ::Rails::Railtie

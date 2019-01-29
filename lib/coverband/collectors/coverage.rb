@@ -24,6 +24,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
+        @track_gems = Coverband.configuration.track_gems
         @@previous_results = nil
         Thread.current[:coverband_instance] = nil
         self
@@ -51,7 +52,9 @@ module Coverband
       def track_file?(file)
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)
-        end && file.start_with?(@project_directory)
+        end && (file.start_with?(@project_directory) ||
+         (@track_gems &&
+          Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
       end
 
       private

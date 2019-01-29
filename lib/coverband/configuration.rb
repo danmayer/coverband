@@ -11,6 +11,7 @@ module Coverband
                   :web_enable_clear
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
+    attr_reader :track_gems
 
     def initialize
       reset
@@ -30,6 +31,7 @@ module Coverband
       @background_reporting_sleep_seconds = 30
       @test_env = nil
       @web_enable_clear = false
+      @track_gems = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -74,6 +76,36 @@ module Coverband
       else
         raise 'please pass in an subclass of Coverband::Adapters for supported stores'
       end
+    end
+
+    def track_gems=(value)
+      @track_gems = value
+      return unless @track_gems
+      add_group('App', root)
+      # TODO: rework support for multiple gem paths
+      # gem_paths.each_with_index do |path, index|
+      #   add_group("gems_#{index}", path)
+      # end
+      add_group('Gems', gem_paths.first)
+    end
+    #
+    # Returns the configured groups. Add groups using SimpleCov.add_group
+    #
+    def groups
+      @groups ||= {}
+    end
+
+    #
+    # Define a group for files. Works similar to add_filter, only that the first
+    # argument is the desired group name and files PASSING the filter end up in the group
+    # (while filters exclude when the filter is applicable).
+    #
+    def add_group(group_name, filter_argument = nil)
+      groups[group_name] = filter_argument
+    end
+
+    def gem_paths
+      Gem::PathSupport.new(ENV).path
     end
 
     private
