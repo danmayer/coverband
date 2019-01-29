@@ -9,7 +9,6 @@ module Coverband
     def perform
       super
     ensure
-      puts "Resque coverband integration reporting"
       Coverband::Collectors::Coverage.instance.report_coverage(true)
     end
   end
