@@ -49,6 +49,12 @@ module Coverband
 
       protected
 
+      ###
+      # Normally I would break this out into additional methods
+      # and improve the readability but this is in a tight loop
+      # on the critical performance path, and any refactoring I come up with
+      # would slow down the performance.
+      ###
       def track_file?(file)
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)

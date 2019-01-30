@@ -30,7 +30,11 @@
       <% source_files.each do |source_file| %>
         <tr>
           <td class="strong">
-            <%= link_to_gem_list(source_file.first.gem_name) %>
+            <% if gem_details? %>
+              <%= link_to_gem_list(source_file.first.gem_name) %>
+            <% else %>
+              <%= source_file.first.gem_name %>
+            <% end %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
           <td><%= source_file.covered_lines + source_file.missed_lines %></td>
@@ -42,6 +46,9 @@
     </tbody>
   </table>
 </div>
-<% source_files.each do |gem_files| %>
-  <%= formatted_file_list(gem_files.first.gem_name, gem_files, skip_nav: true) %>
+
+<% unless gem_details? %>
+  <% source_files.each do |gem_files| %>
+    <%= formatted_file_list(gem_files.first.gem_name, gem_files, skip_nav: true) %>
+  <% end %>
 <% end %>

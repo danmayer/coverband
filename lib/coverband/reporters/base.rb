@@ -73,7 +73,7 @@ module Coverband
           roots.each do |root|
             relative_filename = relative_filename.gsub(/^#{root}/, './')
           end
-          # the filename for  SimpleCov is expected to be a full path.
+          # the filename for our reports is expected to be a full path.
           # roots.last should be roots << current_root}/
           # a fully expanded path of config.root
           # filename = filename.gsub('./', roots.last)

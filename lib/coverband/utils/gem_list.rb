@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 ####
-# Thanks for all the help SimpleCov https://github.com/colszowka/simplecov
-# initial version pulled into Coverband from Simplecov 12/04/2018
-#
-# An array of  SourceFile instances with additional collection helper
+# An array of  FileLists instances with helpers to roll up the stats
 # methods for calculating coverage across them etc.
 ####
 module Coverband
@@ -13,25 +10,25 @@ module Coverband
       # Returns the count of lines that have coverage
       def covered_lines
         return 0.0 if empty?
-        map { |f| f.covered_lines }.inject(:+)
+        map(&:covered_lines).inject(:+)
       end
 
       # Returns the count of lines that have been missed
       def missed_lines
         return 0.0 if empty?
-        map { |f| f.missed_lines }.inject(:+)
+        map(&:missed_lines).inject(:+)
       end
 
       # Returns the count of lines that are not relevant for coverage
       def never_lines
         return 0.0 if empty?
-        map { |f| f.never_lines }.inject(:+)
+        map(&:never_lines).inject(:+)
       end
 
       # Returns the count of skipped lines
       def skipped_lines
         return 0.0 if empty?
-        map { |f| f.skipped_lines }.inject(:+)
+        map(&:skipped_lines).inject(:+)
       end
 
       # Computes the coverage based upon lines covered and lines missed for each file

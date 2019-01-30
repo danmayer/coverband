@@ -8,7 +8,7 @@ module Coverband
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
-                  :web_enable_clear
+                  :web_enable_clear, :gem_details
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems
@@ -32,6 +32,7 @@ module Coverband
       @test_env = nil
       @web_enable_clear = false
       @track_gems = false
+      @gem_details = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -83,11 +84,14 @@ module Coverband
       return unless @track_gems
       add_group('App', root)
       # TODO: rework support for multiple gem paths
+      # currently this supports GEM_HOME (which should be first path)
+      # but various gem managers setup multiple gem paths
       # gem_paths.each_with_index do |path, index|
       #   add_group("gems_#{index}", path)
       # end
       add_group('Gems', gem_paths.first)
     end
+
     #
     # Returns the configured groups. Add groups using SimpleCov.add_group
     #

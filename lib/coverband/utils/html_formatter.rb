@@ -99,6 +99,14 @@ module Coverband
         end
       end
 
+      def view_gems?
+        Coverband.configuration.track_gems
+      end
+
+      def gem_details?
+        Coverband.configuration.gem_details
+      end
+
       def coverage_css_class(covered_percent)
         if covered_percent > 90
           'green'
