@@ -79,7 +79,7 @@ describe Coverband::Utils::SourceFile do
         subject.lines
       end
 
-      assert(captured_output.match(/^Warning: coverage data provided/))
+      assert(captured_output.match(/^Warning: coverage data/))
     end
   end
 

@@ -14,6 +14,8 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/app/', '/full/remote_app/path/']
 
     expected_path = '/full/remote_app/path/is/a/path.rb'
+    File.expects(:exist?).with(key).returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
@@ -25,10 +27,13 @@ class ReportsBaseTest < Minitest::Test
 
     key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
     # the code takes config.root expands and adds a '/' for the final path in roots
-    # note to get regex to work for changing deploy directories it must be double escaped in double quotes or use single qoutes
+    # note to get regex to work for changing deploy directories
+    # it must be double escaped in double quotes or use single qoutes
     roots = ['/box/apps/app_name/releases/\\d+/', '/full/remote_app/path/']
 
     expected_path = '/full/remote_app/path/app/models/user.rb'
+    File.expects(:exist?).with("/box/apps/app_name/releases/\\d+/app/models/user.rb").returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
@@ -44,6 +49,8 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
 
     expected_path = '/full/remote_app/path/app/models/user.rb'
+    File.expects(:exist?).with("/box/apps/app_name/releases/\\d+/app/models/user.rb").returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
