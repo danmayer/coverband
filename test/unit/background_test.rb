@@ -22,7 +22,6 @@ class BackgroundTest < Minitest::Test
     Thread.expects(:new).yields.returns(ThreadDouble.new)
     Coverband::Background.expects(:loop).yields
     Coverband::Background.expects(:sleep).with(30)
-    Coverband::Background.expects(:at_exit).returns(false)
     Coverband::Collectors::Coverage.instance.expects(:report_coverage).once
     2.times { Coverband::Background.start }
   end

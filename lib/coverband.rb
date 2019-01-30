@@ -5,6 +5,7 @@ require 'json'
 require 'redis'
 
 require 'coverband/version'
+require 'coverband/at_exit'
 require 'coverband/configuration'
 require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
@@ -53,6 +54,7 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
+    AtExit.register
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
 

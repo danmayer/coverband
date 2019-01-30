@@ -5,8 +5,18 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 class ResqueWorkerTest < Minitest::Test
   def enqueue_and_run_job
     Resque.enqueue(TestResqueJob)
-    ENV['QUEUE'] ='resque_coverband'
+    queue = ENV['QUEUE'] ='resque_coverband'
     Resque::Worker.new.work_one_job
+  end
+
+  def setup
+    super
+    Coverband.configure do |config|
+      config.background_reporting_enabled = false
+    end
+    Coverband.start
+    redis = Coverband.configuration.store.send(:redis)
+    Resque.redis = redis
   end
 
   test 'resque job coverage' do
@@ -18,8 +28,8 @@ class ResqueWorkerTest < Minitest::Test
 
     enqueue_and_run_job
 
-    expected = [1, 1, nil, 1, 1, nil, nil]
-    assert_equal expected, Coverband.configuration.store.coverage[resque_job_file]['data']
+    puts "assert_equal 1, Coverband.configuration.store.coverage['#{resque_job_file}']['data'][4]"
+    assert_equal 1, Coverband.configuration.store.coverage[resque_job_file]['data'][4]
   end
 end
 

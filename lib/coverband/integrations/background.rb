@@ -29,11 +29,6 @@ module Coverband
           end
         end
       end
-      at_exit do
-        stop
-        Coverband::Collectors::Coverage.instance.report_coverage(true)
-        logger&.debug('Coverband: Reported coverage before exit')
-      end
     end
   end
 end
