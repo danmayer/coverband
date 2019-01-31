@@ -6,7 +6,12 @@ module Coverband
     # RedisStore store a merged coverage file to redis
     ###
     class RedisStore < Base
-      BASE_KEY = 'coverband3_1'
+      ###
+      # This key isn't related to the coverband version, but to the interal format
+      # used to store data to redis. It is changed only when breaking changes to our
+      # redis format are required.
+      ###
+      REDIS_STORAGE_FORMAT_VERSION = 'coverband3_1'
 
       def initialize(redis, opts = {})
         super()
@@ -24,7 +29,7 @@ module Coverband
       attr_reader :redis
 
       def base_key
-        @base_key ||= [BASE_KEY, @redis_namespace].compact.join('.')
+        @base_key ||= [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join('.')
       end
 
       def save_coverage(data)
