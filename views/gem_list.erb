@@ -47,7 +47,7 @@
   </table>
 </div>
 
-<% unless gem_details? %>
+<% if gem_details? %>
   <% source_files.each do |gem_files| %>
     <%= formatted_file_list(gem_files.first.gem_name, gem_files, skip_nav: true) %>
   <% end %>

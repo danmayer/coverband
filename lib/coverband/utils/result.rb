@@ -110,16 +110,9 @@ module Coverband
         gem_lists = []
         Coverband.configuration.groups.each do |name, filter|
           if name == 'Gems'
-            gems_files = files.select { |source_file| source_file.filename =~ /#{filter}/ }
-            gems_files.each do |source_file|
-              grouped_gems[source_file.gem_name] = [] unless grouped_gems[source_file.gem_name]
-              grouped_gems[source_file.gem_name] << source_file
-            end
-            grouped_gems.each_pair do |gem, files|
-              gem_list = Coverband::Utils::FileList.new(files)
-              gem_lists << gem_list
-              grouped_files += gem_list
-            end
+            grouped_gems = files.select { |source_file| source_file.filename =~ /#{filter}/ }.group_by(&:gem_name)
+            gem_lists = grouped_gems.values.map { |gem_files| Coverband::Utils::FileList.new(gem_files) }
+            grouped_files.concat(gem_lists.flatten)
             grouped[name] = Coverband::Utils::GemList.new(gem_lists)
           else
             grouped[name] = Coverband::Utils::FileList.new(files.select { |source_file| source_file.filename =~ /#{filter}/ })

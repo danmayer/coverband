@@ -80,13 +80,8 @@ module Coverband
           # above only works for app files
           # we need to rethink some of this logic
           # gems aren't at project root and can have multiple locations
-          roots.each do |root|
-            if File.exist?(relative_filename.gsub('./', root))
-              local_filename = relative_filename.gsub('./', root)
-              break
-            end
-          end
-          local_filename
+          local_root = roots.find { |root| File.exist?(relative_filename.gsub('./', root)) }
+          local_root ? relative_filename.gsub('./', local_root) : local_filename
         end
 
         ###
