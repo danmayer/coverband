@@ -26,6 +26,12 @@ class BaseTest < Minitest::Test
     assert Coverband.configuration.gem_paths.first != nil
   end
 
+  test 'groups ' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.track_gems = true
+    assert_equal %w(App Gems), Coverband.configuration.groups.keys
+  end
+
   test 's3 options' do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|

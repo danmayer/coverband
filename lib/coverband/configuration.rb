@@ -33,6 +33,7 @@ module Coverband
       @web_enable_clear = false
       @track_gems = false
       @gem_details = false
+      @groups = {}
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
