@@ -81,7 +81,7 @@ module Coverband
       def formatted_source_file(source_file)
         template('source_file').result(binding)
       rescue Encoding::CompatibilityError => e
-        puts "Encoding problems with file #{source_file.filename}. Coverband/ERB can't handle non ASCII characters in filenames. Error: #{e.message}."
+        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
       # Returns a table containing the given source files

@@ -26,17 +26,6 @@ module Coverband
       def skipped_lines
         to_a.map(&:skipped_lines).inject(:+)
       end
-
-      # Computes the coverage based upon lines covered and lines missed for each file
-      # Returns an array with all coverage percentages
-      def covered_percentages
-        map(&:covered_percents)
-      end
-
-      # Finds the least covered file and returns that file's name
-      def least_covered_file
-        sort_by(&:covered_percents).first.filename
-      end
     end
   end
 end

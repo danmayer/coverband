@@ -6,7 +6,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov-html
 # initial version of test pulled into Coverband from Simplecov 12/19/2018
 ####
-describe Coverband::Utils::Result do
+describe Coverband::Utils::FileList do
   subject do
     original_result = {
       source_fixture('sample.rb') => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil],

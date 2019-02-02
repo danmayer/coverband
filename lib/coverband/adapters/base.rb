@@ -90,12 +90,6 @@ module Coverband
       def array_add(latest, original)
         latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
       end
-
-      def simple_report(report)
-        report.each_with_object({}) do |(key, extended_data), simple|
-          simple[key] = extended_data['data']
-        end
-      end
     end
   end
 end

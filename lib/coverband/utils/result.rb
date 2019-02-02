@@ -46,7 +46,7 @@ module Coverband
 
       # Returns a Hash of groups for this result. Define groups using Coverband.add_group 'Models', 'app/models'
       def groups
-        @groups ||= filter_to_groups(files)
+        @groups ||= FileGroups.new(files).grouped_results
       end
 
       # Defines when this result has been created. Defaults to Time.now
@@ -94,13 +94,6 @@ module Coverband
       def coverage
         keys = original_result.keys & filenames
         Hash[keys.zip(original_result.values_at(*keys))]
-      end
-
-      #
-      # Applies the configured groups to the given array of Coverband::SourceFile items
-      #
-      def filter_to_groups(files)
-        FileGroups.new(files).grouped_results
       end
 
       # Applies all configured Coverband filters on this result's source files
