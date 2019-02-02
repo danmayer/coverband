@@ -38,6 +38,19 @@ class FullStackTest < Minitest::Test
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
   end
 
+  test 'call app with gem tracking' do
+    Coverband.configuration.track_gems = true
+    Coverband::Collectors::Coverage.instance.reset_instance
+    require 'rainbow'
+    Rainbow('this text is red').red
+    request = Rack::MockRequest.env_for('/anything.json')
+    middleware = Coverband::Middleware.new(fake_app_with_lines)
+    results = middleware.call(request)
+    assert_equal 'Hello Rack!', results.last
+    sleep(0.1)
+    assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/null_presenter.rb') }
+  end
+
   private
 
   def fake_app_with_lines

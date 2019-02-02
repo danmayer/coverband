@@ -100,25 +100,7 @@ module Coverband
       # Applies the configured groups to the given array of Coverband::SourceFile items
       #
       def filter_to_groups(files)
-        grouped = {}
-        grouped_files = []
-        grouped_gems = {}
-        gem_lists = []
-        Coverband.configuration.groups.each do |name, filter|
-          if name == 'Gems'
-            grouped_gems = files.select { |source_file| source_file.filename =~ /#{filter}/ }.group_by(&:gem_name)
-            gem_lists = grouped_gems.values.map { |gem_files| Coverband::Utils::FileList.new(gem_files) }
-            grouped_files.concat(gem_lists.flatten)
-            grouped[name] = Coverband::Utils::GemList.new(gem_lists)
-          else
-            grouped[name] = Coverband::Utils::FileList.new(files.select { |source_file| source_file.filename =~ /#{filter}/ })
-            grouped_files += grouped[name]
-          end
-        end
-        if !Coverband.configuration.groups.empty? && !(other_files = files.reject { |source_file| grouped_files.include?(source_file) }).empty?
-          grouped['Ungrouped'] = Coverband::Utils::FileList.new(other_files)
-        end
-        grouped
+        FileGroups.new(files).grouped_results
       end
 
       # Applies all configured Coverband filters on this result's source files

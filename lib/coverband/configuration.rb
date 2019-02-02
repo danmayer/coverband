@@ -90,7 +90,10 @@ module Coverband
       # gem_paths.each_with_index do |path, index|
       #   add_group("gems_#{index}", path)
       # end
-      add_group('Gems', gem_paths.first)
+      # notes ignore any paths that aren't on this system, resolves
+      # bug related to multiple ruby version managers / bad dot files
+      valid_paths = gem_paths.select { |path| File.exist?(path) }
+      add_group('Gems', valid_paths.first)
     end
 
     #

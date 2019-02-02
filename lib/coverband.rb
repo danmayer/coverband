@@ -16,6 +16,7 @@ require 'coverband/utils/result'
 require 'coverband/utils/file_list'
 require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
+require 'coverband/utils/file_groups'
 require 'coverband/utils/lines_classifier'
 require 'coverband/utils/railtie' if defined? ::Rails::Railtie
 require 'coverband/collectors/coverage'
