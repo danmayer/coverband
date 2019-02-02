@@ -26,7 +26,7 @@ module Coverband
             grouped_gems = files.select { |source_file| source_file.filename =~ /#{filter}/ }.group_by(&:gem_name)
             gem_lists = grouped_gems.values.map { |gem_files| Coverband::Utils::FileList.new(gem_files) }
             grouped_files.concat(gem_lists.flatten)
-            @grouped[name] = Coverband::Utils::GemList.new(gem_lists)
+            @grouped[name] = Coverband::Utils::GemList.new(gem_lists) if gem_lists.flatten.any?
           else
             @grouped[name] = Coverband::Utils::FileList.new(files.select do |source_file|
               source_file.filename =~ /#{filter}/

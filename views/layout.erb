@@ -42,7 +42,9 @@
 
       <div class="source_files">
       <% result.source_files.each do |source_file| %>
-        <%= formatted_source_file(source_file) %>
+        <% if (!source_file.gem? || (view_gems? && gem_details? && source_file.gem? )) %>
+          <%= formatted_source_file(source_file) %>
+        <% end %>
       <% end %>
       </div>
     </div>
