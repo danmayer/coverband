@@ -4,7 +4,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Minitest::Test
-  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
+  REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
 
   def setup
     super

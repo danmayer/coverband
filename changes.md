@@ -62,9 +62,8 @@ Feature Ideas:
 
 # Alpha
 
-### Coverband 4.0.2.alpha
+### Coverband 4.2.0.alpha
 
-- default disabled web clear, add config option to allow it
 - pilot release of Gems tracking
 	- todos
 	  - escape on gem file should go back to gems tab
@@ -72,6 +71,12 @@ Feature Ideas:
 	  - direct url support for gems #gem-name detection like it works for tabs
 	  - full test coverage on gem code paths
 	  - fix any perf impacts on non-gem flows  
+
+### Coverband 4.1.0.alpha
+
+- default disabled web clear, add config option to allow it
+- out of the box support for resque
+- readme improvements
 
 # Released
 

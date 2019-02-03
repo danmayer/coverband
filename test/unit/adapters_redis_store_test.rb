@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class RedisTest < Minitest::Test
-  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
+  REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
 
   def setup
     super
@@ -46,7 +46,7 @@ class RedisTest < Minitest::Test
   end
 
   def test_clear
-    @redis.expects(:del).with(BASE_KEY).once
+    @redis.expects(:del).with(REDIS_STORAGE_FORMAT_VERSION).once
     @store.clear!
   end
 

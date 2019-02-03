@@ -4,7 +4,7 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 require 'rack'
 
 class FullStackTest < Minitest::Test
-  BASE_KEY = Coverband::Adapters::RedisStore::BASE_KEY
+  REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
   TEST_RACK_APP = '../fake_app/basic_rack.rb'
 
   def setup
