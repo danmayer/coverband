@@ -35,7 +35,8 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - more details in this issue: https://github.com/danmayer/coverband/issues/118
 - Make good video on setup, install, usage
 - See if we can add support for views / templates
-  - using this technique https://github.com/ioquatix/covered 	
+  - using this technique https://github.com/ioquatix/covered
+- Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)  	
 
 ### Coverband_jam_session
 
@@ -66,11 +67,8 @@ Feature Ideas:
 
 - pilot release of Gems tracking
 	- todos
-	  - escape on gem file should go back to gems tab
-	  - support multiple gem paths with a rollout
-	  - direct url support for gems #gem-name detection like it works for tabs
-	  - full test coverage on gem code paths
-	  - fix any perf impacts on non-gem flows  
+	  - support multiple gem paths (various version managers setup multiple gem paths)
+	  - speed up page load by allowing multiple pages
 
 ### Coverband 4.1.0.alpha
 
