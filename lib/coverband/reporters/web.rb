@@ -35,6 +35,10 @@ module Coverband
           case request.path_info
           when /.*\.(css|js|gif|png)/
             @static.call(env)
+          when %r{\/settings}
+            [200, { 'Content-Type' => 'text/json' }, [settings]]
+          when %r{\/debug_data}
+            [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/$}
             [200, { 'Content-Type' => 'text/html' }, [index]]
           else
@@ -51,6 +55,14 @@ module Coverband
                                                 base_path: base_path,
                                                 notice: notice,
                                                 open_report: false)
+      end
+
+      def settings
+        Coverband.configuration.to_h.to_json
+      end
+
+      def debug_data
+        Coverband.configuration.store.coverage.to_json
       end
 
       def collect_coverage

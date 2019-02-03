@@ -115,6 +115,16 @@ module Coverband
       Gem::PathSupport.new(ENV).path.select { |path| File.exist?(path) }
     end
 
+    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
+    def to_h
+      hash = {}
+      instance_variables.each do |var|
+        hash[var.to_s.delete('@')] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
+      end
+      hash['gem_paths'] = gem_paths
+      hash
+    end
+
     private
 
     def redis_url
