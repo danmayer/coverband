@@ -1705,10 +1705,16 @@ $(document).ready(function() {
 
   if (jQuery.url.attr('anchor')) {
     var anchor = jQuery.url.attr('anchor')
+    // source file hash
     if (anchor.length == 40) {
       $('a.src_link[href=#' + anchor + ']').click();
     } else {
-      $('.group_tabs a.'+anchor.replace('_', '')).click();
+      if ($('.group_tabs a.'+anchor.replace('_', '')).length > 0) {
+        $('.group_tabs a.'+anchor.replace('_', '')).click();
+      } else {
+        $('a.gem-link[href=#' + anchor.replace('_', '') + ']').click();
+      }
+
     }
   } else {
     $('.group_tabs a:first').click();
