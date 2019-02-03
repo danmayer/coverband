@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Coverband
-  VERSION = '4.0.2.alpha'
+  VERSION = '4.2.0.alpha'
 end
