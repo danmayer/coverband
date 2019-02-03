@@ -69,6 +69,8 @@ Feature Ideas:
 	- todos
 	  - support multiple gem paths (various version managers setup multiple gem paths)
 	  - speed up page load by allowing multiple pages
+- web settings and debug views
+	 - todo improve these views  
 
 ### Coverband 4.1.0.alpha
 

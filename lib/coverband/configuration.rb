@@ -8,7 +8,7 @@ module Coverband
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
-                  :web_enable_clear, :gem_details
+                  :web_enable_clear, :gem_details, :web_debug
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems
@@ -20,7 +20,7 @@ module Coverband
     def reset
       @root = Dir.pwd
       @root_paths = []
-      @ignore = %w(vendor .erb$ .slim$)
+      @ignore = %w[vendor .erb$ .slim$]
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
@@ -34,6 +34,7 @@ module Coverband
       @track_gems = false
       @gem_details = false
       @groups = {}
+      @web_debug = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -83,6 +84,9 @@ module Coverband
     def track_gems=(value)
       @track_gems = value
       return unless @track_gems
+      # by default we ignore vendor where many deployments put gems
+      # we will remove this default if track_gems is set
+      @ignore.delete('vendor')
       add_group('App', root)
       # TODO: rework support for multiple gem paths
       # currently this supports GEM_HOME (which should be first path)

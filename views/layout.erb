@@ -22,7 +22,9 @@
         <% if Coverband.configuration.web_enable_clear %>
           <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
         <% end %>
-        <a href='<%= base_path %>debug_data'>Debug Data</a> &nbsp;
+        <% if Coverband.configuration.web_debug %>
+          <a href='<%= base_path %>debug_data'>Debug Data</a> &nbsp;
+        <% end %>
       </div>
       <% if notice.to_s.length > 0 %>
       <div class="notice"><%= notice %></div>
