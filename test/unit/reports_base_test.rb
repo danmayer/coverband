@@ -17,33 +17,34 @@ class ReportsBaseTest < Minitest::Test
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
-  test 'filename_from_key fix filename a changing deploy path with double quotes' do
+  test 'filename_from_key fix filename a changing deploy path with quotes' do
     Coverband.configure do |config|
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
     end
 
-    key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
-    # the code takes config.root expands and adds a '/' for the final path in roots
-    # note to get regex to work for changing deploy directories it must be double escaped in double quotes or use single qoutes
-    roots = ['/box/apps/app_name/releases/\\d+/', '/full/remote_app/path/']
-
     expected_path = '/full/remote_app/path/app/models/user.rb'
+    key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
+    roots = ["/box/apps/app_name/releases/\\d+/", '/full/remote_app/path/']
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+
+    roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
-  test 'filename_from_key fix filename a changing deploy path with single quotes' do
+  test 'filename_from_key fix filename a changing deploy path real world examples' do
+    current_app_root = '/var/local/company/company.d/79'
     Coverband.configure do |config|
       config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
+      config.root              = current_app_root
     end
 
-    key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
-    # the code takes config.root expands and adds a '/' for the final path in roots
-    # note to get regex to work for changing deploy directories it must be double escaped in double quotes or use single qoutes
-    roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
+    expected_path = '/var/local/company/company.d/79/app/controllers/dashboard_controller.rb'
+    key = '/var/local/company/company.d/78/app/controllers/dashboard_controller.rb'
 
-    expected_path = '/full/remote_app/path/app/models/user.rb'
+    roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
+    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    roots = ["/var/local/company/company.d/[0-9]*/", "#{current_app_root}/"]
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
