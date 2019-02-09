@@ -45,7 +45,7 @@ module Coverband
 
       def app_files(name, filter)
         @grouped[name] = Coverband::Utils::FileList.new(@files.select do |source_file|
-          source_file.filename =~ /#{filter}/
+          source_file.filename =~ /#{filter}/ && source_file.filename !~ /#{Coverband.configuration.gem_paths.first}/
         end)
       end
     end
