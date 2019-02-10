@@ -38,8 +38,10 @@ module Coverband
           # normalize names across servers
           report_hash.each_with_object({}) do |(key, vals), fixed_report|
             filename = filename_from_key(key, roots)
-            fixed_report[filename] = if fixed_report.key?(filename)
-                                       merge_arrays(fixed_report[filename], vals)
+            fixed_report[filename] = if fixed_report.key?(filename) && fixed_report[filename]['data'] && vals['data']
+                                       merged_data = merge_arrays(fixed_report[filename]['data'], vals['data'])
+                                       vals['data'] = merged_data
+                                       vals
                                      else
                                        vals
                                      end
@@ -94,7 +96,6 @@ module Coverband
         # why do we need to merge covered files data?
         # basically because paths on machines or deployed hosts could be different, so
         # two different keys could point to the same filename or `line_key`
-        # this logic should be pushed to base report
         # TODO: think we are filtering based on ignore while sending to the store
         # and as we also pull it out here
         ###
