@@ -87,6 +87,8 @@ module Coverband
       # by default we ignore vendor where many deployments put gems
       # we will remove this default if track_gems is set
       @ignore.delete('vendor')
+      # while we want to allow vendored gems we don't want to track vendored ruby STDLIB
+      @ignore << 'vendor/ruby-*'
       add_group('App', root)
       # TODO: rework support for multiple gem paths
       # currently this supports GEM_HOME (which should be first path)
