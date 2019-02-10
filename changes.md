@@ -65,18 +65,19 @@ Feature Ideas:
 
 ### Coverband 4.2.0.alpha
 
-- pilot release of Gems tracking
-	- todos
-	  - support multiple gem paths (various version managers setup multiple gem paths)
-	  - speed up page load by allowing multiple pages
-- web settings and debug views
-	 - todo improve these views  
+???
 
-### Coverband 4.1.0.alpha
+### Coverband 4.1.0.beta
 
 - default disabled web clear, add config option to allow it
 - out of the box support for resque
 - readme improvements
+- fix on regression of merging directory changing deployments
+- pilot release of Gems tracking (disabled by default)
+	- todos
+	  - support multiple gem paths (various version managers setup multiple gem paths)
+	  - speed up page load by allowing multiple pages
+- added web settings and debug views
 
 # Released
 
@@ -88,7 +89,7 @@ Feature Ideas:
 - reduced the S3 dependencies to minimal set (not loading all of aws-sdk, only aws-sdk-s3), ensured they are optional
 - Improved Coverband web admin
 - Coverage reports include timestamps of Coverage collection
-- Added Coveralls to the dev process thanks @dondonz 
+- Added Coveralls to the dev process thanks @dondonz
 - now tested under Ruby 2.6.0 thanks @Kbaum
 - improved full stack testing for Rails 5 & 4
 - warning before clear coverage on coverband web
