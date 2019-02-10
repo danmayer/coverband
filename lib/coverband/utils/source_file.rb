@@ -133,7 +133,7 @@ module Coverband
 
       # Warning to identify condition from Issue #56
       def coverage_exceeding_source_warn
-        warn "Warning: coverage data provided by Coverage [#{coverage.size}] exceeds number of lines in #{filename} [#{src.size}]"
+        warn "Warning: coverage data from Coverage [#{coverage.size}] exceeds line count in #{filename} [#{src.size}]"
       end
 
       # Access SimpleCov::SourceFile::Line source lines by line number
@@ -208,6 +208,23 @@ module Coverband
             line.skipped!
           end
         end
+      end
+
+      # a bug that existed in simplecov was not checking that root
+      # was at the start of the file name
+      # I had previously patched this in my local Rails app
+      def short_name
+        filename.sub(/^#{Coverband.configuration.root}/, '.')
+                .sub(%r{^.*\/gems}, '.')
+                .gsub(%r{^\.\/}, '')
+      end
+
+      def gem?
+        filename =~ %r{^.*\/gems\/}
+      end
+
+      def gem_name
+        gem? ? short_name.split('/').first : nil
       end
 
       private

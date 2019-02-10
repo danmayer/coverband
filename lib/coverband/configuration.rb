@@ -8,9 +8,10 @@ module Coverband
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
-                  :web_enable_clear
+                  :web_enable_clear, :gem_details, :web_debug
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
+    attr_reader :track_gems
 
     def initialize
       reset
@@ -19,7 +20,7 @@ module Coverband
     def reset
       @root = Dir.pwd
       @root_paths = []
-      @ignore = %w(vendor .erb$ .slim$)
+      @ignore = %w[vendor .erb$ .slim$]
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
@@ -30,6 +31,10 @@ module Coverband
       @background_reporting_sleep_seconds = 30
       @test_env = nil
       @web_enable_clear = false
+      @track_gems = false
+      @gem_details = false
+      @groups = {}
+      @web_debug = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -74,6 +79,54 @@ module Coverband
       else
         raise 'please pass in an subclass of Coverband::Adapters for supported stores'
       end
+    end
+
+    def track_gems=(value)
+      @track_gems = value
+      return unless @track_gems
+      # by default we ignore vendor where many deployments put gems
+      # we will remove this default if track_gems is set
+      @ignore.delete('vendor')
+      # while we want to allow vendored gems we don't want to track vendored ruby STDLIB
+      @ignore << 'vendor/ruby-*'
+      add_group('App', root)
+      # TODO: rework support for multiple gem paths
+      # currently this supports GEM_HOME (which should be first path)
+      # but various gem managers setup multiple gem paths
+      # gem_paths.each_with_index do |path, index|
+      #   add_group("gems_#{index}", path)
+      # end
+      add_group('Gems', gem_paths.first)
+    end
+
+    #
+    # Returns the configured groups. Add groups using SimpleCov.add_group
+    #
+    def groups
+      @groups ||= {}
+    end
+
+    #
+    # Define a group for files. Works similar to add_filter, only that the first
+    # argument is the desired group name and files PASSING the filter end up in the group
+    # (while filters exclude when the filter is applicable).
+    #
+    def add_group(group_name, filter_argument = nil)
+      groups[group_name] = filter_argument
+    end
+
+    def gem_paths
+      # notes ignore any paths that aren't on this system, resolves
+      # bug related to multiple ruby version managers / bad dot files
+      Gem::PathSupport.new(ENV).path.select { |path| File.exist?(path) }
+    end
+
+    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
+    def to_h
+      instance_variables
+        .each_with_object('gem_paths': gem_paths) do |var, hash|
+          hash[var.to_s.delete('@')] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
+        end
     end
 
     private

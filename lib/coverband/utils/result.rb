@@ -14,26 +14,28 @@ module Coverband
   module Utils
     class Result
       extend Forwardable
-      # Returns the original Coverage.result used for this instance of SimpleCov::Result
+      # Returns the original Coverage.result used for this instance of Coverband::Result
       attr_reader :original_result
-      # Returns all files that are applicable to this result (sans filters!) as instances of SimpleCov::SourceFile. Aliased as :source_files
+      # Returns all files that are applicable to this result (sans filters!)
+      # as instances of Coverband::SourceFile. Aliased as :source_files
       attr_reader :files
       alias source_files files
       # Explicitly set the Time this result has been created
       attr_writer :created_at
-      # Explicitly set the command name that was used for this coverage result. Defaults to SimpleCov.command_name
+      # Explicitly set the command name that was used for this coverage result.
+      # Defaults to Coverband.command_name
       attr_writer :command_name
 
       def_delegators :files, :covered_percent, :covered_percentages, :least_covered_file, :covered_strength, :covered_lines, :missed_lines
       def_delegator :files, :lines_of_code, :total_lines
 
-      # Initialize a new SimpleCov::Result from given Coverage.result (a Hash of filenames each containing an array of
+      # Initialize a new Coverband::Result from given Coverage.result (a Hash of filenames each containing an array of
       # coverage data)
       def initialize(original_result)
         @original_result = original_result.freeze
         @files = Coverband::Utils::FileList.new(original_result.map do |filename, coverage|
           Coverband::Utils::SourceFile.new(filename, coverage) if File.file?(filename)
-        end.compact.sort_by(&:filename))
+        end.compact.sort_by(&:short_name))
         filter!
       end
 
@@ -42,15 +44,9 @@ module Coverband
         files.map(&:filename)
       end
 
-      # Returns a Hash of groups for this result. Define groups using SimpleCov.add_group 'Models', 'app/models'
-      # Coverband doesn't currently support groups
+      # Returns a Hash of groups for this result. Define groups using Coverband.add_group 'Models', 'app/models'
       def groups
-        @groups ||= [] # SimpleCov.grouped(files)
-      end
-
-      # Applies the configured SimpleCov.formatter on this result
-      def format!
-        # SimpleCov.formatter.new.format(self)
+        @groups ||= FileGroups.new(files).grouped_results
       end
 
       # Defines when this result has been created. Defaults to Time.now
@@ -59,9 +55,9 @@ module Coverband
       end
 
       # The command name that launched this result.
-      # Delegated to SimpleCov.command_name if not set manually
+      # Delegated to Coverband.command_name if not set manually
       def command_name
-        @command_name ||= 'SimpleCov.command_name'
+        @command_name ||= 'Coverband'
       end
 
       # Returns a hash representation of this Result that can be used for marshalling it into JSON
@@ -69,7 +65,7 @@ module Coverband
         { command_name => { 'coverage' => coverage, 'timestamp' => created_at.to_i } }
       end
 
-      # Loads a SimpleCov::Result#to_hash dump
+      # Loads a Coverband::Result#to_hash dump
       def self.from_hash(hash)
         command_name, data = hash.first
         result = new(data['coverage'])
@@ -100,7 +96,7 @@ module Coverband
         Hash[keys.zip(original_result.values_at(*keys))]
       end
 
-      # Applies all configured SimpleCov filters on this result's source files
+      # Applies all configured Coverband filters on this result's source files
       def filter!
         @files = files
       end

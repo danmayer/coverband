@@ -14,6 +14,8 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/app/', '/full/remote_app/path/']
 
     expected_path = '/full/remote_app/path/is/a/path.rb'
+    File.expects(:exist?).with(key).returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
 
@@ -26,8 +28,11 @@ class ReportsBaseTest < Minitest::Test
     expected_path = '/full/remote_app/path/app/models/user.rb'
     key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
     roots = ["/box/apps/app_name/releases/\\d+/", '/full/remote_app/path/']
+    File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
-
+    File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end
@@ -42,8 +47,12 @@ class ReportsBaseTest < Minitest::Test
     expected_path = '/var/local/company/company.d/79/app/controllers/dashboard_controller.rb'
     key = '/var/local/company/company.d/78/app/controllers/dashboard_controller.rb'
 
+    File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
+    File.expects(:exist?).with(expected_path).returns(true)
     roots = ["/var/local/company/company.d/[0-9]*/", "#{current_app_root}/"]
     assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
   end

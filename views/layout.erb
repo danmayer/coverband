@@ -16,10 +16,14 @@
     <div id="wrapper" style="display:none;">
       <div id="header">
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
+        <a href='<%= base_path %>settings'>Settings</a> &nbsp;
         <%= button("#{base_path}collect_coverage", 'force coverage collection') %> &nbsp;
         <%= button("#{base_path}reload_files", 'reload Coverband files') %> &nbsp;
         <% if Coverband.configuration.web_enable_clear %>
           <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
+        <% end %>
+        <% if Coverband.configuration.web_debug %>
+          <a href='<%= base_path %>debug_data'>Debug Data</a> &nbsp;
         <% end %>
       </div>
       <% if notice.to_s.length > 0 %>
@@ -29,7 +33,7 @@
       <ul class="group_tabs"></ul>
 
       <div id="content">
-        <%= formatted_file_list("All Files", result.source_files) %>
+        <%= formatted_file_list("All Files", result.source_files) unless view_gems? %>
 
         <% result.groups.each do |name, files| %>
           <%= formatted_file_list(name, files) %>
@@ -42,7 +46,9 @@
 
       <div class="source_files">
       <% result.source_files.each do |source_file| %>
-        <%= formatted_source_file(source_file) %>
+        <% if (!source_file.gem? || (view_gems? && gem_details? && source_file.gem? )) %>
+          <%= formatted_source_file(source_file) %>
+        <% end %>
       <% end %>
       </div>
     </div>

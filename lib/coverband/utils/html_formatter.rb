@@ -18,7 +18,7 @@ module Coverband
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
         @base_path = options.fetch(:base_path) { nil }
-        @coverage_result = Coverband::Utils::Result.new(report)
+        @coverage_result = Coverband::Utils::Result.new(report) if report
       end
 
       def format!
@@ -29,7 +29,15 @@ module Coverband
         format_html(@coverage_result)
       end
 
+      def format_settings!
+        format_settings
+      end
+
       private
+
+      def format_settings
+        template('settings').result(binding)
+      end
 
       def format(result)
         Dir[File.join(File.dirname(__FILE__), '../../../public/*')].each do |path|
@@ -81,17 +89,30 @@ module Coverband
       def formatted_source_file(source_file)
         template('source_file').result(binding)
       rescue Encoding::CompatibilityError => e
-        puts "Encoding problems with file #{source_file.filename}. Coverband/ERB can't handle non ASCII characters in filenames. Error: #{e.message}."
+        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
       # Returns a table containing the given source files
-      def formatted_file_list(title, source_files)
+      def formatted_file_list(title, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
         # Silence a warning by using the following variable to assign to itself:
         # "warning: possibly useless use of a variable in void context"
         # The variable is used by ERB via binding.
         title_id = title_id
-        template('file_list').result(binding)
+        options = options
+        if title == 'Gems'
+          template('gem_list').result(binding)
+        else
+          template('file_list').result(binding)
+        end
+      end
+
+      def view_gems?
+        Coverband.configuration.track_gems
+      end
+
+      def gem_details?
+        Coverband.configuration.gem_details
       end
 
       def coverage_css_class(covered_percent)
@@ -123,10 +144,13 @@ module Coverband
         "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
       end
 
-      # a bug that existed in simplecov was not checking that root was at the start of the file name
-      # I had previously patched this in my local Rails app
       def shortened_filename(source_file)
-        source_file.filename.sub(%r{^#{Coverband.configuration.root}}, '.').gsub(/^\.\//, '')
+        source_file.short_name
+      end
+
+      def link_to_gem_list(gem_name)
+        gem_id = gem_name.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
+        %(<a href="##{gem_id}" class="gem-link" title="#{gem_name}">#{gem_name}</a>)
       end
 
       def link_to_source_file(source_file)

@@ -22,6 +22,7 @@ module Coverband
 
         def root_paths
           roots = Coverband.configuration.root_paths
+          roots += Coverband.configuration.gem_paths if Coverband.configuration.track_gems
           roots << "#{current_root}/"
           roots
         end
@@ -81,15 +82,20 @@ module Coverband
         #        example: '/var/local/company/company.d/[0-9]*/'
         ###
         def filename_from_key(key, roots)
-          filename = key
+          relative_filename = key
+          local_filename = relative_filename
           roots.each do |root|
-            filename = filename.gsub(/^#{root}/, './')
+            relative_filename = relative_filename.gsub(/^#{root}/, './')
           end
-          # The filename for Coverage report is expected to be a full LOCAL path.
+          # the filename for our reports is expected to be a full path.
           # roots.last should be roots << current_root}/
-          # a fully expanded path of the file on the current runtime system
-          filename = filename.gsub('./', roots.last)
-          filename
+          # a fully expanded path of config.root
+          # filename = filename.gsub('./', roots.last)
+          # above only works for app files
+          # we need to rethink some of this logic
+          # gems aren't at project root and can have multiple locations
+          local_root = roots.find { |root| File.exist?(relative_filename.gsub('./', root)) }
+          local_root ? relative_filename.gsub('./', local_root) : local_filename
         end
 
         ###

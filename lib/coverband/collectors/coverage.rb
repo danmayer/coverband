@@ -24,6 +24,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
+        @track_gems = Coverband.configuration.track_gems
         @@previous_results = nil
         Thread.current[:coverband_instance] = nil
         self
@@ -48,10 +49,18 @@ module Coverband
 
       protected
 
+      ###
+      # Normally I would break this out into additional methods
+      # and improve the readability but this is in a tight loop
+      # on the critical performance path, and any refactoring I come up with
+      # would slow down the performance.
+      ###
       def track_file?(file)
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)
-        end && file.start_with?(@project_directory)
+        end && (file.start_with?(@project_directory) ||
+         (@track_gems &&
+          Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
       end
 
       private

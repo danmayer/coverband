@@ -21,6 +21,17 @@ class BaseTest < Minitest::Test
     assert_equal ['vendor', 'internal:prelude', 'schema.rb'], coverband.instance_variable_get('@ignore_patterns')
   end
 
+  test 'gem_paths ' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    assert Coverband.configuration.gem_paths.first != nil
+  end
+
+  test 'groups ' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.track_gems = true
+    assert_equal %w(App Gems), Coverband.configuration.groups.keys
+  end
+
   test 's3 options' do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
