@@ -154,6 +154,11 @@ class ReportsBaseTest < Minitest::Test
 
     lines_hit = [1, 3, 6]
     store.stubs(:coverage).returns(coverage)
+    File.expects(:exist?).at_least_once
+      .with('/base/[0-9]*/app/controllers/dashboard_controller.rb')
+      .returns(false)
+    File.expects(:exist?).at_least_once.with(key).returns(true)
+
     expected = {"first_updated_at"=>1549617873,
                 "last_updated_at"=>1549618094,
                 "file_hash"=>"14dc84e940e26cbfb9ac79b43862e762",
