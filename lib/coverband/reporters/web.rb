@@ -36,7 +36,7 @@ module Coverband
           when /.*\.(css|js|gif|png)/
             @static.call(env)
           when %r{\/settings}
-            [200, { 'Content-Type' => 'text/json' }, [settings]]
+            [200, { 'Content-Type' => 'text/html' }, [settings]]
           when %r{\/debug_data}
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/$}
@@ -58,7 +58,7 @@ module Coverband
       end
 
       def settings
-        Coverband.configuration.to_h.to_json
+        Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_settings!
       end
 
       def debug_data

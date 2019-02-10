@@ -18,7 +18,7 @@ module Coverband
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
         @base_path = options.fetch(:base_path) { nil }
-        @coverage_result = Coverband::Utils::Result.new(report)
+        @coverage_result = Coverband::Utils::Result.new(report) if report
       end
 
       def format!
@@ -29,7 +29,15 @@ module Coverband
         format_html(@coverage_result)
       end
 
+      def format_settings!
+        format_settings
+      end
+
       private
+
+      def format_settings
+        template('settings').result(binding)
+      end
 
       def format(result)
         Dir[File.join(File.dirname(__FILE__), '../../../public/*')].each do |path|
