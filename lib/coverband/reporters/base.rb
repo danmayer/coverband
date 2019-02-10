@@ -63,9 +63,21 @@ module Coverband
         end
 
         ###
-        # This method is responsible for finding the CURRENT LOCAL
-        # filename regardless of the paths being different on
-        # various servers or deployments
+        # filename_from_key code takes:
+        # key: which is a full path the same as reported by Coverage
+        # roots: if a collection of all possible full app paths
+        #    EX: [Coverband.configuration.root_paths, "#{current_root}/"]
+        # The LAST item should be the current file system root
+        # it expands that expands and adds a '/' as that isn't there from Dir.pwd
+        #
+        # NOTEs on configuration.root_paths usage
+        # strings: matching is pretty simple for full string paths
+        # regex: to get regex to work for changing deploy directories
+        #        the regex must be double escaped in double quotes
+        #          (if using \d for example)
+        #        or use single qoutes
+        #        example: '/box/apps/app_name/releases/\d+/'
+        #        example: '/var/local/company/company.d/[0-9]*/'
         ###
         def filename_from_key(key, roots)
           relative_filename = key
