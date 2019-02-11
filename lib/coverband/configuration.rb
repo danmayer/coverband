@@ -43,6 +43,7 @@ module Coverband
       @s3_secret_access_key = nil
       @redis_namespace = nil
       @redis_ttl = nil
+      @safe_reload_files = []
     end
 
     def logger
