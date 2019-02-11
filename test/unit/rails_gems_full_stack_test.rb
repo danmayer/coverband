@@ -26,7 +26,7 @@ class RailsGemsFullStackTest < Minitest::Test
   test 'this is how gem it' do
     visit '/dummy/show'
     assert_content('I am no dummy')
-    sleep 0.2
+    sleep 0.5
     visit '/coverage'
     assert_content('Coverband Admin')
     assert_content('Gems')
