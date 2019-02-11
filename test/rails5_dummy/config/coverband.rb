@@ -5,5 +5,5 @@ Coverband.configure do |config|
   config.root_paths        = []
   config.logger            = Rails.logger
   config.verbose           = true
-  config.background_reporting_sleep_seconds = 0.1
+  config.background_reporting_sleep_seconds = 0.01
 end
