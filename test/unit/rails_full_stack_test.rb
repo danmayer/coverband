@@ -10,6 +10,7 @@ class RailsFullStackTest < Minitest::Test
     super
     # The normal relative directory lookup of coverband won't work for our dummy rails project
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
+    Coverband.configuration.background_reporting_enabled = false
     Coverband.start
   end
 
@@ -21,8 +22,8 @@ class RailsFullStackTest < Minitest::Test
 
   test 'this is how we do it' do
     visit '/dummy/show'
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     assert_content('I am no dummy')
-    sleep 0.2
     visit '/coverage'
     within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
       assert_selector('td', text: '100.0 %')

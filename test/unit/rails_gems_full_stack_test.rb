@@ -12,6 +12,7 @@ class RailsGemsFullStackTest < Minitest::Test
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
     Coverband.configuration.track_gems = true
     Coverband.configuration.gem_details = true
+    Coverband.configuration.background_reporting_enabled = false
     Coverband.start
     require 'rainbow'
     Rainbow('this text is red').red
@@ -26,7 +27,7 @@ class RailsGemsFullStackTest < Minitest::Test
   test 'this is how gem it' do
     visit '/dummy/show'
     assert_content('I am no dummy')
-    sleep 0.2
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     visit '/coverage'
     assert_content('Coverband Admin')
     assert_content('Gems')
