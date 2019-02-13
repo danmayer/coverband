@@ -3,7 +3,7 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class ReportsBaseTest < Minitest::Test
-  test 'filename_from_key fix filename from a key with a swappable path' do
+  test 'relative_path_to_full fix filename from a key with a swappable path' do
     Coverband.configure do |config|
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
@@ -16,10 +16,10 @@ class ReportsBaseTest < Minitest::Test
     expected_path = '/full/remote_app/path/is/a/path.rb'
     File.expects(:exist?).with(key).returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
   end
 
-  test 'filename_from_key fix filename a changing deploy path with quotes' do
+  test 'relative_path_to_full fix filename a changing deploy path with quotes' do
     Coverband.configure do |config|
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
@@ -30,14 +30,14 @@ class ReportsBaseTest < Minitest::Test
     roots = ["/box/apps/app_name/releases/\\d+/", '/full/remote_app/path/']
     File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
     File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
     roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
   end
 
-  test 'filename_from_key fix filename a changing deploy path real world examples' do
+  test 'relative_path_to_full fix filename a changing deploy path real world examples' do
     current_app_root = '/var/local/company/company.d/79'
     Coverband.configure do |config|
       config.reporter          = 'std_out'
@@ -50,14 +50,14 @@ class ReportsBaseTest < Minitest::Test
     File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
     roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
     File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
     roots = ["/var/local/company/company.d/[0-9]*/", "#{current_app_root}/"]
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
   end
 
-  test 'filename_from_key leave filename from a key with a local path' do
+  test 'relative_path_to_full leave filename from a key with a local path' do
     Coverband.configure do |config|
       config.reporter          = 'std_out'
       config.root              = '/full/remote_app/path'
@@ -68,7 +68,7 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/app/', '/full/remote_app/path/']
 
     expected_path = '/full/remote_app/path/is/a/path.rb'
-    assert_equal expected_path, Coverband::Reporters::Base.send(:filename_from_key, key, roots)
+    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
   end
 
   test '#merge_arrays basic merge preserves order and counts' do

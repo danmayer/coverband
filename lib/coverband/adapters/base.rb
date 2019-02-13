@@ -3,6 +3,8 @@
 module Coverband
   module Adapters
     class Base
+      include Coverband::Utils::FilePathHelper
+
       def initialize
         @file_hash_cache = {}
       end
@@ -17,7 +19,7 @@ module Coverband
       # and the tradeoff has always been acceptable
       def save_report(report)
         data = report.dup
-        merge_reports(data, get_report)
+        data = merge_reports(data, get_report)
         save_coverage(data)
       end
 
@@ -49,6 +51,7 @@ module Coverband
       end
 
       def expand_report(report)
+        expanded = {}
         report_time = Time.now.to_i
         report.each_pair do |key, line_data|
           extended_data = {
@@ -57,8 +60,9 @@ module Coverband
             'file_hash' => file_hash(key),
             'data' => line_data
           }
-          report[key] = extended_data
+          expanded[full_path_to_relative(key)] = extended_data
         end
+        expanded
       end
 
       def merge_reports(new_report, old_report)
