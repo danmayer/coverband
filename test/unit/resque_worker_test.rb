@@ -25,14 +25,10 @@ class ResqueWorkerTest < Minitest::Test
     resque_job_file = File.expand_path('./test_resque_job.rb', File.dirname(__FILE__))
     require resque_job_file
 
-    #report after loading the file in parent process
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
-    
     enqueue_and_run_job
 
     assert !Coverband::Background.running?
 
-    puts "assert_equal 1, Coverband.configuration.store.coverage['#{resque_job_file}']['data'][4]"
     assert_equal 1, Coverband.configuration.store.coverage[resque_job_file]['data'][4]
   end
 end
