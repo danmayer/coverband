@@ -5,6 +5,7 @@ Resque.after_fork do |job|
 end
 
 Resque.before_first_fork do
+  Coverband.configuration.background_reporting_enabled = false
   Coverband::Background.stop
   Coverband::Collectors::Coverage.instance.report_coverage(true)
 end
