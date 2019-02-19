@@ -5,12 +5,17 @@ module Coverband
     @semaphore = Mutex.new
 
     def self.stop
+      return unless @thread
       @semaphore.synchronize do
         if @thread
           @thread.exit
           @thread = nil
         end
       end
+    end
+
+    def self.running?
+      !!@thread
     end
 
     def self.start
