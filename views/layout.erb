@@ -16,7 +16,7 @@
     <div id="wrapper" style="display:none;">
       <div id="header">
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
-        <a href='<%= base_path %>settings'>Settings</a> &nbsp;
+        <a href='<%= base_path %>settings'>Info</a> &nbsp;
         <%= button("#{base_path}collect_coverage", 'force coverage collection') %> &nbsp;
         <%= button("#{base_path}reload_files", 'reload Coverband files') %> &nbsp;
         <% if Coverband.configuration.web_enable_clear %>

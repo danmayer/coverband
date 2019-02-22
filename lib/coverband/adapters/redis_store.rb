@@ -24,6 +24,10 @@ module Coverband
         @redis.del(base_key)
       end
 
+      def size
+        @redis.get(REDIS_STORAGE_FORMAT_VERSION).bytesize
+      end
+
       private
 
       attr_reader :redis

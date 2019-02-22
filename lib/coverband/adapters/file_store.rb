@@ -20,6 +20,10 @@ module Coverband
         File.delete(path) if File.exist?(path)
       end
 
+      def size
+        File.size?(path).to_i
+      end
+
       private
 
       attr_accessor :path

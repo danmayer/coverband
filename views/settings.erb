@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns='http://www.w3.org/1999/xhtml'>
   <head>
-    <title>Coverband Settings: <%= Coverband::VERSION %></title>
+    <title>Coverband Info: <%= Coverband::VERSION %></title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <script src='<%= assets_path('application.js') %>' type='text/javascript'></script>
     <link href='<%= assets_path('application.css') %>' media='screen, projection, print' rel='stylesheet' type='text/css'>
@@ -12,7 +12,7 @@
     <div id="wrapper" style="">
       <div id="header">
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
-        <a href='<%= base_path %>settings'>Settings</a> &nbsp;
+        <a href='<%= base_path %>settings'>Info</a> &nbsp;
       </div>
       <div id="content">
         <dl>
@@ -20,6 +20,11 @@
           <dt><%= key %></dt>
           <dd><%= value %></dd>
         <% end %>
+
+        <dt>Size (in bytes)</dt>
+        <dd><%= Coverband.configuration.store.size %></dd>
+        <dt>Size (in MiB)</dt>
+        <dd><%= Coverband.configuration.store.size_in_mib %></dd>
         </dl>
       </div>
       <div id="footer">

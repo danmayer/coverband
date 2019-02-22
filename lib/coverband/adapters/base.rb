@@ -13,6 +13,14 @@ module Coverband
         raise 'abstract'
       end
 
+      def size
+        raise 'abstract'
+      end
+
+      def size_in_mib
+        format('%.2f', (size.to_f / 2**20))
+      end
+
       # Note: This could lead to slight race on redis
       # where multiple processes pull the old coverage and add to it then push
       # the Coverband 2 had the same issue,
