@@ -11,7 +11,7 @@ module Coverband
         base_path = options.fetch(:base_path) { nil }
 
         # list all files, even if not tracked by Coverband (0% coverage)
-        tracked_glob = "#{current_root}/{app,lib,config}/**/*.{rb}"
+        tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"
         report_files = Coverband::Utils::Result.add_not_loaded_files(scov_style_report, tracked_glob)
         # apply coverband filters
         filtered_report_files = {}

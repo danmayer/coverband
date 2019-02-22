@@ -11,7 +11,7 @@ module Coverband
       ###
       def full_path_to_relative(full_path)
         relative_filename = full_path
-        root_paths.each do |root|
+        Coverband.configuration.all_root_paths.each do |root|
           relative_filename = relative_filename.gsub(/^#{root}/, './')
           # once we have a relative path break out of the loop
           break if relative_filename.start_with? './'
@@ -51,17 +51,6 @@ module Coverband
         # gems aren't at project root and can have multiple locations
         local_root = roots.find { |root| File.exist?(relative_filename.gsub('./', root)) }
         local_root ? relative_filename.gsub('./', local_root) : local_filename
-      end
-
-      def root_paths
-        roots = Coverband.configuration.root_paths
-        roots += Coverband.configuration.gem_paths if Coverband.configuration.track_gems
-        roots << "#{current_root}/"
-        roots
-      end
-
-      def current_root
-        File.expand_path(Coverband.configuration.root)
       end
     end
   end

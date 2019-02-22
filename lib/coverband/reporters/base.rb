@@ -10,7 +10,8 @@ module Coverband
       class << self
         include Coverband::Utils::FilePathHelper
         def report(store, _options = {})
-          scov_style_report = get_current_scov_data_imp(store, root_paths)
+          all_roots = Coverband.configuration.all_root_paths
+          scov_style_report = get_current_scov_data_imp(store, all_roots)
 
           if Coverband.configuration.verbose
             msg = "report:\n #{scov_style_report.inspect}"

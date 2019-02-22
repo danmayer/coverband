@@ -121,7 +121,18 @@ module Coverband
       Gem::PathSupport.new(ENV).path.select { |path| File.exist?(path) }
     end
 
-    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
+    def current_root
+      File.expand_path(Coverband.configuration.root)
+    end
+
+    def all_root_paths
+      roots = Coverband.configuration.root_paths.dup
+      roots += Coverband.configuration.gem_paths.dup if Coverband.configuration.track_gems
+      roots << "#{Coverband.configuration.current_root}/"
+      roots
+    end
+
+    SKIPPED_SETTINGS = %w(@s3_secret_access_key @store)
     def to_h
       instance_variables
         .each_with_object('gem_paths': gem_paths) do |var, hash|

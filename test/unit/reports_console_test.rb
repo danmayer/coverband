@@ -20,13 +20,14 @@ class HTMLReportTest < Minitest::Test
     end
     Coverband.configuration.logger.stubs('info')
     mock_file_hash
-    Coverband::Reporters::ConsoleReport
-      .expects(:current_root)
-      .returns('app_path')
+    Coverband.configuration
+             .expects(:current_root)
+             .at_least_once
+             .returns('app_path')
     @store.send(:save_report, basic_coverage)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)
-    expected = { 'app_path/dog.rb' => [0, 1, 2] }
+    expected = { './dog.rb' => [0, 1, 2] }
     assert_equal(expected.keys, report.keys)
   end
 end
