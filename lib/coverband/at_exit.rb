@@ -11,7 +11,7 @@ module Coverband
         @at_exit_registered = true
         at_exit do
           ::Coverband::Background.stop
-          Coverband::Collectors::Coverage.instance.report_coverage(true)
+          Coverband.report_coverage(true)
           Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
         end
       end

@@ -49,6 +49,10 @@ module Coverband
     end
   end
 
+  def self.report_coverage(force_report = false)
+    Coverband::Collectors::Coverage.instance.report_coverage(force_report)
+  end
+
   def self.configuration
     self.configuration_data ||= Configuration.new
   end

@@ -27,7 +27,7 @@ class RailsGemsFullStackTest < Minitest::Test
   test 'this is how gem it' do
     visit '/dummy/show'
     assert_content('I am no dummy')
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband.report_coverage(true)
     visit '/coverage'
     assert_content('Coverband Admin')
     assert_content('Gems')

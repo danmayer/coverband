@@ -134,7 +134,7 @@ namespace :benchmarks do
       x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
         work
-        Coverband::Collectors::Coverage.instance.report_coverage
+        Coverband.report_coverage(true)
       end
       x.report 'no coverband' do
         work
