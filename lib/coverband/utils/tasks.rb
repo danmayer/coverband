@@ -25,4 +25,13 @@ namespace :coverband do
     environment
     Coverband.configuration.store.clear!
   end
+
+  ###
+  # clear data helpful for development or after configuration issues
+  ###
+  desc 'upgrade previous Coverband datastore to latest format'
+  task :migrate do
+    environment
+    Coverband.configuration.store.migrate!
+  end
 end

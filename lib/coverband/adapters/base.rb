@@ -13,6 +13,10 @@ module Coverband
         raise 'abstract'
       end
 
+      def migrate!
+        raise 'abstract'
+      end
+
       def size
         raise 'abstract'
       end
@@ -73,8 +77,8 @@ module Coverband
         expanded
       end
 
-      def merge_reports(new_report, old_report)
-        new_report = expand_report(new_report)
+      def merge_reports(new_report, old_report, options = {})
+        new_report = expand_report(new_report) unless options[:skip_expansion]
         keys = (new_report.keys + old_report.keys).uniq
         keys.each do |file|
           new_report[file] = if new_report[file] &&
