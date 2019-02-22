@@ -22,7 +22,7 @@ class RailsFullStackTest < Minitest::Test
 
   test 'this is how we do it' do
     visit '/dummy/show'
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband.report_coverage(true)
     assert_content('I am no dummy')
     visit '/coverage'
     within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
@@ -47,7 +47,7 @@ class RailsFullStackTest < Minitest::Test
       3.times do
         visit '/dummy/show'
         assert_content('I am no dummy')
-        Coverband::Collectors::Coverage.instance.report_coverage(true)
+        Coverband.report_coverage(true)
       end
 
       previous_out = $stdout
@@ -58,7 +58,7 @@ class RailsFullStackTest < Minitest::Test
         15.times do
           visit '/dummy/show'
           assert_content('I am no dummy')
-          Coverband::Collectors::Coverage.instance.report_coverage(true)
+          Coverband.report_coverage(true)
           # this is expected to retain memory across requests
           # clear it to remove the false positive from test
           Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)

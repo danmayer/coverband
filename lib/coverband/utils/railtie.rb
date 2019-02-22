@@ -7,7 +7,7 @@ module Coverband
     end
 
     config.after_initialize do
-      Coverband::Collectors::Coverage.instance.report_coverage(true)
+      Coverband.report_coverage(true)
     end
 
     rake_tasks do

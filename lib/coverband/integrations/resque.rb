@@ -15,7 +15,7 @@ module Coverband
     def perform
       super
     ensure
-      Coverband::Collectors::Coverage.instance.report_coverage(true)
+      Coverband.report_coverage(true)
     end
   end
 end
