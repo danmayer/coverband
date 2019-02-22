@@ -14,7 +14,8 @@ class ResqueWorkerTest < Minitest::Test
   def setup
     super
     Coverband.configure do |config|
-      config.background_reporting_enabled = true
+      config.background_reporting_enabled = false
+      config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
     end
     Coverband.start
     redis = Coverband.configuration.store.send(:redis)
@@ -22,6 +23,7 @@ class ResqueWorkerTest < Minitest::Test
   end
 
   test 'resque job coverage' do
+    relative_job_file = './unit/test_resque_job.rb'
     resque_job_file = File.expand_path('./test_resque_job.rb', File.dirname(__FILE__))
     require resque_job_file
 
@@ -29,7 +31,6 @@ class ResqueWorkerTest < Minitest::Test
 
     assert !Coverband::Background.running?
 
-    assert_equal 1, Coverband.configuration.store.coverage[resque_job_file]['data'][4]
+    assert_equal 1, Coverband.configuration.store.coverage[relative_job_file]['data'][4]
   end
 end
-

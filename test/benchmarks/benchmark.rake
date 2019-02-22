@@ -176,6 +176,10 @@ namespace :benchmarks do
         @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
       end
     end
+
+    def store.full_path_to_relative(file)
+      file
+    end
   end
 
   def reporting_speed

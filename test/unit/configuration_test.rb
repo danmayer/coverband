@@ -16,20 +16,30 @@ class BaseTest < Minitest::Test
     end
   end
 
-  test 'defaults ' do
+  test 'defaults' do
     coverband = Coverband::Collectors::Coverage.instance.reset_instance
     assert_equal ['vendor', 'internal:prelude', 'schema.rb'], coverband.instance_variable_get('@ignore_patterns')
   end
 
-  test 'gem_paths ' do
+  test 'gem_paths' do
     Coverband::Collectors::Coverage.instance.reset_instance
     assert Coverband.configuration.gem_paths.first != nil
   end
 
-  test 'groups ' do
+  test 'groups' do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configuration.track_gems = true
     assert_equal %w(App Gems), Coverband.configuration.groups.keys
+  end
+
+  test 'all_root_paths' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    current_paths = Coverband.configuration.root_paths.dup
+    # verify previous bug fix
+    # it would extend the root_paths instance variable on each invokation
+    Coverband.configuration.all_root_paths
+    all_roots = Coverband.configuration.all_root_paths
+    assert_equal current_paths, Coverband.configuration.root_paths
   end
 
   test 's3 options' do
