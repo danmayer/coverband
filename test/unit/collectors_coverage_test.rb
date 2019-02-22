@@ -44,5 +44,10 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
       @coverband.reset_instance
       @coverband.report_coverage
     end
+
+    test 'default tmp ignores' do
+      heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
+      assert_equal false, @coverband.send(:track_file?, heroku_build_file)
+    end
   end
 end

@@ -38,7 +38,7 @@ class BaseTest < Minitest::Test
     # verify previous bug fix
     # it would extend the root_paths instance variable on each invokation
     Coverband.configuration.all_root_paths
-    all_roots = Coverband.configuration.all_root_paths
+    Coverband.configuration.all_root_paths
     assert_equal current_paths, Coverband.configuration.root_paths
   end
 

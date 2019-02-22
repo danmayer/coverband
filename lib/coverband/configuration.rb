@@ -20,7 +20,10 @@ module Coverband
     def reset
       @root = Dir.pwd
       @root_paths = []
-      @ignore = %w[vendor .erb$ .slim$]
+      # Heroku when building assets runs code from a dynamic directory
+      # /tmp was added to avoid coverage from /tmp/build directories during
+      # heroku asset compilation
+      @ignore = %w[vendor .erb$ .slim$ /tmp]
       @additional_files = []
       @reporting_frequency = 0.0
       @verbose = false
