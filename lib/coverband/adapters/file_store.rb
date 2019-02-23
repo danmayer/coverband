@@ -24,6 +24,10 @@ module Coverband
         File.size?(path).to_i
       end
 
+      def migrate!
+        raise NotImplementedError, "FileStore doesn't support migrations"
+      end
+
       private
 
       attr_accessor :path
