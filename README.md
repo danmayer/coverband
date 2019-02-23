@@ -198,6 +198,15 @@ ENV['AWS_ACCESS_KEY_ID']
 ENV['AWS_SECRET_ACCESS_KEY']
 ```
 
+### Coverage Data Migration
+
+Between the release of 4.0 and 4.1 our data format changed. This resets all your coverage data. If you want to restore your previous coverage data, feel free to migrate.
+
+`rake coverband:migrate`
+
+* We will be working to support migrations going forward, when possible
+
+
 ### Clear Coverage
 
 Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.

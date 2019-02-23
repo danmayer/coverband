@@ -73,13 +73,33 @@ Feature Ideas:
 - out of the box support for resque
 - readme improvements
 - fix on regression of merging directory changing deployments
+  - fixes for duplicate root paths 
 - pilot release of Gems tracking (disabled by default)
 	- todos
 	  - support multiple gem paths (various version managers setup multiple gem paths)
 	  - speed up page load by allowing multiple pages
 - added web settings and debug views
+   - added support for seeing coverage data size consumed in redis 
+- support coverage data migrations from 4.0.x to 4.1.0
+- fixes for heroku /tmp asset building
 
 # Released
+
+### Coverband 4.1.0
+
+- default disabled web clear, add config option to allow it
+- out of the box support for resque
+- readme improvements
+- fix on regression of merging directory changing deployments
+  - fixes for duplicate root paths 
+- pilot release of Gems tracking (disabled by default)
+	- todos
+	  - support multiple gem paths (various version managers setup multiple gem paths)
+	  - speed up page load by allowing multiple pages
+- added web settings and debug views
+   - added support for seeing coverage data size consumed in redis 
+- support coverage data migrations from 4.0.x to 4.1.0
+- fixes for heroku /tmp asset building
 
 ### Coverband 4.0.1
 
