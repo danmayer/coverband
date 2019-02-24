@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('../../test_helper', File.dirname(__FILE__))
 require 'rack'
 
 class MiddlewareTest < Minitest::Test
