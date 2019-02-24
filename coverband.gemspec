@@ -42,6 +42,8 @@ Gem::Specification.new do |spec|
   # require 'byebug'; byebug
   spec.add_development_dependency 'pry-byebug'
 
+  spec.add_development_dependency 'minitest-profile'
+
   # TODO: Remove when other production adapters exist
   # because the default configuration of redis store, we really do require
   # redis now. I was reluctant to add this, but until we offer another production
