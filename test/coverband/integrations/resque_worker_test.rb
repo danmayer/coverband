@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ResqueWorkerTest < Minitest::Test
   def enqueue_and_run_job
@@ -23,7 +23,7 @@ class ResqueWorkerTest < Minitest::Test
   end
 
   test 'resque job coverage' do
-    relative_job_file = './unit/test_resque_job.rb'
+    relative_job_file = './integrations/test_resque_job.rb'
     resque_job_file = File.expand_path('./test_resque_job.rb', File.dirname(__FILE__))
     require resque_job_file
 

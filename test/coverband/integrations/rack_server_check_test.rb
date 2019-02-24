@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class RackServerCheckTest < Minitest::Test
   test 'returns true when running in rack server' do

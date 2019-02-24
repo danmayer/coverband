@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ReportsBaseTest < Minitest::Test
   test 'relative_path_to_full fix filename from a key with a swappable path' do
