@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
-require File.expand_path('../../unit/dog', File.dirname(__FILE__))
+require File.expand_path('../../dog', File.dirname(__FILE__))
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.3.0')
   class CollectorsCoverageTest < Minitest::Test
