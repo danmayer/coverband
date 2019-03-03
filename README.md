@@ -251,16 +251,28 @@ By adding any files above you will get reporting on those files as part of your 
 
 ### Collecting Gem / Library Usage
 
-By default Coverband has assumed you are trying to track your application code usage and not all the supporting framework and library (Gems) code usage. There are reasons to track library usage though such as finding out which Gems aren't actually being used within production. See some of the discussion on [issue 21](https://github.com/danmayer/coverband/issues/21).
+Gem usage can be tracked by enabling the `track_gems` config.
 
-How to collect gem usage with Coverband:
+```
+Coverband.configure do |config|
+  config.track_gems = true
+end
+```
 
-* use the `safe_reload_files` feature to add the path of all gem files you wish to track
-* --- or ---
-* ensure you call `require 'coverband'` which triggers `Coverband.start` before loading all your gems
-   * while possible this is currently hard as Rails and most environments load your whole Gemfile
-   * we are looking for an improve and easier way to support this.
+The `track_gems` feature exposes a Gems tab in the report which prints out the percentage usage of each Gem. See demo [here](https://coverband-demo.herokuapp.com/coverage?#_Gems).
 
+When tracking gems, it is important that `Coverband#start` is called before the gems to be tracked are required. Since `Coverband#start` is automatically called by default when coverband is required, list coverband before the other gems to be tracked within your Gemfile. The exception to this are gems like rails and resque. Since coverband has some specific intergrations for these frameworks, these two gems should be required first.
+
+The track_gems config only exposes the overall usage of a gem. In order to see the detail of each file, enable the `gem_details` flag.
+
+```
+Coverband.configure do |config|
+  config.track_gems = true
+  config.gem_details = true
+end
+```
+
+This flag exposes line by line usage of gem files. Unfortunately due to the way the coverband report is currently rendered, enabling `gem_details` slows down viewing of the coverage report in the browser and is not yet recommended.
 
 ### Verbose Debug / Development Mode
 
