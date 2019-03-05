@@ -26,7 +26,7 @@ module Coverband
       end
 
       def size
-        @redis.get(REDIS_STORAGE_FORMAT_VERSION).bytesize
+        @redis.get(base_key).bytesize
       end
 
       ###
