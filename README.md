@@ -38,6 +38,8 @@ Coverband stores coverage data in Redis. The Redis endpoint is looked for in thi
 2. `ENV['REDIS_URL']`
 3. `localhost`
 
+The redis store can also be explicitly defined within the coverband.rb. See [advanced config](#advanced-config).
+
 ## Gem Installation
 
 Add this line to your application's `Gemfile`, remember to `bundle install` after updating:
@@ -46,9 +48,11 @@ Add this line to your application's `Gemfile`, remember to `bundle install` afte
 gem 'coverband'
 ```
 
+If [tracking gem usage](#collecting-gem--library-usage), be sure to include coverband before other gems you would like to track.
+
 ## Rails
 
-The Railtie integration means you shouldn't need to do anything anything else. If you have an issue with that, please [file an issue](https://github.com/danmayer/coverband/issues).
+The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile.
 
 
 ## Sinatra
