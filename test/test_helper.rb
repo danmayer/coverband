@@ -23,6 +23,11 @@ Coveralls.wear!
 module Coverband
   module Test
     def self.reset
+      if defined?(::Coverage.running?)
+        ::Coverage.result if ::Coverage.running?
+      else
+        ::Coverage.result rescue nil
+      end
       Coverband.configuration.store.clear!
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance

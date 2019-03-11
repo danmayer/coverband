@@ -12,6 +12,7 @@ class RailsFullStackTest < Minitest::Test
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
     Coverband.configuration.background_reporting_enabled = false
     Coverband.start
+    load "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
   end
 
   def teardown

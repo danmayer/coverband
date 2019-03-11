@@ -44,6 +44,7 @@ class FullStackTest < Minitest::Test
     Coverband.configuration.track_gems = true
     Coverband::Collectors::Coverage.instance.reset_instance
     require 'rainbow'
+    load 'rainbow/null_presenter.rb'
     Rainbow('this text is red').red
     request = Rack::MockRequest.env_for('/anything.json')
     middleware = Coverband::Middleware.new(fake_app_with_lines)
