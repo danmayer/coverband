@@ -79,18 +79,6 @@ def basic_coverage
   { 'app_path/dog.rb' => example_line }
 end
 
-def fake_redis
-  @redis ||= begin
-    redis = OpenStruct.new
-    redis
-  end
-end
-
-def fake_coverage_report
-  file_name = '/Users/danmayer/projects/hearno/script/tester.rb'
-  { file_name => [1, nil, 1, 1, nil, nil, nil] }
-end
-
 def source_fixture(filename)
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', filename))
 end
