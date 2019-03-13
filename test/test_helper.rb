@@ -16,7 +16,9 @@ require 'json'
 require 'redis'
 require 'resque'
 require 'pry-byebug'
+require 'minitest/fork_executor'
 $VERBOSE = original_verbosity
+Minitest.parallel_executor = Minitest::ForkExecutor.new
 
 Coveralls.wear!
 
