@@ -11,7 +11,7 @@ class RailsGemsFullStackTest < Minitest::Test
     # The normal relative directory lookup of coverband won't work for our dummy rails project
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
     Coverband.configuration.track_gems = true
-    Coverband.configuration.gem_details = false
+    Coverband.configuration.gem_details = true
     Coverband.configuration.background_reporting_enabled = false
     Coverband.start
     require 'rainbow'
