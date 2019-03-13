@@ -87,7 +87,17 @@ module Coverband
       end
 
       def array_diff(latest, original)
-        latest.map.with_index { |v, i| (v && original[i]) ? v - original[i] : nil }
+        latest.map.with_index do |v, i|
+           if (v && original[i])
+              if v >= original[i]
+                v - original[i]
+              else
+                0
+              end
+           else
+            nil
+           end
+         end
       end
 
       def previous_results

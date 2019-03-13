@@ -219,10 +219,41 @@ namespace :benchmarks do
     $stdout = previous_out
   end
 
+  def measure_configure_memory
+    require 'memory_profiler'
+    # warmup
+    3.times { Coverband.configure }
+
+    previous_out = $stdout
+    capture = StringIO.new
+    $stdout = capture
+
+    MemoryProfiler.report do
+      10.times do
+        Coverband.configure do |config|
+          redis_url = ENV['CACHE_REDIS_URL'] || ENV['REDIS_URL']
+          config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_namespace: 'coverband_data')
+        end
+      end
+    end.pretty_print
+    data = $stdout.string
+    $stdout = previous_out
+    puts data
+    raise 'leaking memory!!!' unless data.match('Total retained:  0 bytes')
+  ensure
+    $stdout = previous_out
+  end
+
   desc 'runs memory reporting on Redis store'
   task memory_reporting: [:setup] do
     puts 'runs memory benchmarking to ensure we dont leak'
     measure_memory
+  end
+
+  desc 'runs memory reporting on configure'
+  task memory_configure_reporting: [:setup] do
+    puts 'runs memory benchmarking on configure to ensure we dont leak'
+    measure_configure_memory
   end
 
   desc 'runs memory leak check via Rails tests'

@@ -21,4 +21,3 @@ module Coverband
 end
 
 Resque::Job.prepend(Coverband::ResqueWorker)
-
