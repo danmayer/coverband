@@ -17,10 +17,14 @@ require 'redis'
 require 'resque'
 require 'pry-byebug'
 require 'minitest/fork_executor'
+require 'simplecov'
 $VERBOSE = original_verbosity
 Minitest.parallel_executor = Minitest::ForkExecutor.new
 
-Coveralls.wear!
+#Coveralls.wear!
+
+SimpleCov.start
+
 
 module Coverband
   module Test
@@ -31,8 +35,10 @@ module Coverband
       Coverband::Background.stop
     end
 
+    
     def setup
       super
+      SimpleCov.command_name "#{Process.pid}"
       Coverband::Test.reset
     end
   end
