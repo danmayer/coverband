@@ -4,7 +4,9 @@ require 'bundler/gem_tasks'
 
 import 'test/benchmarks/benchmark.rake'
 
-task default: [:test, :benchmarks]
+require 'coveralls/rake/task'
+Coveralls::RakeTask.new
+task default: [:test, 'coveralls:push']
 
 task :test
 require 'rake/testtask'

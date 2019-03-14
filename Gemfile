@@ -7,3 +7,4 @@ gemspec
 gem 'rails', '~>5'
 # this is used for testing gem tracking
 gem 'rainbow', require: false
+gem 'minitest-reporters'

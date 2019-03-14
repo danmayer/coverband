@@ -22,7 +22,7 @@ $VERBOSE = original_verbosity
 Minitest.parallel_executor = Minitest::ForkExecutor.new
 require 'simplecov'
 
-Coveralls.wear!
+Coveralls.wear_merged!
 
 module Coverband
   module Test
@@ -36,7 +36,6 @@ module Coverband
     
     def setup
       super
-      Coveralls.wear!
       Coverband::Test.reset
     end
   end
