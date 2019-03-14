@@ -23,7 +23,6 @@ Minitest.parallel_executor = Minitest::ForkExecutor.new
 
 #Coveralls.wear!
 
-SimpleCov.start
 
 
 module Coverband
@@ -38,6 +37,7 @@ module Coverband
     
     def setup
       super
+      SimpleCov.start
       SimpleCov.command_name "#{Process.pid}"
       Coverband::Test.reset
     end
