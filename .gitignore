@@ -17,6 +17,7 @@ spec/reports
 test/tmp
 test/version_tmp
 /tmp/
+temp_results
 .byebug_history
 .env
 log/

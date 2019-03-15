@@ -33,6 +33,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'resque'
+  # temporarily needed to fun tests for classifier-reborn as part of benchmarks
+  spec.add_development_dependency 'minitest-reporters'
 
   # TODO: used for benchmarking and tests I think we have other better benchmarking
   # perhaps time to drop this and refactor.
