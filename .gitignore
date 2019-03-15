@@ -16,7 +16,7 @@ rdoc
 spec/reports
 test/tmp
 test/version_tmp
-tmp
+/tmp/
 .byebug_history
 .env
 log/
