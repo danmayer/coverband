@@ -35,7 +35,7 @@ module Coverband
         save_coverage(data)
       end
 
-      def coverage
+      def coverage(type = nil)
         get_report
       end
 

@@ -88,6 +88,10 @@ def test_root
   File.expand_path(File.join(File.dirname(__FILE__)))
 end
 
+def store
+  Coverband.configuration.store
+end
+
 # Taken from http://stackoverflow.com/questions/4459330/how-do-i-temporarily-redirect-stderr-in-ruby
 def capture_stderr
   # The output stream must be an IO-like object. In this case we capture it in

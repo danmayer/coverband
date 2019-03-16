@@ -30,6 +30,18 @@ class RailsFullStackTest < Minitest::Test
     end
   end
 
+  test 'Eager load data stored separately' do
+    visit '/dummy/show'
+    assert_content('I am no dummy')
+    Coverband.report_coverage(true)
+    eager_expected = [1, 1, 0, nil, nil]
+    dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
+    results = store.coverage(:eager_load)[dummy_controller]['data']
+    assert_equal(eager_expected, results)
+    runtime_expected = [0, 0, 1, nil, nil]
+    results = store.coverage[dummy_controller]['data']
+  end
+
   ###
   # Please keep this test starting on line 22
   # as we run it in single test mode via the benchmarks.
