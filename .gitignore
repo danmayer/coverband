@@ -21,3 +21,5 @@ temp_results
 .byebug_history
 .env
 log/
+test/unique_files
+test/rails5_dummy/tmp

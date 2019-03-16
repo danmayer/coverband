@@ -16,6 +16,7 @@ require 'json'
 require 'redis'
 require 'resque'
 require 'pry-byebug'
+require_relative 'unique_files'
 $VERBOSE = original_verbosity
 
 Coveralls.wear!
