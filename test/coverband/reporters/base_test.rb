@@ -110,7 +110,7 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/app/', '/full/remote_app/path/']
 
     lines_hit = [1, 3, 6]
-    store.stubs(:coverage).returns(key => lines_hit)
+    store.stubs(:merged_coverage).returns(key => lines_hit)
     expected = { key => [1, 3, 6] }
 
     assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)
@@ -153,7 +153,7 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/base/[0-9]*/', '/base/78/app/']
 
     lines_hit = [1, 3, 6]
-    store.stubs(:coverage).returns(coverage)
+    store.stubs(:merged_coverage).returns(coverage)
     File.expects(:exist?).at_least_once
       .with('/base/[0-9]*/app/controllers/dashboard_controller.rb')
       .returns(false)

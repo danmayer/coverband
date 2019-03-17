@@ -40,6 +40,16 @@ module Coverband
         get_report
       end
 
+      def merged_coverage(types)
+        original_type = self.type
+        merged_coverage = types.reduce({}) do |data, type|
+          self.type = type
+          merge_reports(data, get_report, skip_expansion: true)
+        end.tap do
+          self.type = original_type
+        end
+      end
+
       def covered_files
         coverage.keys || []
       end

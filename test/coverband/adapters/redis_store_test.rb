@@ -47,6 +47,17 @@ class RedisTest < Minitest::Test
     assert_equal [], @store.coverage.keys
   end
 
+  def test_merged_coverage_with_types
+    mock_file_hash
+    assert_nil @store.type
+    @store.type = :eager_loading
+    @store.save_report('app_path/dog.rb' => [0, 1, 1])
+    @store.type = nil
+    @store.save_report('app_path/dog.rb' => [1, 0, 1])
+    assert_equal [1, 1, 2], @store.merged_coverage([nil, :eager_loading])['app_path/dog.rb']['data']
+    assert_nil @store.type
+  end
+
   def test_covered_lines_for_file
     mock_file_hash
     expected = basic_coverage

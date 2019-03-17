@@ -17,6 +17,9 @@ class RailsFullStackTest < Minitest::Test
     Capybara.use_default_driver
   end
 
+  # We have to combine everything in one test
+  # because we can only initialize rails once per test
+  # run. Possibly fork test runs to avoid this problem?
   test 'this is how we do it' do
     visit '/dummy/show'
     Coverband.report_coverage(true)
@@ -25,22 +28,18 @@ class RailsFullStackTest < Minitest::Test
     within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
       assert_selector('td', text: '100.0 %')
     end
-  end
 
-  test 'Eager load data stored separately' do
-    visit '/dummy/show'
-    assert_content('I am no dummy')
-    Coverband.report_coverage(true)
-    eager_expected = [1, 1, 0, nil, nil]
     dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
 
     store.type = :eager_loading
+    eager_expected = [1, 1, 0, nil, nil]
     results = store.coverage[dummy_controller]['data']
     assert_equal(eager_expected, results)
 
-    runtime_expected = [0, 0, 1, nil, nil]
     store.type = nil
+    runtime_expected = [0, 0, 1, nil, nil]
     results = store.coverage[dummy_controller]['data']
+
   end
 
   ###
