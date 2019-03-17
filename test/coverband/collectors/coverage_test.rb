@@ -21,10 +21,10 @@ class CollectorsCoverageTest < Minitest::Test
   end
 
   test 'Dog class coverage' do
-    load File.expand_path('../../dog.rb', File.dirname(__FILE__))
+    file = require_unique_file
     coverband.report_coverage(true)
     coverage = Coverband.configuration.store.coverage
-    assert_equal(coverage["./test/dog.rb"]["data"], [nil, nil, 1, 1, 0, nil, nil])
+    assert_equal(coverage[file]["data"], [nil, nil, 1, 1, 0, nil, nil])
   end
 
   test 'Dog method and class coverage' do
