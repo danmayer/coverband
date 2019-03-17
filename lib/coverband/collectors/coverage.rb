@@ -30,6 +30,14 @@ module Coverband
         self
       end
 
+      def runtime!
+        @store.type = nil
+      end
+
+      def eager_loading!
+        @store.type = :eager_loading
+      end
+
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store

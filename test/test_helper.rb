@@ -24,7 +24,10 @@ Coveralls.wear!
 module Coverband
   module Test
     def self.reset
-      Coverband.configuration.store.clear!
+      [:eager_loading, nil].each do |type|
+        Coverband.configuration.store.type = type
+        Coverband.configuration.store.clear!
+      end
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance
       Coverband::Background.stop

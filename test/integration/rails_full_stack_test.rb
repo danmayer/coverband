@@ -8,10 +8,7 @@ class RailsFullStackTest < Minitest::Test
 
   def setup
     super
-    # The normal relative directory lookup of coverband won't work for our dummy rails project
-    Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
-    Coverband.configuration.background_reporting_enabled = false
-    Coverband.start
+    rails_setup
   end
 
   def teardown
@@ -36,9 +33,13 @@ class RailsFullStackTest < Minitest::Test
     Coverband.report_coverage(true)
     eager_expected = [1, 1, 0, nil, nil]
     dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
-    results = store.coverage(:eager_load)[dummy_controller]['data']
+
+    store.type = :eager_loading
+    results = store.coverage[dummy_controller]['data']
     assert_equal(eager_expected, results)
+
     runtime_expected = [0, 0, 1, nil, nil]
+    store.type = nil
     results = store.coverage[dummy_controller]['data']
   end
 

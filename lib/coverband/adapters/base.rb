@@ -4,6 +4,7 @@ module Coverband
   module Adapters
     class Base
       include Coverband::Utils::FilePathHelper
+      attr_accessor :type
 
       def initialize
         @file_hash_cache = {}
@@ -35,7 +36,7 @@ module Coverband
         save_coverage(data)
       end
 
-      def coverage(type = nil)
+      def coverage
         get_report
       end
 

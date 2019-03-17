@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+Coverband.eager_loading_coverage!
 module Coverband
   class Railtie < Rails::Railtie
     initializer 'coverband.configure' do |app|
@@ -8,6 +9,7 @@ module Coverband
 
     config.after_initialize do
       Coverband.report_coverage(true)
+      Coverband.runtime_coverage!
     end
 
     rake_tasks do
