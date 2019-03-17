@@ -1,4 +1,4 @@
-language: ruby
+  language: ruby
 rvm:
   - "2.3"
   - "2.4"
@@ -12,6 +12,7 @@ services:
 before_install:
   - echo 'this is a hack to clear default bundler and force bundler 1.17.3'
   - rm /home/travis/.rvm/gems/ruby-2.3.7@global/specifications/bundler-2.0.1.gemspec || true
+  - rm /home/travis/.rvm/gems/ruby-2.5.4@global/specifications/bundler-2.0.1.gemspec || true
   - gem uninstall bundler || true
   - gem install bundler -v '1.17.3'
   - bundler --version
