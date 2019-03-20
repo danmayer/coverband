@@ -36,7 +36,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - Make good video on setup, install, usage
 - See if we can add support for views / templates
   - using this technique https://github.com/ioquatix/covered
-- Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)  	
+- Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)
 
 ### Coverband_jam_session
 
@@ -63,27 +63,23 @@ Feature Ideas:
 
 # Alpha
 
-### Coverband 4.2.0.alpha
+### Coverband 4.2.0.rc
 
-???
-
-### Coverband 4.1.0.beta
-
-- default disabled web clear, add config option to allow it
-- out of the box support for resque
-- readme improvements
-- fix on regression of merging directory changing deployments
-  - fixes for duplicate root paths 
-- pilot release of Gems tracking (disabled by default)
-	- todos
-	  - support multiple gem paths (various version managers setup multiple gem paths)
-	  - speed up page load by allowing multiple pages
-- added web settings and debug views
-   - added support for seeing coverage data size consumed in redis 
-- support coverage data migrations from 4.0.x to 4.1.0
-- fixes for heroku /tmp asset building
+- loadtime vs runtime coverage
+- view coverage
+- perf speedup on gem details views
 
 # Released
+
+### Coverband 4.1.1
+
+- fix bug on info page when using namespaces
+- fix bug related to forking Ruby processes (Resque for example)
+  - bug caused negative line hits
+  - bug seemed to cause memory leaks (not entirely sure how)
+- various test improvements
+- fix bad requests on coverband web admin to `/coverage/favicon.png`
+- improved documentation
 
 ### Coverband 4.1.0
 
@@ -91,13 +87,10 @@ Feature Ideas:
 - out of the box support for resque
 - readme improvements
 - fix on regression of merging directory changing deployments
-  - fixes for duplicate root paths 
-- pilot release of Gems tracking (disabled by default)
-	- todos
-	  - support multiple gem paths (various version managers setup multiple gem paths)
-	  - speed up page load by allowing multiple pages
+  - fixes for duplicate root paths
+- pilot release of Gems tracking (disabled by default) - todos - support multiple gem paths (various version managers setup multiple gem paths) - speed up page load by allowing multiple pages
 - added web settings and debug views
-   - added support for seeing coverage data size consumed in redis 
+  - added support for seeing coverage data size consumed in redis
 - support coverage data migrations from 4.0.x to 4.1.0
 - fixes for heroku /tmp asset building
 
