@@ -23,4 +23,11 @@ class CoverbandTest < Minitest::Test
     Coverband::Background.expects(:start).never
     ::Coverband.start
   end
+
+  test 'Eager load coverage' do
+    Coverband.eager_loading_coverage!
+    assert_equal :eager_loading, Coverband.configuration.store.type
+    Coverband.runtime_coverage!
+    assert_nil Coverband.configuration.store.type
+  end
 end

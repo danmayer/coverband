@@ -9,7 +9,6 @@ class RedisTest < Minitest::Test
     super
     @redis = Redis.new
     @store = Coverband::Adapters::RedisStore.new(@redis)
-    @store.clear!
   end
 
   def test_coverage
@@ -34,6 +33,31 @@ class RedisTest < Minitest::Test
     assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']['data']
   end
 
+  def test_store_coverage_by_type
+    mock_file_hash
+    expected = basic_coverage
+    @store.type = :eager_loading
+    @store.save_report(expected)
+    assert_equal expected.keys, @store.coverage.keys
+    @store.coverage.each_pair do |key, data|
+      assert_equal expected[key], data['data']
+    end
+
+    @store.type = nil
+    assert_equal [], @store.coverage.keys
+  end
+
+  def test_merged_coverage_with_types
+    mock_file_hash
+    assert_nil @store.type
+    @store.type = :eager_loading
+    @store.save_report('app_path/dog.rb' => [0, 1, 1])
+    @store.type = nil
+    @store.save_report('app_path/dog.rb' => [1, 0, 1])
+    assert_equal [1, 1, 2], @store.merged_coverage([nil, :eager_loading])['app_path/dog.rb']['data']
+    assert_nil @store.type
+  end
+
   def test_covered_lines_for_file
     mock_file_hash
     expected = basic_coverage
@@ -50,12 +74,5 @@ class RedisTest < Minitest::Test
     @store.clear!
   end
 
-  private
 
-  def test_data
-    {
-      '/Users/danmayer/projects/cover_band_server/app.rb' => { 54 => 1, 55 => 2 },
-      '/Users/danmayer/projects/cover_band_server/server.rb' => { 5 => 1 }
-    }
-  end
 end

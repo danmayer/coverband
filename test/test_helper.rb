@@ -24,7 +24,10 @@ Coveralls.wear!
 module Coverband
   module Test
     def self.reset
-      Coverband.configuration.store.clear!
+      [:eager_loading, nil].each do |type|
+        Coverband.configuration.store.type = type
+        Coverband.configuration.store.clear!
+      end
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance
       Coverband::Background.stop
@@ -86,6 +89,10 @@ end
 
 def test_root
   File.expand_path(File.join(File.dirname(__FILE__)))
+end
+
+def store
+  Coverband.configuration.store
 end
 
 # Taken from http://stackoverflow.com/questions/4459330/how-do-i-temporarily-redirect-stderr-in-ruby

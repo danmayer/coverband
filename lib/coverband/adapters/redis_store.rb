@@ -51,6 +51,11 @@ module Coverband
         save_coverage(merge_reports(get_report, relative_path_report, skip_expansion: true))
       end
 
+      def type=(type) 
+        super
+        reset_base_key
+      end
+
       private
 
       attr_reader :redis
@@ -60,7 +65,7 @@ module Coverband
       end
 
       def base_key
-        @base_key ||= [@format_version, @redis_namespace].compact.join('.')
+        @base_key ||= [@format_version, @redis_namespace, type].compact.join('.')
       end
 
       def save_coverage(data)

@@ -10,6 +10,6 @@ module Rails4Dummy
     config.before_initialize do
       Coverband.start
     end
-    config.eager_load = false
+    config.eager_load = true
   end
 end

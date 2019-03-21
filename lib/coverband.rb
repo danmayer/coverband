@@ -19,7 +19,6 @@ require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
 require 'coverband/utils/file_groups'
 require 'coverband/utils/lines_classifier'
-require 'coverband/utils/railtie' if defined? ::Rails::Railtie
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/html_report'
@@ -64,6 +63,18 @@ module Coverband
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
 
+  def self.eager_loading_coverage!
+    coverage.eager_loading!
+  end
+
+  def self.runtime_coverage!
+    coverage.runtime!
+  end
+
+  def self.coverage
+    Coverband::Collectors::Coverage.instance
+  end
+
   unless ENV['COVERBAND_DISABLE_AUTO_START']
     # Coverband should be setup as early as possible
     # to capture usage of things loaded by initializers or other Rails engines
@@ -71,3 +82,5 @@ module Coverband
     start
   end
 end
+
+require 'coverband/utils/railtie' if defined? ::Rails::Railtie
