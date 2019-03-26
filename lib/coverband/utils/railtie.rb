@@ -12,6 +12,10 @@ module Coverband
       Coverband.runtime_coverage!
     end
 
+    config.before_initialize do
+      Coverband.eager_loading_coverage!
+    end
+
     rake_tasks do
       load 'coverband/utils/tasks.rb'
     end
