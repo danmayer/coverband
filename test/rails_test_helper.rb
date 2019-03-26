@@ -7,9 +7,6 @@ def rails_setup
   #coverband must be required after rails
   load 'coverband/utils/railtie.rb'
   Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
-  Coverband.configuration.background_reporting_enabled = false
-  Coverband.configuration.track_gems = true
-  Coverband.configuration.gem_details = true
   require_relative "../test/rails#{Rails::VERSION::MAJOR}_dummy/config/environment"
   require 'capybara/rails'
   #Our coverage report is wrapped in display:none as of now

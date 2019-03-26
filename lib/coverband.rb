@@ -47,6 +47,7 @@ module Coverband
     else
       configuration.logger&.debug('using default configuration')
     end
+    coverage.reset_instance
   end
 
   def self.report_coverage(force_report = false)
