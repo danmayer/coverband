@@ -64,7 +64,7 @@ module Coverband
         ###
         def get_current_scov_data_imp(store, roots)
           scov_style_report = {}
-          store.merged_coverage([nil, :eager_loading]).each_pair do |key, line_data|
+          store.merged_coverage(Coverband::Collectors::Coverage::TYPES).each_pair do |key, line_data|
             next if Coverband.configuration.ignore.any? { |i| key.match(i) }
             next unless line_data
             scov_style_report[key] = line_data

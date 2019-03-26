@@ -40,9 +40,19 @@ module Coverband
         get_report
       end
 
+      def split_coverage(types)
+        original_type = type
+        types.reduce({}) do |data, type|
+          self.type = type
+          data.update(type => get_report)
+        end.tap do
+          self.type = original_type
+        end
+      end
+
       def merged_coverage(types)
-        original_type = self.type
-        merged_coverage = types.reduce({}) do |data, type|
+        original_type = type
+        types.reduce({}) do |data, type|
           self.type = type
           merge_reports(data, get_report, skip_expansion: true)
         end.tap do
@@ -76,10 +86,11 @@ module Coverband
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
+        updated_time = self.type == Coverband::Collectors::Coverage::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
             'first_updated_at' => report_time,
-            'last_updated_at' => report_time,
+            'last_updated_at' => updated_time,
             'file_hash' => file_hash(key),
             'data' => line_data
           }

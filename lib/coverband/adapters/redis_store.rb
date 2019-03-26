@@ -22,7 +22,13 @@ module Coverband
       end
 
       def clear!
-        @redis.del(base_key)
+        original_type = type
+        Coverband::Collectors::Coverage::TYPES.each do |type|
+          self.type = type
+          @redis.del(base_key)
+        end
+      ensure
+        self.type = original_type
       end
 
       def size
@@ -51,7 +57,7 @@ module Coverband
         save_coverage(merge_reports(get_report, relative_path_report, skip_expansion: true))
       end
 
-      def type=(type) 
+      def type=(type)
         super
         reset_base_key
       end

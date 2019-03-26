@@ -10,6 +10,10 @@ module Coverband
     # and this method is currently in a ensure block in middleware and threads
     ###
     class Coverage
+      RUNTIME_TYPE = nil
+      EAGER_TYPE = :eager_loading
+      TYPES = [RUNTIME_TYPE, EAGER_TYPE]
+
       def self.instance
         Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
       end
