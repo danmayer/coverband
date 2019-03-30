@@ -18,7 +18,7 @@ module Coverband
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
         @base_path = options.fetch(:base_path) { nil }
-        @coverage_result = Coverband::Utils::Result.new(report) if report
+        @coverage_result = Coverband::Utils::CoverbandResults.new(report) if report
       end
 
       def format!
@@ -86,14 +86,14 @@ module Coverband
       end
 
       # Returns the html for the given source_file
-      def formatted_source_file(source_file)
+      def formatted_source_file(result, source_file)
         template('source_file').result(binding)
       rescue Encoding::CompatibilityError => e
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
       # Returns a table containing the given source files
-      def formatted_file_list(title, source_files, options = {})
+      def formatted_file_list(title, result, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
         # Silence a warning by using the following variable to assign to itself:
         # "warning: possibly useless use of a variable in void context"

@@ -62,10 +62,7 @@ module Coverband
       end
 
       def debug_data
-        {
-          split_data: Coverband.configuration.store.split_coverage(Coverband::Collectors::Coverage::TYPES),
-          merged_data: Coverband.configuration.store.merged_coverage(Coverband::Collectors::Coverage::TYPES)
-        }.to_json
+        Coverband.configuration.store.get_coverage_report.to_json
       end
 
       def collect_coverage

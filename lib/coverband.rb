@@ -19,6 +19,7 @@ require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
 require 'coverband/utils/file_groups'
 require 'coverband/utils/lines_classifier'
+require 'coverband/utils/coverband_results'
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/html_report'
@@ -32,6 +33,10 @@ require 'coverband/integrations/resque' if defined? Resque
 
 module Coverband
   CONFIG_FILE = './config/coverband.rb'
+  RUNTIME_TYPE = nil
+  EAGER_TYPE = :eager_loading
+  MERGED_TYPE = :merged
+  TYPES = [RUNTIME_TYPE, EAGER_TYPE]
 
   class << self
     attr_accessor :configuration_data

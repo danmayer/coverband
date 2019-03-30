@@ -27,6 +27,7 @@
         <th>Lines</th>
         <th>Relevant Lines</th>
         <th>Lines covered</th>
+        <th>Lines runtime</th>
         <th>Lines missed</th>
         <th>Avg. Hits / Line</th>
       </tr>
@@ -38,10 +39,15 @@
             <%= link_to_source_file(source_file) %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
-          <!-- <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td> -->
+          <!-- <td class="<%= "#{coverage_css_class(source_file.covered_percent)}_runtime" %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td> -->
           <td><%= source_file.lines.count %></td>
           <td><%= source_file.covered_lines.count + source_file.missed_lines.count %></td>
           <td><%= source_file.covered_lines.count %></td>
+          <td>
+            <%= result.from_type(Coverband::RUNTIME_TYPE) do
+              result.source_files.find{ |file| file.filename==source_file.filename}.try(:covered_lines).try(:count) || 0
+            end %>
+          </td>
           <td><%= source_file.missed_lines.count %></td>
           <td><%= source_file.covered_strength %></td>
         </tr>

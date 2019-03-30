@@ -23,7 +23,7 @@ module Coverband
 
       def clear!
         original_type = type
-        Coverband::Collectors::Coverage::TYPES.each do |type|
+        Coverband::TYPES.each do |type|
           self.type = type
           @redis.del(base_key)
         end

@@ -8,16 +8,24 @@
       <span class="red"><b><%= source_file.missed_lines.count %></b> lines missed.</span>
     </div>
     <div>
-      Coverage first seen: <%= source_file.first_updated_at %>, last activity recorded: 
+      Coverage first seen: <%= source_file.first_updated_at %>, last activity recorded:
       <%= source_file.last_updated_at %>
     </div>
   </div>
 
   <pre>
     <ol>
-      <% source_file.lines.each do |line| %>
+      <% source_file.lines.each_with_index do |line, index| %>
         <li class="<%= line.status %>" data-hits="<%= line.coverage ? line.coverage : '' %>" data-linenumber="<%= line.number %>">
-          <% if line.covered? %><span class="hits"><%= line.coverage %></span><% end %>
+          <% if line.covered? %><span class="hits">
+            load: <%= result.from_type(Coverband::EAGER_TYPE) do
+              result.source_files.find{ |file| file.filename==source_file.filename}.try(:lines).try(:[], index).try(:coverage) || 0
+            end %>,
+            runtime: <%= result.from_type(Coverband::RUNTIME_TYPE) do
+              result.source_files.find{ |file| file.filename==source_file.filename}.try(:lines).try(:[], index).try(:coverage) || 0
+            end %>,
+            all: <%= line.coverage %>
+          </span><% end %>
           <% if line.skipped? %><span class="hits">skipped</span><% end %>
           <code class="ruby"><%= CGI.escapeHTML(line.src.chomp) %></code>
         </li>

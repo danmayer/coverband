@@ -40,6 +40,22 @@ module Coverband
         get_report
       end
 
+      def get_coverage_report
+        data = Coverband.configuration.store.split_coverage(Coverband::TYPES)
+        data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES))
+      end
+
+      def covered_files
+        coverage.keys || []
+      end
+
+      # TODO: deprecate / remove?
+      def covered_lines_for_file(file)
+        Array(coverage.dig(file, 'data'))
+      end
+
+      protected
+
       def split_coverage(types)
         original_type = type
         types.reduce({}) do |data, type|
@@ -60,17 +76,6 @@ module Coverband
         end
       end
 
-      def covered_files
-        coverage.keys || []
-      end
-
-      # TODO: deprecate / remove?
-      def covered_lines_for_file(file)
-        Array(coverage.dig(file, 'data'))
-      end
-
-      protected
-
       def save_coverage
         raise 'abstract'
       end
@@ -86,7 +91,7 @@ module Coverband
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
-        updated_time = self.type == Coverband::Collectors::Coverage::EAGER_TYPE ? nil : report_time
+        updated_time = self.type == Coverband::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
             'first_updated_at' => report_time,

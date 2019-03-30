@@ -33,7 +33,7 @@
       <ul class="group_tabs"></ul>
 
       <div id="content">
-        <%= formatted_file_list("All Files", result.source_files) unless view_gems? %>
+        <%= formatted_file_list("All Files", result, result.source_files) unless view_gems? %>
 
         <% result.groups.each do |name, files| %>
           <%= formatted_file_list(name, files) %>
@@ -47,7 +47,7 @@
       <div class="source_files">
       <% result.source_files.each do |source_file| %>
         <% if (!source_file.gem? || (view_gems? && gem_details? && source_file.gem? )) %>
-          <%= formatted_source_file(source_file) %>
+          <%= formatted_source_file(result, source_file) %>
         <% end %>
       <% end %>
       </div>
