@@ -278,6 +278,18 @@ end
 
 This flag exposes line by line usage of gem files. Unfortunately due to the way the coverband report is currently rendered, enabling `gem_details` slows down viewing of the coverage report in the browser and is not yet recommended.
 
+### Manually Starting Coverband
+
+Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments. 
+
+In order to start coverband manually yourself when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
+
+```ruby
+Coverband.configure
+Coverband.start
+```
+
+
 ### Verbose Debug / Development Mode
 
 Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
