@@ -81,7 +81,7 @@ module Coverband
     # to capture usage of things loaded by initializers or other Rails engines
     configure
     start
+    require 'coverband/utils/railtie' if defined? ::Rails::Railtie
   end
 end
 
-require 'coverband/utils/railtie' if defined? ::Rails::Railtie
