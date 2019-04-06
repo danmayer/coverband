@@ -15,19 +15,20 @@ module Coverband
     end
 
     def self.running?
-      !!@thread
+      @thread && @thread.alive?
     end
 
     def self.start
-      return if @thread
+      return if running?
 
       logger = Coverband.configuration.logger
       @semaphore.synchronize do
-        return if @thread
+        return if running?
         logger&.debug('Coverband: Starting background reporting')
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
         @thread = Thread.new do
           loop do
+            puts "Background thread reporting pid: #{Process.pid}"
             Coverband.report_coverage(true)
             logger&.debug("Coverband: Reported coverage via thread. Sleeping #{sleep_seconds}s") if Coverband.configuration.verbose
             sleep(sleep_seconds)
