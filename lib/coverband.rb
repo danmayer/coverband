@@ -28,7 +28,6 @@ require 'coverband/integrations/rack_server_check'
 require 'coverband/reporters/web'
 require 'coverband/integrations/middleware'
 require 'coverband/integrations/background'
-require 'coverband/integrations/resque' if defined? Resque
 
 module Coverband
   CONFIG_FILE = './config/coverband.rb'
@@ -82,6 +81,7 @@ module Coverband
     configure
     start
     require 'coverband/utils/railtie' if defined? ::Rails::Railtie
+    require 'coverband/integrations/resque' if defined? Resque
   end
 end
 
