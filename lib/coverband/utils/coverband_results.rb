@@ -17,6 +17,10 @@ module Coverband
         self.type = Coverband::MERGED_TYPE
       end
 
+      def file_with_type(source_file, results_type)
+        results[results_type].source_files.find { |file| file.filename == source_file.filename }
+      end
+
       def from_type(results_type)
         original_type = type
         self.type = results_type

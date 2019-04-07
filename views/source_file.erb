@@ -18,12 +18,10 @@
       <% source_file.lines.each_with_index do |line, index| %>
         <li class="<%= line.status %>" data-hits="<%= line.coverage ? line.coverage : '' %>" data-linenumber="<%= line.number %>">
           <% if line.covered? %><span class="hits">
-            load: <%= result.from_type(Coverband::EAGER_TYPE) do
-              result.source_files.find{ |file| file.filename==source_file.filename}.try(:lines).try(:[], index).try(:coverage) || 0
-            end %>,
-            runtime: <%= result.from_type(Coverband::RUNTIME_TYPE) do
-              result.source_files.find{ |file| file.filename==source_file.filename}.try(:lines).try(:[], index).try(:coverage) || 0
-            end %>,
+            load:
+            <%= result.file_with_type(source_file, Coverband::EAGER_TYPE).try(:lines).try(:[], index).try(:coverage) || 0 %>,
+            runtime:
+            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE).try(:lines).try(:[], index).try(:coverage) || 0 %>
             all: <%= line.coverage %>
           </span><% end %>
           <% if line.skipped? %><span class="hits">skipped</span><% end %>
