@@ -93,14 +93,13 @@ module Coverband
       end
 
       # Returns a table containing the given source files
-      def formatted_file_list(title, result, options = {})
+      def formatted_file_list(title, result, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
         # Silence a warning by using the following variable to assign to itself:
         # "warning: possibly useless use of a variable in void context"
         # The variable is used by ERB via binding.
         title_id = title_id
         options = options
-        source_files = result.source_files
 
         if title == 'Gems'
           template('gem_list').result(binding)

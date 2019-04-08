@@ -54,7 +54,7 @@ class RedisTest < Minitest::Test
     @store.save_report('app_path/dog.rb' => [0, 1, 1])
     @store.type = nil
     @store.save_report('app_path/dog.rb' => [1, 0, 1])
-    assert_equal [1, 1, 2], @store.merged_coverage([nil, :eager_loading])['app_path/dog.rb']['data']
+    assert_equal [1, 1, 2], @store.get_coverage_report[:merged]['app_path/dog.rb']['data']
     assert_nil @store.type
   end
 
@@ -70,7 +70,7 @@ class RedisTest < Minitest::Test
   end
 
   def test_clear
-    @redis.expects(:del).with(REDIS_STORAGE_FORMAT_VERSION).once
+    @redis.expects(:del).twice
     @store.clear!
   end
 

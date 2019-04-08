@@ -3,8 +3,6 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ReportHTMLTest < Minitest::Test
-  REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
-
   def setup
     super
     @redis = Redis.new

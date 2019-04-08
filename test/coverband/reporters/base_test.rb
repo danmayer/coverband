@@ -113,7 +113,7 @@ class ReportsBaseTest < Minitest::Test
     store.stubs(:merged_coverage).returns(key => lines_hit)
     expected = { key => [1, 3, 6] }
 
-    assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)
+    assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)[:merged]
   end
 
   ###
@@ -163,6 +163,6 @@ class ReportsBaseTest < Minitest::Test
                 "last_updated_at"=>1549618094,
                 "file_hash"=>"14dc84e940e26cbfb9ac79b43862e762",
                 "data"=>[38, 38, 38, nil, 38, 38, nil, nil, 38, nil, 38, 80, 80, nil, 80, 80, 80, 80, 80, 80, 80, nil, nil, 38, nil, 38, 80, 55, 0, 0, 0, 0, nil, nil, nil, nil, 0, 0, nil, nil, 38, 80, 80, 80, nil, nil, nil, nil, nil, 38, 80, nil, nil, 38, 80, nil, nil]}
-    assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)[key]
+    assert_equal expected, Coverband::Reporters::Base.send(:get_current_scov_data_imp, store, roots)[:merged][key]
   end
 end

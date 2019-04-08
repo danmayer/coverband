@@ -32,8 +32,9 @@ module Coverband
       # Initialize a new Coverband::Result from given Coverage.result (a Hash of filenames each containing an array of
       # coverage data)
       def initialize(original_result)
-        @original_result = original_result.freeze
-        @files = Coverband::Utils::FileList.new(original_result.map do |filename, coverage|
+        @original_result = (original_result || {}).freeze
+
+        @files = Coverband::Utils::FileList.new(@original_result.map do |filename, coverage|
           Coverband::Utils::SourceFile.new(filename, coverage) if File.file?(filename)
         end.compact.sort_by(&:short_name))
         filter!
