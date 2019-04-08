@@ -57,22 +57,14 @@ module Coverband
       protected
 
       def split_coverage(types)
-        original_type = type
         types.reduce({}) do |data, type|
-          self.type = type
-          data.update(type => get_report)
-        end.tap do
-          self.type = original_type
+          data.update(type => get_report(type))
         end
       end
 
       def merged_coverage(types)
-        original_type = type
         types.reduce({}) do |data, type|
-          self.type = type
-          merge_reports(data, get_report, skip_expansion: true)
-        end.tap do
-          self.type = original_type
+          merge_reports(data, get_report(type), skip_expansion: true)
         end
       end
 

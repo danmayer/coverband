@@ -22,13 +22,9 @@ module Coverband
       end
 
       def clear!
-        original_type = type
         Coverband::TYPES.each do |type|
-          self.type = type
-          @redis.del(base_key)
+          @redis.del(type_base_key(type))
         end
-      ensure
-        self.type = original_type
       end
 
       def size
@@ -74,13 +70,18 @@ module Coverband
         @base_key ||= [@format_version, @redis_namespace, type].compact.join('.')
       end
 
+      def type_base_key(local_type)
+        [@format_version, @redis_namespace, local_type].compact.join('.')
+      end
+
       def save_coverage(data)
         redis.set base_key, data.to_json
         redis.expire(base_key, @ttl) if @ttl
       end
 
-      def get_report
-        data = redis.get base_key
+      def get_report(local_type = nil)
+        local_type ||= type
+        data = redis.get type_base_key(local_type)
         data ? JSON.parse(data) : {}
       end
     end
