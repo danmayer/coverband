@@ -5,15 +5,13 @@
 ####
 module Coverband
   module Utils
-    class CoverbandResults
+    class Results
       attr_accessor :type, :results
 
       def initialize(report)
-        self.results = {
-          Coverband::EAGER_TYPE => Coverband::Utils::Result.new(report[Coverband::EAGER_TYPE]),
-          Coverband::RUNTIME_TYPE => Coverband::Utils::Result.new(report[Coverband::RUNTIME_TYPE]),
-          Coverband::MERGED_TYPE => Coverband::Utils::Result.new(report[Coverband::MERGED_TYPE])
-        }
+        self.results = (Coverband::TYPES + [:merged]).each_with_object({}) do |type, hash|
+          hash[type] = Coverband::Utils::Result.new(report[type])
+        end
         self.type = Coverband::MERGED_TYPE
       end
 

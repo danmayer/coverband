@@ -18,7 +18,7 @@ module Coverband
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
         @base_path = options.fetch(:base_path) { nil }
-        @coverage_result = Coverband::Utils::CoverbandResults.new(report) if report
+        @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
       def format!
