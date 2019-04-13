@@ -15,15 +15,15 @@ module Coverband
     end
 
     def self.running?
-      !!@thread
+      @thread && @thread.alive?
     end
 
     def self.start
-      return if @thread
+      return if running?
 
       logger = Coverband.configuration.logger
       @semaphore.synchronize do
-        return if @thread
+        return if running?
         logger&.debug('Coverband: Starting background reporting')
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
         @thread = Thread.new do
