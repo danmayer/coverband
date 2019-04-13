@@ -15,7 +15,7 @@ module Coverband
 
           if Coverband.configuration.verbose
             msg = "report:\n #{scov_style_report.inspect}"
-            Coverband.configuration.logger.debug msg
+            # Coverband.configuration.logger.debug msg
           end
           scov_style_report
         end
