@@ -12,11 +12,13 @@ module Coverband
 
         @at_exit_registered = true
         at_exit do
-          return if defined?(Rake) && Rake.application.top_level_tasks.include?('assets:precompile')
-
           ::Coverband::Background.stop
-          Coverband.report_coverage(true)
-          Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
+          if defined?(Rake) && Rake.application.top_level_tasks.include?('assets:precompile')
+            # skip reporting
+          else
+            Coverband.report_coverage(true)
+            Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
+          end
         end
       end
     end
