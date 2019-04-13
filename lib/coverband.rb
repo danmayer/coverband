@@ -63,7 +63,7 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
-    AtExit.register
+    AtExit.register unless ENV['COVERBAND_DISABLE_AT_EXIT']
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
 
@@ -88,4 +88,3 @@ module Coverband
     require 'coverband/integrations/resque' if defined? Resque
   end
 end
-

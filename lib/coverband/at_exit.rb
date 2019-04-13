@@ -17,7 +17,7 @@ module Coverband
           #####
           # TODO: This is is brittle and not a great solution to avoid deploy time
           # actions polluting the 'runtime' metrics
-          #  
+          #
           # * should we skip /bin/rails webpacker:compile ?
           # * Perhaps detect heroku deployment ENV var opposed to tasks?
           #####
