@@ -6,10 +6,14 @@ module Coverband
 
     def self.register
       return if @at_exit_registered
+
       @semaphore.synchronize do
         return if @at_exit_registered
+
         @at_exit_registered = true
         at_exit do
+          return if defined?(Rake) && Rake.application.top_level_tasks.include?('assets:precompile')
+
           ::Coverband::Background.stop
           Coverband.report_coverage(true)
           Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
