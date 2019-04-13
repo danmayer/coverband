@@ -8,6 +8,7 @@ module Coverband
 
       def initialize
         @file_hash_cache = {}
+        @type = Coverband::EAGER_TYPE
       end
 
       def clear!
