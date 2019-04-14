@@ -63,7 +63,9 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
-    AtExit.register unless ENV['COVERBAND_DISABLE_AT_EXIT']
+    # TODO Railtie sets up at_exit after forks, via middleware, perhaps this hsould be
+    # added if not rails or if rails but not rackserverrunning
+    AtExit.register
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
 

@@ -4,7 +4,7 @@ module Coverband
   module Collectors
     ###
     # TODO: look at alternatives to semaphore
-    # StandardError seems line be better option
+    # StandardError seems like be better option
     # coverband previously had RuntimeError here
     # but runtime error can let a large number of error crash this method
     # and this method is currently in a ensure block in middleware and threads
@@ -35,22 +35,31 @@ module Coverband
       end
 
       def eager_loading!
-        @store.type = :eager_loading
+        @store.type = Coverband::EAGER_TYPE
       end
 
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
-
+        original_previous_set = previous_results
         new_results = get_new_coverage_results
         add_filtered_files(new_results)
-        @store.save_report(files_with_line_usage)
+
+        ###
+        # Hack to prevent processes and threads from reporting first Coverage hit
+        # when we are in runtime collection mode, which do not have a cache of previous
+        # coverage to remove the initial stdlib Coverage loading data
+        ###
+        if ((original_previous_set.nil? && @store.type == Coverband::EAGER_TYPE) ||
+           (original_previous_set && @store.type != Coverband::EAGER_TYPE))
+          @store.save_report(files_with_line_usage)
+        end
         @file_line_usage.clear
       rescue StandardError => err
         if @verbose
-          @logger.error 'coverage failed to store'
-          @logger.error "error: #{err.inspect} #{err.message}"
-          @logger.error err.backtrace
+          @logger&.error 'coverage failed to store'
+          @logger&.error "error: #{err.inspect} #{err.message}"
+          @logger&.error err.backtrace
         end
         raise err if @test_env
       end

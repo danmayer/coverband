@@ -5,6 +5,7 @@ module Coverband
     @semaphore = Mutex.new
 
     def self.register
+      return if ENV['COVERBAND_DISABLE_AT_EXIT']
       return if @at_exit_registered
 
       @semaphore.synchronize do

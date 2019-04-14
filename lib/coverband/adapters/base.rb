@@ -31,7 +31,6 @@ module Coverband
       # the Coverband 2 had the same issue,
       # and the tradeoff has always been acceptable
       def save_report(report)
-        Coverband.configuration.logger.info("saving report to #{type}")
         data = report.dup
         data = merge_reports(data, get_report)
         save_coverage(data)
