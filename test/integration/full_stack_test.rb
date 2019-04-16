@@ -17,7 +17,10 @@ class FullStackTest < Minitest::Test
       config.s3_bucket = nil
       config.background_reporting_enabled = false
       config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
+      Coverband.configuration.track_gems = true
     end
+    # preload first coverage hit
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     Coverband.configuration.store.clear!
     Coverband.start
     @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
@@ -41,8 +44,6 @@ class FullStackTest < Minitest::Test
   end
 
   test 'call app with gem tracking' do
-    Coverband.configuration.track_gems = true
-    Coverband::Collectors::Coverage.instance.reset_instance
     require 'rainbow'
     Rainbow('this text is red').red
     request = Rack::MockRequest.env_for('/anything.json')
@@ -50,7 +51,7 @@ class FullStackTest < Minitest::Test
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
     sleep(0.1)
-    assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/null_presenter.rb') }
+    assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/global.rb') }
   end
 
   private

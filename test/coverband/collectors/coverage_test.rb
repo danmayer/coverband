@@ -11,6 +11,8 @@ class CollectorsCoverageTest < Minitest::Test
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
     end
     @coverband = Coverband::Collectors::Coverage.instance.reset_instance
+    # preload first coverage hit
+    @coverband.report_coverage(true)
   end
 
   def teardown
