@@ -17,14 +17,15 @@ class FullStackTest < Minitest::Test
       config.s3_bucket = nil
       config.background_reporting_enabled = false
       config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
-      Coverband.configuration.track_gems = true
+      config.track_gems = true
     end
-    # preload first coverage hit
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
     Coverband.configuration.store.clear!
     Coverband.start
+    Coverband::Collectors::Coverage.instance.runtime!
     @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
-    load @rack_file
+    require @rack_file
+    # preload first coverage hit
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
   end
 
   test 'call app' do
@@ -32,14 +33,14 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    sleep(0.1)
-    expected = [nil, nil, 1, nil, 1, 1, 1, nil, nil]
+    sleep(0.2)
+    expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[RELATIVE_FILE]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
-    sleep(0.1)
-    expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
+    sleep(0.2)
+    expected = [nil, nil, 0, nil, 0, 0, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[RELATIVE_FILE]['data']
   end
 
