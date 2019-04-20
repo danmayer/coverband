@@ -10,6 +10,7 @@
 module Coverband
   module Utils
     class SourceFile
+      include Coverband::Utils::FilePathHelper
       # Representation of a single line in a source file including
       # this specific line's source code, line_number and code coverage,
       # with the coverage being either nil (coverage not applicable, e.g. comment
@@ -217,6 +218,10 @@ module Coverband
         filename.sub(/^#{Coverband.configuration.root}/, '.')
                 .sub(%r{^.*\/gems}, '.')
                 .gsub(%r{^\.\/}, '')
+      end
+
+      def relative_path
+        full_path_to_relative(filename)
       end
 
       def gem?

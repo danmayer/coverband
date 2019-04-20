@@ -14,6 +14,10 @@ module Coverband
         raise 'abstract'
       end
 
+      def clear_file!(_file)
+        raise 'abstract'
+      end
+
       def migrate!
         raise 'abstract'
       end

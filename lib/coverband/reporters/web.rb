@@ -22,6 +22,8 @@ module Coverband
 
         if request.post?
           case request.path_info
+          when %r{\/clear_file}
+            clear_file
           when %r{\/clear}
             clear
           when %r{\/collect_coverage}
@@ -75,6 +77,17 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           Coverband.configuration.store.clear!
           notice = 'coverband coverage cleared'
+        else
+          notice = 'web_enable_clear isnt enabled in your configuration'
+        end
+        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
+      end
+
+      def clear_file
+        if Coverband.configuration.web_enable_clear
+          filename = request.params['filename']
+          Coverband.configuration.store.clear_file!(filename)
+          notice = "coverage for file #{filename} cleared"
         else
           notice = 'web_enable_clear isnt enabled in your configuration'
         end
