@@ -39,6 +39,9 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)
 - Improved logging for easier debugging and development
   - drop the verbose mode and better support standard logger levels
+- Possibly setup a build assets system
+  - my JS rules expanded the compressed JS at the top of application.js, basically we want to stitch together JS
+  - I guess we could also load multiple JS files as most of the JS is just default compressed JS and a tiny amount of actual app JS.
 
 ### Coverband_jam_session
 
