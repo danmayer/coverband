@@ -26,7 +26,7 @@ module Coverband
         end
 
         def new_coverage
-          new_results = generate.dup
+          new_results = generate
           @@previous_results = current_coverage
           new_results
         end
@@ -47,7 +47,7 @@ module Coverband
               end
             end
           else
-            current_coverage
+            current_coverage.dup
           end
         end
 
