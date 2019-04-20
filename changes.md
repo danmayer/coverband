@@ -37,6 +37,8 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - See if we can add support for views / templates
   - using this technique https://github.com/ioquatix/covered
 - Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)
+- Improved logging for easier debugging and development
+  - drop the verbose mode and better support standard logger levels
 
 ### Coverband_jam_session
 
