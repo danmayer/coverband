@@ -3,6 +3,7 @@
 module Coverband
   class Background
     @semaphore = Mutex.new
+    @thread = nil
 
     def self.stop
       return unless @thread
