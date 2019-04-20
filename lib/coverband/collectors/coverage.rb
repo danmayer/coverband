@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'singleton'
+require_relative 'delta'
 
 module Coverband
   module Collectors
@@ -141,8 +142,8 @@ module Coverband
         (rand * 100.0) >= (100.0 - @reporting_frequency)
       end
 
-      def get_new_coverage_results
-        @semaphore.synchronize { Delta.new_coverage(::Coverage.peek_result.dup) }
+      def get_results_results
+        @semaphore.synchronize { Delta.results(::Coverage.peek_result.dup) }
       end
 
       def files_with_line_usage
