@@ -22,6 +22,7 @@ module Coverband
         end
 
         def self.new_coverage(current_coverage)
+          @@previous_results ||= {}
           new(current_coverage).new_coverage
         end
 
@@ -38,16 +39,12 @@ module Coverband
         private
 
         def generate
-          if @@previous_results
-            current_coverage.each_with_object({}) do |(file, line_counts), new_results|
-              if @@previous_results[file]
-                new_results[file] = array_diff(line_counts, @@previous_results[file])
-              else
-                new_results[file] = line_counts
-              end
+          current_coverage.each_with_object({}) do |(file, line_counts), new_results|
+            if @@previous_results[file]
+              new_results[file] = array_diff(line_counts, @@previous_results[file])
+            else
+              new_results[file] = line_counts
             end
-          else
-            current_coverage.dup
           end
         end
 
