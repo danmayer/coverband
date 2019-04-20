@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'singleton'
+
 module Coverband
   module Collectors
     ###
@@ -10,9 +12,7 @@ module Coverband
     # and this method is currently in a ensure block in middleware and threads
     ###
     class Coverage
-      def self.instance
-        Thread.current[:coverband_instance] ||= Coverband::Collectors::Coverage.new
-      end
+      include Singleton
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
