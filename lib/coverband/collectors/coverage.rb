@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'forwardable'
 
 require 'singleton'
 
@@ -13,6 +14,49 @@ module Coverband
     ###
     class Coverage
       include Singleton
+      extend Forwardable
+
+      class Delta
+        def initialize
+          @previous_results = nil
+        end
+
+        def previous_results
+          @previous_results
+        end
+
+        def add_previous_results(val)
+          @previous_results = val
+        end
+
+        def new_coverage(current_coverage)
+          if previous_results
+            new_results = {}
+            current_coverage.each_pair do |file, line_counts|
+              if previous_results[file]
+                new_results[file] = array_diff(line_counts, previous_results[file])
+              else
+                new_results[file] = line_counts
+              end
+            end
+          else
+            new_results = current_coverage
+          end
+
+          add_previous_results(current_coverage)
+          new_results.dup
+        end
+
+        def array_diff(latest, original)
+          latest.map.with_index do |v, i|
+            if (v && original[i])
+              [0, v - original[i]].max
+            else
+              nil
+            end
+          end
+        end
+      end
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
@@ -24,7 +68,8 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
-        @@previous_results = nil
+        @delta = nil
+        Thread.current[:coverband_instance] = nil
         self
       end
 
@@ -64,6 +109,10 @@ module Coverband
 
       protected
 
+      def delta
+        @delta ||= Delta.new
+      end
+
       ###
       # Normally I would break this out into additional methods
       # and improve the readability but this is in a tight loop
@@ -74,8 +123,8 @@ module Coverband
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)
         end && (file.start_with?(@project_directory) ||
-         (@track_gems &&
-          Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
+                (@track_gems &&
+                 Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
       end
 
       private
@@ -111,35 +160,11 @@ module Coverband
         end
       end
 
-      def previous_results
-        @@previous_results
-      end
-
-      def add_previous_results(val)
-        @@previous_results = val
-      end
-
-      def new_coverage(current_coverage)
-        if previous_results
-          new_results = {}
-          current_coverage.each_pair do |file, line_counts|
-            if previous_results[file]
-              new_results[file] = array_diff(line_counts, previous_results[file])
-            else
-              new_results[file] = line_counts
-            end
-          end
-        else
-          new_results = current_coverage
-        end
-
-        add_previous_results(current_coverage)
-        new_results.dup
-      end
-
       def add_file(file, line_counts)
         @file_line_usage[file] = line_counts
       end
+
+      def_delegators :delta, :add_previous_results, :new_coverage
 
       def initialize
         if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
