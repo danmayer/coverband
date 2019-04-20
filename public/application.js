@@ -10602,6 +10602,9 @@ $(document).ready(function() {
   $("a.src_link").click(function() {
     // Get the source file element that corresponds to the clicked element
     var source_table = $($(this).attr("href"));
+    var loader_url = $(source_table).attr("data-loader-url");
+
+    $(source_table).load(loader_url);
 
     // If not highlighted yet, do it!
     if (!source_table.hasClass("highlighted")) {

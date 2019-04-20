@@ -17,7 +17,14 @@ module Coverband
 
       def file_with_type(source_file, results_type)
         return unless results[results_type]
+
         results[results_type].source_files.find { |file| file.filename == source_file.filename }
+      end
+
+      def file_from_path_with_type(full_path, results_type = :merged)
+        return unless results[results_type]
+        
+        results[results_type].source_files.find { |file| file.filename == full_path }
       end
 
       def method_missing(method, *args)

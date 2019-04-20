@@ -33,6 +33,12 @@ module Coverband
         format_settings
       end
 
+      def format_source_file!(filename)
+        source_file = @coverage_result.file_from_path_with_type(filename)
+  
+        formatted_source_file(@coverage_result, source_file)
+      end
+
       private
 
       def format_settings
@@ -88,6 +94,13 @@ module Coverband
       # Returns the html for the given source_file
       def formatted_source_file(result, source_file)
         template('source_file').result(binding)
+      rescue Encoding::CompatibilityError => e
+        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
+      end
+
+      # Returns the html to ajax load a given source_file
+      def formatted_source_file_loader(result, source_file)
+        template('source_file_loader').result(binding)
       rescue Encoding::CompatibilityError => e
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
