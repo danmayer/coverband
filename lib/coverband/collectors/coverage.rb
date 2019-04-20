@@ -22,11 +22,9 @@ module Coverband
         @store = Coverband.configuration.store
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
-        @current_thread = Thread.current
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
         @@previous_results = nil
-        Thread.current[:coverband_instance] = nil
         self
       end
 
