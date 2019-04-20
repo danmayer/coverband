@@ -2,15 +2,18 @@
 module Coverband
   module Collectors
     class Delta
+      @semaphore = Mutex.new
       attr_reader :current_coverage
 
       def initialize(current_coverage)
         @current_coverage = current_coverage
       end
 
-      def self.results(current_coverage)
-        @@previous_coverage ||= {}
-        new(current_coverage).results
+      def self.results
+        @semaphore.synchronize do
+          @@previous_coverage ||= {}
+          new(::Coverage.peek_result.dup).results
+        end
       end
 
       def results

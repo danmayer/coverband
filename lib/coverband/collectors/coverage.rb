@@ -86,8 +86,8 @@ module Coverband
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
-        original_previous_set = previous_results
-        new_results = get_new_coverage_results
+
+        new_results = Delta.results
         add_filtered_files(new_results)
 
         ###
@@ -110,10 +110,6 @@ module Coverband
       end
 
       protected
-
-      def delta
-        @delta ||= Delta.new
-      end
 
       ###
       # Normally I would break this out into additional methods
@@ -140,10 +136,6 @@ module Coverband
 
       def ready_to_report?
         (rand * 100.0) >= (100.0 - @reporting_frequency)
-      end
-
-      def get_results_results
-        @semaphore.synchronize { Delta.results(::Coverage.peek_result.dup) }
       end
 
       def files_with_line_usage
@@ -181,8 +173,6 @@ module Coverband
             load safe_file
           end
         end
-        @semaphore = Mutex.new
-        @@previous_results = nil
         reset_instance
       end
     end
