@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'forwardable'
-
 require 'singleton'
 
 module Coverband
@@ -17,24 +15,34 @@ module Coverband
       extend Forwardable
 
       class Delta
-        def initialize
-          @previous_results = nil
+        attr_reader :current_coverage
+
+        def initialize(current_coverage)
+          @current_coverage = current_coverage
         end
 
-        def previous_results
-          @previous_results
+        def self.new_coverage(current_coverage)
+          new(current_coverage).new_coverage
         end
 
-        def add_previous_results(val)
-          @previous_results = val
+        def new_coverage
+          new_results = generate.dup
+          @@previous_results = current_coverage
+          new_results
         end
 
-        def new_coverage(current_coverage)
-          if previous_results
+        def self.reset
+          @@previous_results = nil
+        end
+
+        private
+
+        def generate
+          if @@previous_results
             new_results = {}
             current_coverage.each_pair do |file, line_counts|
-              if previous_results[file]
-                new_results[file] = array_diff(line_counts, previous_results[file])
+              if @@previous_results[file]
+                new_results[file] = array_diff(line_counts, @@previous_results[file])
               else
                 new_results[file] = line_counts
               end
@@ -42,9 +50,7 @@ module Coverband
           else
             new_results = current_coverage
           end
-
-          add_previous_results(current_coverage)
-          new_results.dup
+          new_results
         end
 
         def array_diff(latest, original)
@@ -68,7 +74,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
-        @delta = nil
+        Delta.reset
         Thread.current[:coverband_instance] = nil
         self
       end
@@ -141,7 +147,7 @@ module Coverband
       end
 
       def get_new_coverage_results
-        @semaphore.synchronize { new_coverage(::Coverage.peek_result.dup) }
+        @semaphore.synchronize { Delta.new_coverage(::Coverage.peek_result.dup) }
       end
 
       def files_with_line_usage
@@ -163,8 +169,6 @@ module Coverband
       def add_file(file, line_counts)
         @file_line_usage[file] = line_counts
       end
-
-      def_delegators :delta, :add_previous_results, :new_coverage
 
       def initialize
         if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
