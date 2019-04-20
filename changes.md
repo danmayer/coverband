@@ -42,6 +42,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - Possibly setup a build assets system
   - my JS rules expanded the compressed JS at the top of application.js, basically we want to stitch together JS
   - I guess we could also load multiple JS files as most of the JS is just default compressed JS and a tiny amount of actual app JS.
+- lazy load for coverband results
 
 ### Coverband_jam_session
 
