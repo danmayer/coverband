@@ -9,10 +9,16 @@ module Coverband
         @current_coverage = current_coverage
       end
 
-      def self.results
+      class RubyCoverage
+        def self.results
+          ::Coverage.peek_result.dup
+        end
+      end
+
+      def self.results(process_coverage = RubyCoverage)
         @semaphore.synchronize do
           @@previous_coverage ||= {}
-          new(::Coverage.peek_result.dup).results
+          new(process_coverage.results).results
         end
       end
 
