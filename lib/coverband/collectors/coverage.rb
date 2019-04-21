@@ -17,7 +17,6 @@ module Coverband
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
-        @file_line_usage = {}
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
         @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
@@ -42,8 +41,7 @@ module Coverband
         raise 'no Coverband store set' unless @store
 
         original_previous_set = Delta.previous_results
-        new_results = Delta.results
-        add_filtered_files(new_results)
+        files_with_line_usage = filtered_files(Delta.results)
 
         ###
         # Hack to prevent processes and threads from reporting first Coverage hit
@@ -54,7 +52,6 @@ module Coverband
            (original_previous_set && @store.type != Coverband::EAGER_TYPE))
           @store.save_report(files_with_line_usage)
         end
-        @file_line_usage.clear
       rescue StandardError => err
         if @verbose
           @logger&.error 'coverage failed to store'
@@ -82,25 +79,14 @@ module Coverband
 
       private
 
-      def add_filtered_files(new_results)
-        new_results.each_pair do |file, line_counts|
-          next unless track_file?(file)
-          add_file(file, line_counts)
-        end
+      def filtered_files(new_results)
+        new_results.each_with_object({}) do |(file, line_counts), file_line_usage|
+          file_line_usage[file] = line_counts if track_file?(file)
+        end.select { |_file_name, coverage| coverage.any? { |value| value&.nonzero? } }
       end
 
       def ready_to_report?
         (rand * 100.0) >= (100.0 - @reporting_frequency)
-      end
-
-      def files_with_line_usage
-        @file_line_usage.select do |_file_name, coverage|
-          coverage.any? { |value| value&.nonzero? }
-        end
-      end
-
-      def add_file(file, line_counts)
-        @file_line_usage[file] = line_counts
       end
 
       def initialize
