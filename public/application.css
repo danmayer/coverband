@@ -748,6 +748,11 @@ td {
     text-align: center;
     border-radius: 6px; }
 
+  .loader {
+    text-align: center;
+  }
+
+
 #header {
   color: #FFF;
   font-size: 12px;
