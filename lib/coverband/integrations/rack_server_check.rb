@@ -20,7 +20,10 @@ module Coverband
 
     def rails_server?
       @stack.any? do |location|
-        location.path.include?('rails/commands/commands_tasks.rb') && location.label == 'server'
+        (
+          location.path.include?('rails/commands/commands_tasks.rb') && location.label == 'server' ||
+          location.path.include?('rails/commands/server/server_command.rb') && location.label == 'perform'
+        )
       end
     end
   end

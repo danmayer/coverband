@@ -26,7 +26,7 @@ class HTMLReportTest < Minitest::Test
              .returns('app_path')
     @store.send(:save_report, basic_coverage)
 
-    report = Coverband::Reporters::ConsoleReport.report(@store)
+    report = Coverband::Reporters::ConsoleReport.report(@store)[:merged]
     expected = { './dog.rb' => [0, 1, 2] }
     assert_equal(expected.keys, report.keys)
   end

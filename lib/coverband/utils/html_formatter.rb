@@ -18,7 +18,7 @@ module Coverband
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
         @base_path = options.fetch(:base_path) { nil }
-        @coverage_result = Coverband::Utils::Result.new(report) if report
+        @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
       def format!
@@ -31,6 +31,12 @@ module Coverband
 
       def format_settings!
         format_settings
+      end
+
+      def format_source_file!(filename)
+        source_file = @coverage_result.file_from_path_with_type(filename)
+  
+        formatted_source_file(@coverage_result, source_file)
       end
 
       private
@@ -86,20 +92,28 @@ module Coverband
       end
 
       # Returns the html for the given source_file
-      def formatted_source_file(source_file)
+      def formatted_source_file(result, source_file)
         template('source_file').result(binding)
       rescue Encoding::CompatibilityError => e
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
+      # Returns the html to ajax load a given source_file
+      def formatted_source_file_loader(result, source_file)
+        template('source_file_loader').result(binding)
+      rescue Encoding::CompatibilityError => e
+        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
+      end
+
       # Returns a table containing the given source files
-      def formatted_file_list(title, source_files, options = {})
+      def formatted_file_list(title, result, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
         # Silence a warning by using the following variable to assign to itself:
         # "warning: possibly useless use of a variable in void context"
         # The variable is used by ERB via binding.
         title_id = title_id
         options = options
+
         if title == 'Gems'
           template('gem_list').result(binding)
         else
@@ -116,7 +130,9 @@ module Coverband
       end
 
       def coverage_css_class(covered_percent)
-        if covered_percent > 90
+        if covered_percent.nil?
+          ''
+        elsif covered_percent > 90
           'green'
         elsif covered_percent > 80
           'yellow'

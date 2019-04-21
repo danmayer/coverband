@@ -3,7 +3,6 @@
 require 'logger'
 require 'json'
 require 'redis'
-
 require 'coverband/version'
 require 'coverband/at_exit'
 require 'coverband/configuration'
@@ -19,6 +18,7 @@ require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
 require 'coverband/utils/file_groups'
 require 'coverband/utils/lines_classifier'
+require 'coverband/utils/results'
 require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/html_report'
@@ -31,6 +31,11 @@ require 'coverband/integrations/background'
 
 module Coverband
   CONFIG_FILE = './config/coverband.rb'
+  RUNTIME_TYPE = nil
+  EAGER_TYPE = :eager_loading
+  MERGED_TYPE = :merged
+  TYPES = [RUNTIME_TYPE, EAGER_TYPE]
+  ALL_TYPES = TYPES + [:merged]
 
   class << self
     attr_accessor :configuration_data
@@ -59,6 +64,8 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
+    # TODO Railtie sets up at_exit after forks, via middleware, perhaps this hsould be
+    # added if not rails or if rails but not rackserverrunning
     AtExit.register
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
   end
@@ -84,4 +91,3 @@ module Coverband
     require 'coverband/integrations/resque' if defined? Resque
   end
 end
-

@@ -37,6 +37,16 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - See if we can add support for views / templates
   - using this technique https://github.com/ioquatix/covered
 - Better default grouping (could use groups features for gems for rails controllers, models, lib, etc)
+- Improved logging for easier debugging and development
+  - drop the verbose mode and better support standard logger levels
+- Possibly setup a build assets system
+  - my JS rules expanded the compressed JS at the top of application.js, basically we want to stitch together JS
+  - I guess we could also load multiple JS files as most of the JS is just default compressed JS and a tiny amount of actual app JS.
+- lazy load for Coverband results
+- view layer file coverage
+- move all code to work with relative paths leaving only stdlib Coverage working on full paths
+- add gem_safe_lists to track only some gems
+- add gem_details_safe list to report on details on some gems
 
 ### Coverband_jam_session
 
@@ -65,11 +75,24 @@ Feature Ideas:
 
 ### Coverband 4.2.0.rc
 
+For this release your combined coverage is OK, but your runtime coverage will be incorrect until you reset your coverage. This is due to an additive change in how we store coverage. We didn't reset by default as the coverage history for some folks may be more important than runtime breakdown.
+
 - loadtime vs runtime coverage
-- view coverage
+  - This fixes the coverage last seen date to exclude just load time data
+  - now you can see boot time coverage vs code hit during production execution
+  - list view shows runtime percentage and runtime hits
+  - file view shows line hits load, runtime, and combined
 - perf speedup on gem details views
+- ajax load code views for more responsive pages on large projects
+- fix for issues with COVERBAND_DISABLE_AUTO_START
+- silence warnings
+- move from thread based reporter instance to process based instance
+- thanks Karl Baum for much of the above mentioned work
+- clear coverage on individual files
 
 # Released
+
+### Coverband 4.2.0
 
 ### Coverband 4.1.1
 

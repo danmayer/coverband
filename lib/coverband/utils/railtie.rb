@@ -9,10 +9,12 @@ module Coverband
 
     config.after_initialize do
       Coverband.report_coverage(true)
+      Coverband.configuration.logger&.debug('Coverband: reported after_initialize')
       Coverband.runtime_coverage!
     end
 
     config.before_initialize do
+      Coverband.configuration.logger&.debug('Coverband: set to eager_loading')
       Coverband.eager_loading_coverage!
     end
 

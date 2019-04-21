@@ -62,6 +62,7 @@ class MiddlewareTest < Minitest::Test
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband::Collectors::Coverage.instance.reset_instance
     collector = Coverband::Collectors::Coverage.instance
+    collector.report_coverage(true)
     collector.instance_variable_set('@reporting_frequency', 100.0)
     middleware = Coverband::Middleware.new(fake_app)
     store = Coverband::Collectors::Coverage.instance.instance_variable_get('@store')

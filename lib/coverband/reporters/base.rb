@@ -15,7 +15,7 @@ module Coverband
 
           if Coverband.configuration.verbose
             msg = "report:\n #{scov_style_report.inspect}"
-            Coverband.configuration.logger.debug msg
+            # Coverband.configuration.logger.debug msg
           end
           scov_style_report
         end
@@ -28,15 +28,18 @@ module Coverband
           end
 
           # normalize names across servers
-          report_hash.each_with_object({}) do |(key, vals), fixed_report|
-            filename = relative_path_to_full(key, roots)
-            fixed_report[filename] = if fixed_report.key?(filename) && fixed_report[filename]['data'] && vals['data']
-                                       merged_data = merge_arrays(fixed_report[filename]['data'], vals['data'])
-                                       vals['data'] = merged_data
-                                       vals
-                                     else
-                                       vals
-                                     end
+          report_hash.each_with_object({}) do |(name, report), fixed_report|
+            fixed_report[name] = {}
+            report.each_pair do |key, vals|
+              filename = relative_path_to_full(key, roots)
+              fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename]['data'] && vals['data']
+                                         merged_data = merge_arrays(fixed_report[name][filename]['data'], vals['data'])
+                                         vals['data'] = merged_data
+                                         vals
+                                       else
+                                         vals
+                                       end
+            end
           end
         end
 
@@ -64,10 +67,14 @@ module Coverband
         ###
         def get_current_scov_data_imp(store, roots)
           scov_style_report = {}
-          store.merged_coverage([nil, :eager_loading]).each_pair do |key, line_data|
-            next if Coverband.configuration.ignore.any? { |i| key.match(i) }
-            next unless line_data
-            scov_style_report[key] = line_data
+          store.get_coverage_report.each_pair do |name, data|
+            data.each_pair do |key, line_data|
+              next if Coverband.configuration.ignore.any? { |i| key.match(i) }
+              next unless line_data
+
+              scov_style_report[name] = {} unless scov_style_report.key?(name)
+              scov_style_report[name][key] = line_data
+            end
           end
 
           scov_style_report = fix_file_names(scov_style_report, roots)

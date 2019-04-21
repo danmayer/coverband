@@ -22,7 +22,17 @@ module Coverband
       end
 
       def clear!
-        @redis.del(base_key)
+        Coverband::TYPES.each do |type|
+          @redis.del(type_base_key(type))
+        end
+      end
+
+      def clear_file!(filename)
+        Coverband::TYPES.each do |type|
+          data = get_report(type)
+          data.delete(filename)
+          save_coverage(data, type)
+        end
       end
 
       def size
@@ -51,7 +61,7 @@ module Coverband
         save_coverage(merge_reports(get_report, relative_path_report, skip_expansion: true))
       end
 
-      def type=(type) 
+      def type=(type)
         super
         reset_base_key
       end
@@ -68,13 +78,19 @@ module Coverband
         @base_key ||= [@format_version, @redis_namespace, type].compact.join('.')
       end
 
-      def save_coverage(data)
-        redis.set base_key, data.to_json
-        redis.expire(base_key, @ttl) if @ttl
+      def type_base_key(local_type)
+        [@format_version, @redis_namespace, local_type].compact.join('.')
       end
 
-      def get_report
-        data = redis.get base_key
+      def save_coverage(data, local_type = nil)
+        local_type ||= type
+        redis.set type_base_key(local_type), data.to_json
+        redis.expire(type_base_key(local_type), @ttl) if @ttl
+      end
+
+      def get_report(local_type = nil)
+        local_type ||= type
+        data = redis.get type_base_key(local_type)
         data ? JSON.parse(data) : {}
       end
     end

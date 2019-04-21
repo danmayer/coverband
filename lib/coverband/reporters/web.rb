@@ -22,6 +22,8 @@ module Coverband
 
         if request.post?
           case request.path_info
+          when %r{\/clear_file}
+            clear_file
           when %r{\/clear}
             clear
           when %r{\/collect_coverage}
@@ -39,6 +41,8 @@ module Coverband
             [200, { 'Content-Type' => 'text/html' }, [settings]]
           when %r{\/debug_data}
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
+          when %r{\/load_file_details}
+            [200, { 'Content-Type' => 'text/json' }, [load_file_details]]
           when %r{\/$}
             [200, { 'Content-Type' => 'text/html' }, [index]]
           else
@@ -50,11 +54,11 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params['notice'])}<br/>"
         notice = request.params['notice'] ? notice : ''
-        Coverband::Reporters::HTMLReport.report(Coverband.configuration.store,
-                                                html: true,
-                                                base_path: base_path,
-                                                notice: notice,
-                                                open_report: false)
+        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+                                             html: true,
+                                             base_path: base_path,
+                                             notice: notice,
+                                             open_report: false).report
       end
 
       def settings
@@ -62,7 +66,15 @@ module Coverband
       end
 
       def debug_data
-        Coverband.configuration.store.coverage.to_json
+        Coverband.configuration.store.get_coverage_report.to_json
+      end
+
+      def load_file_details
+        filename = request.params['filename']
+        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+                                             filename: filename,
+                                             base_path: base_path,
+                                             open_report: false).file_details
       end
 
       def collect_coverage
@@ -75,6 +87,17 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           Coverband.configuration.store.clear!
           notice = 'coverband coverage cleared'
+        else
+          notice = 'web_enable_clear isnt enabled in your configuration'
+        end
+        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
+      end
+
+      def clear_file
+        if Coverband.configuration.web_enable_clear
+          filename = request.params['filename']
+          Coverband.configuration.store.clear_file!(filename)
+          notice = "coverage for file #{filename} cleared"
         else
           notice = 'web_enable_clear isnt enabled in your configuration'
         end

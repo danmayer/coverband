@@ -14,6 +14,10 @@ module Coverband
         raise 'abstract'
       end
 
+      def clear_file!(_file)
+        raise 'abstract'
+      end
+
       def migrate!
         raise 'abstract'
       end
@@ -40,14 +44,9 @@ module Coverband
         get_report
       end
 
-      def merged_coverage(types)
-        original_type = self.type
-        merged_coverage = types.reduce({}) do |data, type|
-          self.type = type
-          merge_reports(data, get_report, skip_expansion: true)
-        end.tap do
-          self.type = original_type
-        end
+      def get_coverage_report
+        data = Coverband.configuration.store.split_coverage(Coverband::TYPES)
+        data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES))
       end
 
       def covered_files
@@ -60,6 +59,18 @@ module Coverband
       end
 
       protected
+
+      def split_coverage(types)
+        types.reduce({}) do |data, type|
+          data.update(type => get_report(type))
+        end
+      end
+
+      def merged_coverage(types)
+        types.reduce({}) do |data, type|
+          merge_reports(data, get_report(type), skip_expansion: true)
+        end
+      end
 
       def save_coverage
         raise 'abstract'
@@ -76,10 +87,11 @@ module Coverband
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
+        updated_time = self.type == Coverband::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
             'first_updated_at' => report_time,
-            'last_updated_at' => report_time,
+            'last_updated_at' => updated_time,
             'file_hash' => file_hash(key),
             'data' => line_data
           }

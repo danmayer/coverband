@@ -11,6 +11,8 @@ class CollectorsCoverageTest < Minitest::Test
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
     end
     @coverband = Coverband::Collectors::Coverage.instance.reset_instance
+    # preload first coverage hit
+    @coverband.report_coverage(true)
   end
 
   def teardown
@@ -51,17 +53,21 @@ class CollectorsCoverageTest < Minitest::Test
     end
   end
 
+  test 'report_coverage raises errors in tests with verbose enabled' do
+    Coverband.configuration.verbose = true
+    logger = mock()
+    Coverband.configuration.logger = logger
+    @coverband.reset_instance
+    @coverband.expects(:ready_to_report?).raises('Oh no')
+    logger.expects(:error).times(3)
+    error = assert_raises RuntimeError do
+      @coverband.report_coverage
+    end
+    assert_match /Oh no/, error.message
+  end
+
   test 'default tmp ignores' do
     heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
     assert_equal false, @coverband.send(:track_file?, heroku_build_file)
-  end
-
-  test '#array_diff never returns negative hits' do
-    # this can occur if a process forks after initializing the previous results
-    # see test/benchmarks/coverage_fork.rb
-    latest = [0, nil]
-    original = [1, nil]
-    expected = [0, nil]
-    assert_equal expected, @coverband.send(:array_diff, latest, original)
   end
 end

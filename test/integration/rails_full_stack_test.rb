@@ -9,6 +9,8 @@ class RailsFullStackTest < Minitest::Test
   def setup
     super
     rails_setup
+    # preload first coverage hit
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     require 'rainbow'
     Rainbow('this text is red').red
   end
@@ -30,7 +32,7 @@ class RailsFullStackTest < Minitest::Test
     within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
       assert_selector('td', text: '100.0 %')
     end
-    
+
     #Test gems are reporting coverage
     assert_content('Gems')
     assert page.html.match('rainbow/wrapper.rb')
