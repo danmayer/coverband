@@ -26,7 +26,6 @@ module Coverband
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
         Delta.reset
-        Thread.current[:coverband_instance] = nil
         self
       end
 
