@@ -70,13 +70,4 @@ class CollectorsCoverageTest < Minitest::Test
     heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
     assert_equal false, @coverband.send(:track_file?, heroku_build_file)
   end
-
-  test '#array_diff never returns negative hits' do
-    # this can occur if a process forks after initializing the previous results
-    # see test/benchmarks/coverage_fork.rb
-    latest = [0, nil]
-    original = [1, nil]
-    expected = [0, nil]
-    assert_equal expected, @coverband.send(:array_diff, latest, original)
-  end
 end

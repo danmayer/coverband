@@ -100,16 +100,6 @@ module Coverband
         end
       end
 
-      def array_diff(latest, original)
-        latest.map.with_index do |v, i|
-          if (v && original[i])
-            [0, v - original[i]].max
-          else
-            nil
-          end
-        end
-      end
-
       def add_file(file, line_counts)
         @file_line_usage[file] = line_counts
       end
