@@ -15,51 +15,6 @@ module Coverband
       include Singleton
       extend Forwardable
 
-      class Delta
-        attr_reader :current_coverage
-
-        def initialize(current_coverage)
-          @current_coverage = current_coverage
-        end
-
-        def self.new_coverage(current_coverage)
-          @@previous_results ||= {}
-          new(current_coverage).new_coverage
-        end
-
-        def new_coverage
-          new_results = generate
-          @@previous_results = current_coverage
-          new_results
-        end
-
-        def self.reset
-          @@previous_results = nil
-        end
-
-        private
-
-        def generate
-          current_coverage.each_with_object({}) do |(file, line_counts), new_results|
-            if @@previous_results[file]
-              new_results[file] = array_diff(line_counts, @@previous_results[file])
-            else
-              new_results[file] = line_counts
-            end
-          end
-        end
-
-        def array_diff(latest, original)
-          latest.map.with_index do |v, i|
-            if (v && original[i])
-              [0, v - original[i]].max
-            else
-              nil
-            end
-          end
-        end
-      end
-
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
         @file_line_usage = {}
@@ -87,6 +42,7 @@ module Coverband
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
 
+        original_previous_set = Delta.previous_results
         new_results = Delta.results
         add_filtered_files(new_results)
 

@@ -3,6 +3,7 @@ module Coverband
   module Collectors
     class Delta
       @semaphore = Mutex.new
+      @@previous_coverage = nil
       attr_reader :current_coverage
 
       def initialize(current_coverage)
@@ -20,6 +21,10 @@ module Coverband
           @@previous_coverage ||= {}
           new(process_coverage.results).results
         end
+      end
+
+      def self.previous_results
+        @@previous_coverage
       end
 
       def results
