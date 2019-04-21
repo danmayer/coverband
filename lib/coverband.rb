@@ -35,6 +35,7 @@ module Coverband
   EAGER_TYPE = :eager_loading
   MERGED_TYPE = :merged
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]
+  ALL_TYPES = TYPES + [:merged]
 
   class << self
     attr_accessor :configuration_data
