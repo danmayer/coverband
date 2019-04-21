@@ -1,6 +1,6 @@
 # frozen_string_literal: true
-
 require 'singleton'
+require_relative 'delta'
 
 module Coverband
   module Collectors
@@ -13,10 +13,10 @@ module Coverband
     ###
     class Coverage
       include Singleton
+      extend Forwardable
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
-        @file_line_usage = {}
         @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
         @reporting_frequency = Coverband.configuration.reporting_frequency
         @store = Coverband.configuration.store
@@ -24,7 +24,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
-        @@previous_results = nil
+        Delta.reset
         self
       end
 
@@ -39,9 +39,9 @@ module Coverband
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
-        original_previous_set = previous_results
-        new_results = get_new_coverage_results
-        add_filtered_files(new_results)
+
+        original_previous_set = Delta.previous_results
+        files_with_line_usage = filtered_files(Delta.results)
 
         ###
         # Hack to prevent processes and threads from reporting first Coverage hit
@@ -52,7 +52,6 @@ module Coverband
            (original_previous_set && @store.type != Coverband::EAGER_TYPE))
           @store.save_report(files_with_line_usage)
         end
-        @file_line_usage.clear
       rescue StandardError => err
         if @verbose
           @logger&.error 'coverage failed to store'
@@ -74,71 +73,20 @@ module Coverband
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)
         end && (file.start_with?(@project_directory) ||
-         (@track_gems &&
-          Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
+                (@track_gems &&
+                 Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
       end
 
       private
 
-      def add_filtered_files(new_results)
-        new_results.each_pair do |file, line_counts|
-          next unless track_file?(file)
-          add_file(file, line_counts)
-        end
+      def filtered_files(new_results)
+        new_results.each_with_object({}) do |(file, line_counts), file_line_usage|
+          file_line_usage[file] = line_counts if track_file?(file)
+        end.select { |_file_name, coverage| coverage.any? { |value| value&.nonzero? } }
       end
 
       def ready_to_report?
         (rand * 100.0) >= (100.0 - @reporting_frequency)
-      end
-
-      def get_new_coverage_results
-        @semaphore.synchronize { new_coverage(::Coverage.peek_result.dup) }
-      end
-
-      def files_with_line_usage
-        @file_line_usage.select do |_file_name, coverage|
-          coverage.any? { |value| value&.nonzero? }
-        end
-      end
-
-      def array_diff(latest, original)
-        latest.map.with_index do |v, i|
-          if (v && original[i])
-            [0, v - original[i]].max
-          else
-            nil
-          end
-        end
-      end
-
-      def previous_results
-        @@previous_results
-      end
-
-      def add_previous_results(val)
-        @@previous_results = val
-      end
-
-      def new_coverage(current_coverage)
-        if previous_results
-          new_results = {}
-          current_coverage.each_pair do |file, line_counts|
-            if previous_results[file]
-              new_results[file] = array_diff(line_counts, previous_results[file])
-            else
-              new_results[file] = line_counts
-            end
-          end
-        else
-          new_results = current_coverage
-        end
-
-        add_previous_results(current_coverage)
-        new_results.dup
-      end
-
-      def add_file(file, line_counts)
-        @file_line_usage[file] = line_counts
       end
 
       def initialize
@@ -156,8 +104,6 @@ module Coverband
             load safe_file
           end
         end
-        @semaphore = Mutex.new
-        @@previous_results = nil
         reset_instance
       end
     end
