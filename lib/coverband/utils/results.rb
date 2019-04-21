@@ -44,6 +44,11 @@ module Coverband
 
       private
 
+      ###
+      # This is a first version of lazy loading the results
+      # for the full advantage we need to push lazy loading to the file level
+      # inside Coverband::Utils::Result
+      ###
       def get_results(type)
         return nil unless Coverband::ALL_TYPES.include?(type)
 
