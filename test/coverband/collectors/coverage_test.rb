@@ -53,6 +53,19 @@ class CollectorsCoverageTest < Minitest::Test
     end
   end
 
+  test 'report_coverage raises errors in tests with verbose enabled' do
+    Coverband.configuration.verbose = true
+    logger = mock()
+    Coverband.configuration.logger = logger
+    @coverband.reset_instance
+    @coverband.expects(:ready_to_report?).raises('Oh no')
+    logger.expects(:error).times(3)
+    error = assert_raises RuntimeError do
+      @coverband.report_coverage
+    end
+    assert_match /Oh no/, error.message
+  end
+
   test 'default tmp ignores' do
     heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
     assert_equal false, @coverband.send(:track_file?, heroku_build_file)

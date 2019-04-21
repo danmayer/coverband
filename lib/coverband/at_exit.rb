@@ -4,6 +4,7 @@ module Coverband
   class AtExit
     @semaphore = Mutex.new
 
+    @at_exit_registered = nil
     def self.register
       return if ENV['COVERBAND_DISABLE_AT_EXIT']
       return if @at_exit_registered

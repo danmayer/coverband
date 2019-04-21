@@ -145,9 +145,7 @@ module Coverband
         if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
           raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
         end
-        unless defined?(::Coverage)
-          require 'coverage'
-        end
+        require 'coverage'
         if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
           ::Coverage.start unless ::Coverage.running?
         else
