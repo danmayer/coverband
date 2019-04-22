@@ -15,24 +15,24 @@
 
 A gem to measure production code usage, showing a counter for the number of times each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread or can be used as Rack middleware, or manually configured to meet any need.
 
-__Note:__ Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
+**Note:** Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
 
 ## Key Features
 
 The primary goal of Coverband is giving deep insight into your production runtime usage of your application code, while having the least impact on performance possible.
 
-* Low performance overhead
-* Very simple setup and configuration
-* Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
-* Easy to understand actionable insights from the report
-* Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
-* Mountable web interface to easily share reports
+- Low performance overhead
+- Very simple setup and configuration
+- Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
+- Easy to understand actionable insights from the report
+- Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
+- Mountable web interface to easily share reports
 
 # Installation
 
 ## Redis
 
-Coverband stores coverage data in Redis. The Redis endpoint is looked for in this order: 
+Coverband stores coverage data in Redis. The Redis endpoint is looked for in this order:
 
 1. `ENV['COVERBAND_REDIS_URL']`
 2. `ENV['REDIS_URL']`
@@ -53,7 +53,6 @@ If [tracking gem usage](#collecting-gem--library-usage), be sure to include cove
 ## Rails
 
 The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile.
-
 
 ## Sinatra
 
@@ -77,7 +76,7 @@ Rails.application.routes.draw do
 end
 ```
 
-But don't forget to *protect your source code with proper authentication*. Something like this when using devise:
+But don't forget to _protect your source code with proper authentication_. Something like this when using devise:
 
 ```ruby
 Rails.application.routes.draw do
@@ -92,11 +91,12 @@ end
 The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_update.png)
+
 > The web index as available on the Coverband Demo site
 
-* __force coverage collection:__ This triggers coverage collection on the current webserver process
-* __reload Coverband files:__ This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot). This can be used to reload files on demand.
-* __clear coverage report:__ This will clear the coverage data. This wipes out all collected data (__dangerous__)
+- **force coverage collection:** This triggers coverage collection on the current webserver process
+- **reload Coverband files:** This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot). This can be used to reload files on demand.
+- **clear coverage report:** This will clear the coverage data. This wipes out all collected data (**dangerous**)
 
 ### Rake Tasks
 
@@ -118,16 +118,15 @@ Details on an example Sinatra app
 
 # Verify Correct Installation
 
-* boot up your application
-* run app and hit a controller (via a web request, at least one request must complete)
-* run `rake coverband:coverage` this will show app initialization coverage
-* make another request, or enough that your reporting frequency will trigger
-* run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
+- boot up your application
+- run app and hit a controller (via a web request, at least one request must complete)
+- run `rake coverband:coverage` this will show app initialization coverage
+- make another request, or enough that your reporting frequency will trigger
+- run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
 # Coverband Demo
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
-
 
 ### Example apps
 
@@ -137,14 +136,12 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 
 # Advanced Config
 
-
 If you need to configure coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
 
-* See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
-* By default Coverband will try to stored data to Redis
-	* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
+- See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
+- By default Coverband will try to stored data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
 
- Below is an example config file for a Rails 5 app:
+Below is an example config file for a Rails 5 app:
 
 ```ruby
 #config/coverband.rb
@@ -170,14 +167,12 @@ end
 Sometimes you have files that are known to be valuable perhaps in other environments or something that is just run very infrequently. Opposed to having to mentally filter them out of the report, you can just have them ignored in the Coverband reporting by using `config.ignore` as shown below. Ignore takes a string but can also match with regex rules see how below ignores all rake tasks as an example.
 
 ```
-config.ignore =	['config/application.rb',
+config.ignore +=	['config/application.rb',
                    'config/boot.rb',
                    'config/puma.rb',
                    'config/schedule.rb',
-                   'config/environments/test.rb',
-                   'config/environments/development.rb',
-                   'config/environments/staging.rb',
-                   'config/environments/production.rb',
+                   'bin/*'
+                   'config/environments/*',
                    'lib/tasks/*']
 ```
 
@@ -208,8 +203,7 @@ Between the release of 4.0 and 4.1 our data format changed. This resets all your
 
 `rake coverband:migrate`
 
-* We will be working to support migrations going forward, when possible
-
+- We will be working to support migrations going forward, when possible
 
 ### Clear Coverage
 
@@ -250,8 +244,8 @@ Coverband.configure do |config|
   config.safe_reload_files = ['config/coverband.rb']
 end
 ```
-By adding any files above you will get reporting on those files as part of your coverage runtime report. The files are reloaded when Coverband first starts, you can also trigger a reload via the web interface.
 
+By adding any files above you will get reporting on those files as part of your coverage runtime report. The files are reloaded when Coverband first starts, you can also trigger a reload via the web interface.
 
 ### Collecting Gem / Library Usage
 
@@ -280,7 +274,7 @@ This flag exposes line by line usage of gem files. Unfortunately due to the way 
 
 ### Manually Starting Coverband
 
-Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments. 
+Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments.
 
 In order to start coverband manually yourself when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
 
@@ -288,7 +282,6 @@ In order to start coverband manually yourself when this flag is enabled, call `C
 Coverband.configure
 Coverband.start
 ```
-
 
 ### Verbose Debug / Development Mode
 
@@ -316,8 +309,8 @@ If you are trying to debug locally wondering what code is being run during a req
 
 # Prerequisites
 
-* Coverband 3.0.X+ requires Ruby 2.3+
-* Coverband currently requires Redis for production usage
+- Coverband 3.0.X+ requires Ruby 2.3+
+- Coverband currently requires Redis for production usage
 
 # Contributing To Coverband
 
@@ -334,18 +327,18 @@ If you are working on adding features, PRs, or bugfixes to Coverband this sectio
 
 If you submit a change please make sure the tests and benchmarks are passing.
 
-* run tests: 
-   * `bundle exec rake` 
-   * `BUNDLE_GEMFILE=Gemfile.rails4 bundle exec rake` (Same tests using rails 4 instead of 5)
-* view test coverage: `open coverage/index.html`
-* run the benchmarks before and after your change to see impact
-   * `rake benchmarks` 
+- run tests:
+  - `bundle exec rake`
+  - `BUNDLE_GEMFILE=Gemfile.rails4 bundle exec rake` (Same tests using rails 4 instead of 5)
+- view test coverage: `open coverage/index.html`
+- run the benchmarks before and after your change to see impact
+  - `rake benchmarks`
 
 ### Known Issues
 
-* __total fail__ on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
-  * related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
-* coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library. See [reload files section](#forcing-coverband-to-track-coverage-on-files-loaded-during-boot-safe_reload_files).
+- **total fail** on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
+  - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
+- coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library. See [reload files section](#forcing-coverband-to-track-coverage-on-files-loaded-during-boot-safe_reload_files).
 
 ### Debugging Redis Store
 
