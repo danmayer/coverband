@@ -31,6 +31,12 @@ class ResqueWorkerTest < Minitest::Test
 
     assert !Coverband::Background.running?
 
-    assert_equal 1, Coverband.configuration.store.coverage[relative_job_file]['data'][4]
+    # TODO: There is a test only type issue where the test is looking at eager data
+    # it merged eager and eager for merged and runtime is eager
+    Coverband.runtime_coverage!
+    report = Coverband.configuration.store.get_coverage_report
+
+    assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]['data'][4]
+    assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]['data'][4]
   end
 end
