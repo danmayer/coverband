@@ -34,6 +34,10 @@ module Coverband
         @store.type = Coverband::EAGER_TYPE
       end
 
+      def skip_next_report!
+        @skip_next_report = true
+      end
+
       def report_coverage(force_report = false)
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
@@ -46,8 +50,10 @@ module Coverband
         # when we are in runtime collection mode, which do not have a cache of previous
         # coverage to remove the initial stdlib Coverage loading data
         ###
-        if ((original_previous_set.nil? && @store.type == Coverband::EAGER_TYPE) ||
-           (original_previous_set && @store.type != Coverband::EAGER_TYPE))
+        if @skip_next_report
+          @logger&.info('skipping report of coverage') if @verbose
+          @skip_next_report = false
+        else
           @store.save_report(files_with_line_usage)
         end
       rescue StandardError => err
