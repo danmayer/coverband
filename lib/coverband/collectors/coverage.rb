@@ -5,7 +5,6 @@ require_relative 'delta'
 module Coverband
   module Collectors
     ###
-    # TODO: look at alternatives to semaphore
     # StandardError seems like be better option
     # coverband previously had RuntimeError here
     # but runtime error can let a large number of error crash this method
@@ -13,7 +12,6 @@ module Coverband
     ###
     class Coverage
       include Singleton
-      extend Forwardable
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
