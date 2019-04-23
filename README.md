@@ -1,4 +1,4 @@
-<img src="./assets/heads.svg" width='300
+<img src="./docs/assets/heads.svg" width='300
 '>
 
 # Coverband

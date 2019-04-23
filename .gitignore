@@ -5,6 +5,8 @@
 .yardoc
 .idea/
 .ruby-version
+assets/.DS_Store
+.DS_Store
 Gemfile*lock
 InstalledFiles
 _yardoc
