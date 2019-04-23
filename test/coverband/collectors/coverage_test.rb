@@ -67,9 +67,9 @@ class CollectorsCoverageTest < Minitest::Test
   end
 
   test '#skip_next_report!' do
-    @coverband.skip_next_report!
     store = Coverband.configuration.store
     @coverband.reset_instance
+    @coverband.skip_next_report!
     store.expects(:save_report).once
     @coverband.report_coverage(true)
     @coverband.report_coverage(true)

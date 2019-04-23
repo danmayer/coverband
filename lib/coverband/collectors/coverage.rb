@@ -22,6 +22,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
+        @skip_next_report = false
         Delta.reset
         self
       end
@@ -36,6 +37,10 @@ module Coverband
 
       def skip_next_report!
         @skip_next_report = true
+      end
+
+      def disable_skip_next_report!
+        @skip_next_report = false
       end
 
       def report_coverage(force_report = false)
