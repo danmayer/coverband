@@ -1,5 +1,4 @@
-<img src="./docs/assets/heads.svg" width='300
-'>
+![image](https://raw.github.com/danmayer/coverband/master/docs/assets/logo/heads.svg =300px)
 
 # Coverband
 
