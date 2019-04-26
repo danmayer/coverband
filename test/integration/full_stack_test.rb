@@ -20,10 +20,10 @@ class FullStackTest < Minitest::Test
     end
     Coverband.configuration.store.clear!
     Coverband.start
-    Coverband::Collectors::Coverage.instance.runtime!
+    Coverband::Collectors::Coverage.instance.eager_loading!
     @rack_file = require_unique_file 'fake_app/basic_rack.rb'
-    # preload first coverage hit
     Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.runtime!
   end
 
   test 'call app' do
@@ -32,14 +32,19 @@ class FullStackTest < Minitest::Test
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
     sleep(0.2)
-    expected = [nil, nil, 1, nil, 1, 1, 1, nil, nil]
+    expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
     sleep(0.2)
-    expected = [nil, nil, 1, nil, 1, 1, 2, nil, nil]
+    expected = [nil, nil, 0, nil, 0, 0, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
+
+    # class coverage
+    Coverband.eager_loading_coverage!
+    Coverband.configuration.store.coverage[@rack_file]['data']
+    expected = [nil, nil, 1, nil, 1, 1, 0, nil, nil]
   end
 
   test 'call app with gem tracking' do
