@@ -46,10 +46,7 @@ module Coverband
         # when we are in runtime collection mode, which do not have a cache of previous
         # coverage to remove the initial stdlib Coverage loading data
         ###
-        if ((original_previous_set.nil? && @store.type == Coverband::EAGER_TYPE) ||
-           (original_previous_set && @store.type != Coverband::EAGER_TYPE))
-          @store.save_report(files_with_line_usage)
-        end
+        @store.save_report(files_with_line_usage)
       rescue StandardError => err
         if @verbose
           @logger&.error 'coverage failed to store'
