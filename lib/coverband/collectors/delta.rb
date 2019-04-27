@@ -18,13 +18,17 @@ module Coverband
 
       def self.results(process_coverage = RubyCoverage)
         @semaphore.synchronize do
-          @@previous_coverage ||= {}
+          set_default_results
           new(process_coverage.results).results
         end
       end
 
       def self.previous_results
         @@previous_coverage
+      end
+
+      def self.set_default_results
+        @@previous_coverage ||= {}
       end
 
       def results

@@ -6,6 +6,7 @@ require 'rack'
 class FullStackTest < Minitest::Test
   REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
   TEST_RACK_APP = '../fake_app/basic_rack.rb'
+  RELATIVE_FILE = './fake_app/basic_rack.rb'
 
   def setup
     super
@@ -20,10 +21,11 @@ class FullStackTest < Minitest::Test
     end
     Coverband.configuration.store.clear!
     Coverband.start
-    Coverband::Collectors::Coverage.instance.eager_loading!
-    @rack_file = require_unique_file 'fake_app/basic_rack.rb'
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
     Coverband::Collectors::Coverage.instance.runtime!
+    @rack_file = File.expand_path(TEST_RACK_APP, File.dirname(__FILE__))
+    require @rack_file
+    # preload first coverage hit
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
   end
 
   test 'call app' do
@@ -33,18 +35,13 @@ class FullStackTest < Minitest::Test
     assert_equal 'Hello Rack!', results.last
     sleep(0.2)
     expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
-    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
+    assert_equal expected, Coverband.configuration.store.coverage[RELATIVE_FILE]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
     sleep(0.2)
     expected = [nil, nil, 0, nil, 0, 0, 2, nil, nil]
-    assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
-
-    # class coverage
-    Coverband.eager_loading_coverage!
-    Coverband.configuration.store.coverage[@rack_file]['data']
-    expected = [nil, nil, 1, nil, 1, 1, 0, nil, nil]
+    assert_equal expected, Coverband.configuration.store.coverage[RELATIVE_FILE]['data']
   end
 
   test 'call app with gem tracking' do

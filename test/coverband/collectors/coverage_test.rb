@@ -66,15 +66,6 @@ class CollectorsCoverageTest < Minitest::Test
     assert_match /Oh no/, error.message
   end
 
-  test '#skip_next_report!' do
-    store = Coverband.configuration.store
-    @coverband.reset_instance
-    @coverband.skip_next_report!
-    store.expects(:save_report).once
-    @coverband.report_coverage(true)
-    @coverband.report_coverage(true)
-  end
-
   test 'default tmp ignores' do
     heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
     assert_equal false, @coverband.send(:track_file?, heroku_build_file)

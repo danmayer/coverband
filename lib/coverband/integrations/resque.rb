@@ -4,7 +4,7 @@ Resque.after_fork do |job|
   Coverband.start
   Coverband.runtime_coverage!
   # no reason to miss coverage on a first resque job
-  Coverband.coverage.disable_skip_next_report!
+  Coverband::Collectors::Delta.set_default_results
 end
 
 Resque.before_first_fork do

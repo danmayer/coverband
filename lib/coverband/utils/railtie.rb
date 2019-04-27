@@ -10,10 +10,6 @@ module Coverband
     config.after_initialize do
       Coverband.report_coverage(true)
       Coverband.configuration.logger&.debug('Coverband: reported after_initialize')
-      unless Rails.configuration.eager_load
-        Coverband.configuration.logger&.debug('Coverband: setting to skip next report')
-        Coverband.coverage.skip_next_report!
-      end
       Coverband.runtime_coverage!
     end
 
