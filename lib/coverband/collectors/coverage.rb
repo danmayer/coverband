@@ -22,6 +22,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
+        @skip_next_report = false
         Delta.reset
         self
       end
@@ -32,6 +33,14 @@ module Coverband
 
       def eager_loading!
         @store.type = Coverband::EAGER_TYPE
+      end
+
+      def skip_next_report!
+        @skip_next_report = true
+      end
+
+      def disable_skip_next_report!
+        @skip_next_report = false
       end
 
       def report_coverage(force_report = false)
@@ -46,8 +55,10 @@ module Coverband
         # when we are in runtime collection mode, which do not have a cache of previous
         # coverage to remove the initial stdlib Coverage loading data
         ###
-        if ((original_previous_set.nil? && @store.type == Coverband::EAGER_TYPE) ||
-           (original_previous_set && @store.type != Coverband::EAGER_TYPE))
+        if @skip_next_report
+          @logger&.info('skipping report of coverage') if @verbose
+          @skip_next_report = false
+        else
           @store.save_report(files_with_line_usage)
         end
       rescue StandardError => err
