@@ -96,7 +96,7 @@ Feature Ideas:
 - move from thread based reporter instance to process based instance
 - thanks Karl Baum for much of the above mentioned work
 - clear coverage on individual files
-- we have a logo, thanks Dave Woodall
+- we have a logo, thanks Dave Woodall, http://davewoodall.com
 
 ### Coverband 4.1.1
 
