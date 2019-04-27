@@ -17,6 +17,12 @@ namespace :coverband do
     end
   end
 
+  desc 'report runtime Coverband code coverage'
+  task :coverage_server do
+    environment
+    Rack::Server.start app: Coverband::Reporters::Web.new, Port: ENV.fetch('COVERBAND_COVERAGE_PORT', 1022).to_i
+  end
+
   ###
   # clear data helpful for development or after configuration issues
   ###
