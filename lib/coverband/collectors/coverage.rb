@@ -49,7 +49,7 @@ module Coverband
           @logger&.error "error: #{e.inspect} #{e.message}"
           @logger&.error e.backtrace
         end
-        raise err if @test_env
+        raise e if @test_env
       end
 
       protected
