@@ -77,16 +77,15 @@ module Coverband
     end
 
     def store=(store)
-      if store.is_a?(Coverband::Adapters::Base)
-        @store = store
-      else
-        raise 'please pass in an subclass of Coverband::Adapters for supported stores'
-      end
+      raise 'Pass in an instance of Coverband::Adapters' unless store.is_a?(Coverband::Adapters::Base)
+
+      @store = store
     end
 
     def track_gems=(value)
       @track_gems = value
       return unless @track_gems
+
       # by default we ignore vendor where many deployments put gems
       # we will remove this default if track_gems is set
       @ignore.delete('vendor')
@@ -135,7 +134,7 @@ module Coverband
       roots
     end
 
-    SKIPPED_SETTINGS = %w(@s3_secret_access_key @store)
+    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
     def to_h
       instance_variables
         .each_with_object('gem_paths': gem_paths) do |var, hash|

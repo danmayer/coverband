@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 namespace :benchmarks do
   # https://github.com/evanphx/benchmark-ips
   # Enable and start GC before each job run. Disable GC afterwards.
@@ -13,11 +14,9 @@ namespace :benchmarks do
       run_gc
     end
 
-    def warmup_stats(*)
-    end
+    def warmup_stats(*); end
 
-    def add_report(*)
-    end
+    def add_report(*); end
 
     private
 
@@ -33,7 +32,6 @@ namespace :benchmarks do
   end
 
   def clone_classifier
-    # rubocop:disable Style/IfUnlessModifier
     unless Dir.exist? classifier_dir
       system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}"
     end
@@ -160,6 +158,7 @@ namespace :benchmarks do
   def adjust_report(report)
     report.keys.each do |file|
       next unless rand < 0.15
+
       report[file] = fake_line_numbers
     end
     report
@@ -170,11 +169,7 @@ namespace :benchmarks do
     # this is a hack because in the benchmark we don't have real files
     ###
     def store.file_hash(file)
-      if @file_hash_cache[file]
-        @file_hash_cache[file]
-      else
-        @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
-      end
+      @file_hash_cache[file] || @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
     end
 
     def store.full_path_to_relative(file)
@@ -269,13 +264,13 @@ namespace :benchmarks do
   end
 
   # desc 'runs benchmarks on default redis setup'
-  task run_redis: [:setup, :setup_redis] do
+  task run_redis: %i[setup setup_redis] do
     puts 'Coverband configured with default Redis store'
     run_work(true)
   end
 
   # desc 'runs benchmarks file store'
-  task run_file: [:setup, :setup_file] do
+  task run_file: %i[setup setup_file] do
     puts 'Coverband configured with file store'
     run_work(true)
   end

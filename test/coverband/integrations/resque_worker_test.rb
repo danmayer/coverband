@@ -5,7 +5,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 class ResqueWorkerTest < Minitest::Test
   def enqueue_and_run_job
     Resque.enqueue(TestResqueJob)
-    queue = ENV['QUEUE'] ='resque_coverband'
+    queue = ENV['QUEUE'] = 'resque_coverband'
     worker = Resque::Worker.new
     worker.startup
     worker.work_one_job
@@ -36,7 +36,7 @@ class ResqueWorkerTest < Minitest::Test
     Coverband.runtime_coverage!
     report = Coverband.configuration.store.get_coverage_report
 
-    assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]['data'][4]
-    assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]['data'][4]
+    assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]['data'][6]
+    assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]['data'][6]
   end
 end

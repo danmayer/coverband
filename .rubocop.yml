@@ -2,14 +2,21 @@ AllCops:
   TargetRubyVersion: 2.4
   Exclude:
     - docs/**/*
+    - test/rails4_dummy/**/*
+    - test/rails5_dummy/**/*
+    - test/fixtures/**/*
+    # Get the code passing first then we will enable for tests
+    - test/**/*
 Documentation:
   Enabled: false
 Metrics/MethodLength:
   Enabled: false
 Metrics/LineLength:
-  Max: 120
+  Max: 160
 Metrics/BlockNesting:
   Max: 5
+Metrics/BlockLength:
+  Max: 30
 Metrics/CyclomaticComplexity:
   Enabled: false
 Metrics/PerceivedComplexity:
@@ -22,20 +29,26 @@ Metrics/ModuleLength:
   Enabled: false
 Metrics/ParameterLists:
   Max: 10
-Style/AccessorMethodName:
+Naming/AccessorMethodName:
   Enabled: false
-Style/PredicateName:
-  Enabled: false
+Naming/PredicateName:
+  Enabled: true
 Style/TernaryParentheses:
   Enabled: false
 Style/MutableConstant:
+  Enabled: false
+Style/IdenticalConditionalBranches:
+  Enabled: false
+Style/ClassVars:
+  Enabled: false
+Style/MultilineBlockChain:
   Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: true
 Style/GuardClause:
   Enabled: true
 Style/NumericPredicate:
-  Enabled: false
+  Enabled: true
 Style/NumericLiterals:
   Enabled: false
 Style/NumericLiteralPrefix:
@@ -44,16 +57,17 @@ Style/ClassAndModuleChildren:
   Enabled: false
 Performance/Casecmp:
   Enabled: false
-Style/MultilineMethodCallIndentation:
+Layout/MultilineMethodCallIndentation:
   Enabled: true
-Style/MultilineOperationIndentation:
+Layout/MultilineOperationIndentation:
   Enabled: true
 Lint/RescueException:
+  Enabled: true
+Lint/UselessAccessModifier:
   Enabled: true
 Lint/ShadowingOuterLocalVariable:
   Enabled: true
 Style/FormatString:
   Enabled: true
-Lint/Eval:
+Security/Eval:
   Enabled: true
-

@@ -73,6 +73,4 @@ class RedisTest < Minitest::Test
     @redis.expects(:del).twice
     @store.clear!
   end
-
-
 end

@@ -4,8 +4,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class BackgroundTest < Minitest::Test
   class ThreadDouble < Struct.new(:alive)
-    def exit
-    end
+    def exit; end
 
     def alive?
       alive
@@ -27,5 +26,4 @@ class BackgroundTest < Minitest::Test
     Coverband::Collectors::Coverage.instance.expects(:report_coverage).twice
     2.times { Coverband::Background.start }
   end
-
 end

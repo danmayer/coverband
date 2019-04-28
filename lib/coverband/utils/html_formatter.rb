@@ -35,7 +35,7 @@ module Coverband
 
       def format_source_file!(filename)
         source_file = @coverage_result.file_from_path_with_type(filename)
-  
+
         formatted_source_file(@coverage_result, source_file)
       end
 
@@ -70,6 +70,7 @@ module Coverband
 
       def asset_output_path
         return @asset_output_path if defined?(@asset_output_path) && @asset_output_path
+
         @asset_output_path = File.join(output_path)
         FileUtils.mkdir_p(@asset_output_path)
         @asset_output_path

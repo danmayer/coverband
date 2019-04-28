@@ -3,6 +3,7 @@
 begin
   require 'rack'
 rescue LoadError
+  puts 'error loading Coverband web reporter as Rack is not available'
 end
 
 module Coverband
@@ -122,7 +123,7 @@ module Coverband
       # "/coverage/collect_coverage?" become:
       # /coverage/
       def base_path
-        request.path =~ %r{\/.*\/} ? request.path.match("\/.*\/")[0] : '/'
+        %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : '/'
       end
     end
   end

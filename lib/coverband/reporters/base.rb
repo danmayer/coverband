@@ -13,19 +13,18 @@ module Coverband
           all_roots = Coverband.configuration.all_root_paths
           scov_style_report = get_current_scov_data_imp(store, all_roots)
 
-          if Coverband.configuration.verbose
-            msg = "report:\n #{scov_style_report.inspect}"
-            # Coverband.configuration.logger.debug msg
-          end
+          # These are extremelhy verbose but useful during coverband development, not generally for users
+          # if Coverband.configuration.verbose
+          #   # msg = "report:\n #{scov_style_report.inspect}"
+          #   # Coverband.configuration.logger.debug msg
+          # end
           scov_style_report
         end
 
         protected
 
         def fix_file_names(report_hash, roots)
-          if Coverband.configuration.verbose
-            Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}"
-          end
+          Coverband.configuration.logger.info "fixing root: #{roots.join(', ')}" if Coverband.configuration.verbose
 
           # normalize names across servers
           report_hash.each_with_object({}) do |(name, report), fixed_report|
@@ -33,12 +32,12 @@ module Coverband
             report.each_pair do |key, vals|
               filename = relative_path_to_full(key, roots)
               fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename]['data'] && vals['data']
-                                         merged_data = merge_arrays(fixed_report[name][filename]['data'], vals['data'])
-                                         vals['data'] = merged_data
-                                         vals
-                                       else
-                                         vals
-                                       end
+                                               merged_data = merge_arrays(fixed_report[name][filename]['data'], vals['data'])
+                                               vals['data'] = merged_data
+                                               vals
+                                             else
+                                               vals
+                                             end
             end
           end
         end

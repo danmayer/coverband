@@ -23,13 +23,13 @@ class BaseTest < Minitest::Test
 
   test 'gem_paths' do
     Coverband::Collectors::Coverage.instance.reset_instance
-    assert Coverband.configuration.gem_paths.first != nil
+    assert !Coverband.configuration.gem_paths.first.nil?
   end
 
   test 'groups' do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configuration.track_gems = true
-    assert_equal %w(App Gems), Coverband.configuration.groups.keys
+    assert_equal %w[App Gems], Coverband.configuration.groups.keys
   end
 
   test 'all_root_paths' do

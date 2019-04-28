@@ -41,8 +41,6 @@ module Coverband
         end
       end
 
-      private
-
       def self.fix_reports(reports)
         # list all files, even if not tracked by Coverband (0% coverage)
         tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"

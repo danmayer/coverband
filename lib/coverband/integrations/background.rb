@@ -7,6 +7,7 @@ module Coverband
 
     def self.stop
       return unless @thread
+
       @semaphore.synchronize do
         if @thread
           @thread.exit
@@ -16,7 +17,7 @@ module Coverband
     end
 
     def self.running?
-      @thread && @thread.alive?
+      @thread&.alive?
     end
 
     def self.start
@@ -25,6 +26,7 @@ module Coverband
       logger = Coverband.configuration.logger
       @semaphore.synchronize do
         return if running?
+
         logger&.debug('Coverband: Starting background reporting')
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
         @thread = Thread.new do
