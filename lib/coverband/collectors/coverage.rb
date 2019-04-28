@@ -43,11 +43,11 @@ module Coverband
         files_with_line_usage = filtered_files(Delta.results)
 
         @store.save_report(files_with_line_usage)
-      rescue StandardError => err
+      rescue StandardError => e
         if @verbose
           @logger&.error 'coverage failed to store'
-          @logger&.error "error: #{err.inspect} #{err.message}"
-          @logger&.error err.backtrace
+          @logger&.error "error: #{e.inspect} #{e.message}"
+          @logger&.error e.backtrace
         end
         raise err if @test_env
       end
