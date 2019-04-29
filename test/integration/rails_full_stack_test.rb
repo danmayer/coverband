@@ -33,11 +33,11 @@ class RailsFullStackTest < Minitest::Test
       assert_selector('td', text: '100.0 %')
     end
 
-    #Test gems are reporting coverage
+    # Test gems are reporting coverage
     assert_content('Gems')
     assert page.html.match('rainbow/wrapper.rb')
 
-    #Test eager load data stored separately
+    # Test eager load data stored separately
     dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
     store.type = :eager_loading
     eager_expected = [1, 1, 0, nil, nil]
@@ -57,6 +57,7 @@ class RailsFullStackTest < Minitest::Test
   if ENV['COVERBAND_MEMORY_TEST']
     test 'memory usage' do
       return unless ENV['COVERBAND_MEMORY_TEST']
+
       # we don't want this to run during our standard test suite
       # as the below profiler changes the runtime
       # and shold only be included for isolated processes

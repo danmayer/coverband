@@ -87,7 +87,7 @@ module Coverband
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
-        updated_time = self.type == Coverband::EAGER_TYPE ? nil : report_time
+        updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
             'first_updated_at' => report_time,

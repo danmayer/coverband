@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require 'bundler/gem_tasks'
-
 import 'test/benchmarks/benchmark.rake'
+require 'rubocop/rake_task'
 
-task default: [:test, :benchmarks]
+RuboCop::RakeTask.new
+
+task default: %i[test benchmarks]
 
 task :test
 require 'rake/testtask'

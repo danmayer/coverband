@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'singleton'
 require_relative 'delta'
 
@@ -38,22 +39,17 @@ module Coverband
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
 
-        original_previous_set = Delta.previous_results
+        Delta.previous_results
         files_with_line_usage = filtered_files(Delta.results)
 
-        ###
-        # Hack to prevent processes and threads from reporting first Coverage hit
-        # when we are in runtime collection mode, which do not have a cache of previous
-        # coverage to remove the initial stdlib Coverage loading data
-        ###
         @store.save_report(files_with_line_usage)
-      rescue StandardError => err
+      rescue StandardError => e
         if @verbose
           @logger&.error 'coverage failed to store'
-          @logger&.error "error: #{err.inspect} #{err.message}"
-          @logger&.error err.backtrace
+          @logger&.error "error: #{e.inspect} #{e.message}"
+          @logger&.error e.backtrace
         end
-        raise err if @test_env
+        raise e if @test_env
       end
 
       protected
@@ -85,19 +81,16 @@ module Coverband
       end
 
       def initialize
-        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
-          raise NotImplementedError, 'not supported until Ruby 2.3.0 and later'
-        end
+        raise NotImplementedError, 'Coverage needs Ruby > 2.3.0' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
+
         require 'coverage'
         if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
           ::Coverage.start unless ::Coverage.running?
         else
           ::Coverage.start
         end
-        if Coverband.configuration.safe_reload_files
-          Coverband.configuration.safe_reload_files.each do |safe_file|
-            load safe_file
-          end
+        Coverband.configuration.safe_reload_files&.each do |safe_file|
+          load safe_file
         end
         reset_instance
       end

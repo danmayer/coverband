@@ -27,7 +27,7 @@ class ReportsBaseTest < Minitest::Test
 
     expected_path = '/full/remote_app/path/app/models/user.rb'
     key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
-    roots = ["/box/apps/app_name/releases/\\d+/", '/full/remote_app/path/']
+    roots = ['/box/apps/app_name/releases/\\d+/', '/full/remote_app/path/']
     File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
     assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
@@ -53,7 +53,7 @@ class ReportsBaseTest < Minitest::Test
     assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
     File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
     File.expects(:exist?).with(expected_path).returns(true)
-    roots = ["/var/local/company/company.d/[0-9]*/", "#{current_app_root}/"]
+    roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
     assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
   end
 

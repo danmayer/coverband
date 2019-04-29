@@ -26,7 +26,7 @@ class CollectorsCoverageTest < Minitest::Test
     file = require_unique_file
     coverband.report_coverage(true)
     coverage = Coverband.configuration.store.coverage
-    assert_equal(coverage[file]["data"], [nil, nil, 1, 1, 0, nil, nil])
+    assert_equal(coverage[file]['data'], [nil, nil, 1, 1, 0, nil, nil])
   end
 
   test 'Dog method and class coverage' do
@@ -34,7 +34,7 @@ class CollectorsCoverageTest < Minitest::Test
     Dog.new.bark
     coverband.report_coverage(true)
     coverage = Coverband.configuration.store.coverage
-    assert_equal(coverage["./test/dog.rb"]["data"], [nil, nil, 1, 1, 1, nil, nil])
+    assert_equal(coverage['./test/dog.rb']['data'], [nil, nil, 1, 1, 1, nil, nil])
   end
 
   test 'gets coverage instance' do
@@ -55,7 +55,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'report_coverage raises errors in tests with verbose enabled' do
     Coverband.configuration.verbose = true
-    logger = mock()
+    logger = mock
     Coverband.configuration.logger = logger
     @coverband.reset_instance
     @coverband.expects(:ready_to_report?).raises('Oh no')

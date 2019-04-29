@@ -3,6 +3,7 @@
 begin
   require 'rack'
 rescue LoadError
+  puts 'error loading Coverband web reporter as Rack is not available'
 end
 
 module Coverband

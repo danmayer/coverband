@@ -3,7 +3,6 @@
 require File.expand_path('../test_helper', File.dirname(__FILE__))
 
 class CoverbandTest < Minitest::Test
-
   test 'Coverband#start kicks off background reporting if enabled and not in rack server' do
     Coverband.configuration.stubs(:background_reporting_enabled).returns(:true)
     Coverband::RackServerCheck.expects(:running?).returns(false)

@@ -9,6 +9,9 @@ gemfile:
   - Gemfile.rails4
 services:
   - redis-server
+script:
+  - bundle exec rake rubocop
+  - bundle exec rake
 before_install:
   - echo 'this is a hack to clear default bundler and force bundler 1.17.3'
   - ls /home/travis/.rvm/gems/

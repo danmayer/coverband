@@ -6,7 +6,8 @@
 module Coverband
   module Utils
     module FilePathHelper
-      extend self
+      module_function
+
       ###
       # Takes a full path and converts to a relative path
       ###

@@ -35,6 +35,7 @@ module Coverband
           raise ArgumentError, 'Only String accepted for source' unless src.is_a?(String)
           raise ArgumentError, 'Only Integer accepted for line_number' unless line_number.is_a?(Integer)
           raise ArgumentError, 'Only Integer and nil accepted for coverage' unless coverage.is_a?(Integer) || coverage.nil?
+
           @src         = src
           @line_number = line_number
           @coverage    = coverage
@@ -48,7 +49,7 @@ module Coverband
 
         # Returns true if this is a line that has been covered
         def covered?
-          !never? && !skipped? && coverage > 0
+          !never? && !skipped? && coverage.positive?
         end
 
         # Returns true if this line is not relevant for coverage
@@ -64,7 +65,7 @@ module Coverband
         # Returns true if this line was skipped, false otherwise. Lines are skipped if they are wrapped with
         # # :nocov: comment lines.
         def skipped?
-          !!skipped
+          skipped
         end
 
         # The status of this line - either covered, missed, skipped or never. Useful i.e. for direct use

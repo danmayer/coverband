@@ -17,7 +17,7 @@ class CollectorsDeltaTest < Minitest::Test
 
   test 'No previous results' do
     current_coverage = {
-      'car.rb' => [0,5,1]
+      'car.rb' => [0, 5, 1]
     }
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
@@ -25,16 +25,16 @@ class CollectorsDeltaTest < Minitest::Test
 
   test 'Coverage has gone up' do
     current_coverage = {
-      'car.rb' => [nil,1,5,1]
+      'car.rb' => [nil, 1, 5, 1]
     }
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
 
     current_coverage = {
-      'car.rb' => [nil,1,7,1]
+      'car.rb' => [nil, 1, 7, 1]
     }
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
-    assert_equal({'car.rb' => [nil, 0, 2, 0]}, results)
+    assert_equal({ 'car.rb' => [nil, 0, 2, 0] }, results)
   end
 
   test 'New file added to coverage' do
@@ -43,10 +43,9 @@ class CollectorsDeltaTest < Minitest::Test
     assert_equal(current_coverage, results)
 
     current_coverage = {
-      'dealership.rb' => [nil,1,1,nil]
+      'dealership.rb' => [nil, 1, 1, nil]
     }
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
   end
 end
-

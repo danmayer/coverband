@@ -9,5 +9,3 @@ class AtExitTest < Minitest::Test
     2.times { Coverband::AtExit.register }
   end
 end
-
-

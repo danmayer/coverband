@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Resque.after_fork do |job|
+Resque.after_fork do |_job|
   Coverband.start
   Coverband.runtime_coverage!
   # no reason to miss coverage on a first resque job
