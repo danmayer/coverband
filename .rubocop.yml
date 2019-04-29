@@ -57,7 +57,7 @@ Style/ClassAndModuleChildren:
   Enabled: false
 Performance/Casecmp:
   Enabled: false
-Performance/RegexMatch:
+Performance/RegexpMatch:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
   Enabled: true
