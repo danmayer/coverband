@@ -39,7 +39,6 @@ module Coverband
         return if !ready_to_report? && !force_report
         raise 'no Coverband store set' unless @store
 
-        Delta.previous_results
         files_with_line_usage = filtered_files(Delta.results)
 
         @store.save_report(files_with_line_usage)
