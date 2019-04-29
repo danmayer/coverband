@@ -123,7 +123,7 @@ module Coverband
       # "/coverage/collect_coverage?" become:
       # /coverage/
       def base_path
-        %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : '/'
+        request.path =~ %r{\/.*\/} ? request.path.match("\/.*\/")[0] : '/'
       end
     end
   end
