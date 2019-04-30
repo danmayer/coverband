@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-Coverband.eager_loading_coverage!
 module Coverband
   module RailsEagerLoad
     def eager_load!
