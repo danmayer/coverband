@@ -36,12 +36,14 @@ module Coverband
       end
 
       def report_coverage(force_report = false)
-        return if !ready_to_report? && !force_report
-        raise 'no Coverband store set' unless @store
+        @semaphore.synchronize do
+          return if !ready_to_report? && !force_report
+          raise 'no Coverband store set' unless @store
 
-        files_with_line_usage = filtered_files(Delta.results)
+          files_with_line_usage = filtered_files(Delta.results)
 
-        @store.save_report(files_with_line_usage)
+          @store.save_report(files_with_line_usage)
+        end
       rescue StandardError => e
         if @verbose
           @logger&.error 'coverage failed to store'
@@ -80,6 +82,7 @@ module Coverband
       end
 
       def initialize
+        @semaphore = Mutex.new
         raise NotImplementedError, 'Coverage needs Ruby > 2.3.0' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
 
         require 'coverage'

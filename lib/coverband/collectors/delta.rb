@@ -3,7 +3,6 @@
 module Coverband
   module Collectors
     class Delta
-      @semaphore = Mutex.new
       @@previous_coverage = {}
       attr_reader :current_coverage
 
@@ -18,9 +17,7 @@ module Coverband
       end
 
       def self.results(process_coverage = RubyCoverage)
-        @semaphore.synchronize do
-          new(process_coverage.results).results
-        end
+        new(process_coverage.results).results
       end
 
       def results
