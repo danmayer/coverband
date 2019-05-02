@@ -153,7 +153,7 @@ module Coverband
       end
 
       def formatted_covered_percent
-        covered_percent ? covered_percent.round(2) : nil
+        covered_percent&.round(2)
       end
 
       def covered_strength
@@ -180,11 +180,11 @@ module Coverband
       end
 
       def covered_lines_count
-        covered_lines ? covered_lines.count : nil
+        covered_lines&.count
       end
 
       def line_coverage(index)
-        lines[index] ? lines[index].coverage : nil
+        lines[index]&.coverage
       end
 
       # Returns all lines that should have been, but were not covered
