@@ -36,7 +36,11 @@ module Coverband
       def format_source_file!(filename)
         source_file = @coverage_result.file_from_path_with_type(filename)
 
-        formatted_source_file(@coverage_result, source_file)
+        if source_file
+          formatted_source_file(@coverage_result, source_file)
+        else
+          'File No Longer Available'
+        end
       end
 
       private
@@ -76,11 +80,19 @@ module Coverband
         @asset_output_path
       end
 
+      def served_html?
+        !static_html?
+      end
+
+      def static_html?
+        base_path.nil?
+      end
+
       def assets_path(name)
-        if base_path
-          File.join(base_path, name)
-        else
+        if static_html?
           File.join(name)
+        else
+          File.join(base_path, name)
         end
       end
 

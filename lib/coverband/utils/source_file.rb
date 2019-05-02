@@ -152,6 +152,10 @@ module Coverband
         Float(covered_lines.size * 100.0 / relevant_lines.to_f)
       end
 
+      def formatted_covered_percent
+        covered_percent&.round(2)
+      end
+
       def covered_strength
         return 0.0 if relevant_lines.zero?
 
@@ -173,6 +177,14 @@ module Coverband
       # Returns all covered lines as SimpleCov::SourceFile::Line
       def covered_lines
         @covered_lines ||= lines.select(&:covered?)
+      end
+
+      def covered_lines_count
+        covered_lines&.count
+      end
+
+      def line_coverage(index)
+        lines[index]&.coverage
       end
 
       # Returns all lines that should have been, but were not covered
