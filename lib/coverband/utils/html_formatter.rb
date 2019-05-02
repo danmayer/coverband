@@ -36,7 +36,11 @@ module Coverband
       def format_source_file!(filename)
         source_file = @coverage_result.file_from_path_with_type(filename)
 
-        formatted_source_file(@coverage_result, source_file)
+        if source_file
+          formatted_source_file(@coverage_result, source_file)
+        else
+          'File No Longer Available'
+        end
       end
 
       private

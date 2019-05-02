@@ -85,7 +85,11 @@ def basic_coverage
 end
 
 def basic_coverage_full_path
-  { "#{test_root}/dog.rb" => example_line }
+  { basic_coverage_file_full_path => example_line }
+end
+
+def basic_coverage_file_full_path
+  "#{test_root}/dog.rb"
 end
 
 def source_fixture(filename)

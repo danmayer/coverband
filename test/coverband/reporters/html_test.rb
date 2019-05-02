@@ -8,9 +8,6 @@ class ReportHTMLTest < Minitest::Test
     @redis = Redis.new
     @store = Coverband::Adapters::RedisStore.new(@redis)
     @store.clear!
-  end
-
-  test 'generate dynamic content hosted html report' do
     Coverband.configure do |config|
       config.reporter          = 'scov'
       config.store             = @store
@@ -18,6 +15,9 @@ class ReportHTMLTest < Minitest::Test
       config.ignore            = ['notsomething.rb']
     end
     mock_file_hash
+  end
+
+  test 'generate dynamic content hosted html report' do
     @store.send(:save_report, basic_coverage)
 
     html = Coverband::Reporters::HTMLReport.new(@store,
@@ -27,13 +27,6 @@ class ReportHTMLTest < Minitest::Test
   end
 
   test 'generate static HTML report file' do
-    Coverband.configure do |config|
-      config.reporter          = 'scov'
-      config.store             = @store
-      config.s3_bucket         = nil
-      config.ignore            = ['notsomething.rb']
-    end
-    mock_file_hash
     @store.send(:save_report, basic_coverage)
 
     reporter = Coverband::Reporters::HTMLReport.new(@store,
@@ -43,5 +36,39 @@ class ReportHTMLTest < Minitest::Test
     reporter.report
   end
 
-  # TODO: add test for fix missing files
+  test 'generate dynamic content detailed file report' do
+    @store.send(:save_report, basic_coverage_full_path)
+
+    filename = basic_coverage_file_full_path
+    base_path = '/coverage'
+    html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
+    assert_match 'Coverage first seen', html
+  end
+
+  test 'generate dynamic content detailed file report handles missing file' do
+    @store.send(:save_report, basic_coverage_full_path)
+
+    filename = 'missing_path'
+    base_path = '/coverage'
+    html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
+    assert_match 'File No Longer Available', html
+  end
+
+  test 'generate dynamic content detailed file report does not allow loading real non project files' do
+    @store.send(:save_report, basic_coverage_full_path)
+
+    filename = "#{test_root}/test_helper.rb"
+    base_path = '/coverage'
+    html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
+    assert_match 'File No Longer Available', html
+  end
 end
