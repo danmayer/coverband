@@ -25,9 +25,9 @@
         <li class="<%= line.status %>" data-hits="<%= line.coverage ? line.coverage : '' %>" data-linenumber="<%= line.number %>">
           <% if line.covered? %><span class="hits">
             load:
-            <%= result.file_with_type(source_file, Coverband::EAGER_TYPE).try(:lines).try(:[], index).try(:coverage) || 0 %>,
+            <%= result.file_with_type(source_file, Coverband::EAGER_TYPE)&.line_coverage(index) || 0 %>,
             runtime:
-            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE).try(:lines).try(:[], index).try(:coverage) || 0 %>
+            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.line_coverage(index) || 0 %>
             all: <%= line.coverage %>
           </span><% end %>
           <% if line.skipped? %><span class="hits">skipped</span><% end %>

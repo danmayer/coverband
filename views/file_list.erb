@@ -39,7 +39,7 @@
             <%= link_to_source_file(source_file) %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
-          <% runtime_percentage = result.file_with_type(source_file, Coverband::RUNTIME_TYPE).try(:covered_percent).try(:round, 2) %>
+          <% runtime_percentage = result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.formatted_covered_percent %>
           <td class="<%= "#{coverage_css_class(runtime_percentage)}" %> strong">
             <%= "#{runtime_percentage || '0'} %" %>
           </td>
@@ -47,7 +47,7 @@
           <td><%= source_file.covered_lines.count + source_file.missed_lines.count %></td>
           <td><%= source_file.covered_lines.count %></td>
           <td>
-            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE).try(:covered_lines).try(:count) || 0 %>
+            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.covered_lines_count || 0 %>
           </td>
           <td><%= source_file.missed_lines.count %></td>
           <td><%= source_file.covered_strength %></td>

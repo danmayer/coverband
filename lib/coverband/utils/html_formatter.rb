@@ -76,11 +76,19 @@ module Coverband
         @asset_output_path
       end
 
+      def served_html?
+        !static_html?
+      end
+
+      def static_html?
+        base_path.nil?
+      end
+
       def assets_path(name)
-        if base_path
-          File.join(base_path, name)
-        else
+        if static_html?
           File.join(name)
+        else
+          File.join(base_path, name)
         end
       end
 

@@ -84,6 +84,10 @@ def basic_coverage
   { 'app_path/dog.rb' => example_line }
 end
 
+def basic_coverage_full_path
+  { "#{test_root}/dog.rb" => example_line }
+end
+
 def source_fixture(filename)
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', filename))
 end

@@ -48,7 +48,11 @@
       <div class="source_files">
       <% result.source_files.each do |source_file| %>
         <% if (!source_file.gem? || (view_gems? && gem_details? && source_file.gem? )) %>
-          <%= formatted_source_file_loader(result, source_file) %>
+          <% if static_html? %>
+            <%= formatted_source_file(result, source_file) %>
+          <% else %>
+            <%= formatted_source_file_loader(result, source_file) %>
+          <% end %>
         <% end %>
       <% end %>
       </div>
