@@ -57,6 +57,7 @@ module Coverband
             filtered_report_files[report_name][file] = data
           end
         end
+        filtered_report_files
       end
     end
   end
