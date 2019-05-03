@@ -88,12 +88,20 @@ def basic_coverage_full_path
   { basic_coverage_file_full_path => example_line }
 end
 
+def basic_source_fixture_coverage
+  { source_fixture('sample.rb') => example_line }
+end
+
 def basic_coverage_file_full_path
   "#{test_root}/dog.rb"
 end
 
 def source_fixture(filename)
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', filename))
+end
+
+def fixtures_root
+  File.expand_path(File.join(File.dirname(__FILE__), 'fixtures'))
 end
 
 def test_root

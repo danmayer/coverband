@@ -335,6 +335,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - view test coverage: `open coverage/index.html`
 - run the benchmarks before and after your change to see impact
   - `rake benchmarks`
+  - run a single test by line number like rspec: `bundle exec m test/coverband/reporters/html_test.rb:29`
 
 ### Known Issues
 
