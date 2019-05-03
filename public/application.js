@@ -13,8 +13,25 @@ $(document).ready(function() {
     aoColumns: [
       null,
       { sType: "percent" },
+      { sType: "percent" },
       null,
       null,
+      null,
+      null,
+      null,
+      null
+    ]
+  });
+
+  // Configuration for fancy sortable tables for source file groups
+  $(".gem_list").dataTable({
+    aaSorting: [[1, "asc"]],
+    bPaginate: false,
+    bJQueryUI: true,
+    aoColumns: [
+      null,
+      { sType: "percent" },
+      { sType: "percent" },
       null,
       null,
       null,

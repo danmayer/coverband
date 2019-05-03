@@ -20,6 +20,16 @@ module Coverband
         get_results(results_type).source_files.find { |file| file.filename == source_file.filename }
       end
 
+      ###
+      # TODO: Groups still have some issues, this should be generic for groups, but right now gem_name
+      # is specifically called out, need to revisit all gorups code.
+      ###
+      def group_file_list_with_type(group, file_list, results_type)
+        return unless get_results(results_type)
+
+        get_results(results_type).groups[group].find { |gem_files| gem_files.first.gem_name == file_list.first.gem_name }
+      end
+
       def file_from_path_with_type(full_path, results_type = :merged)
         return unless get_results(results_type)
 
