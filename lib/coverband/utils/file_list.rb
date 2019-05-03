@@ -62,6 +62,12 @@ module Coverband
         Float(covered_lines * 100.0 / lines_of_code)
       end
 
+      # Computes the coverage based upon lines covered and lines missed, formatted
+      # @return [Float]
+      def formatted_covered_percent
+        covered_percent.round(2)
+      end
+
       # Computes the strength (hits / line) based upon lines covered and lines missed
       # @return [Float]
       def covered_strength
