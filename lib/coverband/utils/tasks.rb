@@ -18,7 +18,7 @@ namespace :coverband do
   task :coverage do
     environment
     if Coverband.configuration.reporter == 'scov'
-      Coverband::Reporters::HTMLReport.report(Coverband.configuration.store)
+      Coverband::Reporters::HTMLReport.new(Coverband.configuration.store).report
     else
       Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
     end
