@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+require 'minitest'
+require 'minitest/fork_executor'
+
+# Forked executor includes autorun which does not work with qrush/m
+# https://github.com/qrush/m/issues/26
+# https://github.com/seattlerb/minitest/blob/master/lib/minitest/autorun.rb
+if defined?(M)
+  Minitest.class_eval do
+    def self.autorun
+      puts 'No autorunning'
+    end
+  end
+end
+
+Minitest.parallel_executor = Minitest::ForkExecutor.new
 require File.expand_path('./test_helper', File.dirname(__FILE__))
 require 'capybara'
 require 'capybara/minitest'

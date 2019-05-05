@@ -19,6 +19,12 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
+Rake::TestTask.new(:forked_tests) do |test|
+  test.libs << 'lib' << 'test'
+  test.test_files = FileList['test/forked/**/*_test.rb']
+  test.verbose = true
+end
+
 desc 'load irb with this gem'
 task :console do
   exec 'irb -I lib -r coverband'
