@@ -8,7 +8,7 @@ module Coverband
                   :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
-                  :web_enable_clear, :gem_details, :web_debug
+                  :web_enable_clear, :gem_details, :web_debug, :report_on_exit
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems
@@ -38,6 +38,7 @@ module Coverband
       @gem_details = false
       @groups = {}
       @web_debug = false
+      @report_on_exit = true
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
