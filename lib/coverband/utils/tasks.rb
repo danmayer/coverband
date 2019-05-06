@@ -11,6 +11,7 @@ namespace :coverband do
 
   def environment
     Coverband.configuration.report_on_exit = false
+    Coverband.configuration.background_reporting_enabled = false
     Rake.application['environment'].invoke if Rake::Task.task_defined?('environment')
   end
 
