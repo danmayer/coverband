@@ -24,7 +24,7 @@ class HTMLFormatterTest < Minitest::Test
     filtered_report_files = Coverband::Reporters::Base.report(@store, {})
     html = Coverband::Utils::HTMLFormatter.new(filtered_report_files,
                                                base_path: base_path,
-                                               notice: notice).format_html!
+                                               notice: notice).format_dynamic_html!
     assert_match 'loading source data', html
   end
 
@@ -38,8 +38,8 @@ class HTMLFormatterTest < Minitest::Test
     @store.send(:save_report, basic_coverage_full_path)
 
     filtered_report_files = Coverband::Reporters::Base.report(@store, {})
-    Coverband::Utils::HTMLFormatter.new(filtered_report_files).format!
+    Coverband::Utils::HTMLFormatter.new(filtered_report_files).format_static_html!
     html = File.read("#{Coverband.configuration.root}/coverage/index.html")
-    assert_match 'Coverage first seen', html                                 
+    assert_match 'Coverage first seen', html
   end
 end

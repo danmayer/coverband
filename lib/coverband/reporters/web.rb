@@ -56,7 +56,7 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params['notice'])}<br/>"
         notice = request.params['notice'] ? notice : ''
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-                                             html: true,
+                                             static: false,
                                              base_path: base_path,
                                              notice: notice,
                                              open_report: false).report

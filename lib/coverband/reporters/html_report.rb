@@ -3,13 +3,13 @@
 module Coverband
   module Reporters
     class HTMLReport < Base
-      attr_accessor :filtered_report_files, :open_report, :html, :notice,
+      attr_accessor :filtered_report_files, :open_report, :static, :notice,
                     :base_path, :filename
 
       def initialize(store, options = {})
         coverband_reports = Coverband::Reporters::Base.report(store, options)
         self.open_report = options.fetch(:open_report) { true }
-        self.html = options.fetch(:html) { false }
+        self.static = options.fetch(:static) { true }
         # TODO: refactor notice out to top level of web only
         self.notice = options.fetch(:notice) { nil }
         self.base_path = options.fetch(:base_path) { nil }
@@ -25,39 +25,34 @@ module Coverband
       end
 
       def report
-        if html
-          Coverband::Utils::HTMLFormatter.new(filtered_report_files,
-                                              base_path: base_path,
-                                              notice: notice).format_html!
+        if static?
+          report_static_site
         else
-          Coverband::Utils::HTMLFormatter.new(filtered_report_files).format!
-          if open_report
-            `open #{Coverband.configuration.root}/coverage/index.html`
-          else
-            Coverband.configuration.logger.info 'report is ready and viewable: open coverage/index.html'
-          end
-
-          Coverband::Utils::S3Report.instance.persist! if Coverband.configuration.s3_bucket
+          report_dynamic_html
         end
       end
 
-      def self.fix_reports(reports)
-        # list all files, even if not tracked by Coverband (0% coverage)
-        tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"
-        filtered_report_files = {}
+      private
 
-        reports.each_pair do |report_name, report_data|
-          filtered_report_files[report_name] = {}
-          report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, tracked_glob)
+      def static?
+        static
+      end
 
-          # apply coverband filters
-          report_files.each_pair do |file, data|
-            next if Coverband.configuration.ignore.any? { |i| file.match(i) }
-
-            filtered_report_files[report_name][file] = data
-          end
+      def report_static_site
+        Coverband::Utils::HTMLFormatter.new(filtered_report_files).format_static_html!
+        if open_report
+          `open #{Coverband.configuration.root}/coverage/index.html`
+        else
+          Coverband.configuration.logger&.info 'report is ready and viewable: open coverage/index.html'
         end
-        filtered_report_files
+
+        Coverband::Utils::S3Report.instance.persist! if Coverband.configuration.s3_bucket
+      end
+
+      def report_dynamic_html
+        Coverband::Utils::HTMLFormatter.new(filtered_report_files,
+                                            base_path: base_path,
+                                            notice: notice).format_dynamic_html!
       end
     end
   end
