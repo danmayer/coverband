@@ -10,7 +10,7 @@ class RailsFullStackTest < Minitest::Test
     super
     rails_setup
     # preload first coverage hit
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.report_coverage
     require 'rainbow'
     Rainbow('this text is red').red
   end
@@ -26,7 +26,7 @@ class RailsFullStackTest < Minitest::Test
   # run. Possibly fork test runs to avoid this problem in future?
   test 'this is how we do it' do
     visit '/dummy/show'
-    Coverband.report_coverage(true)
+    Coverband.report_coverage
     assert_content('I am no dummy')
     visit '/coverage'
     within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
@@ -68,7 +68,7 @@ class RailsFullStackTest < Minitest::Test
         3.times do
           visit '/dummy/show'
           assert_content('I am no dummy')
-          Coverband.report_coverage(true)
+          Coverband.report_coverage
         end
 
         previous_out = $stdout
@@ -79,7 +79,7 @@ class RailsFullStackTest < Minitest::Test
           15.times do
             visit '/dummy/show'
             assert_content('I am no dummy')
-            Coverband.report_coverage(true)
+            Coverband.report_coverage
             # this is expected to retain memory across requests
             # clear it to remove the false positive from test
             Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)

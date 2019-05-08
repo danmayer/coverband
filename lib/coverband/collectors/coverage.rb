@@ -35,13 +35,11 @@ module Coverband
         @store.type = Coverband::EAGER_TYPE
       end
 
-      def report_coverage(force_report = false)
+      def report_coverage
         @semaphore.synchronize do
-          return if !ready_to_report? && !force_report
           raise 'no Coverband store set' unless @store
 
           files_with_line_usage = filtered_files(Delta.results)
-
           @store.save_report(files_with_line_usage)
         end
       rescue StandardError => e
@@ -75,10 +73,6 @@ module Coverband
         new_results.each_with_object({}) do |(file, line_counts), file_line_usage|
           file_line_usage[file] = line_counts if track_file?(file)
         end.select { |_file_name, coverage| coverage.any? { |value| value&.nonzero? } }
-      end
-
-      def ready_to_report?
-        (rand * 100.0) >= (100.0 - @reporting_frequency)
       end
 
       def initialize

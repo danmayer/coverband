@@ -30,7 +30,7 @@ module Coverband
              (Rake&.application&.top_level_tasks || []).any? { |task| default_heroku_tasks.include?(task) })
             # skip reporting
           else
-            Coverband.report_coverage(true)
+            Coverband.report_coverage
             # Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
           end
         end

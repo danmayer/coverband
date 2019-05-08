@@ -79,7 +79,7 @@ module Coverband
       end
 
       def collect_coverage
-        Coverband.report_coverage(true)
+        Coverband.report_coverage
         notice = 'coverband coverage collected'
         [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
       end

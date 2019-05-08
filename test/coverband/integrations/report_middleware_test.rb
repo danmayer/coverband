@@ -18,29 +18,6 @@ class ReportMiddlewareTest < Minitest::Test
     middleware.call(request)
   end
 
-  test 'never be report coverage with reporting_frequency of 0' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Collectors::Coverage.instance.reset_instance
-    collector = Coverband::Collectors::Coverage.instance
-    collector.instance_variable_set('@reporting_frequency', 0.0)
-    middleware = Coverband::ReportMiddleware.new(fake_app)
-    store = Coverband::Collectors::Coverage.instance.instance_variable_get('@store')
-    store.expects(:save_report).never
-    middleware.call(request)
-  end
-
-  test 'always be enabled with sample percentage of 100' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Collectors::Coverage.instance.reset_instance
-    collector = Coverband::Collectors::Coverage.instance
-    collector.report_coverage(true)
-    collector.instance_variable_set('@reporting_frequency', 100.0)
-    middleware = Coverband::ReportMiddleware.new(fake_app)
-    store = Coverband::Collectors::Coverage.instance.instance_variable_get('@store')
-    store.expects(:save_report).once
-    middleware.call(request)
-  end
-
   test 'reports coverage when an error is raised' do
     request = Rack::MockRequest.env_for('/anything.json')
     Coverband::Collectors::Coverage.instance.reset_instance

@@ -7,7 +7,7 @@ module Coverband
       Coverband.eager_loading_coverage!
       super
     ensure
-      Coverband.report_coverage(true)
+      Coverband.report_coverage
       Coverband.runtime_coverage!
     end
   end
