@@ -11,10 +11,9 @@ class FullStackTest < Minitest::Test
     super
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
-      config.reporting_frequency = 100.0
       config.store = Coverband::Adapters::RedisStore.new(Redis.new)
       config.s3_bucket = nil
-      config.background_reporting_enabled = false
+      config.background_reporting_enabled = true
       config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
       config.track_gems = true
     end
@@ -31,13 +30,13 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    sleep(0.2)
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
-    sleep(0.2)
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     expected = [nil, nil, 0, nil, 0, 0, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
@@ -54,7 +53,7 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::Middleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    sleep(0.1)
+    Coverband::Collectors::Coverage.instance.report_coverage(true)
     assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/global.rb') }
   end
 

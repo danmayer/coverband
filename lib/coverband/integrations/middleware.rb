@@ -10,11 +10,7 @@ module Coverband
       @app.call(env)
     ensure
       AtExit.register
-      if Coverband.configuration.background_reporting_enabled
-        Background.start
-      else
-        Collectors::Coverage.instance.report_coverage
-      end
+      Background.start if Coverband.configuration.background_reporting_enabled
     end
   end
 end
