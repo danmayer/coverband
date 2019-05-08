@@ -15,7 +15,7 @@ module Coverband
 
   class Railtie < Rails::Railtie
     initializer 'coverband.configure' do |app|
-      app.middleware.use Coverband::Middleware
+      app.middleware.use Coverband::BackgroundMiddleware
     end
 
     rake_tasks do

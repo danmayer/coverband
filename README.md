@@ -65,7 +65,7 @@ For the best coverage you want this loaded as early as possible. I have been put
 require 'coverband'
 require File.dirname(__FILE__) + '/config/environment'
 
-use Coverband::Middleware
+use Coverband::BackgroundMiddleware
 run ActionController::Dispatcher.new
 ```
 

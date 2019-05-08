@@ -26,7 +26,7 @@ require 'coverband/reporters/console_report'
 require 'coverband/integrations/background'
 require 'coverband/integrations/rack_server_check'
 require 'coverband/reporters/web'
-require 'coverband/integrations/middleware'
+require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/background'
 
 module Coverband
