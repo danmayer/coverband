@@ -21,11 +21,11 @@ module Coverband
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
-      def format!
+      def format_static_html!
         format(@coverage_result)
       end
 
-      def format_html!
+      def format_dynamic_html!
         format_html(@coverage_result)
       end
 

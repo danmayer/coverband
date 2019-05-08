@@ -21,6 +21,29 @@ module Coverband
           scov_style_report
         end
 
+        ###
+        # Add back files that exist in the project but have no Coverage
+        # This makes it easy to find and delete files with no references
+        ###
+        def fix_reports(reports)
+          # list all files, even if not tracked by Coverband (0% coverage)
+          tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"
+          filtered_report_files = {}
+
+          reports.each_pair do |report_name, report_data|
+            filtered_report_files[report_name] = {}
+            report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, tracked_glob)
+
+            # apply coverband filters
+            report_files.each_pair do |file, data|
+              next if Coverband.configuration.ignore.any? { |i| file.match(i) }
+
+              filtered_report_files[report_name][file] = data
+            end
+          end
+          filtered_report_files
+        end
+
         protected
 
         def fix_file_names(report_hash, roots)
