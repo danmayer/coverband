@@ -21,7 +21,7 @@ class FullStackTest < Minitest::Test
     Coverband.start
     Coverband::Collectors::Coverage.instance.eager_loading!
     @rack_file = require_unique_file 'fake_app/basic_rack.rb'
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.report_coverage
     Coverband::Collectors::Coverage.instance.runtime!
   end
 
@@ -30,13 +30,13 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.report_coverage
     expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
     # additional calls increase count by 1
     middleware.call(request)
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.report_coverage
     expected = [nil, nil, 0, nil, 0, 0, 2, nil, nil]
     assert_equal expected, Coverband.configuration.store.coverage[@rack_file]['data']
 
@@ -53,7 +53,7 @@ class FullStackTest < Minitest::Test
     middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
-    Coverband::Collectors::Coverage.instance.report_coverage(true)
+    Coverband::Collectors::Coverage.instance.report_coverage
     assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/global.rb') }
   end
 

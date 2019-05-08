@@ -12,7 +12,7 @@ class CollectorsCoverageTest < Minitest::Test
     end
     @coverband = Coverband::Collectors::Coverage.instance.reset_instance
     # preload first coverage hit
-    @coverband.report_coverage(true)
+    @coverband.report_coverage
   end
 
   def teardown
@@ -24,7 +24,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'Dog class coverage' do
     file = require_unique_file
-    coverband.report_coverage(true)
+    coverband.report_coverage
     coverage = Coverband.configuration.store.coverage
     assert_equal(coverage[file]['data'], [nil, nil, 1, 1, 0, nil, nil])
   end
@@ -32,7 +32,7 @@ class CollectorsCoverageTest < Minitest::Test
   test 'Dog method and class coverage' do
     load File.expand_path('../../dog.rb', File.dirname(__FILE__))
     Dog.new.bark
-    coverband.report_coverage(true)
+    coverband.report_coverage
     coverage = Coverband.configuration.store.coverage
     assert_equal(coverage['./test/dog.rb']['data'], [nil, nil, 1, 1, 1, nil, nil])
   end
@@ -46,8 +46,8 @@ class CollectorsCoverageTest < Minitest::Test
   end
 
   test 'report_coverage raises errors in tests' do
+    Coverband::Adapters::RedisStore.any_instance.stubs(:save_report).raises('Oh no')
     @coverband.reset_instance
-    @coverband.expects(:ready_to_report?).raises('Oh no')
     assert_raises RuntimeError do
       @coverband.report_coverage
     end
@@ -58,7 +58,7 @@ class CollectorsCoverageTest < Minitest::Test
     logger = mock
     Coverband.configuration.logger = logger
     @coverband.reset_instance
-    @coverband.expects(:ready_to_report?).raises('Oh no')
+    Coverband::Adapters::RedisStore.any_instance.stubs(:save_report).raises('Oh no')
     logger.expects(:error).times(3)
     error = assert_raises RuntimeError do
       @coverband.report_coverage

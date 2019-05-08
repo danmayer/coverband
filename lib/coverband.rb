@@ -54,8 +54,8 @@ module Coverband
     coverage.reset_instance
   end
 
-  def self.report_coverage(force_report = false)
-    Coverband::Collectors::Coverage.instance.report_coverage(force_report)
+  def self.report_coverage
+    Coverband::Collectors::Coverage.instance.report_coverage
   end
 
   def self.configuration
