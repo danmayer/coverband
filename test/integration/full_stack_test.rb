@@ -27,7 +27,7 @@ class FullStackTest < Minitest::Test
 
   test 'call app' do
     request = Rack::MockRequest.env_for('/anything.json')
-    middleware = Coverband::Middleware.new(fake_app_with_lines)
+    middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
     Coverband::Collectors::Coverage.instance.report_coverage(true)
@@ -50,7 +50,7 @@ class FullStackTest < Minitest::Test
     require 'rainbow'
     Rainbow('this text is red').red
     request = Rack::MockRequest.env_for('/anything.json')
-    middleware = Coverband::Middleware.new(fake_app_with_lines)
+    middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
     results = middleware.call(request)
     assert_equal 'Hello Rack!', results.last
     Coverband::Collectors::Coverage.instance.report_coverage(true)
