@@ -1,4 +1,17 @@
 $(document).ready(function() {
+  // remove the url params like notice=message so they don't stick around
+  window.history.replaceState(
+    "object or string",
+    "Coverband",
+    window.location.pathname +
+      window.location.href
+        .substring(window.location.href.lastIndexOf("/") + 1)
+        .split("?")[0]
+  );
+  $(".notice")
+    .delay(3000)
+    .fadeOut("slow");
+
   $(".del").click(function() {
     if (!confirm("Do you want to delete")) {
       return false;
