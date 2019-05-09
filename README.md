@@ -53,6 +53,14 @@ gem 'coverband'
 
 If [tracking gem usage](#collecting-gem--library-usage), be sure to include coverband before other gems you would like to track.
 
+## Upgrading to Latest
+
+### No custom code or middleware required
+
+With older versions of coverband, projects would report to redis using rack or sidekiq middleware. After coverband 4.0, this should no longer be required and could cause performance issues. Reporting to redis is now automatically done within a background thread with no custom code needed.
+
+See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
+
 ## Rails
 
 The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile.
