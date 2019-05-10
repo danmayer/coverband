@@ -51,11 +51,11 @@ module Coverband
     else
       configuration.logger.debug('using default configuration')
     end
-    coverage.reset_instance
+    coverage_instance.reset_instance
   end
 
   def self.report_coverage
-    Coverband::Collectors::Coverage.instance.report_coverage
+    coverage_instance.report_coverage
   end
 
   def self.configuration
@@ -71,17 +71,16 @@ module Coverband
   end
 
   def self.eager_loading_coverage!
-    coverage.eager_loading!
+    coverage_instance.eager_loading!
   end
 
   def self.runtime_coverage!
-    coverage.runtime!
+    coverage_instance.runtime!
   end
 
-  def self.coverage
+  private_class_method def self.coverage_instance
     Coverband::Collectors::Coverage.instance
   end
-
   unless ENV['COVERBAND_DISABLE_AUTO_START']
     # Coverband should be setup as early as possible
     # to capture usage of things loaded by initializers or other Rails engines
