@@ -49,7 +49,7 @@ module Coverband
     elsif File.exist?(configuration_file)
       load configuration_file
     else
-      configuration.logger&.debug('using default configuration')
+      configuration.logger.debug('using default configuration')
     end
     coverage.reset_instance
   end

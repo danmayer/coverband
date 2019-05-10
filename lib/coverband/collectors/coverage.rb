@@ -43,9 +43,9 @@ module Coverband
         end
       rescue StandardError => e
         if @verbose
-          @logger&.error 'coverage failed to store'
-          @logger&.error "error: #{e.inspect} #{e.message}"
-          @logger&.error e.backtrace
+          @logger.error 'coverage failed to store'
+          @logger.error "error: #{e.inspect} #{e.message}"
+          @logger.error e.backtrace
         end
         raise e if @test_env
       end

@@ -31,7 +31,6 @@ module Coverband
             # skip reporting
           else
             Coverband.report_coverage
-            # Coverband.configuration.logger&.debug('Coverband: Reported coverage before exit')
           end
         end
       end
