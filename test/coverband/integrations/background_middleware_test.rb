@@ -34,17 +34,6 @@ class BackgroundMiddlewareTest < Minitest::Test
     middleware.call(request)
   end
 
-  test 'never be report coverage with reporting_frequency of 0' do
-    request = Rack::MockRequest.env_for('/anything.json')
-    Coverband::Collectors::Coverage.instance.reset_instance
-    collector = Coverband::Collectors::Coverage.instance
-    collector.instance_variable_set('@reporting_frequency', 0.0)
-    middleware = Coverband::BackgroundMiddleware.new(fake_app)
-    store = Coverband::Collectors::Coverage.instance.instance_variable_get('@store')
-    store.expects(:save_report).never
-    middleware.call(request)
-  end
-
   private
 
   def fake_app

@@ -4,8 +4,7 @@ module Coverband
   class Configuration
     attr_accessor :root_paths, :root,
                   :ignore, :additional_files, :verbose,
-                  :reporter, :reporting_frequency,
-                  :redis_namespace, :redis_ttl,
+                  :reporter, :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit
@@ -25,7 +24,6 @@ module Coverband
       # heroku asset compilation
       @ignore = %w[vendor .erb$ .slim$ /tmp]
       @additional_files = []
-      @reporting_frequency = 0.0
       @verbose = false
       @reporter = 'scov'
       @logger = nil

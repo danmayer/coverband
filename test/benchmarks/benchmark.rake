@@ -77,7 +77,6 @@ namespace :benchmarks do
   task :setup_redis do
     Coverband.configure do |config|
       config.root                = Dir.pwd
-      config.reporting_frequency = 100.0
       config.logger              = $stdout
       config.store               = benchmark_redis_store
     end
@@ -87,7 +86,6 @@ namespace :benchmarks do
   task :setup_file do
     Coverband.configure do |config|
       config.root                = Dir.pwd
-      config.reporting_frequency = 100.0
       config.logger              = $stdout
       file_path                  = '/tmp/benchmark_store.json'
       config.store               = Coverband::Adapters::FileStore.new(file_path)

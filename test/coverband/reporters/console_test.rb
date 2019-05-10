@@ -16,7 +16,6 @@ class HTMLReportTest < Minitest::Test
     Coverband.configure do |config|
       config.reporter            = 'std_out'
       config.store               = @store
-      config.reporting_frequency = 100.0
     end
     Coverband.configuration.logger.stubs('info')
     mock_file_hash
