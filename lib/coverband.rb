@@ -37,10 +37,6 @@ module Coverband
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]
   ALL_TYPES = TYPES + [:merged]
 
-  class << self
-    attr_accessor :configuration_data
-  end
-
   def self.configure(file = nil)
     configuration_file = file || ENV.fetch('COVERBAND_CONFIG', CONFIG_FILE)
     configuration
@@ -59,7 +55,7 @@ module Coverband
   end
 
   def self.configuration
-    self.configuration_data ||= Configuration.new
+    @configuration ||= Configuration.new
   end
 
   def self.start
