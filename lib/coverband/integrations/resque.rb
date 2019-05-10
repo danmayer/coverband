@@ -9,7 +9,7 @@ Resque.before_first_fork do
   Coverband.eager_loading_coverage!
   Coverband.configuration.background_reporting_enabled = false
   Coverband::Background.stop
-  Coverband::Collectors::Coverage.instance.report_coverage
+  Coverband.report_coverage
 end
 
 module Coverband

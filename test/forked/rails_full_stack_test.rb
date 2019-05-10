@@ -10,7 +10,7 @@ class RailsFullStackTest < Minitest::Test
     super
     rails_setup
     # preload first coverage hit
-    Coverband::Collectors::Coverage.instance.report_coverage
+    Coverband.report_coverage
     require 'rainbow'
     Rainbow('this text is red').red
   end
