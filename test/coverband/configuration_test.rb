@@ -5,19 +5,42 @@ require File.expand_path('../test_helper', File.dirname(__FILE__))
 class BaseTest < Minitest::Test
   def setup
     super
+    Coverband.configuration.reset
     Coverband.configure do |config|
       config.root                = Dir.pwd
       config.s3_bucket           = nil
       config.root_paths          = ['/app_path/']
-      config.ignore              = ['vendor']
+      config.ignore              = ['config/envionments']
       config.reporter            = 'std_out'
       config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
     end
   end
 
-  test 'defaults' do
+  test 'ignore works with equal' do
     coverband = Coverband::Collectors::Coverage.instance.reset_instance
-    assert_equal ['vendor', 'internal:prelude', 'schema.rb'], coverband.instance_variable_get('@ignore_patterns')
+    expected = ["vendor", ".erb$", ".slim$", "/tmp", "internal:prelude", "schema.rb", "config/envionments"]
+    assert_equal expected, Coverband.configuration.ignore
+  end
+
+  test 'ignore works with plus equal' do
+    Coverband.configure do |config|
+      config.ignore += ['config/initializers']
+    end
+    coverband = Coverband::Collectors::Coverage.instance.reset_instance
+    expected = ["vendor",
+      ".erb$",
+      ".slim$",
+      "/tmp",
+      "internal:prelude",
+      "schema.rb",
+      "config/envionments",
+      "config/initializers"]
+    assert_equal expected, Coverband.configuration.ignore
+  end
+
+  test 'ignore' do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    assert !Coverband.configuration.gem_paths.first.nil?
   end
 
   test 'gem_paths' do

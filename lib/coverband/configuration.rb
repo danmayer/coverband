@@ -3,14 +3,16 @@
 module Coverband
   class Configuration
     attr_accessor :root_paths, :root,
-                  :ignore, :additional_files, :verbose,
+                  :additional_files, :verbose,
                   :reporter, :redis_namespace, :redis_ttl,
                   :safe_reload_files, :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
-    attr_reader :track_gems
+    attr_reader :track_gems, :ignore
+
+    IGNORE_DEFAULTS = %w[vendor .erb$ .slim$ /tmp internal:prelude schema.rb]
 
     def initialize
       reset
@@ -22,7 +24,7 @@ module Coverband
       # Heroku when building assets runs code from a dynamic directory
       # /tmp was added to avoid coverage from /tmp/build directories during
       # heroku asset compilation
-      @ignore = %w[vendor .erb$ .slim$ /tmp]
+      @ignore = IGNORE_DEFAULTS.dup
       @additional_files = []
       @verbose = false
       @reporter = 'scov'
@@ -81,6 +83,13 @@ module Coverband
       @store = store
     end
 
+    ###
+    # Don't allow the ignore to override things like gem tracking
+    ###
+    def ignore=(ignored_array)
+      @ignore = (@ignore + ignored_array).uniq
+    end
+
     def track_gems=(value)
       @track_gems = value
       return unless @track_gems
@@ -89,7 +98,7 @@ module Coverband
       # we will remove this default if track_gems is set
       @ignore.delete('vendor')
       # while we want to allow vendored gems we don't want to track vendored ruby STDLIB
-      @ignore << 'vendor/ruby-*'
+      @ignore << 'vendor/ruby-*' unless @ignore.include?('vendor/ruby-*')
       add_group('App', root)
       # TODO: rework support for multiple gem paths
       # currently this supports GEM_HOME (which should be first path)

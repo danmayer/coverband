@@ -16,7 +16,7 @@ module Coverband
 
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
-        @ignore_patterns = Coverband.configuration.ignore + ['internal:prelude', 'schema.rb']
+        @ignore_patterns = Coverband.configuration.ignore
         @store = Coverband.configuration.store
         @verbose  = Coverband.configuration.verbose
         @logger   = Coverband.configuration.logger
