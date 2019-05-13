@@ -12,6 +12,9 @@ module Coverband
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems, :ignore
 
+    # Heroku when building assets runs code from a dynamic directory
+    # /tmp was added to avoid coverage from /tmp/build directories during
+    # heroku asset compilation
     IGNORE_DEFAULTS = %w[vendor .erb$ .slim$ /tmp internal:prelude schema.rb]
 
     def initialize
@@ -21,9 +24,6 @@ module Coverband
     def reset
       @root = Dir.pwd
       @root_paths = []
-      # Heroku when building assets runs code from a dynamic directory
-      # /tmp was added to avoid coverage from /tmp/build directories during
-      # heroku asset compilation
       @ignore = IGNORE_DEFAULTS.dup
       @additional_files = []
       @verbose = false
