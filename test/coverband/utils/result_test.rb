@@ -48,55 +48,14 @@ describe 'result' do
         assert_equal [80.0, 80.0, 100.0], subject.covered_percentages
       end
 
-      it 'has accurate least covered file' do
-        assert subject.least_covered_file.match(/sample_controller.rb/)
-      end
-
       %i[covered_percent
          covered_percentages
-         least_covered_file
          covered_strength
          covered_lines
          missed_lines
          total_lines].each do |msg|
         it "responds to #{msg}" do
           assert(subject.respond_to?(msg))
-        end
-      end
-
-      describe 'dumped with to_hash' do
-        it 'is a hash' do
-          assert subject.to_hash.is_a?(Hash)
-        end
-
-        describe 'loaded back with from_hash' do
-          let(:dumped_result) do
-            Coverband::Utils::Result.from_hash(subject.to_hash)
-          end
-
-          it 'has 3 source files' do
-            assert_equal subject.source_files.count, dumped_result.source_files.count
-          end
-
-          it 'has the same covered_percent' do
-            assert_equal subject.covered_percent, dumped_result.covered_percent
-          end
-
-          it 'has the same covered_percentages' do
-            assert_equal subject.covered_percentages, dumped_result.covered_percentages
-          end
-
-          it 'has the same timestamp' do
-            assert_equal subject.created_at.to_i, dumped_result.created_at.to_i
-          end
-
-          it 'has the same command_name' do
-            assert_equal subject.command_name, dumped_result.command_name
-          end
-
-          it 'has the same original_result' do
-            assert_equal subject.original_result, dumped_result.original_result
-          end
         end
       end
     end

@@ -55,19 +55,18 @@ This is a possible gem to host experimental or more complex features, which woul
 Feature Ideas:
 
 - statsd adapters (it would allow passing in date ranges on usage)
-- move to SimpleCov console out, or make similar console tabular output
 - Possibly add ability to record code run for a given route
 - integrate recording with deploy tag or deploy timestamp
   - diff code usage across deployed versions
   - what methods increased usage or decreased
-- Improve client code api, around manual usage of sampling (like event usage)
 - ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
 - Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
 - additional adapters (tracepoint, ruby-profiler, etc)
-- code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
-- tagging of reported Coverage
-- allow only to collect coverage based on route (limiting or scoped coverage)
-- coverage over some other variable like a set of alpha users
+- tagged coverage reports
+  - code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
+  - deploy git hash tagging of reported Coverage
+  - allow only to collect coverage based on route (limiting or scoped coverage)
+  - coverage over some other variable like a set of alpha users
 - document how to use this on staging / selenium test suite runs
   - possible add API to pull report at end of run
 

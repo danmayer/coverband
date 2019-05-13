@@ -44,11 +44,6 @@ module Coverband
         map(&:covered_percent)
       end
 
-      # Finds the least covered file and returns that file's name
-      def least_covered_file
-        min_by(&:covered_percent).filename
-      end
-
       # Returns the overall amount of relevant lines of code across all files in this list
       def lines_of_code
         covered_lines + missed_lines

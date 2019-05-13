@@ -22,11 +22,8 @@ module Coverband
       alias source_files files
       # Explicitly set the Time this result has been created
       attr_writer :created_at
-      # Explicitly set the command name that was used for this coverage result.
-      # Defaults to Coverband.command_name
-      attr_writer :command_name
 
-      def_delegators :files, :covered_percent, :covered_percentages, :least_covered_file, :covered_strength, :covered_lines, :missed_lines
+      def_delegators :files, :covered_percent, :covered_percentages, :covered_strength, :covered_lines, :missed_lines
       def_delegator :files, :lines_of_code, :total_lines
 
       # Initialize a new Coverband::Result from given Coverage.result (a Hash of filenames each containing an array of
@@ -37,7 +34,6 @@ module Coverband
         @files = Coverband::Utils::FileList.new(@original_result.map do |filename, coverage|
           Coverband::Utils::SourceFile.new(filename, coverage) if File.file?(filename)
         end.compact.sort_by(&:short_name))
-        filter!
       end
 
       # Returns all filenames for source files contained in this result
@@ -55,26 +51,6 @@ module Coverband
         @created_at ||= Time.now
       end
 
-      # The command name that launched this result.
-      # Delegated to Coverband.command_name if not set manually
-      def command_name
-        @command_name ||= 'Coverband'
-      end
-
-      # Returns a hash representation of this Result that can be used for marshalling it into JSON
-      def to_hash
-        { command_name => { 'coverage' => coverage, 'timestamp' => created_at.to_i } }
-      end
-
-      # Loads a Coverband::Result#to_hash dump
-      def self.from_hash(hash)
-        command_name, data = hash.first
-        result = new(data['coverage'])
-        result.command_name = command_name
-        result.created_at = Time.at(data['timestamp'])
-        result
-      end
-
       # Finds files that were to be tracked but were not loaded and initializes
       # the line-by-line coverage to zero (if relevant) or nil (comments / whitespace etc).
       def self.add_not_loaded_files(result, tracked_files)
@@ -88,18 +64,6 @@ module Coverband
         end
 
         result
-      end
-
-      private
-
-      def coverage
-        keys = original_result.keys & filenames
-        Hash[keys.zip(original_result.values_at(*keys))]
-      end
-
-      # Applies all configured Coverband filters on this result's source files
-      def filter!
-        @files = files
       end
     end
   end

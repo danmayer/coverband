@@ -44,10 +44,6 @@ describe Coverband::Utils::FileList do
     assert_equal [50.0, 80.0, 100.0], subject.covered_percentages
   end
 
-  it 'has the correct least covered file' do
-    assert subject.least_covered_file.match(/sample_controller.rb/)
-  end
-
   it 'has the correct covered strength' do
     assert_equal 0.9285714285714286, subject.covered_strength
   end
