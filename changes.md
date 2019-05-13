@@ -73,10 +73,16 @@ Feature Ideas:
 
 # Alpha
 
-### Coverband 4.3.0?
+### Coverband 4.2.1
 
 - further improvements on eager_loading detection
-- ?
+- fix on ignore configuration options
+- fix broken static server
+- fix issue where clear and coverage trigger coverage reports
+- improved logging
+- fix sorting of runtime coverage
+- add runtime coverage to gem summary pages
+- fix issue where reports didn't include files with 0 activity
 
 # Released
 
