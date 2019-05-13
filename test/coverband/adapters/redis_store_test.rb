@@ -58,15 +58,15 @@ class RedisTest < Minitest::Test
     assert_nil @store.type
   end
 
-  def test_covered_lines_for_file
+  def test_coverage_for_file
     mock_file_hash
     expected = basic_coverage
     @store.save_report(expected)
-    assert_equal example_line, @store.covered_lines_for_file('app_path/dog.rb')
+    assert_equal example_line, @store.coverage['app_path/dog.rb']['data']
   end
 
-  def test_covered_lines_when_null
-    assert_equal [], @store.covered_lines_for_file('app_path/dog.rb')
+  def test_coverage_when_null
+    assert_equal nil, @store.coverage['app_path/dog.rb']
   end
 
   def test_clear

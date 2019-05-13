@@ -30,6 +30,7 @@ require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/background'
 
 module Coverband
+  @@configured = false
   CONFIG_FILE = './config/coverband.rb'
   RUNTIME_TYPE = nil
   EAGER_TYPE = :eager_loading
@@ -47,7 +48,12 @@ module Coverband
     else
       configuration.logger.debug('using default configuration')
     end
+    @@configured = true
     coverage_instance.reset_instance
+  end
+
+  def self.configured?
+    @@configured
   end
 
   def self.report_coverage

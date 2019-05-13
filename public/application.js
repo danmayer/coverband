@@ -3,10 +3,7 @@ $(document).ready(function() {
   window.history.replaceState(
     "object or string",
     "Coverband",
-    window.location.pathname +
-      window.location.href
-        .substring(window.location.href.lastIndexOf("/") + 1)
-        .split("?")[0]
+    window.location.href.replace(/notice=.*/, "")
   );
   $(".notice")
     .delay(3000)

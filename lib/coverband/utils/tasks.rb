@@ -1,13 +1,8 @@
 # frozen_string_literal: true
 
 namespace :coverband do
-  # TODO: FixMe before releasing 4.2.1
-  # This was previously needed when Coverband was generally require false
-  # now this would double configure, which isn't a good thing
-  # I think we need ot make it safe to call configure twice and no-op if it has been called
-  # because removing this means if you have require: false on coverband or
-  # COVERBAND_DISABLE_AUTO_START=true the rake tasks wouldn't work
-  # Coverband.configure
+  # handles configuring in require => false and COVERBAND_DISABLE_AUTO_START cases
+  Coverband.configure unless Coverband.configured?
 
   def environment
     Coverband.configuration.report_on_exit = false

@@ -2,8 +2,16 @@
   <div class="header">
     <h3><%= shortened_filename source_file %></h3>
     <h4>
-      <span class="<%= coverage_css_class(source_file.covered_percent) %>"><%= source_file.covered_percent.round(2).to_s %> %</span>
-       covered
+      <span class="<%= coverage_css_class(source_file.covered_percent) %>">
+        <%= source_file.covered_percent.round(2).to_s %> %
+      </span>
+      covered,
+
+      <span class="<%= coverage_css_class(source_file.covered_percent) %>">
+        <%= (result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.covered_percent || 0).round(2).to_s %> %
+      </span>
+      runtime covered
+
       <% if Coverband.configuration.web_enable_clear %>
         <%= button("#{base_path}clear_file?filename=#{source_file.relative_path}", 'clear file coverage') %> &nbsp;
       <% end %>

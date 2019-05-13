@@ -53,11 +53,6 @@ module Coverband
         coverage.keys || []
       end
 
-      # TODO: deprecate / remove?
-      def covered_lines_for_file(file)
-        Array(coverage.dig(file, 'data'))
-      end
-
       protected
 
       def split_coverage(types)

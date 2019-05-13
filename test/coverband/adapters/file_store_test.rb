@@ -10,13 +10,13 @@ class AdaptersFileStoreTest < Minitest::Test
     @store = Coverband::Adapters::FileStore.new(@test_file_path)
   end
 
-  def test_covered_lines_for_file
-    assert_equal @store.covered_lines_for_file('dog.rb')[0],  1
-    assert_equal @store.covered_lines_for_file('dog.rb')[1],  2
+  def test_coverage
+    assert_equal @store.coverage['dog.rb']['data'][0],  1
+    assert_equal @store.coverage['dog.rb']['data'][1],  2
   end
 
   def test_covered_lines_when_null
-    assert_equal @store.covered_lines_for_file('none.rb'), []
+    assert_equal @store.coverage['none.rb'], nil
   end
 
   def test_covered_files
@@ -31,7 +31,7 @@ class AdaptersFileStoreTest < Minitest::Test
   def test_save_report
     mock_file_hash
     @store.send(:save_report, 'cat.rb' => [0, 1])
-    assert_equal @store.covered_lines_for_file('cat.rb')[1], 1
+    assert_equal @store.coverage['cat.rb']['data'][1], 1
   end
 
   private
