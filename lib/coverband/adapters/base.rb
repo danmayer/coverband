@@ -71,7 +71,7 @@ module Coverband
         raise 'abstract'
       end
 
-      def get_report
+      def get_report(type = nil)
         raise 'abstract'
       end
 

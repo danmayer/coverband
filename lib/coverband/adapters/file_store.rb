@@ -36,7 +36,7 @@ module Coverband
         File.open(path, 'w') { |f| f.write(report.to_json) }
       end
 
-      def get_report
+      def get_report(_local_type = nil)
         if File.exist?(path)
           JSON.parse(File.read(path))
         else
