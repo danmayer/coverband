@@ -12,7 +12,17 @@ module Coverband
 
       class RubyCoverage
         def self.results
-          ::Coverage.peek_result.dup
+          results = ::Coverage.peek_result.dup
+          Coverband.configuration.use_oneshot_lines_coverage ? transform_oneshot_lines_results(results) : results
+        end
+
+        def self.transform_oneshot_lines_results(results)
+          results.each_with_object({}) do |(file, coverage), new_results|
+            line_counts = coverage[:oneshot_lines].each_with_object(::Coverage.line_stub(file)) do |line_number, line_counts|
+              line_counts[line_number - 1] = 1
+            end
+            new_results[file] = line_counts
+          end
         end
       end
 
