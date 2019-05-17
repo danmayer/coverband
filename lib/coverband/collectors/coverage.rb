@@ -79,7 +79,9 @@ module Coverband
         raise NotImplementedError, 'Coverage needs Ruby > 2.3.0' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3.0')
 
         require 'coverage'
-        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+        if Coverage.ruby_version_greater_than_or_equal_to?('2.6.0')
+          ::Coverage.start(oneshot_lines: Coverband.configuration.use_oneshot_lines_coverage) unless ::Coverage.running?
+        elsif Coverage.ruby_version_greater_than_or_equal_to?('2.5.0')
           ::Coverage.start unless ::Coverage.running?
         else
           ::Coverage.start
@@ -88,6 +90,10 @@ module Coverband
           load safe_file
         end
         reset_instance
+      end
+
+      def self.ruby_version_greater_than_or_equal_to?(version)
+        Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
       end
     end
   end
