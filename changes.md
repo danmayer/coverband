@@ -16,6 +16,8 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - add built-in support for easy loading via Railties
   - built in support for activejob, sidekiq, and other common frameworks
   - reduced configuration options
+- support oneshot
+- drop middleware figure out a way to kick off background without middelware 
 - options on reporting
   - background reporting
   - or middleware reporting
