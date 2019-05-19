@@ -170,7 +170,11 @@ module Coverband
       end
 
       def timeago(time)
-        "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
+        if time
+          "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
+        else
+          'Not Available'
+        end
       end
 
       def shortened_filename(source_file)
