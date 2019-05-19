@@ -70,6 +70,10 @@ module Coverband
 
         Float(map { |f| f.covered_strength * f.lines_of_code }.inject(:+) / lines_of_code)
       end
+
+      def first_seen_at
+        map(&:first_updated_at).reject{|el| el.is_a?(String) }.min
+      end
     end
   end
 end

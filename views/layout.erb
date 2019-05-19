@@ -31,6 +31,11 @@
       <div class="notice"><%= notice %></div>
       <% end %>
       <div class="timestamp">Generated <%= timeago(Time.now) %></div>
+      <br/>
+      <div class="timestamp">
+        Coverage Recording Started: <%= timeago(result.source_files.first_seen_at) %>
+      </div>
+
       <ul class="group_tabs"></ul>
 
       <div id="content">

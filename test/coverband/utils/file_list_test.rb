@@ -9,7 +9,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 describe Coverband::Utils::FileList do
   subject do
     original_result = {
-      source_fixture('sample.rb') => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil],
+      source_fixture('sample.rb') => {'first_updated_at' => Time.at(0), 'data' => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil]},
       source_fixture('app/models/user.rb') => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil],
       source_fixture('app/controllers/sample_controller.rb') => [nil, 2, 2, 0, nil, nil, 0, nil, nil, nil]
     }
@@ -46,5 +46,9 @@ describe Coverband::Utils::FileList do
 
   it 'has the correct covered strength' do
     assert_equal 0.9285714285714286, subject.covered_strength
+  end
+
+  it 'has correct first_seen_at' do
+    assert_equal Time.at(0), subject.first_seen_at
   end
 end
