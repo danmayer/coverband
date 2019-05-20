@@ -88,7 +88,6 @@ class BaseTest < Minitest::Test
   end
 
   test 'use_oneshot_lines_coverage' do
-    Coverband::Collectors::Coverage.instance.reset_instance
     refute Coverband.configuration.use_oneshot_lines_coverage
 
     Coverband.configuration.stubs(:one_shot_coverage_implemented_in_ruby_version?).returns(true)
