@@ -154,7 +154,8 @@ module Coverband
     end
 
     def use_oneshot_lines_coverage=(value)
-      raise Exception.new('One shot line coverage is only available in ruby >= 2.6') unless one_shot_coverage_implemented_in_ruby_version? || !value
+      raise(Exception, 'One shot line coverage is only available in ruby >= 2.6') unless one_shot_coverage_implemented_in_ruby_version? || !value
+
       @use_oneshot_lines_coverage = value
     end
 

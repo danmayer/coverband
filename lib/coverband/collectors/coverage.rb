@@ -14,6 +14,10 @@ module Coverband
     class Coverage
       include Singleton
 
+      def self.ruby_version_greater_than_or_equal_to?(version)
+        Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
+      end
+
       def reset_instance
         @project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
@@ -90,10 +94,6 @@ module Coverband
           load safe_file
         end
         reset_instance
-      end
-
-      def self.ruby_version_greater_than_or_equal_to?(version)
-        Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
       end
     end
   end
