@@ -5,9 +5,7 @@ require File.expand_path('boot', __dir__)
 require 'rails'
 require 'action_controller/railtie'
 require 'coverband'
-Coverband.eager_loading_coverage!
-Bundler.require(*Rails.groups)
-Coverband.report_coverage
+Coverband.eager_loading_coverage { Bundler.require(*Rails.groups) }
 
 module Rails4Dummy
   class Application < Rails::Application

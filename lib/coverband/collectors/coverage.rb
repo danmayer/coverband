@@ -38,6 +38,15 @@ module Coverband
         @store.type = Coverband::EAGER_TYPE
       end
 
+      def eager_loading(&block)
+        old_coverage_type = @store.type
+        eager_loading!
+        block.call
+      ensure
+        report_coverage
+        @store.type = old_coverage_type
+      end
+
       def report_coverage
         @semaphore.synchronize do
           raise 'no Coverband store set' unless @store
