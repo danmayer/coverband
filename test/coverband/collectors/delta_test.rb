@@ -59,8 +59,7 @@ class CollectorsDeltaTest < Minitest::Test
 
     Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
     current_coverage = {}
-    ::Coverage.expects(:peek_result).returns(current_coverage)
-    results = Coverband::Collectors::Delta.results
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
 
     current_coverage = {
@@ -69,8 +68,7 @@ class CollectorsDeltaTest < Minitest::Test
       }
     }
     ::Coverage.expects(:line_stub).with('dealership.rb').returns([nil, 0, 0, nil])
-    ::Coverage.expects(:peek_result).returns(current_coverage)
-    results = Coverband::Collectors::Delta.results
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     expected = {
       'dealership.rb' => [nil, 1, 1, nil]
     }

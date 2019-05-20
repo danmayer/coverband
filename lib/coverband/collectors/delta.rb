@@ -12,22 +12,14 @@ module Coverband
 
       class RubyCoverage
         def self.results
-          results = ::Coverage.peek_result.dup
-          Coverband.configuration.use_oneshot_lines_coverage ? transform_oneshot_lines_results(results) : results
-        end
-
-        def self.transform_oneshot_lines_results(results)
-          results.each_with_object({}) do |(file, coverage), new_results|
-            line_counts = coverage[:oneshot_lines].each_with_object(::Coverage.line_stub(file)) do |line_number, line_counts|
-              line_counts[line_number - 1] = 1
-            end
-            new_results[file] = line_counts
-          end
+          ::Coverage.peek_result.dup
         end
       end
 
       def self.results(process_coverage = RubyCoverage)
-        new(process_coverage.results).results
+        coverage_results = process_coverage.results
+        coverage_results = transform_oneshot_lines_results(coverage_results) if Coverband.configuration.use_oneshot_lines_coverage
+        new(coverage_results).results
       end
 
       def results
@@ -55,6 +47,15 @@ module Coverband
       def array_diff(latest, original)
         latest.map.with_index do |v, i|
           [0, v - original[i]].max if v && original[i]
+        end
+      end
+
+      def self.transform_oneshot_lines_results(results)
+        results.each_with_object({}) do |(file, coverage), new_results|
+          line_counts = coverage[:oneshot_lines].each_with_object(::Coverage.line_stub(file)) do |line_number, line_counts|
+            line_counts[line_number - 1] = 1
+          end
+          new_results[file] = line_counts
         end
       end
     end
