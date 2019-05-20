@@ -5,5 +5,6 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in coverband.gemspec
 gemspec
 gem 'rails', '~>5'
-# this is used for testing gem tracking
+# these gems are used for testing gem tracking
+gem 'pundit'
 gem 'rainbow', require: false

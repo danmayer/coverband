@@ -7,3 +7,4 @@ gemspec
 gem 'rails', '~>4'
 # this is used for testing gem tracking
 gem 'rainbow', require: false
+gem 'pundit'
