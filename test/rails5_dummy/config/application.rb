@@ -3,7 +3,7 @@
 require 'rails'
 require 'action_controller/railtie'
 require 'coverband'
-Coverband.eager_loading_coverage { Bundler.require(*Rails.groups) }
+Bundler.require(*Rails.groups)
 
 module Rails5Dummy
   class Application < Rails::Application
