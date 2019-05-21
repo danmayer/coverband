@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rubygems'
-
 module Coverband
   class Configuration
     attr_accessor :root_paths, :root,
