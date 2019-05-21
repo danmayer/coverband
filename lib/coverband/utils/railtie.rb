@@ -3,7 +3,6 @@
 module Coverband
   module RailsEagerLoad
     def eager_load!
-      Coverband.configuration.logger.debug('Coverband: set to eager_loading')
       Coverband.eager_loading_coverage!
       super
     ensure
