@@ -7,8 +7,8 @@ original_verbosity = $VERBOSE
 $VERBOSE = nil
 require 'rubygems'
 require 'aws-sdk-s3'
-require 'coveralls'
 require 'simplecov'
+require 'coveralls'
 require 'minitest/autorun'
 require 'mocha/minitest'
 require 'ostruct'
@@ -18,6 +18,11 @@ require 'resque'
 require 'pry-byebug'
 require_relative 'unique_files'
 $VERBOSE = original_verbosity
+
+SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+SimpleCov.start do
+  add_filter 'test/forked'
+end
 
 Coveralls.wear!
 
