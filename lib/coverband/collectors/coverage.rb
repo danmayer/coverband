@@ -90,9 +90,6 @@ module Coverband
         else
           ::Coverage.start
         end
-        Coverband.configuration.safe_reload_files&.each do |safe_file|
-          load safe_file
-        end
         reset_instance
       end
     end

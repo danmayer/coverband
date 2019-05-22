@@ -37,16 +37,6 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
         post '/clear'
         assert_equal 301, last_response.status
       end
-
-      test 'collect_coverage' do
-        post '/collect_coverage'
-        assert_equal 301, last_response.status
-      end
-
-      test 'reload_files' do
-        post '/reload_files'
-        assert_equal 301, last_response.status
-      end
     end
   end
 end

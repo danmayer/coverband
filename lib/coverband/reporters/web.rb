@@ -27,10 +27,6 @@ module Coverband
             clear_file
           when %r{\/clear}
             clear
-          when %r{\/collect_coverage}
-            collect_coverage
-          when %r{\/reload_files}
-            reload_files
           else
             [404, { 'Content-Type' => 'text/html' }, ['404 error!']]
           end
@@ -78,12 +74,6 @@ module Coverband
                                              open_report: false).file_details
       end
 
-      def collect_coverage
-        Coverband.report_coverage
-        notice = 'coverband coverage collected'
-        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
-      end
-
       def clear
         if Coverband.configuration.web_enable_clear
           Coverband.configuration.store.clear!
@@ -102,16 +92,6 @@ module Coverband
         else
           notice = 'web_enable_clear isnt enabled in your configuration'
         end
-        [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
-      end
-
-      def reload_files
-        Coverband.configuration&.safe_reload_files&.each do |safe_file|
-          load safe_file
-        end
-        # force reload
-        Coverband.configure
-        notice = 'coverband files reloaded'
         [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
       end
 

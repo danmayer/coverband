@@ -5,7 +5,7 @@ module Coverband
     attr_accessor :root_paths, :root,
                   :additional_files, :verbose,
                   :reporter, :redis_namespace, :redis_ttl,
-                  :safe_reload_files, :background_reporting_enabled,
+                  :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit
 
