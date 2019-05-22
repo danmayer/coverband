@@ -86,4 +86,22 @@ class BaseTest < Minitest::Test
       end
     end
   end
+
+  test 'use_oneshot_lines_coverage' do
+    refute Coverband.configuration.use_oneshot_lines_coverage
+
+    Coverband.configuration.stubs(:one_shot_coverage_implemented_in_ruby_version?).returns(true)
+    Coverband.configuration.use_oneshot_lines_coverage = true
+    assert Coverband.configuration.use_oneshot_lines_coverage
+
+    Coverband.configuration.use_oneshot_lines_coverage = false
+    refute Coverband.configuration.use_oneshot_lines_coverage
+
+    Coverband.configuration.stubs(:one_shot_coverage_implemented_in_ruby_version?).returns(false)
+    exception = assert_raises Exception do
+      Coverband.configuration.use_oneshot_lines_coverage = true
+    end
+    assert_equal 'One shot line coverage is only available in ruby >= 2.6', exception.message
+    refute Coverband.configuration.use_oneshot_lines_coverage
+  end
 end

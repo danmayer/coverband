@@ -10,7 +10,7 @@ module Coverband
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
-    attr_reader :track_gems, :ignore
+    attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
@@ -39,6 +39,7 @@ module Coverband
       @groups = {}
       @web_debug = false
       @report_on_exit = true
+      @use_oneshot_lines_coverage = false
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -148,6 +149,16 @@ module Coverband
         .each_with_object('gem_paths': gem_paths) do |var, hash|
           hash[var.to_s.delete('@')] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
         end
+    end
+
+    def use_oneshot_lines_coverage=(value)
+      raise(Exception, 'One shot line coverage is only available in ruby >= 2.6') unless one_shot_coverage_implemented_in_ruby_version? || !value
+
+      @use_oneshot_lines_coverage = value
+    end
+
+    def one_shot_coverage_implemented_in_ruby_version?
+      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.6.0')
     end
 
     private

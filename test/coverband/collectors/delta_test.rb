@@ -48,4 +48,26 @@ class CollectorsDeltaTest < Minitest::Test
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
   end
+
+  if Coverband.configuration.one_shot_coverage_implemented_in_ruby_version?
+    test 'one shot lines results' do
+
+      Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+      current_coverage = {}
+      results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+      assert_equal(current_coverage, results)
+
+      current_coverage = {
+        'dealership.rb' => {
+          :oneshot_lines => [2,3]
+        }
+      }
+      ::Coverage.expects(:line_stub).with('dealership.rb').returns([nil, 0, 0, nil])
+      results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+      expected = {
+        'dealership.rb' => [nil, 1, 1, nil]
+      }
+      assert_equal(expected, results)
+    end
+  end
 end
