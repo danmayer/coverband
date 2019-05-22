@@ -17,7 +17,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - built in support for activejob, sidekiq, and other common frameworks
   - reduced configuration options
 - support oneshot
-- drop middleware figure out a way to kick off background without middelware 
+- drop middleware figure out a way to kick off background without middelware
 - options on reporting
   - background reporting
   - or middleware reporting
@@ -56,6 +56,7 @@ This is a possible gem to host experimental or more complex features, which woul
 
 Feature Ideas:
 
+- per request coverage implemented via Ruby 2.6.0 coverage.clear https://bugs.ruby-lang.org/issues/15022
 - statsd adapters (it would allow passing in date ranges on usage)
 - Possibly add ability to record code run for a given route
 - integrate recording with deploy tag or deploy timestamp
@@ -84,6 +85,7 @@ Feature Ideas:
 - fix sorting of runtime coverage
 - add runtime coverage to gem summary pages
 - fix issue where reports didn't include files with 0 activity
+- add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
 
 # Released
 

@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 ####
+#
+# NOTE: with Ruby 2.6.0 and beyond we can replace this classifier with
+# ::Coverage.line_stub
+# https://ruby-doc.org/stdlib-2.6.1/libdoc/coverage/rdoc/Coverage.html#method-c-line_stub
+#
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov-html
 # initial version pulled into Coverband from Simplecov 12/04/2018
 #
