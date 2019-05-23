@@ -93,14 +93,7 @@ module Coverband
     configure
     start
     require 'coverband/utils/railtie' if defined? ::Rails::Railtie
-    require 'coverband/integrations/resque' if defined? Resque
-    if defined?(Bundler)
-      module BundlerEagerLoad
-        def require(*groups)
-          Coverband.eager_loading_coverage { super }
-        end
-      end
-      Bundler.singleton_class.prepend BundlerEagerLoad
-    end
+    require 'coverband/integrations/resque' if defined? ::Resque
+    require 'coverband/integrations/bundler' if defined? ::Bundler
   end
 end
