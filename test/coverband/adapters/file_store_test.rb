@@ -16,7 +16,7 @@ class AdaptersFileStoreTest < Minitest::Test
   end
 
   def test_covered_lines_when_null
-    assert_equal @store.coverage['none.rb'], nil
+    assert_nil @store.coverage['none.rb']
   end
 
   def test_covered_files
