@@ -37,6 +37,20 @@ class CollectorsCoverageTest < Minitest::Test
     assert_equal(coverage['./test/dog.rb']['data'], [nil, nil, 1, 1, 1, nil, nil])
   end
 
+  test 'Dog eager load coverage' do
+    store = Coverband.configuration.store
+    assert_nil store.type
+    file = coverband.eager_loading do
+      require_unique_file
+    end
+    coverage = Coverband.configuration.store.coverage[file]
+    assert_nil coverage, 'No runtime coverage'
+    coverband.eager_loading!
+    coverage = Coverband.configuration.store.coverage[file]
+    refute_nil coverage, 'Eager load coverage is present'
+    assert_equal(coverage['data'], [nil, nil, 1, 1, 0, nil, nil])
+  end
+
   test 'gets coverage instance' do
     assert_equal Coverband::Collectors::Coverage, coverband.class
   end

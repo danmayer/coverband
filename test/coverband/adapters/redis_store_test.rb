@@ -66,7 +66,7 @@ class RedisTest < Minitest::Test
   end
 
   def test_coverage_when_null
-    assert_equal nil, @store.coverage['app_path/dog.rb']
+    assert_nil @store.coverage['app_path/dog.rb']
   end
 
   def test_clear

@@ -76,6 +76,10 @@ module Coverband
     coverage_instance.eager_loading!
   end
 
+  def self.eager_loading_coverage(&block)
+    coverage_instance.eager_loading(&block)
+  end
+
   def self.runtime_coverage!
     coverage_instance.runtime!
   end
@@ -89,6 +93,7 @@ module Coverband
     configure
     start
     require 'coverband/utils/railtie' if defined? ::Rails::Railtie
-    require 'coverband/integrations/resque' if defined? Resque
+    require 'coverband/integrations/resque' if defined? ::Resque
+    require 'coverband/integrations/bundler' if defined? ::Bundler
   end
 end
