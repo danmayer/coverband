@@ -63,8 +63,7 @@ See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 
 ## Rails
 
-The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile.
-
+The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
 ## Sinatra
 
 For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
@@ -270,7 +269,20 @@ end
 
 The `track_gems` feature exposes a Gems tab in the report which prints out the percentage usage of each Gem. See demo [here](https://coverband-demo.herokuapp.com/coverage?#_Gems).
 
-When tracking gems, it is important that `Coverband#start` is called before the gems to be tracked are required. Since `Coverband#start` is automatically called by default when coverband is required, list coverband before the other gems to be tracked within your Gemfile. The exception to this are gems like rails and resque. Since coverband has some specific intergrations for these frameworks, these two gems should be required first.
+When tracking gems, it is important that `Coverband#start` is called before the gems to be tracked are required. The best way to do this is to require coverband before Bundle.require is called. Within rails, require coverband within the application.rb like so:
+
+```ruby
+require 'coverband'
+Bundler.require(*Rails.groups)
+```
+
+If you are using the resque integration, resque needs to be required before coverband since the integration will not run unless resque is loaded. Within the application.rb just require resque before coverband.
+
+```ruby
+require 'resque'
+require 'coverband'
+Bundler.require(*Rails.groups)
+```
 
 The track_gems config only exposes the overall usage of a gem. In order to see the detail of each file, enable the `gem_details` flag.
 
