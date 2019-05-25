@@ -50,6 +50,6 @@ describe Coverband::Utils::FileGroups, :vendored_gems do
   end
 
   it 'does has gem files' do
-    assert_equal 'gem_name.rb', subject.grouped_results['Gems'].first.first.short_name
+    assert_equal '.gem_name.rb', subject.grouped_results['Gems'].first.first.short_name
   end
 end
