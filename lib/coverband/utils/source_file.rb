@@ -229,7 +229,7 @@ module Coverband
       # I had previously patched this in my local Rails app
       def short_name
         filename.sub(/^#{Coverband.configuration.root}/, '.')
-                .sub(%r{^.*\/gems}, '.')
+                .sub(%r{^.*\/gems\/}, '.')
                 .gsub(%r{^\.\/}, '')
       end
 
