@@ -89,7 +89,6 @@ module Coverband
       attr_reader :last_updated_at
       NOT_AVAILABLE = 'not available'
 
-
       def initialize(filename, file_data)
         @filename = filename
         @runtime_relavant_lines = nil
