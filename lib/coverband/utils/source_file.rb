@@ -90,9 +90,9 @@ module Coverband
       NOT_AVAILABLE = 'not available'
 
 
-
       def initialize(filename, file_data)
         @filename = filename
+        @runtime_relavant_lines = nil
         if file_data.is_a?(Hash)
           @coverage = file_data['data']
           @first_updated_at = @last_updated_at = NOT_AVAILABLE
