@@ -25,9 +25,11 @@ A gem to measure production code usage, showing a counter for the number of time
 The primary goal of Coverband is giving deep insight into your production runtime usage of your application code, while having the least impact on performance possible.
 
 - Low performance overhead
-- Very simple setup and configuration
+- Simple setup and configuration
 - Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
+- Splits load time (Rails eager load) and Run time metrics
 - Easy to understand actionable insights from the report
+- Tracks Gem usage
 - Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
 
@@ -64,6 +66,7 @@ See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 ## Rails
 
 The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
+
 ## Sinatra
 
 For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
@@ -100,7 +103,7 @@ end
 
 The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
 
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_update.png)
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
 
 > The web index as available on the Coverband Demo site
 
@@ -125,14 +128,6 @@ Index Page
 
 Details on an example Sinatra app
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
-
-# Verify Correct Installation
-
-- boot up your application
-- run app and hit a controller (via a web request, at least one request must complete)
-- run `rake coverband:coverage` this will show app initialization coverage
-- make another request, or enough that your reporting frequency will trigger
-- run `rake coverband:coverage` and you should see coverage increasing for the endpoints you hit.
 
 # Coverband Demo
 
