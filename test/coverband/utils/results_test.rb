@@ -18,7 +18,7 @@ describe 'results' do
       subject { Coverband::Utils::Results.new(original_result) }
       let(:source_file) { Coverband::Utils::SourceFile.new(source_fixture('app/models/user.rb'), run_lines) }
 
-      it 'has 3 runtime_relevant_lines' do
+      it 'has correct runtime relevant coverage' do
         assert_equal 50.0, subject.runtime_relevant_coverage(source_file)
       end
     end
