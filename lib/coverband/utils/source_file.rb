@@ -89,6 +89,8 @@ module Coverband
       attr_reader :last_updated_at
       NOT_AVAILABLE = 'not available'
 
+
+
       def initialize(filename, file_data)
         @filename = filename
         if file_data.is_a?(Hash)
@@ -101,6 +103,13 @@ module Coverband
           @first_updated_at = NOT_AVAILABLE
           @last_updated_at = NOT_AVAILABLE
         end
+      end
+
+      def runtime_relavant_calculations(runtime_relavant_lines)
+        @runtime_relavant_lines = runtime_relavant_lines
+        yield self
+      ensure
+        @runtime_relavant_lines = nil
       end
 
       # The path to this source file relative to the projects directory
@@ -171,7 +180,7 @@ module Coverband
       end
 
       def relevant_lines
-        lines.size - never_lines.size - skipped_lines.size
+        @runtime_relavant_lines || (lines.size - never_lines.size - skipped_lines.size)
       end
 
       # Returns all covered lines as SimpleCov::SourceFile::Line

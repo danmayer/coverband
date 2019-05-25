@@ -20,6 +20,22 @@ module Coverband
         get_results(results_type).source_files.find { |file| file.filename == source_file.filename }
       end
 
+      def runtime_relevant_coverage(source_file)
+        eager_loading_coverage = get_results(Coverband::EAGER_TYPE)
+        runtime_coverage = get_results(Coverband::RUNTIME_TYPE)
+        return unless eager_loading_coverage && runtime_coverage
+
+        eager_file = eager_loading_coverage.source_files.find { |file| file.filename == source_file.filename }
+        runtime_file = runtime_coverage.source_files.find { |file| file.filename == source_file.filename }
+
+        return 0.0 unless runtime_file
+
+        return 100.0 unless eager_file
+
+        runtime_relavant_lines = eager_file.relevant_lines - eager_file.covered_lines_count
+        runtime_file.runtime_relavant_calculations(runtime_relavant_lines) { |file| file.formatted_covered_percent }
+      end
+
       ###
       # TODO: Groups still have some issues, this should be generic for groups, but right now gem_name
       # is specifically called out, need to revisit all gorups code.
