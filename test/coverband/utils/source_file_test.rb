@@ -190,7 +190,7 @@ describe Coverband::Utils::SourceFile do
       end
 
       it 'allows the word gem in path' do
-        assert_equal '.rubocop-0.67.0', subject.gem_name
+        assert_equal 'rubocop-0.67.0', subject.gem_name
       end
     end
   end
