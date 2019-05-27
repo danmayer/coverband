@@ -54,16 +54,11 @@ module Coverband
       # Finds files that were to be tracked but were not loaded and initializes
       # the line-by-line coverage to zero (if relevant) or nil (comments / whitespace etc).
       def self.add_not_loaded_files(result, tracked_files)
-        if tracked_files
-          result = result.dup
-          Dir[tracked_files].each do |file|
-            absolute = File.expand_path(file)
+        Dir[tracked_files].each_with_object(result.dup) do |file, results_dup|
+          absolute = File.expand_path(file)
 
-            result[absolute] ||= Coverband::Utils::LinesClassifier.new.classify(File.foreach(absolute))
-          end
+          results_dup[absolute] ||= Coverband::Utils::LinesClassifier.new.classify(File.foreach(absolute))
         end
-
-        result
       end
     end
   end
