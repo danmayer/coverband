@@ -21,21 +21,33 @@ describe 'results' do
       it 'has correct runtime relevant coverage' do
         assert_equal 50.0, subject.runtime_relevant_coverage(source_file)
       end
+
+      it 'has correct runtime relevant lines' do
+        assert_equal 2, subject.runtime_relavent_lines(source_file)
+      end
     end
 
     describe 'runtime relevant lines when no runtime coverage exists' do
       let(:run_lines) { nil }
 
-      it 'has correct runtime relevant coverage when no runtime coverage exists' do
+      it 'has correct runtime relevant lines' do
         assert_equal 0.0, subject.runtime_relevant_coverage(source_file)
+      end
+
+      it 'has correct runtime relevant lines' do
+        assert_equal 2, subject.runtime_relavent_lines(source_file)
       end
     end
 
     describe 'runtime relevant lines when no eager coverage exists' do
       let(:eager_lines) { nil }
 
-      it 'has correct runtime relevant coverage when no runtime coverage exists' do
+      it 'has correct runtime relevant lines' do
         assert_equal 100.0, subject.runtime_relevant_coverage(source_file)
+      end
+
+      it 'has correct runtime relevant lines' do
+        assert_equal 1, subject.runtime_relavent_lines(source_file)
       end
     end
   end
