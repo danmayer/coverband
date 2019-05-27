@@ -27,12 +27,13 @@ module Coverband
         ###
         def fix_reports(reports)
           # list all files, even if not tracked by Coverband (0% coverage)
-          tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"
+          file_patterns = ["#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"]
+          file_patterns.concat(Gem.loaded_specs.values.map(&:full_require_paths).flatten.map { |path| "#{path}/**/*.{rb}" }) if Coverband.configuration.track_gems
           filtered_report_files = {}
 
           reports.each_pair do |report_name, report_data|
             filtered_report_files[report_name] = {}
-            report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, [tracked_glob])
+            report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, file_patterns)
 
             # apply coverband filters
             report_files.each_pair do |file, data|
