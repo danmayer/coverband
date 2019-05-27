@@ -21,12 +21,10 @@ module Coverband
       end
 
       def runtime_relevant_coverage(source_file)
-        eager_loading_coverage = get_results(Coverband::EAGER_TYPE)
-        runtime_coverage = get_results(Coverband::RUNTIME_TYPE)
         return unless eager_loading_coverage && runtime_coverage
 
-        eager_file = eager_loading_coverage.source_files.find { |file| file.filename == source_file.filename }
-        runtime_file = runtime_coverage.source_files.find { |file| file.filename == source_file.filename }
+        eager_file = get_eager_file(source_file)
+        runtime_file = get_runtime_file(source_file)
 
         return 0.0 unless runtime_file
 
@@ -34,6 +32,17 @@ module Coverband
 
         runtime_relavant_lines = eager_file.relevant_lines - eager_file.covered_lines_count
         runtime_file.runtime_relavant_calculations(runtime_relavant_lines) { |file| file.formatted_covered_percent }
+      end
+
+      def runtime_relavent_lines(source_file)
+        return 0 unless eager_loading_coverage && runtime_coverage
+
+        eager_file = get_eager_file(source_file)
+        runtime_file = get_runtime_file(source_file)
+
+        return runtime_file.covered_lines_count unless eager_file
+
+        eager_file.relevant_lines - eager_file.covered_lines_count
       end
 
       ###
@@ -69,6 +78,22 @@ module Coverband
       end
 
       private
+
+      def get_eager_file(source_file)
+        eager_loading_coverage.source_files.find { |file| file.filename == source_file.filename }
+      end
+
+      def get_runtime_file(source_file)
+        runtime_coverage.source_files.find { |file| file.filename == source_file.filename }
+      end
+
+      def eager_loading_coverage
+        get_results(Coverband::EAGER_TYPE)
+      end
+
+      def runtime_coverage
+        get_results(Coverband::RUNTIME_TYPE)
+      end
 
       ###
       # This is a first version of lazy loading the results

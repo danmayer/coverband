@@ -11,6 +11,8 @@ module Coverband
   module Utils
     class SourceFile
       include Coverband::Utils::FilePathHelper
+
+      # TODO: Refactor Line into its own file
       # Representation of a single line in a source file including
       # this specific line's source code, line_number and code coverage,
       # with the coverage being either nil (coverage not applicable, e.g. comment
@@ -98,6 +100,7 @@ module Coverband
           @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
           @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
         else
+          # TODO: Deprecate this code path this was backwards compatability from 3-4
           @coverage = file_data
           @first_updated_at = NOT_AVAILABLE
           @last_updated_at = NOT_AVAILABLE
