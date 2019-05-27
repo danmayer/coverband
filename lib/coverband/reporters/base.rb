@@ -32,7 +32,7 @@ module Coverband
 
           reports.each_pair do |report_name, report_data|
             filtered_report_files[report_name] = {}
-            report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, tracked_glob)
+            report_files = Coverband::Utils::Result.add_not_loaded_files(report_data, [tracked_glob])
 
             # apply coverband filters
             report_files.each_pair do |file, data|
