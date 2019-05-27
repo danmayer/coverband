@@ -33,7 +33,7 @@ module Coverband
         return 100.0 unless eager_file
 
         runtime_relavant_lines = eager_file.relevant_lines - eager_file.covered_lines_count
-        runtime_file.runtime_relavant_calculations(runtime_relavant_lines, &:formatted_covered_percent)
+        runtime_file.runtime_relavant_calculations(runtime_relavant_lines) { |file| file.formatted_covered_percent }
       end
 
       ###
