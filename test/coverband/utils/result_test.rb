@@ -16,6 +16,14 @@ describe 'result' do
       }
     end
 
+    describe '#add_not_loaded_files' do
+      it 'Adds files not yet tracked' do
+        results = Coverband::Utils::Result.add_not_loaded_files({}, './test/dog.*')
+        dog_file = results.keys.grep(/dog.rb/).first
+        assert dog_file
+      end
+    end
+
     describe 'a simple cov result initialized from that' do
       subject { Coverband::Utils::Result.new(original_result) }
 
