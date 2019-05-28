@@ -7,7 +7,7 @@ gemfile:
 services:
   - redis-server
 script:
-  - bundle exec m test/forked/rails_full_stack_test.rb:22
+  - bundle exec rake forked_tests
 addons:
   chrome: stable
 before_install:
