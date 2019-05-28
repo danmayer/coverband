@@ -35,7 +35,7 @@ module Coverband
       end
 
       def runtime_relavent_lines(source_file)
-        return 0 unless eager_loading_coverage && runtime_coverage
+        return 0 unless runtime_coverage
 
         eager_file = get_eager_file(source_file)
         runtime_file = get_runtime_file(source_file)
