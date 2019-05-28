@@ -1,18 +1,13 @@
 language: ruby
+dist: trusty
 rvm:
-  - "2.3"
-  - "2.4"
-  - "2.5"
-  - "2.6.1"
+  - "2.6.3"
 gemfile:
   - Gemfile
-  - Gemfile.rails4
 services:
   - redis-server
 script:
-  - bundle exec rake rubocop
-  - bundle exec rake
-  - bundle exec rake forked_tests
+  - bundle exec m test/forked/rails_full_stack_test.rb:22
 addons:
   chrome: stable
 before_install:
