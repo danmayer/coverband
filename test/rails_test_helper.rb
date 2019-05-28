@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
+require 'selenium-webdriver'
 require 'minitest'
-# require 'minitest/fork_executor'
+require 'minitest/fork_executor'
 
 # Forked executor includes autorun which does not work with qrush/m
 # https://github.com/qrush/m/issues/26
@@ -14,7 +15,7 @@ if defined?(M)
   end
 end
 
-# Minitest.parallel_executor = Minitest::ForkExecutor.new
+Minitest.parallel_executor = Minitest::ForkExecutor.new
 require File.expand_path('./test_helper', File.dirname(__FILE__))
 require 'capybara'
 require 'capybara/minitest'
