@@ -20,7 +20,7 @@ class RailsFullStackTest < Minitest::Test
   end
 
   test 'list all gems even if no coverage' do
-    Capybara.current_driver = :selenium_chrome_headless
+    Capybara.current_driver = :selenium_headless
     visit '/coverage'
     find('a.Gems').click
     assert_selector('a.gem-link', text: /pundit/)
