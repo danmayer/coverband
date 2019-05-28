@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'selenium-webdriver'
 require 'minitest'
 require 'minitest/fork_executor'
 
