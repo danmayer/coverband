@@ -38,10 +38,10 @@ module Coverband
         @store.type = Coverband::EAGER_TYPE
       end
 
-      def eager_loading(&block)
+      def eager_loading
         old_coverage_type = @store.type
         eager_loading!
-        block.call
+        yield
       ensure
         report_coverage
         @store.type = old_coverage_type

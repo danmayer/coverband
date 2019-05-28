@@ -242,7 +242,7 @@ module Coverband
       end
 
       def gem_name
-        gem? ? short_name.split('/').first.gsub(%r{^\.}, '') : nil
+        gem? ? short_name.split('/').first.gsub(/^\./, '') : nil
       end
 
       private
