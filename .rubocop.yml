@@ -55,6 +55,10 @@ Style/NumericLiteralPrefix:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
+Style/SymbolProc:
+  Enabled: false
+Style/RegexpLiteral:
+  Enabled: false
 Performance/Casecmp:
   Enabled: false
 Performance/RegexpMatch:

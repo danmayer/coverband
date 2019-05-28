@@ -11,6 +11,8 @@ module Coverband
   module Utils
     class SourceFile
       include Coverband::Utils::FilePathHelper
+
+      # TODO: Refactor Line into its own file
       # Representation of a single line in a source file including
       # this specific line's source code, line_number and code coverage,
       # with the coverage being either nil (coverage not applicable, e.g. comment
@@ -91,16 +93,25 @@ module Coverband
 
       def initialize(filename, file_data)
         @filename = filename
+        @runtime_relavant_lines = nil
         if file_data.is_a?(Hash)
           @coverage = file_data['data']
           @first_updated_at = @last_updated_at = NOT_AVAILABLE
           @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
           @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
         else
+          # TODO: Deprecate this code path this was backwards compatability from 3-4
           @coverage = file_data
           @first_updated_at = NOT_AVAILABLE
           @last_updated_at = NOT_AVAILABLE
         end
+      end
+
+      def runtime_relavant_calculations(runtime_relavant_lines)
+        @runtime_relavant_lines = runtime_relavant_lines
+        yield self
+      ensure
+        @runtime_relavant_lines = nil
       end
 
       # The path to this source file relative to the projects directory
@@ -171,7 +182,7 @@ module Coverband
       end
 
       def relevant_lines
-        lines.size - never_lines.size - skipped_lines.size
+        @runtime_relavant_lines || (lines.size - never_lines.size - skipped_lines.size)
       end
 
       # Returns all covered lines as SimpleCov::SourceFile::Line

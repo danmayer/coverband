@@ -39,7 +39,7 @@
             <%= link_to_source_file(source_file) %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
-          <% runtime_percentage = result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.formatted_covered_percent %>
+          <% runtime_percentage = result.runtime_relevant_coverage(source_file) %>
           <td class="<%= "#{coverage_css_class(runtime_percentage)}" %> strong">
             <%= "#{runtime_percentage || '0'} %" %>
           </td>
