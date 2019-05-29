@@ -130,7 +130,7 @@ namespace :benchmarks do
       x.config(time: 12, warmup: 5, suite: suite)
       x.report 'coverband' do
         work
-        Coverband.report_coverage(true)
+        Coverband.report_coverage
       end
       x.report 'no coverband' do
         work
@@ -225,7 +225,7 @@ namespace :benchmarks do
       10.times do
         Coverband.configure do |config|
           redis_url = ENV['CACHE_REDIS_URL'] || ENV['REDIS_URL']
-          config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_namespace: 'coverband_data')
+          config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_namespace: 'coverband_bench_data')
         end
       end
     end.pretty_print

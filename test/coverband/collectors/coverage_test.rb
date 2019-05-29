@@ -8,7 +8,7 @@ class CollectorsCoverageTest < Minitest::Test
   def setup
     super
     Coverband.configure do |config|
-      config.store = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.store = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
     end
     @coverband = Coverband::Collectors::Coverage.instance.reset_instance
     # preload first coverage hit

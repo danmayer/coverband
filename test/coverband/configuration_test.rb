@@ -12,7 +12,7 @@ class BaseTest < Minitest::Test
       config.root_paths          = ['/app_path/']
       config.ignore              = ['config/envionments']
       config.reporter            = 'std_out'
-      config.store               = Coverband::Adapters::RedisStore.new(Redis.new)
+      config.store               = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
     end
   end
 

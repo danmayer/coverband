@@ -7,8 +7,11 @@ class RedisTest < Minitest::Test
 
   def setup
     super
+    Coverband.configuration.redis_namespace = 'coverband_test'
     @redis = Redis.new
-    @store = Coverband::Adapters::RedisStore.new(@redis)
+    @store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
+    Coverband.configuration.store = @store
+    @store.clear!
   end
 
   def test_coverage

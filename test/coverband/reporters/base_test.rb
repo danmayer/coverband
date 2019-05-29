@@ -97,7 +97,7 @@ class ReportsBaseTest < Minitest::Test
 
   test "#get_current_scov_data_imp doesn't ignore folders with default ignore keys" do
     @redis = Redis.new
-    store = Coverband::Adapters::RedisStore.new(@redis)
+    store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
     store.clear!
 
     Coverband.configure do |config|
@@ -140,7 +140,7 @@ class ReportsBaseTest < Minitest::Test
         "data"=>[16, 16, 16, nil, 16, 16, nil, nil, 16, nil, 16, 32, 32, nil, 32, 32, 32, 32, 32, 32, 32, nil, nil, 16, nil, 16, 32, 23, 0, 0, 0, 0, nil, nil, nil, nil, 0, 0, nil, nil, 16, 32, 32, 32, nil, nil, nil, nil, nil, 16, 32, nil, nil, 16, 32, nil, nil]}
       }
     @redis = Redis.new
-    store = Coverband::Adapters::RedisStore.new(@redis)
+    store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
     store.clear!
 
     Coverband.configure do |config|
