@@ -19,9 +19,7 @@ module Coverband
     # * should we skip /bin/rails webpacker:compile ?
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
-    IGNORE_TASKS = ['assets:clean',
-                    'assets:precompile',
-                    'coverband:clear',
+    IGNORE_TASKS = ['coverband:clear',
                     'coverband:coverage',
                     'coverband:coverage_server',
                     'coverband:migrate']

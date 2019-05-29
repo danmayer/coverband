@@ -73,9 +73,8 @@ module Coverband
   end
 
   def self.tasks_to_ignore?
-    (defined?(Rake) &&
-    Rake.respond_to?(:application) &&
-    (Rake&.application&.top_level_tasks || []).any? { |task| Coverband::Configuration::IGNORE_TASKS.include?(task) })
+    defined?(Rake) &&
+      (Coverband::Configuration::IGNORE_TASKS & Array(Rake.application.top_level_tasks)).any?
   end
 
   def self.eager_loading_coverage!
