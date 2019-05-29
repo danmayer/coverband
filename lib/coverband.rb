@@ -66,10 +66,16 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
-    # TODO: Railtie sets up at_exit after forks, via middleware, perhaps this hsould be
+    # TODO: Railtie sets up at_exit after forks, via middleware, perhaps this should be
     # added if not rails or if rails but not rackserverrunning
-    AtExit.register
-    Background.start if configuration.background_reporting_enabled && !RackServerCheck.running?
+    AtExit.register unless tasks_to_ignore?
+    Background.start if configuration.background_reporting_enabled && !RackServerCheck.running? && !tasks_to_ignore?
+  end
+
+  def self.tasks_to_ignore?
+    (defined?(Rake) &&
+    Rake.respond_to?(:application) &&
+    (Rake&.application&.top_level_tasks || []).any? { |task| Coverband::Configuration::IGNORE_TASKS.include?(task) })
   end
 
   def self.eager_loading_coverage!

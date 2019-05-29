@@ -17,6 +17,7 @@ class ResqueWorkerTest < Minitest::Test
       config.background_reporting_enabled = false
       config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
     end
+    Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
     Coverband.start
     redis = Coverband.configuration.store.send(:redis)
     Resque.redis = redis
