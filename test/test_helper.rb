@@ -30,6 +30,7 @@ module Coverband
   module Test
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
+      Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
       [:eager_loading, nil].each do |type|
         Coverband.configuration.store.type = type
         Coverband.configuration.store.clear!
