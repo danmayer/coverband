@@ -16,27 +16,6 @@ describe 'result' do
       }
     end
 
-    describe '#add_not_loaded_files' do
-      it 'Adds files not yet tracked' do
-        results = Coverband::Utils::Result.add_not_loaded_files({}, ['./test/dog.*'])
-        dog_file = results.keys.grep(/dog.rb/).first
-        assert dog_file
-      end
-
-      it 'Does not overrwrite existing coverage' do
-        dog_file = File.expand_path('./test/dog.rb')
-        results = Coverband::Utils::Result.add_not_loaded_files({ dog_file => [0, 1] }, ['./test/dog.*'])
-        assert_equal({ dog_file => [0, 1] }, results)
-      end
-
-      it 'Adds files not yet tracked from multiple file globs' do
-        dog_file = File.expand_path('./test/dog.rb')
-        test_helper_file = File.expand_path('./test/test_helper.rb')
-        results = Coverband::Utils::Result.add_not_loaded_files({}, ['./test/dog.*', './test/test_helper.rb'])
-        assert_equal [dog_file, test_helper_file].to_set, results.keys.to_set
-      end
-    end
-
     describe 'a simple cov result initialized from that' do
       subject { Coverband::Utils::Result.new(original_result) }
 
