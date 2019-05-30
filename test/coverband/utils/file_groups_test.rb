@@ -3,16 +3,18 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 describe Coverband::Utils::FileGroups do
-  FAKE_GEM_PATH = 'fake/gem/path'
+  FAKE_GEM_PATH = '/Users/danmayer/.rvm/gems/ruby-2.6.2/gems'
+  SECONDAY_GEM_PATH = '/Users/danmayer/.rvm/rubies/ruby-2.6.2/lib/ruby/gems/2.6.0/gems'
   subject do
     controller_lines = [nil, 2, 2, 0, nil, nil, 0, nil, nil, nil]
     files = [
       Coverband::Utils::SourceFile.new(source_fixture('sample.rb'), [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil]),
       Coverband::Utils::SourceFile.new(source_fixture('app/models/user.rb'), [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]),
       Coverband::Utils::SourceFile.new(source_fixture('app/controllers/sample_controller.rb'), controller_lines),
-      Coverband::Utils::SourceFile.new("#{FAKE_GEM_PATH}/gem_name.rb", controller_lines)
+      Coverband::Utils::SourceFile.new("#{FAKE_GEM_PATH}/gem_name-1.0.0/gem_name.rb", controller_lines),
+      Coverband::Utils::SourceFile.new("#{SECONDAY_GEM_PATH}/gem_two_name-1.1.1/gem_two.rb", controller_lines)
     ]
-    Coverband.configuration.expects(:gem_paths).at_least_once.returns([FAKE_GEM_PATH])
+    Coverband.configuration.expects(:gem_paths).at_least_once.returns([FAKE_GEM_PATH, SECONDAY_GEM_PATH])
     Coverband.configuration.track_gems = true
     Coverband::Utils::FileGroups.new(files)
   end
@@ -22,7 +24,11 @@ describe Coverband::Utils::FileGroups do
   end
 
   it 'has gem files' do
-    assert_equal "#{FAKE_GEM_PATH}/gem_name.rb", subject.grouped_results['Gems'].first.first.short_name
+    assert_equal "gem_name-1.0.0", subject.grouped_results['Gems'].first.first.gem_name
+  end
+
+  it 'has gem files from secondary gem paths' do
+    assert_equal "gem_two_name-1.1.1", subject.grouped_results['Gems'][1].first.gem_name
   end
 end
 

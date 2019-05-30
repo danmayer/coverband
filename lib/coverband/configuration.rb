@@ -114,12 +114,10 @@ module Coverband
       @ignore << 'vendor/ruby-*' unless @ignore.include?('vendor/ruby-*')
       add_group('App', root)
       # TODO: rework support for multiple gem paths
-      # currently this supports GEM_HOME (which should be first path)
-      # but various gem managers setup multiple gem paths
-      # gem_paths.each_with_index do |path, index|
-      #   add_group("gems_#{index}", path)
-      # end
-      add_group('Gems', gem_paths.first)
+      # this works but seems hacky and error prone
+      # basically since it is converted to a regex we join all the paths
+      # with a regex 'OR' using '|'
+      add_group('Gems', gem_paths.join('|'))
     end
 
     #
