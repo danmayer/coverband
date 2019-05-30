@@ -254,6 +254,8 @@ By adding any files above you will get reporting on those files as part of your 
 
 ### Collecting Gem / Library Usage
 
+__NOTE:__ Gem Tracking is still in testing stagings we have some performance issues on the reporting side and have heard reports of increased memory usage. We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
+
 Gem usage can be tracked by enabling the `track_gems` config.
 
 ```

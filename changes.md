@@ -49,6 +49,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - move all code to work with relative paths leaving only stdlib Coverage working on full paths
 - add gem_safe_lists to track only some gems
 - add gem_details_safe list to report on details on some gems
+- - display gems that are in loaded with 0 coverage, thanks @kbaum 
 
 ### Coverband_jam_session
 
@@ -91,7 +92,7 @@ Feature Ideas:
 - improved runtime / eager loading tracking
 - updated runtime relavent lines and runtime percentages
 - fix on gem runtime code coverage support, thanks @kbaum
-- display gems that are in loaded with 0 coverage, thanks @kbaum  
+
 
 # Released
 
