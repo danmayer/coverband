@@ -29,7 +29,7 @@ module Coverband
           # list all files, even if not tracked by Coverband (0% coverage)
           file_patterns = ["#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"]
           if Coverband.configuration.track_gems
-            file_patterns.concat(Gem.loaded_specs.values.map(&:full_require_paths)
+            file_patterns.concat(Bundler.definition.specs.reject{|spec| spec.name == 'coverband'}.map(&:full_require_paths)
               .flatten.map { |path| "#{path}/**/*.{rb}" })
           end
           filtered_report_files = {}
