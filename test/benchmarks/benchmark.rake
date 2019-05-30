@@ -32,10 +32,7 @@ namespace :benchmarks do
   end
 
   def clone_classifier
-    unless Dir.exist? classifier_dir
-      system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}"
-    end
-    # rubocop:enable Style/IfUnlessModifier
+    system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}" unless Dir.exist? classifier_dir
   end
 
   # desc 'setup standard benchmark'

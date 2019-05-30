@@ -35,6 +35,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'resque'
   spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'selenium-webdriver'
+  spec.add_development_dependency 'webdrivers', '~> 3.0'
   # temporarily needed to run tests for classifier-reborn as part of benchmarks
   spec.add_development_dependency 'minitest-reporters'
 

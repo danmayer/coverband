@@ -11,8 +11,6 @@ class RailsFullStackTest < Minitest::Test
     rails_setup
     # preload first coverage hit
     Coverband.report_coverage
-    require 'rainbow'
-    Rainbow('this text is red').red
   end
 
   def teardown
@@ -21,10 +19,17 @@ class RailsFullStackTest < Minitest::Test
     Capybara.use_default_driver
   end
 
-  # We have to combine everything in one test
-  # because we can only initialize rails once per test
-  # run. Possibly fork test runs to avoid this problem in future?
+  test 'list all gems even if no coverage' do
+    Capybara.current_driver = :selenium_chrome_headless
+    visit '/coverage'
+    find('a.Gems').click
+    assert_selector('a.gem-link', text: /pundit/)
+    assert_selector('a.gem-link', text: /rainbow/)
+  end
+
   test 'this is how we do it' do
+    require 'rainbow'
+    Rainbow('this text is red').red
     visit '/dummy/show'
     Coverband.report_coverage
     assert_content('I am no dummy')
