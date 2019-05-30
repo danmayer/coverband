@@ -11,7 +11,7 @@ class ReportHTMLTest < Minitest::Test
     Coverband.configure do |config|
       config.store             = @store
       config.root              = fixtures_root
-      config.ignore            = ['notsomething.rb']
+      config.ignore            = ['notsomething.rb', 'lib/*']
     end
     mock_file_hash
   end
@@ -36,30 +36,6 @@ class ReportHTMLTest < Minitest::Test
     assert_match 'app/models/user.rb', html
   end
 
-  test 'Gem files with no coverage are shown in report' do
-    Coverband.configure do |config|
-      config.track_gems = true
-    end
-    @store.send(:save_report, basic_source_fixture_coverage)
-
-    html = Coverband::Reporters::HTMLReport.new(@store,
-                                                static: false,
-                                                open_report: false).report
-    assert_match 'rainbow', html
-  end
-
-  test 'Gem files are not shown in report when not configured' do
-    Coverband.configure do |config|
-      config.track_gems = false
-    end
-    @store.send(:save_report, basic_source_fixture_coverage)
-
-    html = Coverband::Reporters::HTMLReport.new(@store,
-                                                static: false,
-                                                open_report: false).report
-    refute_match 'rainbow', html
-  end
-
   test 'generate static HTML report file' do
     @store.send(:save_report, basic_coverage)
 
@@ -76,9 +52,9 @@ class ReportHTMLTest < Minitest::Test
     filename = basic_coverage_file_full_path
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-                                                filename: filename,
-                                                base_path: base_path,
-                                                open_report: false).file_details
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
     assert_match 'Coverage first seen', html
   end
 
@@ -88,9 +64,9 @@ class ReportHTMLTest < Minitest::Test
     filename = 'missing_path'
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-                                                filename: filename,
-                                                base_path: base_path,
-                                                open_report: false).file_details
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
     assert_match 'File No Longer Available', html
   end
 
@@ -100,9 +76,9 @@ class ReportHTMLTest < Minitest::Test
     filename = "#{test_root}/test_helper.rb"
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-                                                filename: filename,
-                                                base_path: base_path,
-                                                open_report: false).file_details
+      filename: filename,
+      base_path: base_path,
+      open_report: false).file_details
     assert_match 'File No Longer Available', html
   end
 end
