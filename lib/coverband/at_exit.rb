@@ -16,18 +16,7 @@ module Coverband
         at_exit do
           ::Coverband::Background.stop
 
-          #####
-          # TODO: This is is brittle and not a great solution to avoid deploy time
-          # actions polluting the 'runtime' metrics
-          #
-          # * should we skip /bin/rails webpacker:compile ?
-          # * Perhaps detect heroku deployment ENV var opposed to tasks?
-          #####
-          default_heroku_tasks = ['assets:clean', 'assets:precompile']
-          if !Coverband.configuration.report_on_exit ||
-             (defined?(Rake) &&
-             Rake.respond_to?(:application) &&
-             (Rake&.application&.top_level_tasks || []).any? { |task| default_heroku_tasks.include?(task) })
+          if !Coverband.configuration.report_on_exit
             # skip reporting
           else
             Coverband.report_coverage

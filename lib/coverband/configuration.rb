@@ -12,6 +12,18 @@ module Coverband
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
+    #####
+    # TODO: This is is brittle and not a great solution to avoid deploy time
+    # actions polluting the 'runtime' metrics
+    #
+    # * should we skip /bin/rails webpacker:compile ?
+    # * Perhaps detect heroku deployment ENV var opposed to tasks?
+    #####
+    IGNORE_TASKS = ['coverband:clear',
+                    'coverband:coverage',
+                    'coverband:coverage_server',
+                    'coverband:migrate']
+
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
     # heroku asset compilation

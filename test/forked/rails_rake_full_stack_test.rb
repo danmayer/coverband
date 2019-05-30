@@ -17,4 +17,16 @@ class RailsRakeFullStackTest < Minitest::Test
     pundit_coverage = store.coverage[pundit_file]
     assert_nil pundit_coverage
   end
+
+  test "ignored rake tasks don't add coverage" do
+    store.instance_variable_set(:@redis_namespace, 'coverband_test')
+    store.send(:save_report, basic_coverage_full_path)
+    output = `COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile coverband:clear`
+    assert_nil output.match(/Coverband: Reported coverage via thread/)
+    coverage_report = store.get_coverage_report
+    empty_hash = {}
+    assert_equal empty_hash, coverage_report[nil]
+    assert_equal empty_hash, coverage_report[:eager_loading]
+    assert_equal empty_hash, coverage_report[:merged]
+  end
 end
