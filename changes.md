@@ -73,7 +73,7 @@ Feature Ideas:
 - document how to use this on staging / selenium test suite runs
   - possible add API to pull report at end of run
 
-# Alpha
+# Alpha / Beta / Release Candidates
 
 ### Coverband 4.2.1
 
@@ -86,6 +86,12 @@ Feature Ideas:
 - add runtime coverage to gem summary pages
 - fix issue where reports didn't include files with 0 activity
 - add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
+   - I would consider this our test oneshot release, please report any issues
+- resolve regression on coverband rake tasks recording coverage
+- improved runtime / eager loading tracking
+- updated runtime relavent lines and runtime percentages
+- fix on gem runtime code coverage support, thanks @kbaum
+- display gems that are in loaded with 0 coverage, thanks @kbaum  
 
 # Released
 
