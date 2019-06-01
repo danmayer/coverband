@@ -13,7 +13,9 @@ script:
   - bundle exec rake rubocop
   - bundle exec rake
   - bundle exec rake forked_tests
-  - bundle exec rake benchmarks:memory
+  # remove this for now as it is flaky
+  # passes locally on 2.3.5 on travis passes sometimes on 2.4 and always on 2.6.1
+  #- bundle exec rake benchmarks:memory
   - bundle exec rake benchmarks
 before_install:
   - echo 'this is a hack to clear default bundler and force bundler 1.17.3'
