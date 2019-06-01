@@ -116,8 +116,17 @@ def test_root
   File.expand_path(File.join(File.dirname(__FILE__)))
 end
 
+###
+# This handles an issue where the store is setup in tests prior to being able to set the namespace
+###
 def store
-  Coverband.configuration.store
+  if Coverband.configuration.store.redis_namespace=='coverband_test'
+    Coverband.configuration.store
+  else
+    Coverband.configuration.redis_namespace = 'coverband_test'
+    Coverband.configuration.instance_variable_set(:@store, nil)
+    Coverband.configuration.store
+  end
 end
 
 # Taken from http://stackoverflow.com/questions/4459330/how-do-i-temporarily-redirect-stderr-in-ruby

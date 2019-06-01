@@ -13,6 +13,8 @@ module Coverband
       ###
       REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_2'
 
+      attr_reader :redis_namespace
+
       def initialize(redis, opts = {})
         super()
         @redis           = redis
