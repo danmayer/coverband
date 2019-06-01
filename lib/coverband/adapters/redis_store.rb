@@ -19,6 +19,10 @@ module Coverband
         @ttl             = opts[:ttl]
         @redis_namespace = opts[:redis_namespace]
         @format_version  = REDIS_STORAGE_FORMAT_VERSION
+        @keys            = {}
+        Coverband::TYPES.each do |type|
+          @keys[type] = [@format_version, @redis_namespace, type].compact.join('.')
+        end
       end
 
       def clear!
@@ -79,7 +83,7 @@ module Coverband
       end
 
       def type_base_key(local_type)
-        [@format_version, @redis_namespace, local_type].compact.join('.')
+        @keys[local_type]
       end
 
       def save_coverage(data, local_type = nil)

@@ -81,16 +81,23 @@ class RailsFullStackTest < Minitest::Test
             visit '/dummy/show'
             assert_content('I am no dummy')
             Coverband.report_coverage
-            # this is expected to retain memory across requests
-            # clear it to remove the false positive from test
-            Coverband::Collectors::Delta.reset
+            ###
+            # Set to nil not {} as it is easier to verify that no memory is retained when nil gets released
+            # don't use Coverband::Collectors::Delta.reset which sets to {}
+            #
+            # we clear this as this one variable is expected to retain memory and is a false positive
+            ###
+            Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
             # needed to test older versions to discover when we had the regression
             # Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)
           end
         end.pretty_print
         data = $stdout.string
         $stdout = previous_out
-        raise 'leaking memory!!!' if data.match(/retained objects by gem(.*)retained objects by file/m)[0]&.match(/coverband/)
+        if data.match(/retained objects by gem(.*)retained objects by file/m)[0]&.match(/coverband/)
+          puts data
+          raise 'leaking memory!!!'
+        end
       ensure
         $stdout = previous_out
       end

@@ -36,7 +36,7 @@ module Coverband
 
       def generate
         current_coverage.each_with_object({}) do |(file, line_counts), new_results|
-          new_results[file] = if @@previous_coverage[file]
+          new_results[file] = if @@previous_coverage && @@previous_coverage[file]
                                 array_diff(line_counts, @@previous_coverage[file])
                               else
                                 line_counts
