@@ -29,7 +29,7 @@ The primary goal of Coverband is giving deep insight into your production runtim
 - Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
 - Splits load time (Rails eager load) and Run time metrics
 - Easy to understand actionable insights from the report
-- Tracks Gem usage
+- Tracks Gem usage (still in experimental stages and not recommended for production)
 - Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
 
@@ -254,7 +254,7 @@ By adding any files above you will get reporting on those files as part of your 
 
 ### Collecting Gem / Library Usage
 
-__NOTE:__ Gem Tracking is still in testing stagings we have some performance issues on the reporting side and have heard reports of increased memory usage. We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
+__WARNING:__ Gem Tracking is still in experimental stages and not recommended for production. We have some performance issues when view reports on large applications. Gem tracing also during background thread data collection has HIGH memory requirements, during report merging (seemingly around 128mb of extra memory, which is crazy). We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
 
 Gem usage can be tracked by enabling the `track_gems` config.
 
