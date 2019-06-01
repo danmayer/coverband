@@ -207,7 +207,40 @@ namespace :benchmarks do
     end.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    raise 'leaking memory!!!' unless data.match('Total retained:  0 bytes')
+    unless data.match('Total retained:  0 bytes')
+      puts data
+      raise 'leaking memory!!!'
+    end
+  ensure
+    $stdout = previous_out
+  end
+
+  def measure_memory_report_coverage
+    require 'memory_profiler'
+    report = fake_report
+    store = benchmark_redis_store
+    store.clear!
+    mock_files(store)
+
+    # warmup
+    3.times { Coverband.report_coverage }
+
+    previous_out = $stdout
+    capture = StringIO.new
+    $stdout = capture
+
+    MemoryProfiler.report do
+      10.times {
+        Coverband.report_coverage
+        Coverband::Collectors::Delta.reset
+      }
+    end.pretty_print
+    data = $stdout.string
+    $stdout = previous_out
+    unless data.match('Total retained:  0 bytes')
+      puts data
+      raise 'leaking memory!!!'
+    end
   ensure
     $stdout = previous_out
   end
@@ -231,8 +264,10 @@ namespace :benchmarks do
     end.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    puts data
-    raise 'leaking memory!!!' unless data.match('Total retained:  0 bytes')
+    unless data.match('Total retained:  0 bytes')
+      puts data
+      raise 'leaking memory!!!'
+    end
   ensure
     $stdout = previous_out
   end
@@ -241,6 +276,12 @@ namespace :benchmarks do
   task memory_reporting: [:setup] do
     puts 'runs memory benchmarking to ensure we dont leak'
     measure_memory
+  end
+
+  desc 'runs memory reporting on report_coverage'
+  task memory_reporting_report_coverage: [:setup] do
+    puts 'runs memory benchmarking to ensure we dont leak'
+    measure_memory_report_coverage
   end
 
   desc 'runs memory reporting on configure'
@@ -252,7 +293,12 @@ namespace :benchmarks do
   desc 'runs memory leak check via Rails tests'
   task memory_rails: [:setup] do
     puts 'runs memory rails test to ensure we dont leak'
-    puts `COVERBAND_MEMORY_TEST=true bundle exec m test/unit/rails_full_stack_test.rb:22`
+    puts `COVERBAND_MEMORY_TEST=true bundle exec test/forked/rails_full_stack_test.rb`
+  end
+
+  desc 'runs memory leak checks'
+  task memory: [:memory_reporting, :memory_reporting_report_coverage, :memory_configure_reporting, :memory_rails] do
+    puts 'done'
   end
 
   desc 'runs benchmarks on reporting large sets of files to redis'
