@@ -92,6 +92,8 @@ Feature Ideas:
 - improved runtime / eager loading tracking
 - updated runtime relavent lines and runtime percentages
 - fix on gem runtime code coverage support, thanks @kbaum
+- fix on small memory leaks
+- added warnings that gem tracking isn't production ready
 
 
 # Released
