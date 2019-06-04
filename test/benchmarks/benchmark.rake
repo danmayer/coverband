@@ -282,6 +282,53 @@ namespace :benchmarks do
     $stdout = previous_out
   end
 
+  desc 'checks memory of collector'
+  task memory_check: [:setup] do
+    require 'pry-byebug'
+    require 'objspace'
+    puts 'memory load check'
+    puts(ObjectSpace.memsize_of_all / 2**20)
+    data = File.read("./tmp/debug_data.json")
+    # about 2mb
+    puts(ObjectSpace.memsize_of(data) / 2**20)
+
+    json_data = JSON.parse(data)
+    # this seems to just show the value of the pointer
+    # puts(ObjectSpace.memsize_of(json_data) / 2**20)
+    #implies json takes 10-12 mb
+    puts(ObjectSpace.memsize_of_all / 2**20)
+
+    json_data = nil
+    GC.start
+    json_data = JSON.parse(data)
+    # this seems to just show the value of the pointer
+    # puts(ObjectSpace.memsize_of(json_data) / 2**20)
+    #implies json takes 10-12 mb
+    puts(ObjectSpace.memsize_of_all / 2**20)
+
+    json_data = nil
+    GC.start
+    json_data = JSON.parse(data)
+    # this seems to just show the value of the pointer
+    # puts(ObjectSpace.memsize_of(json_data) / 2**20)
+    #implies json takes 10-12 mb
+    puts(ObjectSpace.memsize_of_all / 2**20)
+
+    json_data = nil
+    GC.start
+    json_data = JSON.parse(data)
+    # this seems to just show the value of the pointer
+    # puts(ObjectSpace.memsize_of(json_data) / 2**20)
+    #implies json takes 10-12 mb
+    puts(ObjectSpace.memsize_of_all / 2**20)
+
+    json_data = nil
+    GC.start
+    puts(ObjectSpace.memsize_of_all / 2**20) 
+    debugger
+    puts 'done'
+  end
+
   desc 'runs memory reporting on Redis store'
   task memory_reporting: [:setup] do
     puts 'runs memory benchmarking to ensure we dont leak'

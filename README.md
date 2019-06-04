@@ -108,8 +108,9 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 > The web index as available on the Coverband Demo site
 
 - **force coverage collection:** This triggers coverage collection on the current webserver process
-- **reload Coverband files:** This has Coverband reload files as configured (force reload of some files that might not capture Coverage on boot). This can be used to reload files on demand.
 - **clear coverage report:** This will clear the coverage data. This wipes out all collected data (**dangerous**)
+- View individual file details
+- **clear individual file coverage:** This will clear the details of the file you are looking at. This is helpful if you don't want to loose all Coverage data but made a change that you expect would impact a particular file.
 
 ### Rake Tasks
 
