@@ -3,7 +3,7 @@
 module Coverband
   module Collectors
     class Delta
-      @@previous_coverage = nil
+      @@previous_coverage = {}
       attr_reader :current_coverage
 
       def initialize(current_coverage)
@@ -24,25 +24,20 @@ module Coverband
 
       def results
         new_results = generate
-        store_results(current_coverage)
+        @@previous_coverage = current_coverage
         new_results
       end
 
       def self.reset
-        @@previous_coverage = nil
+        @@previous_coverage = {}
       end
 
       private
 
-      def store_results(results)
-        @@previous_coverage = results.to_json
-      end
-
       def generate
-        hydrated_results = @@previous_coverage ? JSON.parse(@@previous_coverage) : nil
         current_coverage.each_with_object({}) do |(file, line_counts), new_results|
-          new_results[file] = if hydrated_results && hydrated_results[file]
-                                array_diff(line_counts, hydrated_results[file])
+          new_results[file] = if @@previous_coverage && @@previous_coverage[file]
+                                array_diff(line_counts, @@previous_coverage[file])
                               else
                                 line_counts
                               end
