@@ -82,11 +82,8 @@ module Coverband
       private
 
       def filtered_files(new_results)
-        filtered_files = new_results.each_with_object({}) do |(file, line_counts), file_line_usage|
-          file_line_usage[file] = line_counts if track_file?(file)
-        end
-        filtered_files.select! { |_file_name, coverage| coverage.any? { |value| value&.nonzero? } }
-        filtered_files
+        new_results.select! { |file, coverage| track_file?(file) && coverage.any? { |value| value&.nonzero? } }
+        new_results
       end
 
       def initialize
