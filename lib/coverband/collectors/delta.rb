@@ -12,7 +12,7 @@ module Coverband
 
       class RubyCoverage
         def self.results
-          ::Coverage.peek_result.dup
+          ::Coverage.peek_result
         end
       end
 
