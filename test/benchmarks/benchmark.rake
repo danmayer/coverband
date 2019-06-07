@@ -370,6 +370,17 @@ namespace :benchmarks do
     run_work(true)
   end
 
+  task run_big: %i[setup setup_redis] do
+    require 'memory_profiler'
+    require './test/unique_files'
+    1000.times { require_unique_file }
+    # warmup
+    3.times { Coverband.report_coverage }
+    MemoryProfiler.report do
+      10.times { Coverband.report_coverage }
+    end.pretty_print
+  end
+
   # desc 'runs benchmarks file store'
   task run_file: %i[setup setup_file] do
     puts 'Coverband configured with file store'
