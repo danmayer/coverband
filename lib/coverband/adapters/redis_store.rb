@@ -78,6 +78,16 @@ module Coverband
         data ? JSON.parse(data) : {}
       end
 
+      # Note: This could lead to slight race on redis
+      # where multiple processes pull the old coverage and add to it then push
+      # the Coverband 2 had the same issue,
+      # and the tradeoff has always been acceptable
+      def save_report(report)
+        data = report.dup
+        data = merge_reports(data, coverage)
+        save_coverage(data)
+      end
+
       private
 
       attr_reader :redis
