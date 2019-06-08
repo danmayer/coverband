@@ -35,7 +35,7 @@ module Coverband
 
       def clear_file!(filename)
         Coverband::TYPES.each do |type|
-          data = get_report(type)
+          data = coverage(type)
           data.delete(filename)
           save_coverage(data, type)
         end
@@ -53,7 +53,7 @@ module Coverband
       def migrate!
         reset_base_key
         @format_version = 'coverband3_1'
-        previous_data = get_report
+        previous_data = coverage
         if previous_data.empty?
           puts 'no previous data to migrate found'
           exit 0
@@ -64,12 +64,18 @@ module Coverband
         clear!
         reset_base_key
         @format_version = REDIS_STORAGE_FORMAT_VERSION
-        save_coverage(merge_reports(get_report, relative_path_report, skip_expansion: true))
+        save_coverage(merge_reports(coverage, relative_path_report, skip_expansion: true))
       end
 
       def type=(type)
         super
         reset_base_key
+      end
+
+      def coverage(local_type = nil)
+        local_type ||= type
+        data = redis.get type_base_key(local_type)
+        data ? JSON.parse(data) : {}
       end
 
       private
@@ -92,12 +98,6 @@ module Coverband
         local_type ||= type
         redis.set type_base_key(local_type), data.to_json
         redis.expire(type_base_key(local_type), @ttl) if @ttl
-      end
-
-      def get_report(local_type = nil)
-        local_type ||= type
-        data = redis.get type_base_key(local_type)
-        data ? JSON.parse(data) : {}
       end
     end
   end
