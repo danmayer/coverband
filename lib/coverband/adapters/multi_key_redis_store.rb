@@ -23,26 +23,24 @@ module Coverband
         expand_report(report).each do |file, data|
           @redis.set(key(file), data.to_json)
         end
+        @redis.sadd(files_key, report.keys)
       end
 
       def coverage
-        @redis.keys(list_keys_value).each_with_object({}) do |key, coverage|
-          coverage[key.gsub(key_prefix_substring, '')] = JSON.parse(@redis.get(key))
+        files = @redis.smembers(files_key)
+        files.each_with_object({}) do |file, coverage|
+          coverage[file] = JSON.parse(@redis.get(key(file)))
         end
       end
 
       private
 
-      def key_prefix_substring
-        "#{key_prefix}."
+      def files_key
+        @files_key ||= "#{key_prefix}.files"
       end
 
       def key(file)
         [key_prefix, file].join('.')
-      end
-
-      def list_keys_value
-        @list_keys_value ||= "#{key_prefix}.*"
       end
 
       def key_prefix
