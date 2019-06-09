@@ -12,19 +12,32 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_for_file
+    mock_file_hash
+    current_time = Time.now
+    Time.expects(:now).returns(current_time)
     expected = basic_coverage
     @store.save_report(expected)
     assert_equal example_line, @store.coverage['app_path/dog.rb']['data']
   end
 
   def test_coverage_for_multiple_files
+    mock_file_hash
+    current_time = Time.now
+    Time.expects(:now).at_least_once.returns(current_time)
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2],
       'app_path/cat.rb' => [1, 2, 0, 1, 5]
     }
     @store.save_report(data)
     coverage = @store.coverage
-    assert_equal [0, nil, 1, 2], @store.coverage['app_path/dog.rb']['data']
+    assert_equal(
+      {
+        'first_updated_at' => current_time.to_i,
+        'last_updated_at' => current_time.to_i,
+        'file_hash' => 'abcd',
+        'data' => [0, nil, 1, 2]
+      }, @store.coverage['app_path/dog.rb']
+    )
     assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
   end
 end
