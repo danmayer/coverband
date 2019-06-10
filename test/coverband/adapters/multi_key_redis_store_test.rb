@@ -15,14 +15,28 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_for_file
-    @store.save_report(basic_coverage)
+    @store.save_report(
+      'app_path/dog.rb' => [0, 1, 2]
+    )
     assert_equal example_line, @store.coverage['app_path/dog.rb']['data']
     assert_equal(
       {
         'first_updated_at' => @current_time.to_i,
         'last_updated_at' => @current_time.to_i,
         'file_hash' => 'abcd',
-        'data' => example_line
+        'data' => [0, 1, 2]
+      }.to_json,
+      @redis.get('coverband_3_2.coverband_test.app_path/dog.rb')
+    )
+    @store.save_report(
+      'app_path/dog.rb' => [1, 0, 0]
+    )
+    assert_equal(
+      {
+        'first_updated_at' => @current_time.to_i,
+        'last_updated_at' => @current_time.to_i,
+        'file_hash' => 'abcd',
+        'data' => [1, 1, 2]
       }.to_json,
       @redis.get('coverband_3_2.coverband_test.app_path/dog.rb')
     )
