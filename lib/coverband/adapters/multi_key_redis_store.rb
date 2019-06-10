@@ -20,15 +20,16 @@ module Coverband
       def clear!; end
 
       def save_report(report)
-        merge_reports(report, coverage).each do |file, data|
+        merge_reports(report, coverage(files: report.keys)).each do |file, data|
           @redis.set(key(file), data.to_json)
         end
         @redis.sadd(files_key, report.keys)
       end
 
-      def coverage
-        files = @redis.smembers(files_key)
-        files.each_with_object({}) do |file, coverage|
+      def coverage(files: nil)
+        files_to_retrieve = @redis.smembers(files_key)
+        files_to_retrieve &= files if files
+        files_to_retrieve.each_with_object({}) do |file, coverage|
           coverage[file] = JSON.parse(@redis.get(key(file)))
         end
       end
