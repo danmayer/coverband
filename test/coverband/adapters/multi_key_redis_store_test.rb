@@ -45,7 +45,8 @@ class MultiKeyRedisStoreTest < Minitest::Test
   def test_coverage_for_multiple_files
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2],
-      'app_path/cat.rb' => [1, 2, 0, 1, 5]
+      'app_path/cat.rb' => [1, 2, 0, 1, 5],
+      'app_path/ferrit.rb' => [1, 5, nil, 2]
     }
     @store.save_report(data)
     coverage = @store.coverage
@@ -58,5 +59,19 @@ class MultiKeyRedisStoreTest < Minitest::Test
       }, @store.coverage['app_path/dog.rb']
     )
     assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
+    assert_equal [1, 5, nil, 2], @store.coverage['app_path/ferrit.rb']['data']
+  end
+
+  def test_coverage_subset
+    data = {
+      'app_path/dog.rb' => [0, nil, 1, 2],
+      'app_path/cat.rb' => [1, 2, 0, 1, 5],
+      'app_path/ferrit.rb' => [1, 5, nil, 2]
+    }
+    @store.save_report(data)
+    coverage = @store.coverage(files: ['app_path/cat.rb', 'app_path/ferrit.rb'])
+    assert_equal 2, coverage.length
+    assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
+    assert_equal [1, 5, nil, 2], @store.coverage['app_path/ferrit.rb']['data']
   end
 end
