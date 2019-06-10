@@ -20,7 +20,7 @@ module Coverband
       def clear!; end
 
       def save_report(report)
-        expand_report(report).each do |file, data|
+        merge_reports(report, coverage).each do |file, data|
           @redis.set(key(file), data.to_json)
         end
         @redis.sadd(files_key, report.keys)
