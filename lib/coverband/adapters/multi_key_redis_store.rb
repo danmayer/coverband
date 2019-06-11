@@ -29,9 +29,9 @@ module Coverband
       end
 
       def save_report(report)
-        merge_reports(report, coverage(files: report.keys)).each do |file, data|
-          @redis.set(key(file), data.to_json)
-        end
+        @redis.mset(*merge_reports(report, coverage(files: report.keys)).map do |file, data|
+          [key(file), data.to_json]
+        end.flatten)
         @redis.sadd(files_key, report.keys)
       end
 
