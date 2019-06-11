@@ -37,7 +37,7 @@ module Coverband
       private
 
       def files_key
-        @files_key ||= "#{key_prefix}.files"
+        "#{key_prefix}.files"
       end
 
       def key(file)
@@ -45,7 +45,7 @@ module Coverband
       end
 
       def key_prefix
-        @key_prefix ||= [@format_version, @redis_namespace].compact.join('.')
+        [@format_version, @redis_namespace, type].compact.join('.')
       end
     end
   end
