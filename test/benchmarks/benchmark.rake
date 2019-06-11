@@ -324,7 +324,7 @@ namespace :benchmarks do
 
     json_data = nil
     GC.start
-    puts(ObjectSpace.memsize_of_all / 2**20) 
+    puts(ObjectSpace.memsize_of_all / 2**20)
     debugger
     puts 'done'
   end
@@ -373,6 +373,8 @@ namespace :benchmarks do
   task run_big: %i[setup setup_redis] do
     require 'memory_profiler'
     require './test/unique_files'
+    benchmark_redis_store.clear!
+
     1000.times { require_unique_file }
     # warmup
     3.times { Coverband.report_coverage }
