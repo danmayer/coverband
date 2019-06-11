@@ -38,9 +38,14 @@ module Coverband
       def coverage(files: nil)
         files_to_retrieve = files_set
         files_to_retrieve &= files if files
-        files_to_retrieve.each_with_object({}) do |file, coverage|
-          coverage[file] = JSON.parse(@redis.get(key(file)))
-        end
+        values = if files_to_retrieve.any?
+                   @redis.mget(*files_to_retrieve.map { |file| key(file) }).map do |value|
+                     JSON.parse(value)
+                   end
+                 else
+                   []
+                 end
+        Hash[files_to_retrieve.zip(values)]
       end
 
       private
