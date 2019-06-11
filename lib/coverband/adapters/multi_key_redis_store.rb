@@ -21,9 +21,8 @@ module Coverband
         old_type = type
         Coverband::TYPES.each do |type|
           self.type = type
-          @redis.smembers(files_key).each do |file|
-            @redis.del(key(file))
-          end
+          file_keys = files_set.map { |file| key(file) }
+          @redis.del(*file_keys) if file_keys.any?
           @redis.del(files_key)
         end
         self.type = old_type
@@ -37,7 +36,7 @@ module Coverband
       end
 
       def coverage(files: nil)
-        files_to_retrieve = @redis.smembers(files_key)
+        files_to_retrieve = files_set
         files_to_retrieve &= files if files
         files_to_retrieve.each_with_object({}) do |file, coverage|
           coverage[file] = JSON.parse(@redis.get(key(file)))
@@ -45,6 +44,10 @@ module Coverband
       end
 
       private
+
+      def files_set
+        @redis.smembers(files_key)
+      end
 
       def files_key
         "#{key_prefix}.files"
