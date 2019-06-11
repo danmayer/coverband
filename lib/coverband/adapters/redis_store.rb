@@ -11,7 +11,7 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_2'
+      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_marshal'
 
       attr_reader :redis_namespace
 
@@ -75,7 +75,13 @@ module Coverband
       def coverage(local_type = nil)
         local_type ||= type
         data = redis.get type_base_key(local_type)
-        data ? JSON.parse(data) : {}
+        # NOTE: we could automatically upgrade folks from JSON
+        # NOTE: If redis was compromised one could have remote code exploits, JSON is safer
+        # PERHAPS A CONFIG OPTION?
+        # another option, but it requires a new dependency is msgpack which should be faster and as safe as JSON
+        # rubocop:disable Security/MarshalLoad
+        data ? Marshal.restore(data) : {}
+        # rubocop:enable Security/MarshalLoad
       end
 
       private
@@ -96,7 +102,7 @@ module Coverband
 
       def save_coverage(data, local_type = nil)
         local_type ||= type
-        redis.set type_base_key(local_type), data.to_json
+        redis.set type_base_key(local_type), Marshal.dump(data)
         redis.expire(type_base_key(local_type), @ttl) if @ttl
       end
     end
