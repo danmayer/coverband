@@ -19,6 +19,8 @@ def remove_unique_files
   FileUtils.rm_r(UNIQUE_FILES_DIR) if File.exist?(UNIQUE_FILES_DIR)
 end
 
-Minitest.after_run do
-  remove_unique_files
+if defined?(Minitest)
+  Minitest.after_run do
+    remove_unique_files
+  end
 end
