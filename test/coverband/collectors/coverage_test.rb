@@ -73,7 +73,7 @@ class CollectorsCoverageTest < Minitest::Test
     Coverband.configuration.logger = logger
     @coverband.reset_instance
     Coverband::Adapters::RedisStore.any_instance.stubs(:save_report).raises('Oh no')
-    logger.expects(:error).times(3)
+    logger.expects(:error).at_least(3)
     error = assert_raises RuntimeError do
       @coverband.report_coverage
     end
@@ -87,6 +87,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'one shot line coverage disabled for ruby >= 2.6' do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with('2.6.0').returns(true)
     ::Coverage.expects(:running?).returns(false)
     ::Coverage.expects(:start).with(oneshot_lines: false)
@@ -95,6 +96,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'one shot line coverage enabled for ruby >= 2.6' do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+
     Coverband.configuration.expects(:use_oneshot_lines_coverage).returns(true)
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with('2.6.0').returns(true)
     ::Coverage.expects(:running?).returns(false)
@@ -104,6 +106,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'one shot line coverage for ruby >= 2.6 when already running' do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with('2.6.0').returns(true)
     ::Coverage.expects(:running?).returns(true)
     ::Coverage.expects(:start).never
@@ -112,10 +115,11 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'no one shot line coverage for ruby < 2.6' do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with('2.6.0').returns(false)
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with('2.5.0').returns(true)
     ::Coverage.expects(:running?).returns(false)
-    ::Coverage.expects(:start).with()
+    ::Coverage.expects(:start).with
     Coverband::Collectors::Coverage.send(:new)
   end
 end

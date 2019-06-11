@@ -55,10 +55,9 @@ module Coverband
           @store.save_report(files_with_line_usage)
         end
       rescue StandardError => e
-        @logger&.error 'coverage failed to store'
+        @logger.error 'coverage failed to store'
         @logger&.error "Coverband Error: #{e.inspect} #{e.message}"
-        @logger&.error e.backtrace if @verbose
-        raise e if @test_env
+        e.backtrace.each { |line| @logger.error line } if @verbose
       end
 
       protected
