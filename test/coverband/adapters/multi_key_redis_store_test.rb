@@ -6,12 +6,12 @@ class MultiKeyRedisStoreTest < Minitest::Test
   def setup
     super
     @redis = Redis.new
-    @redis.flushdb
     # FIXME: remove dependency on configuration and instead pass this in as an argument
     Coverband.configure do |config|
       config.root_paths = ['app_path/']
     end
     @store = Coverband::Adapters::MultiKeyRedisStore.new(@redis, redis_namespace: 'coverband_test')
+    @store.clear!
     Coverband.configuration.store = @store
     mock_file_hash
     @current_time = Time.now
