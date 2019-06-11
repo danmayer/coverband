@@ -23,11 +23,10 @@ require 'coverband/collectors/coverage'
 require 'coverband/reporters/base'
 require 'coverband/reporters/html_report'
 require 'coverband/reporters/console_report'
-require 'coverband/integrations/background'
-require 'coverband/integrations/rack_server_check'
 require 'coverband/reporters/web'
-require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/background'
+require 'coverband/integrations/background_middleware'
+require 'coverband/integrations/rack_server_check'
 
 module Coverband
   @@configured = false
