@@ -74,4 +74,21 @@ class MultiKeyRedisStoreTest < Minitest::Test
     assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
     assert_equal [1, 5, nil, 2], @store.coverage['app_path/ferrit.rb']['data']
   end
+
+  def test_type
+    @store.type = :eager_loading
+    data = {
+      'app_path/dog.rb' => [0, nil, 1, 2]
+    }
+    @store.save_report(data)
+    assert_equal 1, @store.coverage.length
+    assert_equal [0, nil, 1, 2], @store.coverage['app_path/dog.rb']['data']
+    @store.type = nil
+    data = {
+      'app_path/cat.rb' => [1, 2, 0, 1, 5]
+    }
+    @store.save_report(data)
+    assert_equal 1, @store.coverage.length
+    assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
+  end
 end
