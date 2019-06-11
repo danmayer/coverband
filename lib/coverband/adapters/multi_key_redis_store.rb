@@ -17,7 +17,17 @@ module Coverband
         @redis = redis
       end
 
-      def clear!; end
+      def clear!
+        old_type = type
+        Coverband::TYPES.each do |type|
+          self.type = type
+          @redis.smembers(files_key).each do |file|
+            @redis.del(key(file))
+          end
+          @redis.del(files_key)
+        end
+        self.type = old_type
+      end
 
       def save_report(report)
         merge_reports(report, coverage(files: report.keys)).each do |file, data|

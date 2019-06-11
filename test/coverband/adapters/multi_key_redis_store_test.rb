@@ -91,4 +91,26 @@ class MultiKeyRedisStoreTest < Minitest::Test
     assert_equal 1, @store.coverage.length
     assert_equal [1, 2, 0, 1, 5], @store.coverage['app_path/cat.rb']['data']
   end
+
+  def test_clear
+    @store.type = :eager_loading
+    data = {
+      'app_path/dog.rb' => [0, nil, 1, 2]
+    }
+    @store.save_report(data)
+    assert_equal 1, @store.coverage.length
+    @store.type = nil
+    data = {
+      'app_path/cat.rb' => [1, 2, 0, 1, 5]
+    }
+    @store.save_report(data)
+    assert_equal 1, @store.coverage.length
+    @redis.set('random', 'data')
+    @store.clear!
+    @store.type = nil
+    assert @store.coverage.empty?
+    @store.type = :eager_loading
+    assert @store.coverage.empty?
+    assert_equal 'data', @redis.get('random')
+  end
 end
