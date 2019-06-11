@@ -36,12 +36,12 @@ module Coverband
       # and the tradeoff has always been acceptable
       def save_report(report)
         data = report.dup
-        data = merge_reports(data, get_report)
+        data = merge_reports(data, coverage)
         save_coverage(data)
       end
 
-      def coverage
-        get_report
+      def coverage(_local_type = nil)
+        raise 'abstract'
       end
 
       def get_coverage_report
@@ -57,21 +57,17 @@ module Coverband
 
       def split_coverage(types)
         types.reduce({}) do |data, type|
-          data.update(type => get_report(type))
+          data.update(type => coverage(type))
         end
       end
 
       def merged_coverage(types)
         types.reduce({}) do |data, type|
-          merge_reports(data, get_report(type), skip_expansion: true)
+          merge_reports(data, coverage(type), skip_expansion: true)
         end
       end
 
       def save_coverage
-        raise 'abstract'
-      end
-
-      def get_report(_type = nil)
         raise 'abstract'
       end
 

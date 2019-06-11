@@ -28,20 +28,20 @@ module Coverband
         raise NotImplementedError, "FileStore doesn't support migrations"
       end
 
+      def coverage(_local_type = nil)
+        if File.exist?(path)
+          JSON.parse(File.read(path))
+        else
+          {}
+        end
+      end
+
       private
 
       attr_accessor :path
 
       def save_coverage(report)
         File.open(path, 'w') { |f| f.write(report.to_json) }
-      end
-
-      def get_report(_local_type = nil)
-        if File.exist?(path)
-          JSON.parse(File.read(path))
-        else
-          {}
-        end
       end
     end
   end
