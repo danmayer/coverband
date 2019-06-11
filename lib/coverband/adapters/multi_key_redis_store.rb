@@ -35,11 +35,11 @@ module Coverband
         @redis.sadd(files_key, report.keys)
       end
 
-      def coverage(files: nil)
-        files_to_retrieve = files_set
+      def coverage(local_type = nil, files: nil)
+        files_to_retrieve = files_set(local_type)
         files_to_retrieve &= files if files
         values = if files_to_retrieve.any?
-                   @redis.mget(*files_to_retrieve.map { |file| key(file) }).map do |value|
+                   @redis.mget(*files_to_retrieve.map { |file| key(file, local_type) }).map do |value|
                      JSON.parse(value)
                    end
                  else
@@ -50,20 +50,21 @@ module Coverband
 
       private
 
-      def files_set
-        @redis.smembers(files_key)
+      def files_set(local_type = nil)
+        @redis.smembers(files_key(local_type))
       end
 
-      def files_key
-        "#{key_prefix}.files"
+      def files_key(local_type = nil)
+        "#{key_prefix(local_type)}.files"
       end
 
-      def key(file)
-        [key_prefix, file].join('.')
+      def key(file, local_type = nil)
+        [key_prefix(local_type), file].join('.')
       end
 
-      def key_prefix
-        [@format_version, @redis_namespace, type].compact.join('.')
+      def key_prefix(local_type = nil)
+        local_type ||= type
+        [@format_version, @redis_namespace, local_type].compact.join('.')
       end
     end
   end
