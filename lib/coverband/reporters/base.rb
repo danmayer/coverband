@@ -9,6 +9,9 @@ module Coverband
     class Base
       class << self
         include Coverband::Utils::FilePathHelper
+
+        DATA_KEY = 'data'
+
         def report(store, _options = {})
           all_roots = Coverband.configuration.all_root_paths
           scov_style_report = get_current_scov_data_imp(store, all_roots)
@@ -54,9 +57,9 @@ module Coverband
             fixed_report[name] = {}
             report.each_pair do |key, vals|
               filename = relative_path_to_full(key, roots)
-              fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename]['data'] && vals['data']
-                                               merged_data = merge_arrays(fixed_report[name][filename]['data'], vals['data'])
-                                               vals['data'] = merged_data
+              fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename][DATA_KEY] && vals[DATA_KEY]
+                                               merged_data = merge_arrays(fixed_report[name][filename][DATA_KEY], vals[DATA_KEY])
+                                               vals[DATA_KEY] = merged_data
                                                vals
                                              else
                                                vals

@@ -4,6 +4,13 @@ module Coverband
   module Adapters
     class Base
       include Coverband::Utils::FilePathHelper
+
+      DATA_KEY = 'data'
+      FIRST_UPDATED_KEY = 'first_updated_at'
+      LAST_UPDATED_KEY = 'last_updated_at'
+      FILE_HASH = 'file_hash'
+      ABSTRACT_KEY = 'abstract'
+
       attr_accessor :type
 
       def initialize
@@ -11,19 +18,19 @@ module Coverband
       end
 
       def clear!
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def clear_file!(_file)
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def migrate!
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def size
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def size_in_mib
@@ -41,7 +48,7 @@ module Coverband
       end
 
       def coverage(_local_type = nil)
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def get_coverage_report
@@ -68,7 +75,7 @@ module Coverband
       end
 
       def save_coverage
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def file_hash(file)
@@ -81,10 +88,10 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
-            'first_updated_at' => report_time,
-            'last_updated_at' => updated_time,
-            'file_hash' => file_hash(key),
-            'data' => line_data
+            FIRST_UPDATED_KEY => report_time,
+            LAST_UPDATED_KEY => updated_time,
+            FILE_HASH => file_hash(key),
+            DATA_KEY => line_data
           }
           expanded[full_path_to_relative(key)] = extended_data
         end
@@ -97,7 +104,7 @@ module Coverband
         keys.each do |file|
           new_report[file] = if new_report[file] &&
                                 old_report[file] &&
-                                new_report[file]['file_hash'] == old_report[file]['file_hash']
+                                new_report[file][FILE_HASH] == old_report[file][FILE_HASH]
                                merge_expanded_data(new_report[file], old_report[file])
                              elsif new_report[file]
                                new_report[file]
@@ -110,10 +117,10 @@ module Coverband
 
       def merge_expanded_data(new_expanded, old_expanded)
         {
-          'first_updated_at' => old_expanded['first_updated_at'],
-          'last_updated_at' => new_expanded['last_updated_at'],
-          'file_hash' => new_expanded['file_hash'],
-          'data' => array_add(new_expanded['data'], old_expanded['data'])
+          FIRST_UPDATED_KEY => old_expanded[FIRST_UPDATED_KEY],
+          LAST_UPDATED_KEY => new_expanded[LAST_UPDATED_KEY],
+          FILE_HASH => new_expanded[FILE_HASH],
+          DATA_KEY => array_add(new_expanded[DATA_KEY], old_expanded[DATA_KEY])
         }
       end
 

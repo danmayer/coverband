@@ -373,6 +373,7 @@ namespace :benchmarks do
   task run_big: %i[setup setup_redis] do
     require 'memory_profiler'
     require './test/unique_files'
+    # ensure we cleared from last run
     benchmark_redis_store.clear!
 
     1000.times { require_unique_file }
