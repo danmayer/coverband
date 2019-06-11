@@ -29,15 +29,19 @@ module Coverband
       end
 
       def save_report(report)
-        @redis.mset(*merge_reports(report, coverage(files: report.keys)).map do |file, data|
+        merged_report = merge_reports(report, coverage(files: report.keys))
+        @redis.mset(*merged_report.map do |file, data|
           [key(file), data.to_json]
         end.flatten)
-        @redis.sadd(files_key, report.keys)
+        @redis.sadd(files_key, merged_report.keys)
       end
 
       def coverage(local_type = nil, files: nil)
         files_to_retrieve = files_set(local_type)
-        files_to_retrieve &= files if files
+        if files
+          files = files.map! { |file| full_path_to_relative(file) }
+          files_to_retrieve &= files
+        end
         values = if files_to_retrieve.any?
                    @redis.mget(*files_to_retrieve.map { |file| key(file, local_type) }).map do |value|
                      JSON.parse(value)
