@@ -26,7 +26,7 @@ module Coverband
         @logger   = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
-        #Delta.reset
+        Delta.reset
         self
       end
 
@@ -51,7 +51,7 @@ module Coverband
         @semaphore.synchronize do
           raise 'no Coverband store set' unless @store
 
-          #files_with_line_usage = filtered_files(Delta.results)
+          files_with_line_usage = filtered_files(Delta.results)
           #@store.save_report(files_with_line_usage)
         end
       rescue StandardError => e
