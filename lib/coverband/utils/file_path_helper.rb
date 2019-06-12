@@ -14,7 +14,7 @@ module Coverband
       def full_path_to_relative(full_path)
         relative_filename = full_path
         Coverband.configuration.all_root_paths.each do |root|
-          relative_filename = relative_filename.gsub(/^#{root}/, './')
+          relative_filename = relative_filename.sub(/^#{root}/, './')
           # once we have a relative path break out of the loop
           break if relative_filename.start_with? './'
         end
@@ -42,7 +42,9 @@ module Coverband
         relative_filename = relative_path
         local_filename = relative_filename
         roots.each do |root|
-          relative_filename = relative_filename.gsub(/^#{root}/, './')
+          relative_filename = relative_filename.sub(/^#{root}/, './')
+          # once we have a relative path break out of the loop
+          break if relative_filename.start_with? './'
         end
         # the filename for our reports is expected to be a full path.
         # roots.last should be roots << current_root}/

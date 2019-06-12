@@ -11,7 +11,7 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_marshal'
+      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_exp'
 
       attr_reader :redis_namespace
 
