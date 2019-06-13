@@ -11,7 +11,7 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_expB'
+      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_expD'
 
       attr_reader :redis_namespace
 
@@ -72,7 +72,7 @@ module Coverband
         reset_base_key
       end
 
-      def coverage(local_type = nil)
+      def coverage(local_type = Coverband::RUNTIME_TYPE)
         local_type ||= type
         data = redis.get type_base_key(local_type)
         # NOTE: we could automatically upgrade folks from JSON

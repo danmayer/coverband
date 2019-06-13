@@ -31,7 +31,7 @@ module Coverband
       end
 
       def runtime!
-        @store.type = nil
+        @store.type = Coverband::RUNTIME_TYPE
       end
 
       def eager_loading!
