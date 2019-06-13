@@ -54,6 +54,7 @@ module Coverband
       @use_oneshot_lines_coverage = false
       @current_root = nil
       @all_root_paths = nil
+      @all_root_patterns = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -158,7 +159,7 @@ module Coverband
     end
 
     def all_root_patterns
-      all_root_paths.map { |path| /^#{path}/ }.freeze
+      @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
     SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]

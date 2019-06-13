@@ -11,7 +11,11 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
+<<<<<<< HEAD
       REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_2'
+=======
+      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_expD'
+>>>>>>> 9dd6890... using nil causes bad string allocations in serialization, RUNTIME_TYPE = :runtime
 
       attr_reader :redis_namespace
 
@@ -72,7 +76,7 @@ module Coverband
         reset_base_key
       end
 
-      def coverage(local_type = nil)
+      def coverage(local_type = Coverband::RUNTIME_TYPE)
         local_type ||= type
         data = redis.get type_base_key(local_type)
         data ? JSON.parse(data) : {}

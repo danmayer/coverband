@@ -33,6 +33,14 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
+      def save_coverage
+        raise ABSTRACT_KEY
+      end
+
+      def coverage(_local_type = nil)
+        raise ABSTRACT_KEY
+      end
+
       def size_in_mib
         format('%.2f', (size.to_f / 2**20))
       end
@@ -45,10 +53,6 @@ module Coverband
         data = report.dup
         data = merge_reports(data, coverage)
         save_coverage(data)
-      end
-
-      def coverage(_local_type = nil)
-        raise ABSTRACT_KEY
       end
 
       def get_coverage_report
@@ -72,10 +76,6 @@ module Coverband
         types.reduce({}) do |data, type|
           merge_reports(data, coverage(type), skip_expansion: true)
         end
-      end
-
-      def save_coverage
-        raise ABSTRACT_KEY
       end
 
       def file_hash(file)
