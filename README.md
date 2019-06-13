@@ -10,7 +10,6 @@
   <a href="#key-features">Key Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#coverage-report">Coverage Report</a> •
-  <a href="#verify-correct-installation">Verify Correct Installation</a> •
   <a href="#advanced-config">Advanced Config</a> •
   <a href="#license">License</a> •
   <a href="/changes.md">Change Log / Roadmap</a>
