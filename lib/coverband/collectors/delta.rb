@@ -17,9 +17,9 @@ module Coverband
       end
 
       def self.results(process_coverage = RubyCoverage)
-        coverage_results = process_coverage.results
-        coverage_results = transform_oneshot_lines_results(coverage_results) if Coverband.configuration.use_oneshot_lines_coverage
-        new(coverage_results).results
+        coverage_results = process_coverage.results.dup
+        # coverage_results = transform_oneshot_lines_results(coverage_results) if Coverband.configuration.use_oneshot_lines_coverage
+        # new(coverage_results).results
       end
 
       def results
