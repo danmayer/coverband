@@ -8,16 +8,23 @@ module Coverband
     module FilePathHelper
       module_function
 
+      @@path_cache = {}
+
       ###
       # Takes a full path and converts to a relative path
       ###
       def full_path_to_relative(full_path)
+        return @@path_cache[full_path] if @@path_cache.key?(full_path)
+
         relative_filename = full_path
         Coverband.configuration.all_root_patterns.each do |root|
           relative_filename = relative_filename.sub(root, './')
           # once we have a relative path break out of the loop
           break if relative_filename.start_with? './'
         end
+
+        @@path_cache[full_path] = relative_filename
+
         relative_filename
       end
 
