@@ -82,6 +82,7 @@ module Coverband
         @file_hash_cache[file] ||= Digest::MD5.file(file).hexdigest
       end
 
+      # TODO: modify to extend report inline?
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
