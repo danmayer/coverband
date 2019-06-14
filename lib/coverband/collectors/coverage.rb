@@ -51,8 +51,13 @@ module Coverband
         @semaphore.synchronize do
           raise 'no Coverband store set' unless @store
 
-          files_with_line_usage = filtered_files(::Coverage.peek_result.dup)
-          @store.save_report(files_with_line_usage)
+          # try just this with no processing
+          this_thing = ::Coverage.peek_result.dup
+
+          # try again fully turned off the lines below.
+
+          # files_with_line_usage = filtered_files(::Coverage.peek_result.dup)
+          # @store.save_report(files_with_line_usage)
         end
       rescue StandardError => e
         if @verbose
