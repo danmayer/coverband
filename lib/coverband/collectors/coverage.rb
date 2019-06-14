@@ -52,7 +52,8 @@ module Coverband
           raise 'no Coverband store set' unless @store
 
           # try just this with no processing
-          this_thing = ::Coverage.peek_result.dup
+          # now trying without dup
+          this_thing = ::Coverage.peek_result
 
           # try again fully turned off the lines below.
 
