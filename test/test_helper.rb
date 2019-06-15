@@ -80,8 +80,8 @@ end
 
 def mock_file_hash
   mock_file = mock('mock_file')
-  mock_file.expects(:hexdigest).at_least_once.returns('abcd')
-  Digest::MD5.expects(:file).at_least_once.returns(mock_file)
+  mock_file.stubs(:hexdigest).returns('abcd')
+  Digest::MD5.stubs(:file).returns(mock_file)
 end
 
 def example_line
@@ -120,7 +120,7 @@ end
 # This handles an issue where the store is setup in tests prior to being able to set the namespace
 ###
 def store
-  if Coverband.configuration.store.redis_namespace=='coverband_test'
+  if Coverband.configuration.store.redis_namespace == 'coverband_test'
     Coverband.configuration.store
   else
     Coverband.configuration.redis_namespace = 'coverband_test'
