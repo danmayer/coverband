@@ -32,10 +32,7 @@ namespace :benchmarks do
   end
 
   def clone_classifier
-    unless Dir.exist? classifier_dir
-      system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}"
-    end
-    # rubocop:enable Style/IfUnlessModifier
+    system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}" unless Dir.exist? classifier_dir
   end
 
   # desc 'setup standard benchmark'
@@ -63,14 +60,17 @@ namespace :benchmarks do
     require File.join(File.dirname(__FILE__), 'dog')
   end
 
-  def benchmark_redis_store
-    redis = if ENV['REDIS_TEST_URL']
-              Redis.new(url: ENV['REDIS_TEST_URL'])
-            else
-              Redis.new
-            end
-    Coverband::Adapters::RedisStore.new(redis,
-                                        redis_namespace: 'coverband_bench')
+  def redis_instance
+    if ENV['REDIS_TEST_URL']
+      Redis.new(url: ENV['REDIS_TEST_URL'])
+    else
+      Redis.new
+    end
+  end
+
+  def benchmark_redis_store(store_type = Coverband::Adapters::RedisStore)
+    store_type.new(redis_instance,
+                   redis_namespace: 'coverband_bench')
   end
 
   # desc 'set up coverband with Redis'
@@ -79,6 +79,14 @@ namespace :benchmarks do
       config.root                = Dir.pwd
       config.logger              = $stdout
       config.store               = benchmark_redis_store
+    end
+  end
+
+  task :setup_multi_key_redis do
+    Coverband.configure do |config|
+      config.root                = Dir.pwd
+      config.logger              = $stdout
+      config.store               = benchmark_redis_store(Coverband::Adapters::MultiKeyRedisStore)
     end
   end
 
@@ -175,16 +183,22 @@ namespace :benchmarks do
     end
   end
 
-  def reporting_speed
+  def reporting_speed(store_type = Coverband::Adapters::RedisStore)
     report = fake_report
-    store = benchmark_redis_store
+    store = benchmark_redis_store(store_type)
     store.clear!
     mock_files(store)
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports') { store.save_report(report) }
+      x.report('store_reports_all') { store.save_report(report) }
+    end
+
+    report_subset = report.slice(report.keys.first(100))
+    Benchmark.ips do |x|
+      x.config(time: 20, warmup: 5)
+      x.report('store_reports_subset') { store.save_report(report_subset) }
     end
   end
 
@@ -230,7 +244,7 @@ namespace :benchmarks do
     $stdout = capture
 
     MemoryProfiler.report do
-      10.times {
+      10.times do
         Coverband.report_coverage
         ###
         # Set to nil not {} as it is easier to verify that no memory is retained when nil gets released
@@ -238,7 +252,7 @@ namespace :benchmarks do
         # we clear this as this one variable is expected to retain memory and is a false positive
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
-      }
+      end
     end.pretty_print
     data = $stdout.string
     $stdout = previous_out
@@ -288,14 +302,14 @@ namespace :benchmarks do
     require 'objspace'
     puts 'memory load check'
     puts(ObjectSpace.memsize_of_all / 2**20)
-    data = File.read("./tmp/debug_data.json")
+    data = File.read('./tmp/debug_data.json')
     # about 2mb
     puts(ObjectSpace.memsize_of(data) / 2**20)
 
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -303,7 +317,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -311,7 +325,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -319,7 +333,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -354,7 +368,7 @@ namespace :benchmarks do
   end
 
   desc 'runs memory leak checks'
-  task memory: [:memory_reporting, :memory_reporting_report_coverage, :memory_rails] do
+  task memory: %i[memory_reporting memory_reporting_report_coverage memory_rails] do
     puts 'done'
   end
 
@@ -362,6 +376,12 @@ namespace :benchmarks do
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed
+  end
+
+  desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
+  task multi_key_redis_reporting: %i[setup setup_multi_key_redis] do
+    puts 'runs benchmarks on reporting large sets of files to redis'
+    reporting_speed(Coverband::Adapters::MultiKeyRedisStore)
   end
 
   # desc 'runs benchmarks on default redis setup'
