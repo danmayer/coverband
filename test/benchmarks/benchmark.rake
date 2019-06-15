@@ -60,14 +60,17 @@ namespace :benchmarks do
     require File.join(File.dirname(__FILE__), 'dog')
   end
 
-  def benchmark_redis_store
-    redis = if ENV['REDIS_TEST_URL']
-              Redis.new(url: ENV['REDIS_TEST_URL'])
-            else
-              Redis.new
-            end
-    Coverband::Adapters::RedisStore.new(redis,
-                                        redis_namespace: 'coverband_bench')
+  def redis_instance
+    if ENV['REDIS_TEST_URL']
+      Redis.new(url: ENV['REDIS_TEST_URL'])
+    else
+      Redis.new
+    end
+  end
+
+  def benchmark_redis_store(store_type = Coverband::Adapters::RedisStore)
+    store_type.new(redis_instance,
+                   redis_namespace: 'coverband_bench')
   end
 
   # desc 'set up coverband with Redis'
@@ -78,6 +81,14 @@ namespace :benchmarks do
       config.store               = benchmark_redis_store
       config.use_oneshot_lines_coverage = true if ENV['ONESHOT']
       config.simulate_oneshot_lines_coverage = true if ENV['SIMULATE_ONESHOT']
+    end
+  end
+
+  task :setup_multi_key_redis do
+    Coverband.configure do |config|
+      config.root                = Dir.pwd
+      config.logger              = $stdout
+      config.store               = benchmark_redis_store(Coverband::Adapters::MultiKeyRedisStore)
     end
   end
 
@@ -174,16 +185,22 @@ namespace :benchmarks do
     end
   end
 
-  def reporting_speed
+  def reporting_speed(store_type = Coverband::Adapters::RedisStore)
     report = fake_report
-    store = benchmark_redis_store
+    store = benchmark_redis_store(store_type)
     store.clear!
     mock_files(store)
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports') { store.save_report(report) }
+      x.report('store_reports_all') { store.save_report(report) }
+    end
+
+    report_subset = report.slice(report.keys.first(100))
+    Benchmark.ips do |x|
+      x.config(time: 20, warmup: 5)
+      x.report('store_reports_subset') { store.save_report(report_subset) }
     end
   end
 
@@ -361,6 +378,12 @@ namespace :benchmarks do
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed
+  end
+
+  desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
+  task multi_key_redis_reporting: %i[setup setup_multi_key_redis] do
+    puts 'runs benchmarks on reporting large sets of files to redis'
+    reporting_speed(Coverband::Adapters::MultiKeyRedisStore)
   end
 
   # desc 'runs benchmarks on default redis setup'
