@@ -13,12 +13,21 @@ class MultiKeyRedisStoreTest < Minitest::Test
     @store = Coverband::Adapters::MultiKeyRedisStore.new(@redis, redis_namespace: 'coverband_test')
     @store.clear!
     Coverband.configuration.store = @store
-    mock_file_hash
+  end
+
+  def mock_time
     @current_time = Time.now
-    Time.expects(:now).at_least_once.returns(@current_time)
+    Time.stubs(:now).returns(@current_time)
+  end
+
+  def test_no_coverage
+    @store.save_report({})
+    assert_equal({}, @store.coverage)
   end
 
   def test_coverage_for_file
+    mock_time
+    mock_file_hash
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
@@ -47,6 +56,8 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_for_multiple_files
+    mock_time
+    mock_file_hash
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2],
       'app_path/cat.rb' => [1, 2, 0, 1, 5],
@@ -67,6 +78,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_subset
+    mock_file_hash
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2],
       'app_path/cat.rb' => [1, 2, 0, 1, 5],
@@ -80,6 +92,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_type
+    mock_file_hash
     @store.type = :eager_loading
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2]
@@ -97,6 +110,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_type
+    mock_file_hash
     @store.type = :eager_loading
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2]
@@ -107,6 +121,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_clear
+    mock_file_hash
     @store.type = :eager_loading
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2]

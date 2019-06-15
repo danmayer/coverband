@@ -30,10 +30,12 @@ module Coverband
 
       def save_report(report)
         merged_report = merge_reports(report, coverage(files: report.keys))
-        @redis.mset(*merged_report.map do |file, data|
+        key_values = merged_report.map do |file, data|
           [key(file), data.to_json]
-        end.flatten)
-        @redis.sadd(files_key, merged_report.keys)
+        end.flatten
+        @redis.mset(*key_values) if key_values.any?
+        keys = merged_report.keys
+        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil, files: nil)
