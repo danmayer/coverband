@@ -112,7 +112,7 @@ module Coverband
       end
 
       def array_add(latest, original)
-        latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
+        latest.map!.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
       end
     end
   end
