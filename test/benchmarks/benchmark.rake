@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'pry-byebug'
+
 namespace :benchmarks do
   # https://github.com/evanphx/benchmark-ips
   # Enable and start GC before each job run. Disable GC afterwards.
@@ -61,10 +63,12 @@ namespace :benchmarks do
   end
 
   def redis_instance
+    require 'logger'
+    logger = ENV['REDIS_LOGGING'] ? Logger.new($stdout) : nil
     if ENV['REDIS_TEST_URL']
-      Redis.new(url: ENV['REDIS_TEST_URL'])
+      Redis.new(url: ENV['REDIS_TEST_URL'], logger: logger)
     else
-      Redis.new
+      Redis.new(logger: logger)
     end
   end
 
@@ -150,9 +154,7 @@ namespace :benchmarks do
   end
 
   def fake_line_numbers
-    24.times.each_with_object({}) do |line, line_hash|
-      line_hash[(line + 1).to_s] = rand(5)
-    end
+    24.times.map { rand(5) }
   end
 
   def fake_report
@@ -195,38 +197,28 @@ namespace :benchmarks do
       x.report('store_reports_all') { store.save_report(report) }
     end
 
-    report_subset = report.slice(report.keys.first(100))
+    report_subset = report.slice(*report.keys.first(100))
     Benchmark.ips do |x|
       x.config(time: 20, warmup: 5)
       x.report('store_reports_subset') { store.save_report(report_subset) }
     end
   end
 
-  def measure_memory
+  def measure_memory(store_type = Coverband::Adapters::RedisStore)
     require 'memory_profiler'
     report = fake_report
-    store = benchmark_redis_store
+    store = benchmark_redis_store(store_type)
     store.clear!
     mock_files(store)
 
     # warmup
     3.times { store.save_report(report) }
 
-    previous_out = $stdout
-    capture = StringIO.new
-    $stdout = capture
-
+    report_subset = report.slice(*report.keys.first(100))
     MemoryProfiler.report do
-      10.times { store.save_report(report) }
+      2.times { store.save_report(report) }
+      25.times { store.save_report(report_subset) }
     end.pretty_print
-    data = $stdout.string
-    $stdout = previous_out
-    unless data.match('Total retained:  0 bytes')
-      puts data
-      raise 'leaking memory!!!'
-    end
-  ensure
-    $stdout = previous_out
   end
 
   def measure_memory_report_coverage
@@ -349,6 +341,12 @@ namespace :benchmarks do
     measure_memory
   end
 
+  desc 'runs memory reporting on Redis store'
+  task multi_key_memory_reporting: [:setup] do
+    puts 'runs memory benchmarking to ensure we dont leak'
+    measure_memory(Coverband::Adapters::MultiKeyRedisStore)
+  end
+
   desc 'runs memory reporting on report_coverage'
   task memory_reporting_report_coverage: [:setup] do
     puts 'runs memory benchmarking on report_coverage to ensure we dont leak'
@@ -379,7 +377,7 @@ namespace :benchmarks do
   end
 
   desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
-  task multi_key_redis_reporting: %i[setup setup_multi_key_redis] do
+  task multi_key_redis_reporting: %i[setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed(Coverband::Adapters::MultiKeyRedisStore)
   end
