@@ -39,19 +39,19 @@ module Coverband
       end
 
       def coverage(local_type = nil, files: nil)
-        files_to_retrieve = files_set(local_type)
-        if files
-          files = files.map! { |file| full_path_to_relative(file) }
-          files_to_retrieve &= files
-        end
-        values = if files_to_retrieve.any?
-                   @redis.mget(*files_to_retrieve.map { |file| key(file, local_type) }).map do |value|
-                     JSON.parse(value)
+        files = if files
+                  files.map! { |file| full_path_to_relative(file) }
+                else
+                  files_set(local_type)
+                end
+        values = if files.any?
+                   @redis.mget(*files.map { |file| key(file, local_type) }).map do |value|
+                     value.nil? ? {} : JSON.parse(value)
                    end
                  else
                    []
                  end
-        Hash[files_to_retrieve.zip(values)]
+        Hash[files.zip(values)]
       end
 
       private
