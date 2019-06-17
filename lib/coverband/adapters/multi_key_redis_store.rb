@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'oj'
+
 module Coverband
   module Adapters
     class MultiKeyRedisStore < Base
@@ -31,7 +33,7 @@ module Coverband
       def save_report(report)
         merged_report = merge_reports(report, coverage(files: report.keys))
         key_values = merged_report.map do |file, data|
-          [key(file), data.to_json]
+          [key(file), Oj.dump(data)]
         end.flatten
         @redis.mset(*key_values) if key_values.any?
         keys = merged_report.keys
@@ -46,7 +48,7 @@ module Coverband
                 end
         values = if files.any?
                    @redis.mget(*files.map { |file| key(file, local_type) }).map do |value|
-                     value.nil? ? {} : JSON.parse(value)
+                     value.nil? ? {} : Oj.load(value)
                    end
                  else
                    []

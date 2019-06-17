@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'oj'
   # to test support for sdk 1, uncomment this line
   # spec.add_development_dependency 'aws-sdk', '~> 1'
   # to test sdk 2 use this one
