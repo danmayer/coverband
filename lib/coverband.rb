@@ -31,10 +31,7 @@ require 'coverband/integrations/rack_server_check'
 module Coverband
   @@configured = false
   CONFIG_FILE = './config/coverband.rb'
-  # TODO: move to a symbol not nil as it is far better for memory on serialization
-  # breaking change to the model need auto-upgrade or migration to do this.
-  # RUNTIME_TYPE = :runtime
-  RUNTIME_TYPE = nil
+  RUNTIME_TYPE = :runtime
   EAGER_TYPE = :eager_loading
   MERGED_TYPE = :merged
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]

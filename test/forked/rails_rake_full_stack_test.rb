@@ -14,7 +14,7 @@ class RailsRakeFullStackTest < Minitest::Test
     refute_nil pundit_coverage
     assert_includes pundit_coverage['data'], 1
 
-    store.type = nil
+    store.type = Coverband::RUNTIME_TYPE
     pundit_coverage = store.coverage[pundit_file]
     assert_nil pundit_coverage
   end
@@ -27,7 +27,7 @@ class RailsRakeFullStackTest < Minitest::Test
     assert_nil output.match(/Coverband: Reported coverage via thread/)
     coverage_report = store.get_coverage_report
     empty_hash = {}
-    assert_equal empty_hash, coverage_report[nil]
+    assert_equal empty_hash, coverage_report[Coverband::RUNTIME_TYPE]
     assert_equal empty_hash, coverage_report[:eager_loading]
     assert_equal empty_hash, coverage_report[:merged]
   end
