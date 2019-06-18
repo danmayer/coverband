@@ -12,7 +12,11 @@ module Coverband
 
       class RubyCoverage
         def self.results
-          ::Coverage.peek_result
+          if Coverband.configuration.use_oneshot_lines_coverage
+            ::Coverage.result(clear: true, stop: false)
+          else
+            ::Coverage.peek_result
+          end
         end
       end
 
