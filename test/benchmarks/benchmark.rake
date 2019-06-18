@@ -54,9 +54,9 @@ namespace :benchmarks do
     # moving from 5 second of time to 12 still shows slower based on when classifier is required
     # make sure to be plugged in while benchmarking ;) Otherwise you get very unreliable results
     require 'classifier-reborn'
-    if ENV['COVERAGE']
+    if ENV['COVERAGE'] || ENV['ONESHOT']
       require 'coverage'
-      ::Coverage.start
+      ::Coverage.start(oneshot_lines: !!ENV['ONESHOT'])
     end
     require 'redis'
     require 'coverband'
@@ -79,6 +79,7 @@ namespace :benchmarks do
       config.root                = Dir.pwd
       config.logger              = $stdout
       config.store               = benchmark_redis_store
+      config.use_oneshot_lines_coverage = true if ENV['ONESHOT']
     end
   end
 

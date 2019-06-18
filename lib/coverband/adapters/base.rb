@@ -132,7 +132,7 @@ module Coverband
 
       def array_add(latest, original)
         if Coverband.configuration.use_oneshot_lines_coverage
-          latest.map.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
+          latest.map!.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
         else
           latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
         end

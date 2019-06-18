@@ -4,6 +4,8 @@ module Coverband
   module Collectors
     class Delta
       @@previous_coverage = {}
+      @@stubs = {}
+
       attr_reader :current_coverage
 
       def initialize(current_coverage)
@@ -22,14 +24,17 @@ module Coverband
 
       def self.results(process_coverage = RubyCoverage)
         coverage_results = process_coverage.results
-        coverage_results = transform_oneshot_lines_results(coverage_results) if Coverband.configuration.use_oneshot_lines_coverage
         new(coverage_results).results
       end
 
       def results
-        new_results = generate
-        @@previous_coverage = current_coverage unless Coverband.configuration.use_oneshot_lines_coverage
-        new_results
+        if Coverband.configuration.use_oneshot_lines_coverage
+          transform_oneshot_lines_results(current_coverage)
+        else
+          new_results = generate
+          @@previous_coverage = current_coverage
+          new_results
+        end
       end
 
       def self.reset
@@ -54,9 +59,10 @@ module Coverband
         end
       end
 
-      private_class_method def self.transform_oneshot_lines_results(results)
+      def transform_oneshot_lines_results(results)
         results.each_with_object({}) do |(file, coverage), new_results|
-          transformed_line_counts = coverage[:oneshot_lines].each_with_object(::Coverage.line_stub(file)) do |line_number, line_counts|
+          @@stubs[file] ||= ::Coverage.line_stub(file)
+          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file]) do |line_number, line_counts|
             line_counts[line_number - 1] = 1
           end
           new_results[file] = transformed_line_counts
