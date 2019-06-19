@@ -32,7 +32,7 @@ module Coverband
           transform_oneshot_lines_results(current_coverage)
         else
           new_results = generate
-          @@previous_coverage = current_coverage
+          @@previous_coverage = current_coverage unless Coverband.configuration.simulate_oneshot_lines_coverage
           new_results
         end
       end
