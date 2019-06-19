@@ -73,7 +73,7 @@ class RedisTest < Minitest::Test
   end
 
   def test_clear
-    @redis.expects(:del).twice
+    @redis.expects(:del).times(3)
     @store.clear!
   end
 end
