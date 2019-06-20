@@ -29,7 +29,8 @@ end
 
 desc 'load irb with this gem'
 task :console do
-  exec 'irb -I lib -r coverband'
+  puts 'running console'
+  exec 'bundle exec irb -I lib -r coverband'
 end
 
 # This is really just for testing and development because without configuration

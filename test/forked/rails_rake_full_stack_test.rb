@@ -4,6 +4,7 @@ require 'rails'
 class RailsRakeFullStackTest < Minitest::Test
 
   test 'rake tasks shows coverage properly within eager_loading' do
+    store.instance_variable_set(:@redis_namespace, 'coverband_test')
     store.clear!
     system("COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile middleware")
     store.instance_variable_set(:@redis_namespace, 'coverband_test')

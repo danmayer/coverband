@@ -62,7 +62,7 @@ module Coverband
       def transform_oneshot_lines_results(results)
         results.each_with_object({}) do |(file, coverage), new_results|
           @@stubs[file] ||= ::Coverage.line_stub(file)
-          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file]) do |line_number, line_counts|
+          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) do |line_number, line_counts|
             line_counts[line_number - 1] = 1
           end
           new_results[file] = transformed_line_counts

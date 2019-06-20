@@ -103,7 +103,7 @@ module Coverband
       def merge_reports(new_report, old_report, options = {})
         # transparently update from RUNTIME_TYPE = nil to RUNTIME_TYPE = :runtime
         # transparent update for format coveband_3_2
-        old_report = coverage(nil) if old_report.nil? && type == Coverband::RUNTIME_TYPE
+        old_report = coverage(nil, override_type: nil) if old_report.nil? && type == Coverband::RUNTIME_TYPE
 
         new_report = expand_report(new_report) unless options[:skip_expansion]
         keys = (new_report.keys + old_report.keys).uniq

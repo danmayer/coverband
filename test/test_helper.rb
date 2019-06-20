@@ -19,12 +19,15 @@ require 'pry-byebug'
 require_relative 'unique_files'
 $VERBOSE = original_verbosity
 
-SimpleCov.formatter = Coveralls::SimpleCov::Formatter
-SimpleCov.start do
-  add_filter 'test/forked'
+unless ENV['ONESHOT'] || ENV['SIMULATE_ONESHOT']
+  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+  SimpleCov.start do
+    add_filter 'test/forked'
+  end
+
+  Coveralls.wear!
 end
 
-Coveralls.wear!
 
 module Coverband
   module Test

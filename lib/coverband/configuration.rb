@@ -52,7 +52,8 @@ module Coverband
       @groups = {}
       @web_debug = false
       @report_on_exit = true
-      @use_oneshot_lines_coverage = false
+      @use_oneshot_lines_coverage = ENV['ONESHOT'] || false
+      @simulate_oneshot_lines_coverage = ENV['SIMULATE_ONESHOT'] || false
       @current_root = nil
       @all_root_paths = nil
       @all_root_patterns = nil
