@@ -197,7 +197,8 @@ namespace :benchmarks do
       x.report('store_reports_all') { store.save_report(report) }
     end
 
-    report_subset = report.slice(*report.keys.first(100))
+    keys_subset = report.keys.first(100)
+    report_subset = report.select { |key, _value| keys_subset.include?(key) }
     Benchmark.ips do |x|
       x.config(time: 20, warmup: 5)
       x.report('store_reports_subset') { store.save_report(report_subset) }
@@ -214,7 +215,8 @@ namespace :benchmarks do
     # warmup
     3.times { store.save_report(report) }
 
-    report_subset = report.slice(*report.keys.first(100))
+    keys_subset = report.keys.first(100)
+    report_subset = report.select { |key, _value| keys_subset.include?(key) }
     MemoryProfiler.report do
       2.times { store.save_report(report) }
       25.times { store.save_report(report_subset) }
