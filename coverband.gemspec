@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'minitest-fork_executor'
   spec.add_development_dependency 'mocha', '~> 1.7.0'
+  spec.add_dependency 'oj'
   spec.add_development_dependency 'rack'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'

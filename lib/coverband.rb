@@ -28,6 +28,10 @@ require 'coverband/reporters/web'
 require 'coverband/integrations/background'
 require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/rack_server_check'
+require 'oj'
+
+Oj.mimic_JSON
+Oj.add_to_json
 
 module Coverband
   @@configured = false
