@@ -4,26 +4,42 @@ module Coverband
   module Adapters
     class Base
       include Coverband::Utils::FilePathHelper
+
+      DATA_KEY = 'data'
+      FIRST_UPDATED_KEY = 'first_updated_at'
+      LAST_UPDATED_KEY = 'last_updated_at'
+      FILE_HASH = 'file_hash'
+      ABSTRACT_KEY = 'abstract'
+
       attr_accessor :type
 
       def initialize
         @file_hash_cache = {}
+        @type = Coverband::RUNTIME_TYPE
       end
 
       def clear!
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def clear_file!(_file)
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def migrate!
-        raise 'abstract'
+        raise ABSTRACT_KEY
       end
 
       def size
-        raise 'abstract'
+        raise ABSTRACT_KEY
+      end
+
+      def save_coverage
+        raise ABSTRACT_KEY
+      end
+
+      def coverage(_local_type = nil)
+        raise ABSTRACT_KEY
       end
 
       def size_in_mib
@@ -31,10 +47,6 @@ module Coverband
       end
 
       def save_report(__report)
-        raise 'abstract'
-      end
-
-      def coverage(_local_type = nil)
         raise 'abstract'
       end
 
@@ -51,8 +63,21 @@ module Coverband
 
       def split_coverage(types)
         types.reduce({}) do |data, type|
-          data.update(type => coverage(type))
+          if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage
+            data.update(type => simulated_runtime_coverage)
+          else
+            data.update(type => coverage(type))
+          end
         end
+      end
+
+      def simulated_runtime_coverage
+        runtime_data = coverage(Coverband::RUNTIME_TYPE)
+        eager_data = coverage(Coverband::EAGER_TYPE)
+        eager_data.each_pair do |_key, vals|
+          vals['data'].map! { |el| el ? (0 - el) : el }
+        end
+        merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
 
       def merged_coverage(types)
@@ -61,24 +86,21 @@ module Coverband
         end
       end
 
-      def save_coverage
-        raise 'abstract'
-      end
-
       def file_hash(file)
         @file_hash_cache[file] ||= Digest::MD5.file(file).hexdigest
       end
 
+      # TODO: modify to extend report inline?
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
-            'first_updated_at' => report_time,
-            'last_updated_at' => updated_time,
-            'file_hash' => file_hash(key),
-            'data' => line_data
+            FIRST_UPDATED_KEY => report_time,
+            LAST_UPDATED_KEY => updated_time,
+            FILE_HASH => file_hash(key),
+            DATA_KEY => line_data
           }
           expanded[full_path_to_relative(key)] = extended_data
         end
@@ -86,12 +108,16 @@ module Coverband
       end
 
       def merge_reports(new_report, old_report, options = {})
+        # transparently update from RUNTIME_TYPE = nil to RUNTIME_TYPE = :runtime
+        # transparent update for format coveband_3_2
+        old_report = coverage(nil, override_type: nil) if old_report.nil? && type == Coverband::RUNTIME_TYPE
+
         new_report = expand_report(new_report) unless options[:skip_expansion]
         keys = (new_report.keys + old_report.keys).uniq
         keys.each do |file|
           new_report[file] = if new_report[file] &&
                                 old_report[file] &&
-                                new_report[file]['file_hash'] == old_report[file]['file_hash']
+                                new_report[file][FILE_HASH] == old_report[file][FILE_HASH]
                                merge_expanded_data(new_report[file], old_report[file])
                              elsif new_report[file]
                                new_report[file]
@@ -104,15 +130,22 @@ module Coverband
 
       def merge_expanded_data(new_expanded, old_expanded)
         {
-          'first_updated_at' => old_expanded['first_updated_at'],
-          'last_updated_at' => new_expanded['last_updated_at'],
-          'file_hash' => new_expanded['file_hash'],
-          'data' => array_add(new_expanded['data'], old_expanded['data'])
+          FIRST_UPDATED_KEY => old_expanded[FIRST_UPDATED_KEY],
+          LAST_UPDATED_KEY => new_expanded[LAST_UPDATED_KEY],
+          FILE_HASH => new_expanded[FILE_HASH],
+          DATA_KEY => array_add(new_expanded[DATA_KEY], old_expanded[DATA_KEY])
         }
       end
 
+      # TODO: This should only be 2 cases get our dup / not dups aligned
       def array_add(latest, original)
-        latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
+        if Coverband.configuration.use_oneshot_lines_coverage
+          latest.map!.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
+        elsif Coverband.configuration.simulate_oneshot_lines_coverage
+          latest.map.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
+        else
+          latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
+        end
       end
     end
   end

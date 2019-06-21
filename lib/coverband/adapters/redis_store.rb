@@ -31,6 +31,8 @@ module Coverband
         Coverband::TYPES.each do |type|
           @redis.del(type_base_key(type))
         end
+        # temporarily clear the old namespace of coverband_3_2
+        @redis.del(type_base_key(nil))
       end
 
       def clear_file!(filename)
@@ -72,8 +74,8 @@ module Coverband
         reset_base_key
       end
 
-      def coverage(local_type = nil)
-        local_type ||= type
+      def coverage(local_type = nil, opts = {})
+        local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = redis.get type_base_key(local_type)
         data ? JSON.parse(data) : {}
       end

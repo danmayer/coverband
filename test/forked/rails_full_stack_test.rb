@@ -45,7 +45,7 @@ class RailsFullStackTest < Minitest::Test
       results = store.coverage[dummy_controller]['data']
       assert_equal(eager_expected, results)
 
-      store.type = nil
+      store.type = Coverband::RUNTIME_TYPE
       runtime_expected = [0, 0, 1, nil, nil]
       results = store.coverage[dummy_controller]['data']
     end

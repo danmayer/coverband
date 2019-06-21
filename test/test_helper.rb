@@ -19,19 +19,23 @@ require 'pry-byebug'
 require_relative 'unique_files'
 $VERBOSE = original_verbosity
 
-SimpleCov.formatter = Coveralls::SimpleCov::Formatter
-SimpleCov.start do
-  add_filter 'test/forked'
+unless ENV['ONESHOT'] || ENV['SIMULATE_ONESHOT']
+  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+  SimpleCov.start do
+    add_filter 'test/forked'
+  end
+
+  Coveralls.wear!
 end
 
-Coveralls.wear!
 
 module Coverband
   module Test
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
-      [:eager_loading, nil].each do |type|
+      Coverband.configuration.store.class.class_variable_set(:@@path_cache, {})
+      [:eager_loading, :runtime].each do |type|
         Coverband.configuration.store.type = type
         Coverband.configuration.store.clear!
       end

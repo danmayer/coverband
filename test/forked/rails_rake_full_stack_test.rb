@@ -4,6 +4,7 @@ require 'rails'
 class RailsRakeFullStackTest < Minitest::Test
 
   test 'rake tasks shows coverage properly within eager_loading' do
+    store.instance_variable_set(:@redis_namespace, 'coverband_test')
     store.clear!
     system("COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile middleware")
     store.instance_variable_set(:@redis_namespace, 'coverband_test')
@@ -14,9 +15,14 @@ class RailsRakeFullStackTest < Minitest::Test
     refute_nil pundit_coverage
     assert_includes pundit_coverage['data'], 1
 
-    store.type = nil
-    pundit_coverage = store.coverage[pundit_file]
-    assert_nil pundit_coverage
+    store.type = Coverband::RUNTIME_TYPE
+    if ENV['SIMULATE_ONESHOT']
+      pundit_coverage = store.get_coverage_report[Coverband::RUNTIME_TYPE][pundit_file]
+      assert pundit_coverage['data'].compact.all? { |el| el == 0}
+    else
+      pundit_coverage = store.coverage[pundit_file]
+      assert_nil pundit_coverage
+    end
   end
 
   test "ignored rake tasks don't add coverage" do
@@ -27,7 +33,7 @@ class RailsRakeFullStackTest < Minitest::Test
     assert_nil output.match(/Coverband: Reported coverage via thread/)
     coverage_report = store.get_coverage_report
     empty_hash = {}
-    assert_equal empty_hash, coverage_report[nil]
+    assert_equal empty_hash, coverage_report[Coverband::RUNTIME_TYPE]
     assert_equal empty_hash, coverage_report[:eager_loading]
     assert_equal empty_hash, coverage_report[:merged]
   end

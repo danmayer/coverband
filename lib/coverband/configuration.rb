@@ -7,7 +7,8 @@ module Coverband
                   :reporter, :redis_namespace, :redis_ttl,
                   :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
-                  :web_enable_clear, :gem_details, :web_debug, :report_on_exit
+                  :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
+                  :simulate_oneshot_lines_coverage
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
@@ -51,7 +52,11 @@ module Coverband
       @groups = {}
       @web_debug = false
       @report_on_exit = true
-      @use_oneshot_lines_coverage = false
+      @use_oneshot_lines_coverage = ENV['ONESHOT'] || false
+      @simulate_oneshot_lines_coverage = ENV['SIMULATE_ONESHOT'] || false
+      @current_root = nil
+      @all_root_paths = nil
+      @all_root_patterns = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -143,14 +148,20 @@ module Coverband
     end
 
     def current_root
-      File.expand_path(Coverband.configuration.root)
+      @current_root ||= File.expand_path(Coverband.configuration.root).freeze
     end
 
     def all_root_paths
-      roots = Coverband.configuration.root_paths.dup
-      roots += Coverband.configuration.gem_paths.dup if Coverband.configuration.track_gems
-      roots << "#{Coverband.configuration.current_root}/"
-      roots
+      return @all_root_paths if @all_root_paths
+
+      @all_root_paths = Coverband.configuration.root_paths.dup
+      @all_root_paths += Coverband.configuration.gem_paths.dup if Coverband.configuration.track_gems
+      @all_root_paths << "#{Coverband.configuration.current_root}/"
+      @all_root_paths
+    end
+
+    def all_root_patterns
+      @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
     SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
