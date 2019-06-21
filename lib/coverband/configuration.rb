@@ -10,7 +10,7 @@ module Coverband
                   :background_reporting_sleep_seconds, :test_env,
                   :web_enable_clear, :gem_details, :web_debug
 
-    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
+    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key, :password
     attr_reader :track_gems
 
     def initialize
@@ -38,6 +38,7 @@ module Coverband
       @gem_details = false
       @groups = {}
       @web_debug = false
+      @password = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -54,6 +55,10 @@ module Coverband
                   else
                     Logger.new(STDOUT)
                   end
+    end
+
+    def password
+      @password || ENV['COVERBAND_PASSWORD']
     end
 
     def s3_bucket

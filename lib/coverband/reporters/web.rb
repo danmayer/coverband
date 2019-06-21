@@ -17,8 +17,19 @@ module Coverband
                                    urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/])
       end
 
+      def check_auth
+        return true unless Coverband.configuration.password
+        auth_header = request.get_header("HTTP_AUTHORIZATION")
+        return unless auth_header
+        Coverband.configuration.password == Base64.decode64((auth_header).split[1]).split(":")[1]
+      end
+
       def call(env)
         @request = Rack::Request.new(env)
+
+        unless check_auth
+          return [401, {"www-authenticate" => 'Basic realm=""'}, ['']]
+        end
 
         if request.post?
           case request.path_info
