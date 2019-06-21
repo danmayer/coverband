@@ -16,8 +16,13 @@ class RailsRakeFullStackTest < Minitest::Test
     assert_includes pundit_coverage['data'], 1
 
     store.type = Coverband::RUNTIME_TYPE
-    pundit_coverage = store.coverage[pundit_file]
-    assert_nil pundit_coverage
+    if ENV['SIMULATE_ONESHOT']
+      pundit_coverage = store.get_coverage_report[Coverband::RUNTIME_TYPE][pundit_file]
+      assert pundit_coverage['data'].compact.all? { |el| el == 0}
+    else
+      pundit_coverage = store.coverage[pundit_file]
+      assert_nil pundit_coverage
+    end
   end
 
   test "ignored rake tasks don't add coverage" do

@@ -69,8 +69,21 @@ module Coverband
 
       def split_coverage(types)
         types.reduce({}) do |data, type|
-          data.update(type => coverage(type))
+          if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage
+            data.update(type => simulated_runtime_coverage)
+          else
+            data.update(type => coverage(type))
+          end
         end
+      end
+
+      def simulated_runtime_coverage
+        runtime_data = coverage(Coverband::RUNTIME_TYPE)
+        eager_data = coverage(Coverband::EAGER_TYPE)
+        eager_data.each_pair do |_key, vals|
+          vals['data'].map! { |el| el ? (0 - el) : el }
+        end
+        merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
 
       def merged_coverage(types)
