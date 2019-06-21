@@ -39,22 +39,23 @@ module Coverband
       end
 
       def coverage(local_type = nil, files: nil)
-        files = if files
-                  files.map! { |file| full_path_to_relative(file) }
-                else
-                  files_set(local_type)
-                end
-        values = if files.any?
-                   @redis.mget(*files.map { |file| key(file, local_type) }).map do |value|
-                     value.nil? ? {} : JSON.parse(value)
-                   end
-                 else
-                   []
-                 end
-        Hash[files.zip(values)]
+        files = relative_paths(files) || files_set(local_type)
+        Hash[files.zip(values_from_redis(local_type, files))]
       end
 
       private
+
+      def values_from_redis(local_type, files)
+        return files if files.empty?
+
+        @redis.mget(*files.map { |file| key(file, local_type) }).map do |value|
+          value.nil? ? {} : JSON.parse(value)
+        end
+      end
+
+      def relative_paths(files)
+        files&.map! { |file| full_path_to_relative(file) }
+      end
 
       def files_set(local_type = nil)
         @redis.smembers(files_key(local_type))
