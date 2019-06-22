@@ -22,7 +22,7 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
-      def clear_file!(_file)
+      def clear_file!(_file = nil)
         raise ABSTRACT_KEY
       end
 
