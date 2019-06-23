@@ -21,6 +21,17 @@ class AdaptersBaseTest < Minitest::Test
     assert_equal "0.00", base.size_in_mib
   end
 
+  def test_array_add
+    original = [5, 7, nil, nil]
+    latest = [3, 4, nil, 1]
+    assert_equal [8, 11, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
+    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+    assert_equal [1, 1, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
+    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(false)
+    Coverband.configuration.stubs(:simulate_oneshot_lines_coverage).returns(true)
+    assert_equal [1, 1, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
+  end
+
   describe 'Coverband::Adapters::Base using file' do
     def setup
       super
@@ -28,8 +39,6 @@ class AdaptersBaseTest < Minitest::Test
       @store = Coverband::Adapters::FileStore.new(@test_file_path)
       mock_file_hash
     end
-
-
 
     def test_covered_merge
       old_time = 1541958097
