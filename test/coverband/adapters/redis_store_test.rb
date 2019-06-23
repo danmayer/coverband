@@ -84,4 +84,26 @@ class RedisTest < Minitest::Test
     @redis.expects(:del).times(3)
     @store.clear!
   end
+
+  def test_clear_file
+    mock_file_hash
+    @store.type = :eager_loading
+    @store.save_report('app_path/dog.rb' => [0, 1, 1])
+    @store.type = Coverband::RUNTIME_TYPE
+    @store.save_report('app_path/dog.rb' => [1, 0, 1])
+    assert_equal [1, 1, 2], @store.get_coverage_report[:merged]['app_path/dog.rb']['data']
+    @store.clear_file!('app_path/dog.rb')
+    assert_nil @store.get_coverage_report[:merged]['app_path/dog.rb']
+  end
+
+  def test_size
+    mock_file_hash
+    @store.type = :eager_loading
+    @store.save_report('app_path/dog.rb' => [0, 1, 1])
+    assert @store.size > 1
+  end
+
+  def test_base_key
+    assert @store.send(:base_key).end_with?(Coverband::RUNTIME_TYPE.to_s)
+  end
 end
