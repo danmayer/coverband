@@ -10,7 +10,7 @@ module Coverband
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
                   :simulate_oneshot_lines_coverage
 
-    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key
+    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key, :password
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
     #####
@@ -57,6 +57,7 @@ module Coverband
       @current_root = nil
       @all_root_paths = nil
       @all_root_patterns = nil
+      @password = nil
 
       # TODO: should we push these to adapter configs
       @s3_region = nil
@@ -73,6 +74,10 @@ module Coverband
                   else
                     Logger.new(STDOUT)
                   end
+    end
+
+    def password
+      @password || ENV['COVERBAND_PASSWORD']
     end
 
     def s3_bucket
