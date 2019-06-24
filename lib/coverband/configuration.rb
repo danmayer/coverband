@@ -62,7 +62,7 @@ module Coverband
       @s3_access_key_id = nil
       @s3_secret_access_key = nil
       @redis_namespace = nil
-      @redis_ttl = nil
+      @redis_ttl = nil # in seconds
     end
 
     def logger
