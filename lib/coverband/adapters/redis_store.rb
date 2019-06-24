@@ -75,7 +75,7 @@ module Coverband
       def coverage(local_type = nil)
         local_type ||= type
         data = redis.get type_base_key(local_type)
-        data ? JSON.parse(data) : {}
+        data ? JSON.parse(Zlib::Inflate.inflate(data)) : {}
       end
 
       private
@@ -96,7 +96,7 @@ module Coverband
 
       def save_coverage(data, local_type = nil)
         local_type ||= type
-        redis.set type_base_key(local_type), data.to_json
+        redis.set type_base_key(local_type), Zlib::Deflate.deflate(data.to_json)
         redis.expire(type_base_key(local_type), @ttl) if @ttl
       end
     end
