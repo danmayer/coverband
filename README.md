@@ -98,6 +98,8 @@ Rails.application.routes.draw do
 end
 ```
 
+or you can enable basic auth by setting `ENV['COVERBAND_PASSWORD']` or via your configuration `config.password = 'my_pass'`
+
 ### Coverband Web Endpoint
 
 The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
