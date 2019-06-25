@@ -2,15 +2,20 @@
 
 require 'securerandom'
 require 'fileutils'
+require 'erb'
+require 'ostruct'
 
 UNIQUE_FILES_DIR = './test/unique_files'
 
-def require_unique_file(file = 'dog.rb')
+def require_unique_file(file = 'dog.rb', variables = {})
   uuid = SecureRandom.uuid
   dir = "#{UNIQUE_FILES_DIR}/#{uuid}"
-  temp_file = "#{dir}/#{file}"
+  file_name = file.sub('.erb', '')
+  temp_file = "#{dir}/#{file_name}"
   FileUtils.mkdir_p(Pathname.new(temp_file).dirname.to_s)
-  File.open(temp_file, 'w') { |w| w.write(File.read("./test/#{file}")) }
+  file_contents = File.read("./test/#{file}")
+  file_contents = ERB.new(file_contents).result(OpenStruct.new(variables).instance_eval { binding }) if variables.any?
+  File.open(temp_file, 'w') { |w| w.write(file_contents) }
   require temp_file
   Coverband::Utils::FilePathHelper.full_path_to_relative(File.expand_path(temp_file))
 end
