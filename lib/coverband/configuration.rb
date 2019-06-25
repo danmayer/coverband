@@ -65,7 +65,7 @@ module Coverband
       @s3_access_key_id = nil
       @s3_secret_access_key = nil
       @redis_namespace = nil
-      @redis_ttl = nil # in seconds
+      @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
     end
 
     def logger
