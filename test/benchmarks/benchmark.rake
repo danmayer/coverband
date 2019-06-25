@@ -32,10 +32,7 @@ namespace :benchmarks do
   end
 
   def clone_classifier
-    unless Dir.exist? classifier_dir
-      system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}"
-    end
-    # rubocop:enable Style/IfUnlessModifier
+    system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}" unless Dir.exist? classifier_dir
   end
 
   # desc 'setup standard benchmark'
@@ -232,7 +229,7 @@ namespace :benchmarks do
     $stdout = capture
 
     MemoryProfiler.report do
-      10.times {
+      10.times do
         Coverband.report_coverage
         ###
         # Set to nil not {} as it is easier to verify that no memory is retained when nil gets released
@@ -240,7 +237,7 @@ namespace :benchmarks do
         # we clear this as this one variable is expected to retain memory and is a false positive
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
-      }
+      end
     end.pretty_print
     data = $stdout.string
     $stdout = previous_out
@@ -290,14 +287,14 @@ namespace :benchmarks do
     require 'objspace'
     puts 'memory load check'
     puts(ObjectSpace.memsize_of_all / 2**20)
-    data = File.read("./tmp/debug_data.json")
+    data = File.read('./tmp/debug_data.json')
     # about 2mb
     puts(ObjectSpace.memsize_of(data) / 2**20)
 
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -305,7 +302,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -313,7 +310,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -321,7 +318,7 @@ namespace :benchmarks do
     json_data = JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
-    #implies json takes 10-12 mb
+    # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
 
     json_data = nil
@@ -356,7 +353,7 @@ namespace :benchmarks do
   end
 
   desc 'runs memory leak checks'
-  task memory: [:memory_reporting, :memory_reporting_report_coverage, :memory_rails] do
+  task memory: %i[memory_reporting memory_reporting_report_coverage memory_rails] do
     puts 'done'
   end
 
@@ -372,18 +369,27 @@ namespace :benchmarks do
     run_work(true)
   end
 
-  task run_big: %i[setup setup_redis] do
+  def run_big
     require 'memory_profiler'
     require './test/unique_files'
+
+    4000.times { |index| require_unique_file('dog.rb.erb', dog_number: index) }
+    # warmup
+    3.times { Coverband.report_coverage }
+    dogs = 400.times.map { |index| Object.const_get("Dog#{index}") }
+    MemoryProfiler.report do
+      10.times do
+        dogs.each(&:bark)
+        Coverband.report_coverage
+      end
+    end.pretty_print
+  end
+
+  task run_big: %i[setup setup_redis] do
     # ensure we cleared from last run
     benchmark_redis_store.clear!
 
-    1000.times { require_unique_file }
-    # warmup
-    3.times { Coverband.report_coverage }
-    MemoryProfiler.report do
-      10.times { Coverband.report_coverage }
-    end.pretty_print
+    run_big
   end
 
   # desc 'runs benchmarks file store'
