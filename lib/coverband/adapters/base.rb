@@ -80,8 +80,8 @@ module Coverband
       def simulated_runtime_coverage
         runtime_data = coverage(Coverband::RUNTIME_TYPE)
         eager_data = coverage(Coverband::EAGER_TYPE)
-        eager_data.each_pair do |_key, vals|
-          vals['data'].map! { |el| el ? (0 - el) : el }
+        eager_data.values do |vals|
+          vals['data'].map! { |line_coverage| line_coverage ? (0 - line_coverage) : line_coverage }
         end
         merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
