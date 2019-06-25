@@ -50,8 +50,17 @@ class CollectorsDeltaTest < Minitest::Test
   end
 
   if Coverband.configuration.one_shot_coverage_implemented_in_ruby_version?
-    test 'one shot lines results' do
+    test 'oneshot coverage calls clear' do
+      Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+      current_coverage = {
+        'car.rb' => [1, 5]
+      }
 
+      ::Coverage.expects(:result).with(clear: true, stop: false).returns(current_coverage)
+      results = Coverband::Collectors::Delta::RubyCoverage.results
+    end
+
+    test 'one shot lines results' do
       Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
       current_coverage = {}
       results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))

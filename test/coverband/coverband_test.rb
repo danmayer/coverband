@@ -23,10 +23,23 @@ class CoverbandTest < Minitest::Test
     ::Coverband.start
   end
 
+  test 'Coverband#configured? works' do
+    Coverband.configure
+    assert Coverband.configured?
+  end
+
+  test 'Eager load coverage block' do
+    Coverband.eager_loading_coverage {
+      #some code
+      1 + 1
+    }
+    assert_equal :runtime, Coverband.configuration.store.type
+  end
+
   test 'Eager load coverage' do
     Coverband.eager_loading_coverage!
     assert_equal :eager_loading, Coverband.configuration.store.type
     Coverband.runtime_coverage!
-    assert_nil Coverband.configuration.store.type
+    assert_equal :runtime, Coverband.configuration.store.type
   end
 end

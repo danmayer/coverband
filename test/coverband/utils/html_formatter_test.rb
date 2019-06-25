@@ -13,7 +13,6 @@ class HTMLFormatterTest < Minitest::Test
   test 'generate dynamic content hosted html report' do
     Coverband.configure do |config|
       config.store             = @store
-      config.s3_bucket         = nil
       config.ignore            = ['notsomething.rb']
     end
     mock_file_hash
@@ -31,7 +30,6 @@ class HTMLFormatterTest < Minitest::Test
   test 'generate static HTML report file' do
     Coverband.configure do |config|
       config.store             = @store
-      config.s3_bucket         = nil
       config.ignore            = ['notsomething.rb']
     end
     mock_file_hash

@@ -6,5 +6,6 @@ source 'https://rubygems.org'
 gemspec
 gem 'rails', '~>5'
 # these gems are used for testing gem tracking
+gem 'irb', require: false
 gem 'pundit'
 gem 'rainbow', require: false

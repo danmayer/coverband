@@ -32,7 +32,9 @@ module Coverband
         @thread = Thread.new do
           loop do
             Coverband.report_coverage
-            logger.debug("Coverband: Reported coverage via thread. Sleeping #{sleep_seconds}s") if Coverband.configuration.verbose
+            if Coverband.configuration.verbose
+              logger.debug("Coverband: background reporting coverage (#{Coverband.configuration.store.type}). Sleeping #{sleep_seconds}s")
+            end
             sleep(sleep_seconds)
           end
         end

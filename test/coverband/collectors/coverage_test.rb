@@ -39,7 +39,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test 'Dog eager load coverage' do
     store = Coverband.configuration.store
-    assert_nil store.type
+    assert_equal Coverband::RUNTIME_TYPE, store.type
     file = coverband.eager_loading do
       require_unique_file
     end

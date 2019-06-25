@@ -31,7 +31,7 @@ require 'coverband/integrations/rack_server_check'
 module Coverband
   @@configured = false
   CONFIG_FILE = './config/coverband.rb'
-  RUNTIME_TYPE = nil
+  RUNTIME_TYPE = :runtime
   EAGER_TYPE = :eager_loading
   MERGED_TYPE = :merged
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]
