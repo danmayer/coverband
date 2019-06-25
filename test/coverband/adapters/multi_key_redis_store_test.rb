@@ -38,8 +38,8 @@ class MultiKeyRedisStoreTest < Minitest::Test
         'last_updated_at' => @current_time.to_i,
         'file_hash' => 'abcd',
         'data' => [0, 1, 2]
-      }.to_json,
-      @redis.get('coverband_3_2.coverband_test../dog.rb')
+      },
+      @store.coverage['./dog.rb']
     )
     @store.save_report(
       'app_path/dog.rb' => [1, 1, 0]
@@ -50,8 +50,8 @@ class MultiKeyRedisStoreTest < Minitest::Test
         'last_updated_at' => @current_time.to_i,
         'file_hash' => 'abcd',
         'data' => [1, 2, 2]
-      }.to_json,
-      @redis.get('coverband_3_2.coverband_test../dog.rb')
+      },
+      @store.coverage['./dog.rb']
     )
   end
 
@@ -100,7 +100,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
     @store.save_report(data)
     assert_equal 1, @store.coverage.length
     assert_equal [0, nil, 1, 2], @store.coverage['./dog.rb']['data']
-    @store.type = nil
+    @store.type = Coverband::RUNTIME_TYPE
     data = {
       'app_path/cat.rb' => [1, 2, 0, 1, 5]
     }
@@ -122,13 +122,13 @@ class MultiKeyRedisStoreTest < Minitest::Test
 
   def test_clear
     mock_file_hash
-    @store.type = :eager_loading
+    @store.type = Coverband::EAGER_TYPE
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2]
     }
     @store.save_report(data)
     assert_equal 1, @store.coverage.length
-    @store.type = nil
+    @store.type = Coverband::RUNTIME_TYPE
     data = {
       'app_path/cat.rb' => [1, 2, 0, 1, 5]
     }
@@ -136,7 +136,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
     assert_equal 1, @store.coverage.length
     @redis.set('random', 'data')
     @store.clear!
-    @store.type = nil
+    @store.type = Coverband::RUNTIME_TYPE
     assert @store.coverage.empty?
     @store.type = :eager_loading
     assert @store.coverage.empty?
