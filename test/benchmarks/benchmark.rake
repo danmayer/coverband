@@ -409,9 +409,18 @@ namespace :benchmarks do
   end
 
   task run_big: %i[setup setup_redis] do
+    require 'memory_profiler'
+    require './test/unique_files'
     # ensure we cleared from last run
     benchmark_redis_store.clear!
+    run_big
+  end
 
+  task run_big_multi_key_redis: %i[setup setup_multi_key_redis] do
+    require 'memory_profiler'
+    require './test/unique_files'
+    # ensure we cleared from last run
+    benchmark_redis_store(Coverband::Adapters::MultiKeyRedisStore).clear!
     run_big
   end
 
