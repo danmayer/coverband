@@ -78,22 +78,38 @@ Feature Ideas:
 
 ### Coverband 4.2.1
 
-- further improvements on eager_loading detection
-- fix on ignore configuration options
-- fix broken static server
-- fix issue where clear and coverage trigger coverage reports
-- improved logging
-- fix sorting of runtime coverage
-- add runtime coverage to gem summary pages
-- fix issue where reports didn't include files with 0 activity
-- add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
+- larger changes
+  - reduce memory usage
+  - fix issue where reports didn't include files with 0 activity
+  - updated runtime relavent lines and runtime percentages
+  - add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
    - I would consider this our test oneshot release, please report any issues
-- resolve regression on coverband rake tasks recording coverage
-- improved runtime / eager loading tracking
-- updated runtime relavent lines and runtime percentages
-- fix on gem runtime code coverage support, thanks @kbaum
-- fix on small memory leaks
-- added warnings that gem tracking isn't production ready
+   - improved control over memory vs functionality
+     - oneshot support is the best memory and speed if you are on Ruby 2.6.*
+     - simulated_oneshot works for Ruby prior to 2.6.*, keeps lower runtime memory, at a trade of only being able to detect eager_load or runtime hits not both
+     - full hit tracking (The previous and current default), this uses more memory than other options, but provides full robust data
+
+
+- small changes fixes
+  - further improvements on eager_loading detection thanks @kbaum
+  - fix on ignore configuration options
+  - fix broken static server
+  - fix issue where clear and coverage trigger coverage reports
+  - improved logging
+  - fix on gem runtime code coverage support, thanks @kbaum
+  - fix sorting of runtime coverage
+  - add runtime coverage to gem summary pages
+  - documented redis TTL (thanks @jjb)
+  - resolve regression on coverband rake tasks recording coverage
+  - improved runtime / eager loading tracking
+  - fix on small memory leaks
+  - added warnings that gem tracking isn't production ready
+  - built in support for basic auth on the web rack app thanks @jjb
+  - don't clobber rake environment method definition thanks @shioyama
+  - readme improvements thanks @yuriyalekseyev
+  - fix duplicate requires thanks @yuriyalekseyev
+  - various cleanups and improvements thanks @kbaum
+  - additional benchmarks to ensure proper memory handling thanks @kbaum
 
 
 # Released
