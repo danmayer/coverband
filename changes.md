@@ -91,7 +91,7 @@ Feature Ideas:
 
 
 - small changes fixes
-  - further improvements on eager_loading detection thanks @kbaum
+  - further improvements on eager_loading detection, thanks @kbaum
   - fix on ignore configuration options
   - fix broken static server
   - fix issue where clear and coverage trigger coverage reports
@@ -99,17 +99,18 @@ Feature Ideas:
   - fix on gem runtime code coverage support, thanks @kbaum
   - fix sorting of runtime coverage
   - add runtime coverage to gem summary pages
-  - documented redis TTL (thanks @jjb)
+  - documented redis TTL, thanks @jjb
   - resolve regression on coverband rake tasks recording coverage
   - improved runtime / eager loading tracking
   - fix on small memory leaks
   - added warnings that gem tracking isn't production ready
-  - built in support for basic auth on the web rack app thanks @jjb
-  - don't clobber rake environment method definition thanks @shioyama
-  - readme improvements thanks @yuriyalekseyev
+  - built in support for basic auth on the web rack app, thanks @jjb
+  - don't clobber rake environment method definition, thanks @shioyama
+  - readme improvements, thanks @yuriyalekseyev
   - fix duplicate requires thanks @yuriyalekseyev
-  - various cleanups and improvements thanks @kbaum
-  - additional benchmarks to ensure proper memory handling thanks @kbaum
+  - various cleanups and improvements, thanks @kbaum
+  - additional benchmarks to ensure proper memory handling, thanks @kbaum
+  - default redis TTL, thanks @jjb
 
 
 # Released
