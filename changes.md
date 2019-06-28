@@ -49,7 +49,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - move all code to work with relative paths leaving only stdlib Coverage working on full paths
 - add gem_safe_lists to track only some gems
 - add gem_details_safe list to report on details on some gems
-- - display gems that are in loaded with 0 coverage, thanks @kbaum 
+- - display gems that are in loaded with 0 coverage, thanks @kbaum
 
 ### Coverband_jam_session
 
@@ -76,6 +76,12 @@ Feature Ideas:
 
 # Alpha / Beta / Release Candidates
 
+### Coverband 4.2.2
+
+- ?
+
+# Released
+
 ### Coverband 4.2.1
 
 - larger changes
@@ -83,14 +89,13 @@ Feature Ideas:
   - fix issue where reports didn't include files with 0 activity
   - updated runtime relavent lines and runtime percentages
   - add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
-   - I would consider this our test oneshot release, please report any issues
-   - improved control over memory vs functionality
-     - oneshot support is the best memory and speed if you are on Ruby 2.6.*
-     - simulated_oneshot works for Ruby prior to 2.6.*, keeps lower runtime memory, at a trade of only being able to detect eager_load or runtime hits not both
-     - full hit tracking (The previous and current default), this uses more memory than other options, but provides full robust data
+  - I would consider this our test oneshot release, please report any issues
+  - improved control over memory vs functionality
+    - oneshot support is the best memory and speed if you are on Ruby 2.6.\*
+    - simulated_oneshot works for Ruby prior to 2.6.\*, keeps lower runtime memory, at a trade of only being able to detect eager_load or runtime hits not both
+    - full hit tracking (The previous and current default), this uses more memory than other options, but provides full robust data
 
-
-- small changes fixes
+* small changes fixes
   - further improvements on eager_loading detection, thanks @kbaum
   - fix on ignore configuration options
   - fix broken static server
@@ -111,9 +116,6 @@ Feature Ideas:
   - various cleanups and improvements, thanks @kbaum
   - additional benchmarks to ensure proper memory handling, thanks @kbaum
   - default redis TTL, thanks @jjb
-
-
-# Released
 
 ### Coverband 4.2.0
 
