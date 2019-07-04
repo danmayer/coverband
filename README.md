@@ -12,7 +12,8 @@
   <a href="#coverage-report">Coverage Report</a> •
   <a href="#advanced-config">Advanced Config</a> •
   <a href="#license">License</a> •
-  <a href="/changes.md">Change Log / Roadmap</a>
+  <a href="/changes.md">Change Log / Roadmap</a> •
+  <a href="/CODE_OF_CONDUCT.md">Code of Conduct</a>
 </p>
 
 A gem to measure production code usage, showing a counter for the number of times each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread or can be used as Rack middleware, or manually configured to meet any need.
