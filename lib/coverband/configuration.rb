@@ -30,6 +30,10 @@ module Coverband
     # heroku asset compilation
     IGNORE_DEFAULTS = %w[vendor .erb$ .slim$ /tmp internal:prelude schema.rb]
 
+    # Add in missing files which were never loaded
+    # we need to know what all paths to check for unloaded files
+    TRACKED_DEFAULT_PATHS = %w[app lib config]
+
     def initialize
       reset
     end
@@ -38,6 +42,7 @@ module Coverband
       @root = Dir.pwd
       @root_paths = []
       @ignore = IGNORE_DEFAULTS.dup
+      @seach_paths = TRACKED_DEFAULT_PATHS.dup
       @additional_files = []
       @verbose = false
       @reporter = 'scov'
@@ -104,6 +109,20 @@ module Coverband
       raise 'Pass in an instance of Coverband::Adapters' unless store.is_a?(Coverband::Adapters::Base)
 
       @store = store
+    end
+
+    ###
+    # Search Paths
+    ###
+    def tracked_search_paths
+      "#{Coverband.configuration.current_root}/{#{@seach_paths.join(',')}}/**/*.{rb}"
+    end
+
+    ###
+    # Don't allow the to override defaults
+    ###
+    def search_paths=(path_array)
+      @seach_paths = (@seach_paths + path_array).uniq
     end
 
     ###

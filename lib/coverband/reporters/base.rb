@@ -30,7 +30,7 @@ module Coverband
         ###
         def fix_reports(reports)
           # list all files, even if not tracked by Coverband (0% coverage)
-          tracked_glob = "#{Coverband.configuration.current_root}/{app,lib,config}/**/*.{rb}"
+          tracked_glob = Coverband.configuration.tracked_search_paths
           filtered_report_files = {}
 
           reports.each_pair do |report_name, report_data|
