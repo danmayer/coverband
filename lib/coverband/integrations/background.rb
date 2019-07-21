@@ -27,7 +27,7 @@ module Coverband
       @semaphore.synchronize do
         return if running?
 
-        logger.debug('Coverband: Starting background reporting')
+        logger.debug('Coverband: Starting background reporting') if Coverband.configuration.verbose
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
         @thread = Thread.new do
           loop do

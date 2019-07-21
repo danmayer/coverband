@@ -162,10 +162,10 @@ Coverband.configure do |config|
   config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
   config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
 
-  # config options false, true, or 'debug'. Always use false in production
+  # config options false, true. (defaults to false)
   # true and debug can give helpful and interesting code usage information
-  # they both increase the performance overhead of the gem a little.
-  # they can also help with initially debugging the installation.
+  # and is safe to use if one is investigating issues in production, but it will slightly
+  # hit perf.
   config.verbose = false
 end
 ```
@@ -308,27 +308,11 @@ Coverband.start
 
 ### Verbose Debug / Development Mode
 
-Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
+Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. We respect the log level, and I would recommend log level info generally, but if you are investigating a prolbem Coverband logs additional data at the `debug` level. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
 
 ---
 
-If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` and `config.verbose = 'debug'` can be useful. With true set it will output the number of lines executed per file, to the passed in log. The files are sorted from least used file to most active file. I have even run that mode in production without much of a problem. The debug verbose mode outputs both file usage and provides the number of calls per line of code. For example if you see something like below which indicates that the `application_helper` has 43150 lines executed. That might seem odd. Then looking at the breakdown of `application_helper` we can see that line `516` was executed 38,577 times. That seems bad, and is likely worth investigating perhaps memoizing or cacheing is required.
-
-    config.verbose = 'debug'
-
-    coverband file usage:
-      [["/Users/danmayer/projects/app_name/lib/facebook.rb", 6],
-      ["/Users/danmayer/projects/app_name/app/models/some_modules.rb", 9],
-      ...
-      ["/Users/danmayer/projects/app_name/app/models/user.rb", 2606],
-      ["/Users/danmayer/projects/app_name/app/helpers/application_helper.rb",
-      43150]]
-
-    file:
-      /Users/danmayer/projects/app_name/app/helpers/application_helper.rb =>
-      [[448, 1], [202, 1],
-      ...
-     [517, 1617], [516, 38577]]
+If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` && `Rails.logger.level = :debug`. With true set it will output the number of lines executed per file, to the passed in log.
 
 # Prerequisites
 
