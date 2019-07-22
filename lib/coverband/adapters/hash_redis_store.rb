@@ -44,8 +44,8 @@ module Coverband
         @redis.sadd(files_key, keys) if keys.any?
       end
 
-      def coverage(local_type = nil, files: nil)
-        files = relative_paths(files) || files_set(local_type)
+      def coverage(local_type = nil)
+        files = files_set(local_type)
         files.each_with_object({}) do |file, hash|
           data_from_redis = @redis.hgetall(key(full_path_to_relative(file), local_type))
 

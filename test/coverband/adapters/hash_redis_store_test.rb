@@ -79,20 +79,6 @@ class HashRedisStoreTest < Minitest::Test
     assert_equal [1, 5, nil, 2], @store.coverage['./ferrit.rb']['data']
   end
 
-  def test_coverage_subset
-    mock_file_hash
-    data = {
-      'app_path/dog.rb' => [0, nil, 1, 2],
-      'app_path/cat.rb' => [1, 2, 0, 1, 5],
-      'app_path/ferrit.rb' => [1, 5, nil, 2]
-    }
-    @store.save_report(data)
-    coverage = @store.coverage(files: ['./cat.rb', './ferrit.rb'])
-    assert_equal 2, coverage.length
-    assert_equal [1, 2, 0, 1, 5], @store.coverage['./cat.rb']['data']
-    assert_equal [1, 5, nil, 2], @store.coverage['./ferrit.rb']['data']
-  end
-
   def test_type
     mock_file_hash
     @store.type = :eager_loading
