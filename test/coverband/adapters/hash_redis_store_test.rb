@@ -2,7 +2,7 @@
 
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
-class MultiKeyRedisStoreTest < Minitest::Test
+class HashRedisStoreTest < Minitest::Test
   def setup
     super
     @redis = Redis.new
@@ -10,7 +10,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
     Coverband.configure do |config|
       config.root_paths = ['app_path/']
     end
-    @store = Coverband::Adapters::MultiKeyRedisStore.new(@redis, redis_namespace: 'coverband_test')
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test')
     @store.clear!
     Coverband.configuration.store = @store
   end

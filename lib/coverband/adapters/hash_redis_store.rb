@@ -2,7 +2,7 @@
 
 module Coverband
   module Adapters
-    class MultiKeyRedisStore < Base
+    class HashRedisStore < Base
       META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY, FILE_HASH].freeze
       ###
       # This key isn't related to the coverband version, but to the interal format
