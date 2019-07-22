@@ -92,7 +92,7 @@ namespace :benchmarks do
     Coverband.configure do |config|
       config.root                = Dir.pwd
       config.logger              = $stdout
-      config.store               = benchmark_redis_store(Coverband::Adapters::MultiKeyRedisStore)
+      config.store               = benchmark_redis_store(Coverband::Adapters::HashRedisStore)
     end
   end
 
@@ -348,7 +348,7 @@ namespace :benchmarks do
   desc 'runs memory reporting on Redis store'
   task multi_key_memory_reporting: [:setup] do
     puts 'runs memory benchmarking to ensure we dont leak'
-    measure_memory(Coverband::Adapters::MultiKeyRedisStore)
+    measure_memory(Coverband::Adapters::HashRedisStore)
   end
 
   desc 'runs memory reporting on report_coverage'
@@ -383,7 +383,7 @@ namespace :benchmarks do
   desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
   task multi_key_redis_reporting: %i[setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
-    reporting_speed(Coverband::Adapters::MultiKeyRedisStore)
+    reporting_speed(Coverband::Adapters::HashRedisStore)
   end
 
   # desc 'runs benchmarks on default redis setup'
@@ -420,7 +420,7 @@ namespace :benchmarks do
     require 'memory_profiler'
     require './test/unique_files'
     # ensure we cleared from last run
-    benchmark_redis_store(Coverband::Adapters::MultiKeyRedisStore).clear!
+    benchmark_redis_store(Coverband::Adapters::HashRedisStore).clear!
     run_big
   end
 
