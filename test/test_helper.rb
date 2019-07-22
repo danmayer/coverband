@@ -28,14 +28,13 @@ unless ENV['ONESHOT'] || ENV['SIMULATE_ONESHOT']
   Coveralls.wear!
 end
 
-
 module Coverband
   module Test
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
       Coverband.configuration.store.class.class_variable_set(:@@path_cache, {})
-      [:eager_loading, :runtime].each do |type|
+      %i[eager_loading runtime].each do |type|
         Coverband.configuration.store.type = type
         Coverband.configuration.store.clear!
       end
@@ -154,3 +153,5 @@ Coverband::Configuration.class_eval do
     true
   end
 end
+
+Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore
