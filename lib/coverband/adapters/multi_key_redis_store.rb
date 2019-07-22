@@ -36,7 +36,8 @@ module Coverband
           data.each_with_index do |line_coverage, index|
             key = key(full_path_to_relative(file))
             @redis.hincrby(key, index, line_coverage) if line_coverage
-            @redis.hmset(key, FIRST_UPDATED_KEY, report_time, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
+            first_updated_time = @redis.hget(key, FIRST_UPDATED_KEY) || report_time
+            @redis.hmset(key, FIRST_UPDATED_KEY, first_updated_time, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
           end
         end
         keys = report.keys.map { |file| full_path_to_relative(file) }
