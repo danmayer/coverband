@@ -116,7 +116,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
       'app_path/dog.rb' => [0, nil, 1, 2]
     }
     @store.save_report(data)
-    @store.type = nil
+    @store.type = Coverband::RUNTIME_TYPE
     assert_equal [0, nil, 1, 2], @store.coverage(:eager_loading)['./dog.rb']['data']
   end
 
