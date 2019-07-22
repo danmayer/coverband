@@ -153,3 +153,5 @@ Coverband::Configuration.class_eval do
     true
   end
 end
+
+Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore

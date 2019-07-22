@@ -18,7 +18,7 @@ class ResqueWorkerTest < Minitest::Test
     end
     Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
     Coverband.start
-    redis = Coverband.configuration.store.send(:redis)
+    redis = Coverband.configuration.store.instance_eval { @redis }
     Resque.redis = redis
   end
 
