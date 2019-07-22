@@ -15,7 +15,7 @@ class MultiKeyRedisStoreTest < Minitest::Test
     Coverband.configuration.store = @store
   end
 
-  def mock_time(time: Time.now)
+  def mock_time(time = Time.now)
     Time.stubs(:now).returns(time)
     time
   end
@@ -26,28 +26,30 @@ class MultiKeyRedisStoreTest < Minitest::Test
   end
 
   def test_coverage_for_file
-    current_time = mock_time
+    yesterday = DateTime.now.prev_day.to_time
+    today = Time.now
+    mock_time(yesterday)
     mock_file_hash
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
-    assert_equal example_line, @store.coverage['./dog.rb']['data']
     assert_equal(
       {
-        'first_updated_at' => current_time.to_i,
-        'last_updated_at' => current_time.to_i,
+        'first_updated_at' => yesterday.to_i,
+        'last_updated_at' => yesterday.to_i,
         'file_hash' => 'abcd',
         'data' => [0, 1, 2]
       },
       @store.coverage['./dog.rb']
     )
+    mock_time(today)
     @store.save_report(
       'app_path/dog.rb' => [1, 1, 0]
     )
     assert_equal(
       {
-        'first_updated_at' => current_time.to_i,
-        'last_updated_at' => current_time.to_i,
+        'first_updated_at' => yesterday.to_i,
+        'last_updated_at' => today.to_i,
         'file_hash' => 'abcd',
         'data' => [1, 2, 2]
       },
