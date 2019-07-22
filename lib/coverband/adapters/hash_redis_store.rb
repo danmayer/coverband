@@ -35,7 +35,11 @@ module Coverband
         report.each do |file, data|
           data.each_with_index do |line_coverage, index|
             key = key(full_path_to_relative(file))
-            @redis.hincrby(key, index, line_coverage) if line_coverage
+            if line_coverage
+              @redis.hincrby(key, index, line_coverage)
+            else
+              @redis.hset(key, index, -1)
+            end
             first_updated_time = @redis.hget(key, FIRST_UPDATED_KEY) || report_time
             @redis.hmset(key, FIRST_UPDATED_KEY, first_updated_time, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
           end
@@ -52,7 +56,7 @@ module Coverband
           max = (data_from_redis.keys - META_DATA_KEYS).map(&:to_i).max
           data = (max + 1).times.map do |index|
             line_coverage = data_from_redis[index.to_s]
-            line_coverage ? line_coverage.to_i : nil
+            line_coverage == '-1' ? nil : line_coverage.to_i
           end
           hash[file] = data_from_redis.select { |key, _value| META_DATA_KEYS.include?(key) }.merge!('data' => data)
           hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].to_i

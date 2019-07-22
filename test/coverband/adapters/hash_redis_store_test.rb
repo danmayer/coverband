@@ -63,7 +63,7 @@ class HashRedisStoreTest < Minitest::Test
     data = {
       'app_path/dog.rb' => [0, nil, 1, 2],
       'app_path/cat.rb' => [1, 2, 0, 1, 5],
-      'app_path/ferrit.rb' => [1, 5, nil, 2]
+      'app_path/ferrit.rb' => [1, 5, nil, 2, nil]
     }
     @store.save_report(data)
     coverage = @store.coverage
@@ -76,7 +76,7 @@ class HashRedisStoreTest < Minitest::Test
       }, @store.coverage['./dog.rb']
     )
     assert_equal [1, 2, 0, 1, 5], @store.coverage['./cat.rb']['data']
-    assert_equal [1, 5, nil, 2], @store.coverage['./ferrit.rb']['data']
+    assert_equal [1, 5, nil, 2, nil], @store.coverage['./ferrit.rb']['data']
   end
 
   def test_type
