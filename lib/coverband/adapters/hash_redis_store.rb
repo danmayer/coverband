@@ -34,20 +34,22 @@ module Coverband
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
-        report.each do |file, data|
-          data.each_with_index do |line_coverage, index|
-            key = key(full_path_to_relative(file))
-            if line_coverage
-              @redis.hincrby(key, index, line_coverage)
-            else
-              @redis.hset(key, index, -1)
+        @redis.pipelined do
+          report.each do |file, data|
+            data.each_with_index do |line_coverage, index|
+              key = key(full_path_to_relative(file))
+              if line_coverage
+                @redis.hincrby(key, index, line_coverage)
+              else
+                @redis.hset(key, index, -1)
+              end
+              @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
+              @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
             end
-            @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
-            @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
           end
+          keys = report.keys.map { |file| full_path_to_relative(file) }
+          @redis.sadd(files_key, keys) if keys.any?
         end
-        keys = report.keys.map { |file| full_path_to_relative(file) }
-        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil)
