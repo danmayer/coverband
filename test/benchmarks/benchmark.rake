@@ -207,6 +207,19 @@ namespace :benchmarks do
     end
   end
 
+  def stack_prof_reporting_speed(store_type = Coverband::Adapters::RedisStore)
+    require 'stackprof'
+    report = fake_report
+    store = benchmark_redis_store(store_type)
+    store.clear!
+    mock_files(store)
+
+    2.times { store.save_report(report) }
+    StackProf.run(out: './tmp/save_report.dump', interval: 1000, mode: :wall, raw: true) do
+      5.times { store.save_report(report) }
+    end
+  end
+
   def measure_memory(store_type = Coverband::Adapters::RedisStore)
     require 'memory_profiler'
     report = fake_report
@@ -378,6 +391,12 @@ namespace :benchmarks do
   task redis_reporting: [:setup] do
     puts 'runs benchmarks on reporting large sets of files to redis'
     reporting_speed
+  end
+
+  desc 'runs benchmarks on reporting large sets of files to redis'
+  task stack_prof_reporting: [:setup] do
+    puts 'runs benchmarks on reporting large sets of files to redis'
+    stack_prof_reporting_speed
   end
 
   desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
