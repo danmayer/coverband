@@ -42,8 +42,8 @@ module Coverband
             else
               @redis.hset(key, index, -1)
             end
-            first_updated_time = @redis.hget(key, FIRST_UPDATED_KEY) || report_time
-            @redis.hmset(key, FIRST_UPDATED_KEY, first_updated_time, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
+            @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
+            @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
           end
         end
         keys = report.keys.map { |file| full_path_to_relative(file) }
