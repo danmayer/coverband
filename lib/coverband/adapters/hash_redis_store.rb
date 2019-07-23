@@ -36,8 +36,8 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         @redis.pipelined do
           report.each do |file, data|
+            key = key(full_path_to_relative(file))
             data.each_with_index do |line_coverage, index|
-              key = key(full_path_to_relative(file))
               if line_coverage
                 @redis.hincrby(key, index, line_coverage)
               else
