@@ -4,8 +4,8 @@ require 'redis'
 
 redis = Redis.new
 script_id = redis.script(:load, <<~LUA)
-  for i, key in ipairs(KEYS) do
-    redis.call("INCRBY", KEYS[i], ARGV[i])
+  for i, values in ipairs(ARGV) do
+    redis.call("HINCRBY", KEYS[1], KEYS[i+1], ARGV[i])
   end
 LUA
-puts redis.evalsha(script_id, %w[josie noah wendy gracie], ['8', 1, 3, 5])
+puts redis.evalsha(script_id, %w[family josie noah wendy daddy gracie], [8, 1, 3, 5, 6])
