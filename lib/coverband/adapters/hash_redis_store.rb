@@ -34,6 +34,7 @@ module Coverband
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
+        keys = report.keys.map { |file| full_path_to_relative(file) }
         @redis.pipelined do
           report.each do |file, data|
             key = key(full_path_to_relative(file))
@@ -46,9 +47,8 @@ module Coverband
             end
             @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
             @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
+            @redis.sadd(files_key, keys) if keys.any?
           end
-          keys = report.keys.map { |file| full_path_to_relative(file) }
-          @redis.sadd(files_key, keys) if keys.any?
         end
       end
 
