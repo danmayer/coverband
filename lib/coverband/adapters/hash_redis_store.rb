@@ -41,7 +41,8 @@ module Coverband
         @redis.pipelined do
           report.each do |file, data|
             key = key(full_path_to_relative(file))
-            script_input = data.each_with_index.each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), ttl]) do |(coverage, index), hash|
+            script_input = data.each_with_index
+                               .each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), ttl]) do |(coverage, index), hash|
               hash[:keys] << index
               coverage = -1 if coverage.nil?
               hash[:args] << coverage
