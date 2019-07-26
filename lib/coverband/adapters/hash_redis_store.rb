@@ -37,16 +37,16 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
         keys = report.keys.map { |file| full_path_to_relative(file) }
+        ttl = @ttl || -1
         @redis.pipelined do
           report.each do |file, data|
             key = key(full_path_to_relative(file))
-            script_input = data.each_with_index.each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file)]) do |(coverage, index), hash|
+            script_input = data.each_with_index.each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), ttl]) do |(coverage, index), hash|
               hash[:keys] << index
               coverage = -1 if coverage.nil?
               hash[:args] << coverage
             end
             @redis.evalsha(script_id, script_input[:keys], script_input[:args])
-            @redis.expire(key, @ttl) if @ttl
           end
           @redis.sadd(files_key, keys) if keys.any?
         end
@@ -75,6 +75,7 @@ module Coverband
           local first_updated_at = table.remove(ARGV, 1)
           local last_updated_at = table.remove(ARGV, 1)
           local file_hash = table.remove(ARGV, 1)
+          local ttl = table.remove(ARGV, 1)
           local hash_key = table.remove(KEYS, 1)
           redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file_hash', file_hash)
           redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
@@ -84,6 +85,9 @@ module Coverband
             else
               redis.call("HINCRBY", hash_key, key, ARGV[i])
             end
+          end
+          if ttl ~= '-1' then
+            redis.call("EXPIRE", hash_key, ttl)
           end
         LUA
       end
