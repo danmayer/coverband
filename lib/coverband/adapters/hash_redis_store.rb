@@ -39,14 +39,12 @@ module Coverband
         @redis.pipelined do
           report.each do |file, data|
             key = key(full_path_to_relative(file))
-            script_input = data.each_with_index.each_with_object(keys: [key], args: []) do |(coverage, index), hash|
+            script_input = data.each_with_index.each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file)]) do |(coverage, index), hash|
               hash[:keys] << index
               coverage = -1 if coverage.nil?
               hash[:args] << coverage
             end
             @redis.evalsha(script_id, script_input[:keys], script_input[:args])
-            @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
-            @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
           end
           @redis.sadd(files_key, keys) if keys.any?
         end
@@ -72,11 +70,17 @@ module Coverband
 
       def hash_incr_script
         @hash_incr_script ||= @redis.script(:load, <<~LUA)
-          for i, values in ipairs(ARGV) do
+          local first_updated_at = table.remove(ARGV, 1)
+          local last_updated_at = table.remove(ARGV, 1)
+          local file_hash = table.remove(ARGV, 1)
+          local hash_key = table.remove(KEYS, 1)
+          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file_hash', file_hash)
+          redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
+          for i, key in ipairs(KEYS) do
             if ARGV[i] == '-1' then
-              redis.call("HSET", KEYS[1], KEYS[i+1], ARGV[i])
+              redis.call("HSET", hash_key, key, ARGV[i])
             else
-              redis.call("HINCRBY", KEYS[1], KEYS[i+1], ARGV[i])
+              redis.call("HINCRBY", hash_key, key, ARGV[i])
             end
           end
         LUA
