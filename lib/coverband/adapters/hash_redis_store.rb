@@ -34,22 +34,19 @@ module Coverband
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
-        @redis.pipelined do
-          report.each do |file, data|
-            key = key(full_path_to_relative(file))
-            data.each_with_index do |line_coverage, index|
-              if line_coverage
-                @redis.hincrby(key, index, line_coverage)
-              else
-                @redis.hset(key, index, -1)
-              end
-              @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
-              @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
-            end
+        report.each do |file, data|
+          key = key(full_path_to_relative(file))
+          script_input = data.each_with_index.each_with_object(keys: [key], args: []) do |(coverage, index), hash|
+            hash[:keys] << index
+            coverage = -1 if coverage.nil?
+            hash[:args] << coverage
           end
-          keys = report.keys.map { |file| full_path_to_relative(file) }
-          @redis.sadd(files_key, keys) if keys.any?
+          @redis.evalsha(hash_incr_script, script_input[:keys], script_input[:args])
+          @redis.hmset(key, LAST_UPDATED_KEY, updated_time, FILE_HASH, file_hash(file))
+          @redis.hsetnx(key, FIRST_UPDATED_KEY, report_time)
         end
+        keys = report.keys.map { |file| full_path_to_relative(file) }
+        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil)
@@ -69,6 +66,18 @@ module Coverband
       end
 
       private
+
+      def hash_incr_script
+        @hash_incr_script ||= @redis.script(:load, <<~LUA)
+          for i, values in ipairs(ARGV) do
+            if ARGV[i] == '-1' then
+              redis.call("HSET", KEYS[1], KEYS[i+1], ARGV[i])
+            else
+              redis.call("HINCRBY", KEYS[1], KEYS[i+1], ARGV[i])
+            end
+          end
+        LUA
+      end
 
       def values_from_redis(local_type, files)
         return files if files.empty?
