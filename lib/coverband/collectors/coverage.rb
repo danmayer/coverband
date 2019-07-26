@@ -58,6 +58,7 @@ module Coverband
         @logger.error 'coverage failed to store'
         @logger&.error "Coverband Error: #{e.inspect} #{e.message}"
         e.backtrace.each { |line| @logger.error line } if @verbose
+        raise e if @test_env
       end
 
       protected
