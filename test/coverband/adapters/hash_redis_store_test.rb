@@ -57,6 +57,24 @@ class HashRedisStoreTest < Minitest::Test
     )
   end
 
+  def test_ttl_set
+    mock_file_hash
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: 3600)
+    @store.save_report(
+      'app_path/dog.rb' => [0, 1, 2]
+    )
+    assert_operator(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb'), :>, 0)
+  end
+
+  def test_no_ttl_set
+    mock_file_hash
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: nil)
+    @store.save_report(
+      'app_path/dog.rb' => [0, 1, 2]
+    )
+    assert_equal(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb'), -1)
+  end
+
   def test_coverage_for_multiple_files
     current_time = mock_time
     mock_file_hash
