@@ -18,6 +18,7 @@ module Coverband
         @redis_namespace = opts[:redis_namespace]
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
+        @ttl = opts[:ttl]
       end
 
       def clear!
@@ -45,6 +46,7 @@ module Coverband
               hash[:args] << coverage
             end
             @redis.evalsha(script_id, script_input[:keys], script_input[:args])
+            @redis.expire(key, @ttl) if @ttl
           end
           @redis.sadd(files_key, keys) if keys.any?
         end
