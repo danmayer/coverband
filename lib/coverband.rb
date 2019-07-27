@@ -31,8 +31,6 @@ require 'coverband/integrations/background'
 require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/rack_server_check'
 
-Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore
-
 module Coverband
   @@configured = false
   CONFIG_FILE = './config/coverband.rb'
