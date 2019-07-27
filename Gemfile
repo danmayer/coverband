@@ -9,4 +9,3 @@ gem 'rails', '~>5'
 gem 'irb', require: false
 gem 'pundit'
 gem 'rainbow', require: false
-gem 'stackprof'

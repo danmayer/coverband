@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry-byebug'
-
 namespace :benchmarks do
   # https://github.com/evanphx/benchmark-ips
   # Enable and start GC before each job run. Disable GC afterwards.
@@ -62,19 +60,14 @@ namespace :benchmarks do
     require File.join(File.dirname(__FILE__), 'dog')
   end
 
-  def redis_instance
-    require 'logger'
-    logger = ENV['REDIS_LOGGING'] ? Logger.new($stdout) : nil
-    if ENV['REDIS_TEST_URL']
-      Redis.new(url: ENV['REDIS_TEST_URL'], logger: logger)
-    else
-      Redis.new(logger: logger)
-    end
-  end
-
-  def benchmark_redis_store(store_type = Coverband::Adapters::RedisStore)
-    store_type.new(redis_instance,
-                   redis_namespace: 'coverband_bench')
+  def benchmark_redis_store
+    redis = if ENV['REDIS_TEST_URL']
+              Redis.new(url: ENV['REDIS_TEST_URL'])
+            else
+              Redis.new
+            end
+    Coverband::Adapters::RedisStore.new(redis,
+                                        redis_namespace: 'coverband_bench')
   end
 
   # desc 'set up coverband with Redis'
@@ -85,14 +78,6 @@ namespace :benchmarks do
       config.store               = benchmark_redis_store
       config.use_oneshot_lines_coverage = true if ENV['ONESHOT']
       config.simulate_oneshot_lines_coverage = true if ENV['SIMULATE_ONESHOT']
-    end
-  end
-
-  task :setup_multi_key_redis do
-    Coverband.configure do |config|
-      config.root                = Dir.pwd
-      config.logger              = $stdout
-      config.store               = benchmark_redis_store(Coverband::Adapters::HashRedisStore)
     end
   end
 
@@ -156,7 +141,9 @@ namespace :benchmarks do
   end
 
   def fake_line_numbers
-    24.times.map { rand(5) }
+    24.times.each_with_object({}) do |line, line_hash|
+      line_hash[(line + 1).to_s] = rand(5)
+    end
   end
 
   def fake_report
@@ -187,55 +174,44 @@ namespace :benchmarks do
     end
   end
 
-  def reporting_speed(store_type = Coverband::Adapters::RedisStore)
+  def reporting_speed
     report = fake_report
-    store = benchmark_redis_store(store_type)
+    store = benchmark_redis_store
     store.clear!
     mock_files(store)
 
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports_all') { store.save_report(report) }
-    end
-
-    keys_subset = report.keys.first(100)
-    report_subset = report.select { |key, _value| keys_subset.include?(key) }
-    Benchmark.ips do |x|
-      x.config(time: 20, warmup: 5)
-      x.report('store_reports_subset') { store.save_report(report_subset) }
+      x.report('store_reports') { store.save_report(report) }
     end
   end
 
-  def stack_prof_reporting_speed(store_type = Coverband::Adapters::RedisStore)
-    require 'stackprof'
-    report = fake_report
-    store = benchmark_redis_store(store_type)
-    store.clear!
-    mock_files(store)
-
-    2.times { store.save_report(report) }
-    StackProf.run(out: './tmp/save_report.dump', interval: 1000, mode: :wall, raw: true) do
-      5.times { store.save_report(report) }
-    end
-  end
-
-  def measure_memory(store_type = Coverband::Adapters::RedisStore)
+  def measure_memory
     require 'memory_profiler'
     report = fake_report
-    store = benchmark_redis_store(store_type)
+    store = benchmark_redis_store
     store.clear!
     mock_files(store)
 
     # warmup
     3.times { store.save_report(report) }
 
-    keys_subset = report.keys.first(100)
-    report_subset = report.select { |key, _value| keys_subset.include?(key) }
+    previous_out = $stdout
+    capture = StringIO.new
+    $stdout = capture
+
     MemoryProfiler.report do
-      2.times { store.save_report(report) }
-      25.times { store.save_report(report_subset) }
+      10.times { store.save_report(report) }
     end.pretty_print
+    data = $stdout.string
+    $stdout = previous_out
+    unless data.match('Total retained:  0 bytes')
+      puts data
+      raise 'leaking memory!!!'
+    end
+  ensure
+    $stdout = previous_out
   end
 
   def measure_memory_report_coverage
@@ -358,12 +334,6 @@ namespace :benchmarks do
     measure_memory
   end
 
-  desc 'runs memory reporting on Redis store'
-  task multi_key_memory_reporting: [:setup] do
-    puts 'runs memory benchmarking to ensure we dont leak'
-    measure_memory(Coverband::Adapters::HashRedisStore)
-  end
-
   desc 'runs memory reporting on report_coverage'
   task memory_reporting_report_coverage: [:setup] do
     puts 'runs memory benchmarking on report_coverage to ensure we dont leak'
@@ -393,18 +363,6 @@ namespace :benchmarks do
     reporting_speed
   end
 
-  desc 'runs benchmarks on reporting large sets of files to redis'
-  task stack_prof_reporting: [:setup] do
-    puts 'runs benchmarks on reporting large sets of files to redis'
-    stack_prof_reporting_speed
-  end
-
-  desc 'runs benchmarks on reporting large sets of files to multi key redis redis'
-  task multi_key_redis_reporting: %i[setup] do
-    puts 'runs benchmarks on reporting large sets of files to redis'
-    reporting_speed(Coverband::Adapters::HashRedisStore)
-  end
-
   # desc 'runs benchmarks on default redis setup'
   task run_redis: %i[setup setup_redis] do
     puts 'Coverband configured with default Redis store'
@@ -428,18 +386,9 @@ namespace :benchmarks do
   end
 
   task run_big: %i[setup setup_redis] do
-    require 'memory_profiler'
-    require './test/unique_files'
     # ensure we cleared from last run
     benchmark_redis_store.clear!
-    run_big
-  end
 
-  task run_big_multi_key_redis: %i[setup setup_multi_key_redis] do
-    require 'memory_profiler'
-    require './test/unique_files'
-    # ensure we cleared from last run
-    benchmark_redis_store(Coverband::Adapters::HashRedisStore).clear!
     run_big
   end
 
