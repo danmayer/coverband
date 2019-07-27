@@ -32,6 +32,14 @@ module Coverband
         self.type = old_type
       end
 
+      def clear_file!(file)
+        relative_path_file = full_path_to_relative(file)
+        Coverband::TYPES.each do |type|
+          @redis.del(key(relative_path_file, type))
+        end
+        @redis.srem(files_key, relative_path_file)
+      end
+
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
@@ -50,6 +58,8 @@ module Coverband
         files = files_set(local_type)
         files.each_with_object({}) do |file, hash|
           data_from_redis = @redis.hgetall(key(full_path_to_relative(file), local_type))
+
+          next if data_from_redis.empty?
 
           max = data_from_redis['file_length'].to_i - 1
           data = Array.new(max + 1) do |index|
