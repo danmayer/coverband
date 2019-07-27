@@ -3,6 +3,8 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class HashRedisStoreTest < Minitest::Test
+  def mock_file_hash; end
+
   def setup
     super
     @redis = Redis.new
@@ -37,7 +39,6 @@ class HashRedisStoreTest < Minitest::Test
       {
         'first_updated_at' => yesterday.to_i,
         'last_updated_at' => yesterday.to_i,
-        'file_hash' => 'abcd',
         'data' => [0, 1, 2]
       },
       @store.coverage['./dog.rb']
@@ -50,7 +51,6 @@ class HashRedisStoreTest < Minitest::Test
       {
         'first_updated_at' => yesterday.to_i,
         'last_updated_at' => today.to_i,
-        'file_hash' => 'abcd',
         'data' => [1, 2, 2]
       },
       @store.coverage['./dog.rb']
@@ -89,7 +89,6 @@ class HashRedisStoreTest < Minitest::Test
       {
         'first_updated_at' => current_time.to_i,
         'last_updated_at' => current_time.to_i,
-        'file_hash' => 'abcd',
         'data' => [0, nil, 1, 2]
       }, @store.coverage['./dog.rb']
     )
