@@ -51,10 +51,10 @@ module Coverband
         files.each_with_object({}) do |file, hash|
           data_from_redis = @redis.hgetall(key(full_path_to_relative(file), local_type))
 
-          max = (data_from_redis.keys - META_DATA_KEYS).map(&:to_i).max
+          max = data_from_redis['file_length'].to_i - 1
           data = Array.new(max + 1) do |index|
             line_coverage = data_from_redis[index.to_s]
-            line_coverage == '-1' ? nil : line_coverage.to_i
+            line_coverage.nil? ? nil : line_coverage.to_i
           end
           hash[file] = data_from_redis.select { |key, _value| META_DATA_KEYS.include?(key) }.merge!('data' => data)
           hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].to_i
@@ -67,10 +67,11 @@ module Coverband
       def save_report_script_input(file:, data:, report_time:, updated_time:)
         key = key(full_path_to_relative(file))
         data.each_with_index
-            .each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), @ttl]) do |(coverage, index), hash|
-          hash[:keys] << index
-          coverage = -1 if coverage.nil?
-          hash[:args] << coverage
+            .each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), @ttl, data.length]) do |(coverage, index), hash|
+          if coverage
+            hash[:keys] << index
+            hash[:args] << coverage
+          end
         end
       end
 
@@ -80,8 +81,9 @@ module Coverband
           local last_updated_at = table.remove(ARGV, 1)
           local file_hash = table.remove(ARGV, 1)
           local ttl = table.remove(ARGV, 1)
+          local file_length = table.remove(ARGV, 1)
           local hash_key = table.remove(KEYS, 1)
-          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file_hash', file_hash)
+          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file_hash', file_hash, 'file_length', file_length)
           redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
           for i, key in ipairs(KEYS) do
             if ARGV[i] == '-1' then
