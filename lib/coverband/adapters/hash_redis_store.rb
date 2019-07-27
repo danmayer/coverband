@@ -34,22 +34,35 @@ module Coverband
       end
 
       def clear_file!(file)
+        roots = Coverband.configuration.all_root_paths
+        absolute_path = relative_path_to_full(file, roots)
+        file_hash = file_hash(absolute_path)
         relative_path_file = full_path_to_relative(file)
         Coverband::TYPES.each do |type|
-          @redis.del(key(relative_path_file, type))
+          @redis.del(key(relative_path_file, type, file_hash: file_hash))
         end
         @redis.srem(files_key, relative_path_file)
       end
 
       def save_report(report)
+        roots = Coverband.configuration.all_root_paths
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
         @redis.pipelined do
           keys = report.map do |file, data|
             relative_file = full_path_to_relative(file)
-            key = key(relative_file)
-            script_input = save_report_script_input(key: key, file: relative_file, data: data, report_time: report_time, updated_time: updated_time)
+            absolute_path = relative_path_to_full(file, roots)
+            file_hash = file_hash(absolute_path)
+            key = key(relative_file, file_hash: file_hash)
+            script_input = save_report_script_input(
+              key: key,
+              file: relative_file,
+              file_hash: file_hash,
+              data: data,
+              report_time: report_time,
+              updated_time: updated_time
+            )
             @redis.evalsha(script_id, script_input[:keys], script_input[:args])
             key
           end
@@ -58,11 +71,17 @@ module Coverband
       end
 
       def coverage(local_type = nil)
+        roots = Coverband.configuration.all_root_paths
         keys = files_set(local_type)
         keys.each_with_object({}) do |key, hash|
           data_from_redis = @redis.hgetall(key)
 
           next if data_from_redis.empty?
+
+          file = data_from_redis[FILE]
+          stored_hash = data_from_redis[FILE_HASH]
+          absolute_path = relative_path_to_full(file, roots)
+          next unless file_hash(absolute_path) == stored_hash
 
           max = data_from_redis['file_length'].to_i - 1
           data = Array.new(max + 1) do |index|
@@ -78,9 +97,9 @@ module Coverband
 
       private
 
-      def save_report_script_input(key:, file:, data:, report_time:, updated_time:)
+      def save_report_script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
         data.each_with_index
-            .each_with_object(keys: [key], args: [report_time, updated_time, file, file_hash(file), @ttl, data.length]) do |(coverage, index), hash|
+            .each_with_object(keys: [key], args: [report_time, updated_time, file, file_hash, @ttl, data.length]) do |(coverage, index), hash|
           if coverage
             hash[:keys] << index
             hash[:args] << coverage
@@ -132,8 +151,8 @@ module Coverband
         "#{key_prefix(local_type)}.files"
       end
 
-      def key(file, local_type = nil)
-        [key_prefix(local_type), file].join('.')
+      def key(file, local_type = nil, file_hash:)
+        [key_prefix(local_type), file, file_hash].join('.')
       end
 
       def key_prefix(local_type = nil)

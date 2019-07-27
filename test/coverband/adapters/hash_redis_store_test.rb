@@ -56,21 +56,21 @@ class HashRedisStoreTest < Minitest::Test
   end
 
   def test_ttl_set
-    mock_file_hash
+    mock_file_hash(hash: 'abcd')
     @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: 3600)
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
-    assert_operator(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb'), :>, 0)
+    assert_operator(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb.abcd'), :>, 0)
   end
 
   def test_no_ttl_set
-    mock_file_hash
+    mock_file_hash(hash: 'abcd')
     @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: nil)
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
-    assert_equal(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb'), -1)
+    assert_equal(-1, @redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb.abcd'))
   end
 
   def test_coverage_for_multiple_files
@@ -92,6 +92,17 @@ class HashRedisStoreTest < Minitest::Test
     )
     assert_equal [1, 2, 0, 1, 5], @store.coverage['./cat.rb']['data']
     assert_equal [1, 5, nil, 2, nil], @store.coverage['./ferrit.rb']['data']
+  end
+
+  def test_file_hash_change
+    mock_file_hash(hash: 'abc')
+    @store.save_report('app_path/dog.rb' => [0, nil, 1, 2])
+    coverage = @store.coverage
+    assert_equal [0, nil, 1, 2], @store.coverage['./dog.rb']['data']
+    @store.instance_eval { @file_hash_cache = {} }
+    mock_file_hash(hash: '123')
+    $debug = true
+    assert_nil @store.coverage['./dog.rb']
   end
 
   def test_type
