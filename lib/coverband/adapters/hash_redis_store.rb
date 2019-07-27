@@ -18,7 +18,7 @@ module Coverband
         @redis_namespace = opts[:redis_namespace]
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
-        @ttl = opts[:ttl]
+        @ttl = opts[:ttl] || -1
       end
 
       def clear!
@@ -37,16 +37,9 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
         keys = report.keys.map { |file| full_path_to_relative(file) }
-        ttl = @ttl || -1
         @redis.pipelined do
           report.each do |file, data|
-            key = key(full_path_to_relative(file))
-            script_input = data.each_with_index
-                               .each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), ttl]) do |(coverage, index), hash|
-              hash[:keys] << index
-              coverage = -1 if coverage.nil?
-              hash[:args] << coverage
-            end
+            script_input = save_report_script_input(file: file, data: data, report_time: report_time, updated_time: updated_time)
             @redis.evalsha(script_id, script_input[:keys], script_input[:args])
           end
           @redis.sadd(files_key, keys) if keys.any?
@@ -59,7 +52,7 @@ module Coverband
           data_from_redis = @redis.hgetall(key(full_path_to_relative(file), local_type))
 
           max = (data_from_redis.keys - META_DATA_KEYS).map(&:to_i).max
-          data = (max + 1).times.map do |index|
+          data = Array.new(max + 1) do |index|
             line_coverage = data_from_redis[index.to_s]
             line_coverage == '-1' ? nil : line_coverage.to_i
           end
@@ -70,6 +63,16 @@ module Coverband
       end
 
       private
+
+      def save_report_script_input(file:, data:, report_time:, updated_time:)
+        key = key(full_path_to_relative(file))
+        data.each_with_index
+            .each_with_object(keys: [key], args: [report_time, updated_time, file_hash(file), @ttl]) do |(coverage, index), hash|
+          hash[:keys] << index
+          coverage = -1 if coverage.nil?
+          hash[:args] << coverage
+        end
+      end
 
       def hash_incr_script
         @hash_incr_script ||= @redis.script(:load, <<~LUA)
