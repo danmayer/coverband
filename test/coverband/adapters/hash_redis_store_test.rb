@@ -3,8 +3,6 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class HashRedisStoreTest < Minitest::Test
-  def mock_file_hash; end
-
   def setup
     super
     @redis = Redis.new

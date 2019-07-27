@@ -80,7 +80,7 @@ module Coverband
 
       def save_report_script_input(key:, file:, data:, report_time:, updated_time:)
         data.each_with_index
-            .each_with_object(keys: [key], args: [report_time, updated_time, file, @ttl, data.length]) do |(coverage, index), hash|
+            .each_with_object(keys: [key], args: [report_time, updated_time, file, file_hash(file), @ttl, data.length]) do |(coverage, index), hash|
           if coverage
             hash[:keys] << index
             hash[:args] << coverage
@@ -93,10 +93,11 @@ module Coverband
           local first_updated_at = table.remove(ARGV, 1)
           local last_updated_at = table.remove(ARGV, 1)
           local file = table.remove(ARGV, 1)
+          local file_hash = table.remove(ARGV, 1)
           local ttl = table.remove(ARGV, 1)
           local file_length = table.remove(ARGV, 1)
           local hash_key = table.remove(KEYS, 1)
-          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file', file, 'file_length', file_length)
+          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
           redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
           for i, key in ipairs(KEYS) do
             if ARGV[i] == '-1' then
