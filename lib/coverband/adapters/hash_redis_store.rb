@@ -3,7 +3,8 @@
 module Coverband
   module Adapters
     class HashRedisStore < Base
-      FILE = 'file'
+      FILE_KEY = 'file'
+      FILE_LENGTH_KEY = 'file_length'
       META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY].freeze
       ###
       # This key isn't related to the coverband version, but to the interal format
@@ -78,17 +79,16 @@ module Coverband
 
           next if data_from_redis.empty?
 
-          file = data_from_redis[FILE]
+          file = data_from_redis[FILE_KEY]
           stored_hash = data_from_redis[FILE_HASH]
           absolute_path = relative_path_to_full(file, roots)
           next unless file_hash(absolute_path) == stored_hash
 
-          max = data_from_redis['file_length'].to_i - 1
+          max = data_from_redis[FILE_LENGTH_KEY].to_i - 1
           data = Array.new(max + 1) do |index|
             line_coverage = data_from_redis[index.to_s]
             line_coverage.nil? ? nil : line_coverage.to_i
           end
-          file = data_from_redis[FILE]
           hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!('data' => data)
           hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].to_i
           hash[file][FIRST_UPDATED_KEY] = hash[file][FIRST_UPDATED_KEY].to_i
@@ -116,8 +116,8 @@ module Coverband
           local ttl = table.remove(ARGV, 1)
           local file_length = table.remove(ARGV, 1)
           local hash_key = table.remove(KEYS, 1)
-          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
-          redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
+          redis.call('HMSET', hash_key, '#{LAST_UPDATED_KEY}', last_updated_at, '#{FILE_KEY}', file, '#{FILE_HASH}', file_hash, '#{FILE_LENGTH_KEY}', file_length)
+          redis.call('HSETNX', hash_key, '#{FIRST_UPDATED_KEY}', first_updated_at)
           for i, key in ipairs(KEYS) do
             if ARGV[i] == '-1' then
               redis.call("HSET", hash_key, key, ARGV[i])
