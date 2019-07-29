@@ -1,7 +1,14 @@
+# frozen_string_literal: true
+
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 require 'rails'
+require 'pundit'
 
 class RailsRakeFullStackTest < Minitest::Test
+  def setup
+    Coverband.configuration.reset
+    Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
+  end
 
   test 'rake tasks shows coverage properly within eager_loading' do
     store.instance_variable_set(:@redis_namespace, 'coverband_test')
@@ -18,7 +25,7 @@ class RailsRakeFullStackTest < Minitest::Test
     store.type = Coverband::RUNTIME_TYPE
     if ENV['SIMULATE_ONESHOT']
       pundit_coverage = store.get_coverage_report[Coverband::RUNTIME_TYPE][pundit_file]
-      assert pundit_coverage['data'].compact.all? { |el| el == 0}
+      assert pundit_coverage['data'].compact.all? { |el| el == 0 }
     else
       pundit_coverage = store.coverage[pundit_file]
       assert_nil pundit_coverage
