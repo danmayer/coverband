@@ -11,6 +11,8 @@ services:
   - redis-server
 script:
   - bundle exec rake rubocop
+  - COVERBAND_HASH_REDIS_STORE=t bundle exec rake
+  - COVERBAND_HASH_REDIS_STORE=t bundle exec rake forked_tests
   - bundle exec rake
   - bundle exec rake forked_tests
   # remove this for now as it is flaky
