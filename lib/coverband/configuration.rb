@@ -8,7 +8,7 @@ module Coverband
                   :background_reporting_enabled,
                   :background_reporting_sleep_seconds, :test_env,
                   :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
-                  :simulate_oneshot_lines_coverage
+                  :simulate_oneshot_lines_coverage, :track_views
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id, :s3_secret_access_key, :password
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
@@ -54,6 +54,7 @@ module Coverband
       @web_enable_clear = false
       @track_gems = false
       @gem_details = false
+      @track_views = false
       @groups = {}
       @web_debug = false
       @report_on_exit = true

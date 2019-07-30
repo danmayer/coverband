@@ -33,6 +33,10 @@ module Coverband
         format_settings
       end
 
+      def format_view_tracker!
+        format_view_tracker
+      end
+
       def format_source_file!(filename)
         source_file = @coverage_result.file_from_path_with_type(filename)
 
@@ -47,6 +51,10 @@ module Coverband
 
       def format_settings
         template('settings').result(binding)
+      end
+
+      def format_view_tracker
+        template('view_tracker').result(binding)
       end
 
       def format(result)

@@ -18,6 +18,9 @@
       <div id="header">
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
         <a href='<%= base_path %>settings'>Info</a> &nbsp;
+        <% if Coverband.configuration.track_views %>
+          <a href='<%= base_path %>view_tracker'>View Tracker</a> &nbsp;
+        <% end %>
         <% if Coverband.configuration.web_enable_clear %>
           <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
         <% end %>

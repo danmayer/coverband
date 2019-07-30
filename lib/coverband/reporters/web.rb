@@ -47,6 +47,8 @@ module Coverband
             @static.call(env)
           when %r{\/settings}
             [200, { 'Content-Type' => 'text/html' }, [settings]]
+          when %r{\/view_tracker}
+            [200, { 'Content-Type' => 'text/html' }, [view_tracker]]
           when %r{\/debug_data}
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/load_file_details}
@@ -71,6 +73,10 @@ module Coverband
 
       def settings
         Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_settings!
+      end
+
+      def view_tracker
+        Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_view_tracker!
       end
 
       def debug_data
