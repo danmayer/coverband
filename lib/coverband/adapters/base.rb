@@ -14,7 +14,6 @@ module Coverband
       attr_accessor :type
 
       def initialize
-        @file_hash_cache = {}
         @type = Coverband::RUNTIME_TYPE
       end
 
@@ -93,7 +92,7 @@ module Coverband
       end
 
       def file_hash(file)
-        @file_hash_cache[file] ||= Digest::MD5.file(file).hexdigest
+        FileHasher.hash(file)
       end
 
       # TODO: modify to extend report inline?
