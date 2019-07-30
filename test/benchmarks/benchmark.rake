@@ -165,8 +165,8 @@ namespace :benchmarks do
     ###
     # this is a hack because in the benchmark we don't have real files
     ###
-    def store.file_hash(file)
-      @file_hash_cache[file] || @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
+    def store.file_hash(_file)
+      @file_hash ||= Digest::MD5.file(__FILE__).hexdigest
     end
 
     def store.full_path_to_relative(file)
