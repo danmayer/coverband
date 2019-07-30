@@ -11,10 +11,9 @@ class FullStackTest < Minitest::Test
     super
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
-      config.store = Coverband::Adapters::RedisStore.new(Redis.new(), redis_namespace: 'coverband_test')
+      config.store = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
       config.s3_bucket = nil
       config.background_reporting_enabled = true
-      config.root_paths = ["#{File.expand_path('../', File.dirname(__FILE__))}/"]
       config.track_gems = true
     end
     Coverband.configuration.store.clear!
