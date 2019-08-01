@@ -6,7 +6,6 @@ module Coverband
       Coverband.eager_loading_coverage!
       super
     ensure
-      Coverband.report_coverage
       Coverband.runtime_coverage!
     end
   end
@@ -15,6 +14,12 @@ module Coverband
   class Railtie < Rails::Railtie
     initializer 'coverband.configure' do |app|
       app.middleware.use Coverband::BackgroundMiddleware
+    end
+
+    config.after_initialize do
+      Coverband.eager_loading_coverage!
+      Coverband.report_coverage
+      Coverband.runtime_coverage!
     end
 
     rake_tasks do
