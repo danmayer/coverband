@@ -41,6 +41,7 @@ module Coverband
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance
       Coverband::Utils::RelativeFileConverter.reset
+      Coverband::Utils::AbsoluteFileConverter.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband::Background.stop
     end
