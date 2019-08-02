@@ -57,7 +57,7 @@ module Coverband
           report_hash.each_with_object({}) do |(name, report), fixed_report|
             fixed_report[name] = {}
             report.each_pair do |key, vals|
-              filename = relative_path_to_full(key, roots)
+              filename = Coverband::Utils::AbsoluteFileConverter.convert(key)
               fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename][DATA_KEY] && vals[DATA_KEY]
                                                merged_data = merge_arrays(fixed_report[name][filename][DATA_KEY], vals[DATA_KEY])
                                                vals[DATA_KEY] = merged_data
