@@ -18,6 +18,12 @@ module Coverband
       def test_hash_file_not_exists
         assert_nil(FileHasher.hash('./made_up_file.py'))
       end
+
+      def test_hash_gem_file
+        spec = Gem::Specification.find_by_name('rainbow')
+        assert FileHasher.hash("./gems/rainbow-#{spec.version}/lib/rainbow.rb",
+                               path_converter: AbsoluteFileConverter.new(Coverband.configuration.gem_paths))
+      end
     end
   end
 end
