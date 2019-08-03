@@ -8,8 +8,6 @@ module Coverband
     ###
     class Base
       class << self
-        include Coverband::Utils::FilePathHelper
-
         DATA_KEY = 'data'
 
         def report(store, _options = {})

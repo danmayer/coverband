@@ -61,7 +61,7 @@ module Coverband
           exit 0
         end
         relative_path_report = previous_data.each_with_object({}) do |(key, vals), fixed_report|
-          fixed_report[full_path_to_relative(key)] = vals
+          fixed_report[Utils::RelativeFileConverter.convert(key)] = vals
         end
         clear!
         reset_base_key
