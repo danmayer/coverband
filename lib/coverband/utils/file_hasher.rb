@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Coverband
-  module Adapters
+  module Utils
     class FileHasher
       @cache = {}
 

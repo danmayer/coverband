@@ -3,7 +3,7 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 module Coverband
-  module Adapters
+  module Utils
     class FileHasherTest < Minitest::Test
       def test_hash_same_file
         refute_nil FileHasher.hash('./test/dog.rb')
