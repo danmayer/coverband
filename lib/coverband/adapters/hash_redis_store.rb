@@ -21,6 +21,7 @@ module Coverband
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
         @ttl = opts[:ttl] || -1
+        @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
       end
 
       def clear!
@@ -35,10 +36,8 @@ module Coverband
       end
 
       def clear_file!(file)
-        roots = Coverband.configuration.all_root_paths
-        absolute_path = relative_path_to_full(file, roots)
-        file_hash = file_hash(absolute_path)
-        relative_path_file = full_path_to_relative(file)
+        file_hash = file_hash(file)
+        relative_path_file = @relative_file_converter.convert(file)
         Coverband::TYPES.each do |type|
           @redis.del(key(relative_path_file, type, file_hash: file_hash))
         end
@@ -46,15 +45,13 @@ module Coverband
       end
 
       def save_report(report)
-        roots = Coverband.configuration.all_root_paths
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
         @redis.pipelined do
           keys = report.map do |file, data|
-            relative_file = full_path_to_relative(file)
-            absolute_path = relative_path_to_full(file, roots)
-            file_hash = file_hash(absolute_path)
+            relative_file = @relative_file_converter.convert(file)
+            file_hash = file_hash(relative_file)
             key = key(relative_file, file_hash: file_hash)
             script_input = save_report_script_input(
               key: key,
@@ -72,7 +69,6 @@ module Coverband
       end
 
       def coverage(local_type = nil)
-        roots = Coverband.configuration.all_root_paths
         keys = files_set(local_type)
         keys.each_with_object({}) do |key, hash|
           data_from_redis = @redis.hgetall(key)
@@ -81,8 +77,7 @@ module Coverband
 
           file = data_from_redis[FILE_KEY]
           stored_hash = data_from_redis[FILE_HASH]
-          absolute_path = relative_path_to_full(file, roots)
-          next unless file_hash(absolute_path) == stored_hash
+          next unless file_hash(file) == stored_hash
 
           max = data_from_redis[FILE_LENGTH_KEY].to_i - 1
           data = Array.new(max + 1) do |index|
