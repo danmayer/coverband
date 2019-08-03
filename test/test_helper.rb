@@ -84,7 +84,7 @@ def test(name, &block)
 end
 
 def mock_file_hash
-  Coverband::Adapters::FileHasher.expects(:hash).at_least_once.returns('abcd')
+  Coverband::Utils::FileHasher.expects(:hash).at_least_once.returns('abcd')
 end
 
 def example_line
