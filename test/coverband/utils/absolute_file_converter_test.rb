@@ -36,8 +36,6 @@ module Coverband
         File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
         File.expects(:exist?).with(expected_path).returns(true)
         assert_equal expected_path, converter.convert(key)
-        File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
-        File.expects(:exist?).with(expected_path).returns(true)
         assert_equal expected_path, converter.convert(key)
       end
 
@@ -51,8 +49,6 @@ module Coverband
         File.expects(:exist?).with(expected_path).returns(true)
         roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
         assert_equal expected_path, converter.convert(key)
-        File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
-        File.expects(:exist?).with(expected_path).returns(true)
         assert_equal expected_path, converter.convert(key)
       end
     end
