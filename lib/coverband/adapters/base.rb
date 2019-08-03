@@ -3,8 +3,6 @@
 module Coverband
   module Adapters
     class Base
-      include Coverband::Utils::FilePathHelper
-
       DATA_KEY = 'data'
       FIRST_UPDATED_KEY = 'first_updated_at'
       LAST_UPDATED_KEY = 'last_updated_at'
@@ -107,7 +105,7 @@ module Coverband
             FILE_HASH => file_hash(key),
             DATA_KEY => line_data
           }
-          expanded[full_path_to_relative(key)] = extended_data
+          expanded[Utils::RelativeFileConverter.convert(key)] = extended_data
         end
         expanded
       end
