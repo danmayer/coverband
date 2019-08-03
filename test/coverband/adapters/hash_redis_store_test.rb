@@ -3,6 +3,11 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class HashRedisStoreTest < Minitest::Test
+  class MockRelativeFileConverter
+    def self.convert(file)
+      file.sub('app_path/', './')
+    end
+  end
   def setup
     super
     @redis = Redis.new
@@ -10,7 +15,7 @@ class HashRedisStoreTest < Minitest::Test
     Coverband.configure do |config|
       config.root_paths = ['app_path/']
     end
-    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test')
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', relative_file_converter: MockRelativeFileConverter)
     @store.clear!
     Coverband.configuration.store = @store
   end
@@ -57,7 +62,7 @@ class HashRedisStoreTest < Minitest::Test
 
   def test_ttl_set
     mock_file_hash(hash: 'abcd')
-    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: 3600)
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: 3600, relative_file_converter: MockRelativeFileConverter)
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
@@ -66,7 +71,7 @@ class HashRedisStoreTest < Minitest::Test
 
   def test_no_ttl_set
     mock_file_hash(hash: 'abcd')
-    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: nil)
+    @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', ttl: nil, relative_file_converter: MockRelativeFileConverter)
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
