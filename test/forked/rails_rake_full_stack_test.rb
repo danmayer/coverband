@@ -6,6 +6,7 @@ require 'pundit'
 
 class RailsRakeFullStackTest < Minitest::Test
   def setup
+    super
     Coverband.configuration.reset
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
   end
