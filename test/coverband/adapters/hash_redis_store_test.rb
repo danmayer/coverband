@@ -3,11 +3,14 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class HashRedisStoreTest < Minitest::Test
+  REDIS_STORAGE_FORMAT_VERSION = Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION
+
   class MockRelativeFileConverter
     def self.convert(file)
       file.sub('app_path/', './')
     end
   end
+
   def setup
     super
     @redis = Redis.new
@@ -66,7 +69,7 @@ class HashRedisStoreTest < Minitest::Test
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
-    assert_operator(@redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb.abcd'), :>, 0)
+    assert_operator(@redis.ttl("#{REDIS_STORAGE_FORMAT_VERSION}.coverband_test.runtime../dog.rb.abcd"), :>, 0)
   end
 
   def test_no_ttl_set
@@ -75,7 +78,7 @@ class HashRedisStoreTest < Minitest::Test
     @store.save_report(
       'app_path/dog.rb' => [0, 1, 2]
     )
-    assert_equal(-1, @redis.ttl('coverband_3_3.coverband_test.runtime../dog.rb.abcd'))
+    assert_equal(-1, @redis.ttl("#{REDIS_STORAGE_FORMAT_VERSION}.coverband_test.runtime../dog.rb.abcd"))
   end
 
   def test_coverage_for_multiple_files
