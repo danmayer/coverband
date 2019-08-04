@@ -33,6 +33,18 @@ class HashRedisStoreTest < Minitest::Test
     assert_equal({}, @store.coverage)
   end
 
+  class UnsupportedRedis
+    def info
+      { 'redis_version' => '2.5.0' }
+    end
+  end
+
+  def test_unsupported_redis
+    assert_raises RuntimeError do
+      Coverband::Adapters::HashRedisStore.new(UnsupportedRedis.new)
+    end
+  end
+
   def test_coverage_for_file
     yesterday = DateTime.now.prev_day.to_time
     today = Time.now
