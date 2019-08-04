@@ -75,28 +75,33 @@ module Coverband
       end
 
       def coverage(local_type = nil)
-        keys = files_set(local_type)
-        keys.each_with_object({}) do |key, hash|
-          data_from_redis = @redis.hgetall(key)
-
-          next if data_from_redis.empty?
-
-          file = data_from_redis[FILE_KEY]
-          stored_hash = data_from_redis[FILE_HASH]
-          next unless file_hash(file) == stored_hash
-
-          max = data_from_redis[FILE_LENGTH_KEY].to_i - 1
-          data = Array.new(max + 1) do |index|
-            line_coverage = data_from_redis[index.to_s]
-            line_coverage.nil? ? nil : line_coverage.to_i
-          end
-          hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!('data' => data)
-          hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].to_i
-          hash[file][FIRST_UPDATED_KEY] = hash[file][FIRST_UPDATED_KEY].to_i
+        files_set(local_type).each_with_object({}) do |key, hash|
+          add_coverage_for_file(key, hash)
         end
       end
 
       private
+
+      def add_coverage_for_file(key, hash)
+        data_from_redis = @redis.hgetall(key)
+
+        return if data_from_redis.empty?
+
+        file = data_from_redis[FILE_KEY]
+        return unless file_hash(file) == data_from_redis[FILE_HASH]
+
+        data = coverage_data_from_redis(data_from_redis)
+        hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!('data' => data)
+        hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY].to_i, FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
+      end
+
+      def coverage_data_from_redis(data_from_redis)
+        max = data_from_redis[FILE_LENGTH_KEY].to_i - 1
+        Array.new(max + 1) do |index|
+          line_coverage = data_from_redis[index.to_s]
+          line_coverage.nil? ? nil : line_coverage.to_i
+        end
+      end
 
       def save_report_script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
         data.each_with_index
