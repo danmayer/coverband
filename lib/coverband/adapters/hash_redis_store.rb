@@ -20,8 +20,14 @@ module Coverband
         @redis_namespace = opts[:redis_namespace]
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
+        raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
+
         @ttl = opts[:ttl] || -1
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
+      end
+
+      def supported?
+        Gem::Version.new(@redis.info['redis_version']) >= Gem::Version.new('2.6.0')
       end
 
       def clear!
