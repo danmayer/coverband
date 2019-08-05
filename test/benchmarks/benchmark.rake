@@ -415,6 +415,18 @@ namespace :benchmarks do
     `open tmp/timeseries.jpg`
   end
 
+  desc 'benchmark initialization of rails'
+  task :init_rails do
+    require 'benchmark'
+    require 'benchmark/ips'
+    Benchmark.ips do |x|
+      x.config(time: 60, warmup: 0)
+      x.report('init_rails') do
+        system('bundle exec rake init_rails -f ./test/benchmarks/init_rails.rake')
+      end
+    end
+  end
+
   desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'
   task :compare_file do
     puts 'comparing Coverage loaded/not, this takes some time for output...'
