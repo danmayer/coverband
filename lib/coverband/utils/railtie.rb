@@ -5,8 +5,6 @@ module Coverband
     def eager_load!
       Coverband.eager_loading_coverage!
       super
-    ensure
-      Coverband.runtime_coverage!
     end
   end
   Rails::Engine.prepend(RailsEagerLoad)
