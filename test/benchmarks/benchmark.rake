@@ -141,7 +141,7 @@ namespace :benchmarks do
   end
 
   def fake_line_numbers
-    24.times.each_with_object({}) do |line, line_hash|
+    28.times.each_with_object({}) do |line, line_hash|
       line_hash[(line + 1).to_s] = rand(5)
     end
   end
@@ -183,7 +183,13 @@ namespace :benchmarks do
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports') { store.save_report(report) }
+      x.report('store_reports_all') { store.save_report(report) }
+    end
+    keys_subset = report.keys.first(100)
+    report_subset = report.select { |key, _value| keys_subset.include?(key) }
+    Benchmark.ips do |x|
+      x.config(time: 20, warmup: 5)
+      x.report('store_reports_subset') { store.save_report(report_subset) }
     end
   end
 
