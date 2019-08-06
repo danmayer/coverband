@@ -27,30 +27,11 @@ namespace :benchmarks do
     end
   end
 
-  def classifier_dir
-    File.join(File.dirname(__FILE__), 'classifier-reborn')
-  end
-
-  def clone_classifier
-    system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}" unless Dir.exist? classifier_dir
-  end
-
   # desc 'setup standard benchmark'
   task :setup do
-    clone_classifier
-    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
     require 'benchmark'
     require 'benchmark/ips'
 
-    # TODO: ok this is interesting and weird
-    # basically the earlier I require coverage and
-    # then require files the larger perf impact
-    # this is somewhat expected but can lead to significant perf diffs
-    # for example moving `require 'classifier-reborn'` below the coverage.start
-    # results in 1.5x slower vs "difference falls within error"
-    # moving from 5 second of time to 12 still shows slower based on when classifier is required
-    # make sure to be plugged in while benchmarking ;) Otherwise you get very unreliable results
-    require 'classifier-reborn'
     if ENV['COVERAGE'] || ENV['ONESHOT']
       require 'coverage'
       ::Coverage.start(oneshot_lines: !!ENV['ONESHOT'])
@@ -91,32 +72,7 @@ namespace :benchmarks do
     end
   end
 
-  def bayes_classification
-    b = ClassifierReborn::Bayes.new 'Interesting', 'Uninteresting'
-    b.train_interesting 'here are some good words. I hope you love them'
-    b.train_uninteresting 'here are some bad words, I hate you'
-    b.classify 'I hate bad words and you' # returns 'Uninteresting'
-  end
-
-  def lsi_classification
-    lsi = ClassifierReborn::LSI.new
-    strings = [['This text deals with dogs. Dogs.', :dog],
-               ['This text involves dogs too. Dogs! ', :dog],
-               ['This text revolves around cats. Cats.', :cat],
-               ['This text also involves cats. Cats!', :cat],
-               ['This text involves birds. Birds.', :bird]]
-    strings.each { |x| lsi.add_item x.first, x.last }
-    lsi.search('dog', 3)
-    lsi.find_related(strings[2], 2)
-    lsi.classify 'This text is also about dogs!'
-  end
-
   def work
-    5.times do
-      bayes_classification
-      lsi_classification
-    end
-
     # simulate many calls to the same line
     10_000.times { Dog.new.bark }
   end
