@@ -140,9 +140,11 @@ namespace :benchmarks do
     Coverband::Collectors::Coverage.instance.reset_instance
   end
 
+  LINES = 45
+  NON_NIL_LINES = 18
   def fake_line_numbers
-    28.times.each_with_object({}) do |line, line_hash|
-      line_hash[(line + 1).to_s] = rand(5)
+    LINES.times.map do |line|
+      coverage = (line < NON_NIL_LINES) ? rand(5) : nil
     end
   end
 
