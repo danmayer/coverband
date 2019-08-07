@@ -18,9 +18,6 @@
       <div id="header">
         <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
         <a href='<%= base_path %>settings'>Info</a> &nbsp;
-        <% if Coverband.configuration.track_views %>
-          <a href='<%= base_path %>view_tracker'>View Tracker</a> &nbsp;
-        <% end %>
         <% if Coverband.configuration.web_enable_clear %>
           <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
         <% end %>
@@ -37,7 +34,11 @@
         Coverage Recording Started: <%= timeago(result.source_files.first_seen_at) %>
       </div>
 
-      <ul class="group_tabs"></ul>
+      <ul class="group_tabs">
+        <% if Coverband.configuration.track_views %>
+          <li><a href='<%= base_path %>view_tracker'>Views Tracker</a></li>
+        <% end %>
+      </ul>
 
       <div id="content">
         <%= formatted_file_list("All Files", result, result.source_files) unless view_gems? %>

@@ -20,7 +20,13 @@ module Coverband
       attr_accessor :store, :target, :logged_views, :roots
 
       def initialize(store, options = {})
-        raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless Rails::VERSION::STRING.split('.').first.to_i >= 4
+        raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless self.class.supported_version?
+
+        #@project_directory = File.expand_path(Coverband.configuration.root)
+        @ignore_patterns = Coverband.configuration.ignore
+        # @store = Coverband.configuration.store
+        # @verbose  = Coverband.configuration.verbose
+        # @logger   = Coverband.configuration.logger
 
         @store = store
         @target = options[:target] || DEFAULT_TARGET
@@ -30,7 +36,7 @@ module Coverband
 
       def track_views(_name, _start, _finish, _id, payload)
         if (file = payload[:identifier])
-          unless logged_views.include?(file)
+          if track_file?(file)
             logged_views << file
             store.sadd(tracker_key, file)
           end
@@ -42,7 +48,7 @@ module Coverband
         # http://edgeguides.rubyonrails.org/active_support_instrumentation.html#render_partial-action_view
         ###
         if (layout_file = payload[:layout])
-          unless logged_views.include?(layout_file)
+          if track_file?(layout_file)
             logged_views << layout_file
             store.sadd(tracker_key, layout_file)
           end
@@ -73,6 +79,21 @@ module Coverband
 
       def reset_recordings
         store.del(tracker_key)
+      end
+
+      def self.supported_version?
+        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split('.').first.to_i >= 4
+      end
+
+      protected
+
+      def track_file?(file)
+        return false if logged_views.include?(file)
+        true
+        # return true if target.any.match(file)
+        # @ignore_patterns.none? do |pattern|
+        #   file.include?(pattern)
+        # end && (file.start_with?(@project_directory) && target.match(file))
       end
 
       private
