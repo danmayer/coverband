@@ -43,7 +43,7 @@ module Coverband
         format('%.2f', (size.to_f / 2**20))
       end
 
-      def save_report(__report)
+      def save_report(_report)
         raise 'abstract'
       end
 

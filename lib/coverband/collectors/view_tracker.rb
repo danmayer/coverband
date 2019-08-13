@@ -17,12 +17,13 @@ module Coverband
     ###
     class ViewTracker
       DEFAULT_TARGET = Dir.glob('app/views/**/*.html.erb').reject { |file| file.match(/(_mailer)/) }
-      attr_accessor :target, :logged_views
-      attr_reader :logger, :roots, :store
+      attr_accessor :target, :logged_views, :views_to_record
+      attr_reader :logger, :roots, :store, :ignore_patterns
 
       def initialize(options = {})
         raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless self.class.supported_version?
 
+        @project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
         @store = options.fetch(:store) { Coverband.configuration.store }
         @logger = options.fetch(:logger) { Coverband.configuration.logger }
@@ -30,31 +31,30 @@ module Coverband
 
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
         @roots = @roots.split(',') if @roots.is_a?(String)
+
         @logged_views = []
+        @views_to_record = []
       end
 
       def track_views(_name, _start, _finish, _id, payload)
         if (file = payload[:identifier])
-          if seen_file?(file)
+          if newly_seen_file?(file)
             logged_views << file
-            redis_store.sadd(tracker_key, file)
+            views_to_record << file if track_file?(file)
           end
         end
+
         ###
         # Annoyingly while you get full path for templates
         # notifications only pass part of the path for layouts dropping any format info
         # such as .html.erb or .js.erb
         # http://edgeguides.rubyonrails.org/active_support_instrumentation.html#render_partial-action_view
         ###
-        if (layout_file = payload[:layout])
-          if seen_file?(layout_file)
-            logged_views << layout_file
-            redis_store.sadd(tracker_key, layout_file)
-          end
-        end
-      rescue Errno::EAGAIN, Timeout::Error
-        # we don't want to raise errors if Coverband can't reach redis. This is a nice to have not a bring the system down
-        logger&.error 'Coverband: view_tracker failed to store'
+        return unless (layout_file = payload[:layout])
+        return unless newly_seen_file?(layout_file)
+
+        logged_views << layout_file
+        views_to_record << layout_file if track_file?(layout_file)
       end
 
       def used_views
@@ -85,18 +85,28 @@ module Coverband
       end
 
       def report_views_tracked
+        views_to_record.each do |file|
+          redis_store.sadd(tracker_key, file)
+        end
+        self.views_to_record = []
+      rescue StandardError => e
+        # we don't want to raise errors if Coverband can't reach redis.
+        # This is a nice to have not a bring the system down
+        logger&.error "Coverband: view_tracker failed to store, error #{e.class.name}"
       end
 
       protected
 
-      def seen_file?(file)
+      def newly_seen_file?(file)
         return false if logged_views.include?(file)
 
         true
-        # return true if target.any.match(file)
-        # @ignore_patterns.none? do |pattern|
-        #   file.include?(pattern)
-        # end && (file.start_with?(@project_directory) && target.match(file))
+      end
+
+      def track_file?(file)
+        @ignore_patterns.none? do |pattern|
+          file.include?(pattern)
+        end && file.start_with?(@project_directory)
       end
 
       private
