@@ -3,74 +3,6 @@
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ReportsBaseTest < Minitest::Test
-  test 'relative_path_to_full fix filename from a key with a swappable path' do
-    Coverband.configure do |config|
-      config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
-    end
-
-    key = '/app/is/a/path.rb'
-    # the code takes config.root expands and adds a '/' for the final path in roots
-    roots = ['/app/', '/full/remote_app/path/']
-
-    expected_path = '/full/remote_app/path/is/a/path.rb'
-    File.expects(:exist?).with(key).returns(false)
-    File.expects(:exist?).with(expected_path).returns(true)
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-  end
-
-  test 'relative_path_to_full fix filename a changing deploy path with quotes' do
-    Coverband.configure do |config|
-      config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
-    end
-
-    expected_path = '/full/remote_app/path/app/models/user.rb'
-    key = '/box/apps/app_name/releases/20140725203539/app/models/user.rb'
-    roots = ['/box/apps/app_name/releases/\\d+/', '/full/remote_app/path/']
-    File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
-    File.expects(:exist?).with(expected_path).returns(true)
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-    File.expects(:exist?).with('/box/apps/app_name/releases/\\d+/app/models/user.rb').returns(false)
-    File.expects(:exist?).with(expected_path).returns(true)
-    roots = ['/box/apps/app_name/releases/\d+/', '/full/remote_app/path/']
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-  end
-
-  test 'relative_path_to_full fix filename a changing deploy path real world examples' do
-    current_app_root = '/var/local/company/company.d/79'
-    Coverband.configure do |config|
-      config.reporter          = 'std_out'
-      config.root              = current_app_root
-    end
-
-    expected_path = '/var/local/company/company.d/79/app/controllers/dashboard_controller.rb'
-    key = '/var/local/company/company.d/78/app/controllers/dashboard_controller.rb'
-
-    File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
-    File.expects(:exist?).with(expected_path).returns(true)
-    roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-    File.expects(:exist?).with('/var/local/company/company.d/[0-9]*/app/controllers/dashboard_controller.rb').returns(false)
-    File.expects(:exist?).with(expected_path).returns(true)
-    roots = ['/var/local/company/company.d/[0-9]*/', "#{current_app_root}/"]
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-  end
-
-  test 'relative_path_to_full leave filename from a key with a local path' do
-    Coverband.configure do |config|
-      config.reporter          = 'std_out'
-      config.root              = '/full/remote_app/path'
-    end
-
-    key = '/full/remote_app/path/is/a/path.rb'
-    # the code takes config.root expands and adds a '/' for the final path in roots
-    roots = ['/app/', '/full/remote_app/path/']
-
-    expected_path = '/full/remote_app/path/is/a/path.rb'
-    assert_equal expected_path, Coverband::Reporters::Base.send(:relative_path_to_full, key, roots)
-  end
-
   test '#merge_arrays basic merge preserves order and counts' do
     first = [0, 0, 1, 0, 1]
     second = [nil, 0, 1, 0, 0]
@@ -139,19 +71,10 @@ class ReportsBaseTest < Minitest::Test
         "file_hash"=>"14dc84e940e26cbfb9ac79b43862e762",
         "data"=>[16, 16, 16, nil, 16, 16, nil, nil, 16, nil, 16, 32, 32, nil, 32, 32, 32, 32, 32, 32, 32, nil, nil, 16, nil, 16, 32, 23, 0, 0, 0, 0, nil, nil, nil, nil, 0, 0, nil, nil, 16, 32, 32, 32, nil, nil, nil, nil, nil, 16, 32, nil, nil, 16, 32, nil, nil]}
       }
-    @redis = Redis.new
-    store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
-    store.clear!
-
-    Coverband.configure do |config|
-      config.reporter          = 'std_out'
-      config.root              = '/base/78/app/'
-      config.store             = store
-    end
-
     key = '/base/78/app/app/controllers/dashboard_controller.rb'
     roots = ['/base/[0-9]*/', '/base/78/app/']
 
+    Coverband.configuration.stubs(:all_root_paths).returns(roots)
     lines_hit = [1, 3, 6]
     store.stubs(:merged_coverage).returns(coverage)
     File.expects(:exist?).at_least_once

@@ -28,19 +28,20 @@ unless ENV['ONESHOT'] || ENV['SIMULATE_ONESHOT']
   Coveralls.wear!
 end
 
-
 module Coverband
   module Test
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
       Coverband.configuration.store.class.class_variable_set(:@@path_cache, {})
-      [:eager_loading, :runtime].each do |type|
+      %i[eager_loading runtime].each do |type|
         Coverband.configuration.store.type = type
         Coverband.configuration.store.clear!
       end
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance
+      Coverband::Utils::RelativeFileConverter.reset
+      Coverband::Utils::AbsoluteFileConverter.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband::Background.stop
     end
@@ -82,10 +83,8 @@ def test(name, &block)
   end
 end
 
-def mock_file_hash
-  mock_file = mock('mock_file')
-  mock_file.expects(:hexdigest).at_least_once.returns('abcd')
-  Digest::MD5.expects(:file).at_least_once.returns(mock_file)
+def mock_file_hash(hash: 'abcd')
+  Coverband::Utils::FileHasher.expects(:hash).at_least_once.returns(hash)
 end
 
 def example_line
@@ -124,7 +123,7 @@ end
 # This handles an issue where the store is setup in tests prior to being able to set the namespace
 ###
 def store
-  if Coverband.configuration.store.redis_namespace=='coverband_test'
+  if Coverband.configuration.store.redis_namespace == 'coverband_test'
     Coverband.configuration.store
   else
     Coverband.configuration.redis_namespace = 'coverband_test'

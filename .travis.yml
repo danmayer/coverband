@@ -11,18 +11,11 @@ services:
   - redis-server
 script:
   - bundle exec rake rubocop
+  - COVERBAND_HASH_REDIS_STORE=t bundle exec rake
+  - COVERBAND_HASH_REDIS_STORE=t bundle exec rake forked_tests
   - bundle exec rake
   - bundle exec rake forked_tests
   # remove this for now as it is flaky
   # passes locally on 2.3.5 on travis passes sometimes on 2.4 and always on 2.6.1
   #- bundle exec rake benchmarks:memory
   - bundle exec rake benchmarks
-before_install:
-  - echo 'this is a hack to clear default bundler and force bundler 1.17.3'
-  - ls /home/travis/.rvm/gems/
-  - rm /home/travis/.rvm/gems/ruby-2.3.7@global/specifications/bundler-2.0.1.gemspec || true
-  - rm /home/travis/.rvm/gems/ruby-2.4.6@global/specifications/bundler-2.0.1.gemspec || true
-  - rm /home/travis/.rvm/gems/ruby-2.5.5@global/specifications/bundler-2.0.1.gemspec || true
-  - gem uninstall bundler || true
-  - gem install bundler -v '1.17.3'
-  - bundler --version

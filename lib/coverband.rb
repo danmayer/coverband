@@ -6,10 +6,13 @@ require 'redis'
 require 'coverband/version'
 require 'coverband/at_exit'
 require 'coverband/configuration'
-require 'coverband/utils/file_path_helper'
+require 'coverband/utils/relative_file_converter'
+require 'coverband/utils/absolute_file_converter'
 require 'coverband/adapters/base'
 require 'coverband/adapters/redis_store'
+require 'coverband/adapters/hash_redis_store'
 require 'coverband/adapters/file_store'
+require 'coverband/utils/file_hasher'
 require 'coverband/utils/s3_report'
 require 'coverband/utils/html_formatter'
 require 'coverband/utils/result'
@@ -28,6 +31,8 @@ require 'coverband/reporters/web'
 require 'coverband/integrations/background'
 require 'coverband/integrations/background_middleware'
 require 'coverband/integrations/rack_server_check'
+
+Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore if ENV['COVERBAND_HASH_REDIS_STORE']
 
 module Coverband
   @@configured = false

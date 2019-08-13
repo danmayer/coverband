@@ -10,8 +10,6 @@
 module Coverband
   module Utils
     class SourceFile
-      include Coverband::Utils::FilePathHelper
-
       # TODO: Refactor Line into its own file
       # Representation of a single line in a source file including
       # this specific line's source code, line_number and code coverage,
@@ -246,7 +244,7 @@ module Coverband
       end
 
       def relative_path
-        full_path_to_relative(filename)
+        RelativeFileConverter.convert(filename)
       end
 
       def gem?

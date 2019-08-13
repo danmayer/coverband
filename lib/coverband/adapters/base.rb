@@ -3,8 +3,6 @@
 module Coverband
   module Adapters
     class Base
-      include Coverband::Utils::FilePathHelper
-
       DATA_KEY = 'data'
       FIRST_UPDATED_KEY = 'first_updated_at'
       LAST_UPDATED_KEY = 'last_updated_at'
@@ -14,7 +12,6 @@ module Coverband
       attr_accessor :type
 
       def initialize
-        @file_hash_cache = {}
         @type = Coverband::RUNTIME_TYPE
       end
 
@@ -46,14 +43,8 @@ module Coverband
         format('%.2f', (size.to_f / 2**20))
       end
 
-      # Note: This could lead to slight race on redis
-      # where multiple processes pull the old coverage and add to it then push
-      # the Coverband 2 had the same issue,
-      # and the tradeoff has always been acceptable
-      def save_report(report)
-        data = report.dup
-        data = merge_reports(data, coverage)
-        save_coverage(data)
+      def save_report(__report)
+        raise 'abstract'
       end
 
       def get_coverage_report
@@ -93,7 +84,7 @@ module Coverband
       end
 
       def file_hash(file)
-        @file_hash_cache[file] ||= Digest::MD5.file(file).hexdigest
+        Coverband::Utils::FileHasher.hash(file)
       end
 
       # TODO: modify to extend report inline?
@@ -108,7 +99,7 @@ module Coverband
             FILE_HASH => file_hash(key),
             DATA_KEY => line_data
           }
-          expanded[full_path_to_relative(key)] = extended_data
+          expanded[Utils::RelativeFileConverter.convert(key)] = extended_data
         end
         expanded
       end

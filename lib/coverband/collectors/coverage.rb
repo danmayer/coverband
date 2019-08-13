@@ -22,8 +22,8 @@ module Coverband
         @project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
         @store = Coverband.configuration.store
-        @verbose  = Coverband.configuration.verbose
-        @logger   = Coverband.configuration.logger
+        @verbose = Coverband.configuration.verbose
+        @logger = Coverband.configuration.logger
         @test_env = Coverband.configuration.test_env
         @track_gems = Coverband.configuration.track_gems
         Delta.reset
@@ -57,7 +57,7 @@ module Coverband
       rescue StandardError => e
         @logger&.error 'coverage failed to store'
         @logger&.error "Coverband Error: #{e.inspect} #{e.message}"
-        @logger&.error e.backtrace if @verbose
+        e.backtrace.each { |line| @logger&.error line } if @verbose
         raise e if @test_env
       end
 

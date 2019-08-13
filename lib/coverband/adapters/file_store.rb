@@ -36,13 +36,15 @@ module Coverband
         end
       end
 
+      def save_report(report)
+        data = report.dup
+        data = merge_reports(data, coverage)
+        File.open(path, 'w') { |f| f.write(data.to_json) }
+      end
+
       private
 
       attr_accessor :path
-
-      def save_coverage(report)
-        File.open(path, 'w') { |f| f.write(report.to_json) }
-      end
     end
   end
 end

@@ -27,30 +27,11 @@ namespace :benchmarks do
     end
   end
 
-  def classifier_dir
-    File.join(File.dirname(__FILE__), 'classifier-reborn')
-  end
-
-  def clone_classifier
-    system "git clone https://github.com/jekyll/classifier-reborn.git #{classifier_dir}" unless Dir.exist? classifier_dir
-  end
-
   # desc 'setup standard benchmark'
   task :setup do
-    clone_classifier
-    $LOAD_PATH.unshift(File.join(classifier_dir, 'lib'))
     require 'benchmark'
     require 'benchmark/ips'
 
-    # TODO: ok this is interesting and weird
-    # basically the earlier I require coverage and
-    # then require files the larger perf impact
-    # this is somewhat expected but can lead to significant perf diffs
-    # for example moving `require 'classifier-reborn'` below the coverage.start
-    # results in 1.5x slower vs "difference falls within error"
-    # moving from 5 second of time to 12 still shows slower based on when classifier is required
-    # make sure to be plugged in while benchmarking ;) Otherwise you get very unreliable results
-    require 'classifier-reborn'
     if ENV['COVERAGE'] || ENV['ONESHOT']
       require 'coverage'
       ::Coverage.start(oneshot_lines: !!ENV['ONESHOT'])
@@ -91,32 +72,7 @@ namespace :benchmarks do
     end
   end
 
-  def bayes_classification
-    b = ClassifierReborn::Bayes.new 'Interesting', 'Uninteresting'
-    b.train_interesting 'here are some good words. I hope you love them'
-    b.train_uninteresting 'here are some bad words, I hate you'
-    b.classify 'I hate bad words and you' # returns 'Uninteresting'
-  end
-
-  def lsi_classification
-    lsi = ClassifierReborn::LSI.new
-    strings = [['This text deals with dogs. Dogs.', :dog],
-               ['This text involves dogs too. Dogs! ', :dog],
-               ['This text revolves around cats. Cats.', :cat],
-               ['This text also involves cats. Cats!', :cat],
-               ['This text involves birds. Birds.', :bird]]
-    strings.each { |x| lsi.add_item x.first, x.last }
-    lsi.search('dog', 3)
-    lsi.find_related(strings[2], 2)
-    lsi.classify 'This text is also about dogs!'
-  end
-
   def work
-    5.times do
-      bayes_classification
-      lsi_classification
-    end
-
     # simulate many calls to the same line
     10_000.times { Dog.new.bark }
   end
@@ -140,9 +96,11 @@ namespace :benchmarks do
     Coverband::Collectors::Coverage.instance.reset_instance
   end
 
+  LINES = 45
+  NON_NIL_LINES = 18
   def fake_line_numbers
-    24.times.each_with_object({}) do |line, line_hash|
-      line_hash[(line + 1).to_s] = rand(5)
+    LINES.times.map do |line|
+      coverage = (line < NON_NIL_LINES) ? rand(5) : nil
     end
   end
 
@@ -165,8 +123,8 @@ namespace :benchmarks do
     ###
     # this is a hack because in the benchmark we don't have real files
     ###
-    def store.file_hash(file)
-      @file_hash_cache[file] || @file_hash_cache[file] = Digest::MD5.file(__FILE__).hexdigest
+    def store.file_hash(_file)
+      @file_hash ||= Digest::MD5.file(__FILE__).hexdigest
     end
 
     def store.full_path_to_relative(file)
@@ -183,7 +141,13 @@ namespace :benchmarks do
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports') { store.save_report(report) }
+      x.report('store_reports_all') { store.save_report(report) }
+    end
+    keys_subset = report.keys.first(100)
+    report_subset = report.select { |key, _value| keys_subset.include?(key) }
+    Benchmark.ips do |x|
+      x.config(time: 20, warmup: 5)
+      x.report('store_reports_subset') { store.save_report(report_subset) }
     end
   end
 
@@ -413,6 +377,18 @@ namespace :benchmarks do
     puts `ab -n 2000 -c 10 -g tmp/ab_brench.tsv "https://coverband-demo.herokuapp.com/posts"`
     puts `test/benchmarks/graph_bench.sh`
     `open tmp/timeseries.jpg`
+  end
+
+  desc 'benchmark initialization of rails'
+  task :init_rails do
+    require 'benchmark'
+    require 'benchmark/ips'
+    Benchmark.ips do |x|
+      x.config(time: 60, warmup: 0)
+      x.report('init_rails') do
+        system('bundle exec rake init_rails -f ./test/benchmarks/init_rails.rake')
+      end
+    end
   end
 
   desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'

@@ -61,7 +61,7 @@ module Coverband
           exit 0
         end
         relative_path_report = previous_data.each_with_object({}) do |(key, vals), fixed_report|
-          fixed_report[full_path_to_relative(key)] = vals
+          fixed_report[Utils::RelativeFileConverter.convert(key)] = vals
         end
         clear!
         reset_base_key
@@ -78,6 +78,16 @@ module Coverband
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = redis.get type_base_key(local_type)
         data ? JSON.parse(data) : {}
+      end
+
+      # Note: This could lead to slight race on redis
+      # where multiple processes pull the old coverage and add to it then push
+      # the Coverband 2 had the same issue,
+      # and the tradeoff has always been acceptable
+      def save_report(report)
+        data = report.dup
+        data = merge_reports(data, coverage)
+        save_coverage(data)
       end
 
       private

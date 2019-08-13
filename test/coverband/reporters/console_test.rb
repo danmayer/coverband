@@ -19,10 +19,7 @@ class HTMLReportTest < Minitest::Test
     end
     Coverband.configuration.logger.stubs('info')
     mock_file_hash
-    Coverband.configuration
-             .expects(:current_root)
-             .at_least_once
-             .returns('app_path')
+    Coverband::Utils::RelativeFileConverter.expects(:convert).with('app_path/dog.rb').returns('./dog.rb')
     @store.send(:save_report, basic_coverage)
 
     report = Coverband::Reporters::ConsoleReport.report(@store)[:merged]

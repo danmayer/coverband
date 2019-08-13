@@ -52,9 +52,9 @@ class ReportHTMLTest < Minitest::Test
     filename = basic_coverage_file_full_path
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-      filename: filename,
-      base_path: base_path,
-      open_report: false).file_details
+                                                filename: filename,
+                                                base_path: base_path,
+                                                open_report: false).file_details
     assert_match 'Coverage first seen', html
   end
 
@@ -64,9 +64,9 @@ class ReportHTMLTest < Minitest::Test
     filename = 'missing_path'
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-      filename: filename,
-      base_path: base_path,
-      open_report: false).file_details
+                                                filename: filename,
+                                                base_path: base_path,
+                                                open_report: false).file_details
     assert_match 'File No Longer Available', html
   end
 
@@ -76,9 +76,9 @@ class ReportHTMLTest < Minitest::Test
     filename = "#{test_root}/test_helper.rb"
     base_path = '/coverage'
     html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-      filename: filename,
-      base_path: base_path,
-      open_report: false).file_details
+                                                filename: filename,
+                                                base_path: base_path,
+                                                open_report: false).file_details
     assert_match 'File No Longer Available', html
   end
 end
