@@ -80,6 +80,10 @@ module Coverband
         end
       end
 
+      def raw_store
+        @redis
+      end
+
       private
 
       def add_coverage_for_file(key, hash)
