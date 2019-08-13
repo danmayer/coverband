@@ -2,6 +2,11 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ReporterTest < Minitest::Test
 
+  def setup
+    super
+    fake_store.raw_store.del('render_tracker')
+  end
+
   test "init correctly" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     tracker = Coverband::Collectors::ViewTracker.new(:store => "store", :roots => 'dir')
@@ -14,7 +19,7 @@ class ReporterTest < Minitest::Test
   test "track partials" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
-    store.expects(:sadd).with('render_tracker', 'file')
+    store.raw_store.expects(:sadd).with('render_tracker', 'file')
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:identifier => 'file'})
     assert_equal ['file'], tracker.logged_views
@@ -23,7 +28,7 @@ class ReporterTest < Minitest::Test
   test "track layouts" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
-    store.expects(:sadd).with('render_tracker', 'layout')
+    store.raw_store.expects(:sadd).with('render_tracker', 'layout')
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:layout => 'layout'})
     assert_equal ['layout'], tracker.logged_views
@@ -49,7 +54,7 @@ class ReporterTest < Minitest::Test
   test "reset store" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
-    store.expects(:del).with('render_tracker')
+    store.raw_store.expects(:del).with('render_tracker')
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:identifier => 'file'})
     tracker.reset_recordings
@@ -58,15 +63,7 @@ class ReporterTest < Minitest::Test
   protected
 
   def fake_store
-    store = OpenStruct.new(:del => true)
-    store.data = []
-    def store.sadd(key, val)
-      data << val
-    end
-    def store.smembers(key)
-      data
-    end
-    store
+    @fake_store ||= Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
   end
 
 end

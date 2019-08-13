@@ -90,6 +90,10 @@ module Coverband
         save_coverage(data)
       end
 
+      def raw_store
+        @redis
+      end
+
       private
 
       attr_reader :redis

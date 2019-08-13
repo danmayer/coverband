@@ -56,11 +56,11 @@ module Coverband
         coverage.keys || []
       end
 
-      protected
-
       def raw_store
         raise ABSTRACT_KEY
       end
+
+      protected
 
       def split_coverage(types)
         types.reduce({}) do |data, type|

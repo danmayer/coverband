@@ -17,8 +17,8 @@ module Coverband
     ###
     class ViewTracker
       DEFAULT_TARGET = Dir.glob('app/views/**/*.html.erb').reject { |file| file.match(/(_mailer)/) }
-      attr_accessor :store, :target, :logged_views
-      attr_reader :logger, :roots
+      attr_accessor :target, :logged_views
+      attr_reader :logger, :roots, :store
 
       def initialize(options = {})
         raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless self.class.supported_version?
@@ -35,9 +35,9 @@ module Coverband
 
       def track_views(_name, _start, _finish, _id, payload)
         if (file = payload[:identifier])
-          if track_file?(file)
+          if seen_file?(file)
             logged_views << file
-            store.sadd(tracker_key, file)
+            redis_store.sadd(tracker_key, file)
           end
         end
         ###
@@ -47,9 +47,9 @@ module Coverband
         # http://edgeguides.rubyonrails.org/active_support_instrumentation.html#render_partial-action_view
         ###
         if (layout_file = payload[:layout])
-          if track_file?(layout_file)
+          if seen_file?(layout_file)
             logged_views << layout_file
-            store.sadd(tracker_key, layout_file)
+            redis_store.sadd(tracker_key, layout_file)
           end
         end
       rescue Errno::EAGAIN, Timeout::Error
@@ -58,7 +58,7 @@ module Coverband
       end
 
       def used_views
-        views = store.smembers(tracker_key)
+        views = redis_store.smembers(tracker_key)
         normalized_views = []
         views.each do |view|
           roots.each do |root|
@@ -77,16 +77,19 @@ module Coverband
       end
 
       def reset_recordings
-        store.del(tracker_key)
+        redis_store.del(tracker_key)
       end
 
       def self.supported_version?
         defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split('.').first.to_i >= 4
       end
 
+      def report_views_tracked
+      end
+
       protected
 
-      def track_file?(file)
+      def seen_file?(file)
         return false if logged_views.include?(file)
 
         true
