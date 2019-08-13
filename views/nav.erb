@@ -28,6 +28,8 @@
     <li><a href='<%= base_path %>'>Coverage</a></li>
   <% end %>
   <% if Coverband.configuration.track_views %>
-    <li><a href='<%= base_path %>view_tracker'>Views Tracker</a></li>
+    <li class='<%= nav_options[:show_coverage_link] ? 'active' : '' %>'>
+      <a href='<%= base_path %>view_tracker'>Views Tracker</a>
+    </li>
   <% end %>
 </ul>
