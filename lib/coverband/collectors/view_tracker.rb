@@ -6,13 +6,10 @@ module Coverband
   module Collectors
     ###
     # This class tracks view file usage via ActiveSupport::Notifications
-    # TODO: The current implementation does this during each request, but this could collect in memory
-    # and then push during the Coverband background thread.
     #
     # This is a port of Flatfoot, a project I open sourced years ago, but am now rolling into Coverband
     # https://github.com/livingsocial/flatfoot
     #
-    # TODO: add support for ignores, by default ignore view partials in gems
     # TODO: test and ensure slim, haml, and other support
     ###
     class ViewTracker
