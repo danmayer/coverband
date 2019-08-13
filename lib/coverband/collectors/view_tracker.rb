@@ -33,6 +33,10 @@ module Coverband
         @views_to_record = []
       end
 
+      ###
+      # This method is called on every render call, so we try to reduce method calls
+      # and ensure high performance
+      ###
       def track_views(_name, _start, _finish, _id, payload)
         if (file = payload[:identifier])
           if newly_seen_file?(file)
@@ -51,7 +55,7 @@ module Coverband
         return unless newly_seen_file?(layout_file)
 
         logged_views << layout_file
-        views_to_record << layout_file if track_file?(layout_file)
+        views_to_record << layout_file if track_file?(layout_file, layout: true)
       end
 
       def used_views
@@ -100,10 +104,10 @@ module Coverband
         true
       end
 
-      def track_file?(file)
+      def track_file?(file, options = {})
         @ignore_patterns.none? do |pattern|
           file.include?(pattern)
-        end && file.start_with?(@project_directory)
+        end && (file.start_with?(@project_directory) || options[:layout])
       end
 
       private

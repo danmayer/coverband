@@ -112,6 +112,10 @@ module Coverband
         button + '</form>'
       end
 
+      def display_nav(nav_options = {})
+        template('nav').result(binding)
+      end
+
       # Returns the html for the given source_file
       def formatted_source_file(result, source_file)
         template('source_file').result(binding)

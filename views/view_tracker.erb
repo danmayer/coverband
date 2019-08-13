@@ -10,13 +10,11 @@
 
   <body>
     <div id="wrapper" style="">
-      <div id="header">
-        <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
-        <a href='<%= base_path %>settings'>Info</a> &nbsp;
-      </div>
+      <%= display_nav(show_coverage_link: true) %>
       <div id="content">
         <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
         <h2>Unused Views:</h2>
+        <p>These views have never been rendered</p>
         <ul>
         <% tracker.unused_views.each do |view_file| %>
           <li><%= view_file %></li>
@@ -24,6 +22,7 @@
         </ul>
 
         <h2>Used Views:</h2>
+        <p>These views have been rendered at least once</p>
         <ul>
         <% tracker.used_views.each do |view_file| %>
           <li><%= view_file %></li>
