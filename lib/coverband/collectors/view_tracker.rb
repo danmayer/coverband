@@ -17,21 +17,20 @@ module Coverband
     ###
     class ViewTracker
       DEFAULT_TARGET = Dir.glob('app/views/**/*.html.erb').reject { |file| file.match(/(_mailer)/) }
-      attr_accessor :store, :target, :logged_views, :roots
+      attr_accessor :store, :target, :logged_views
+      attr_reader :logger, :roots
 
-      def initialize(store, options = {})
+      def initialize(options = {})
         raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless self.class.supported_version?
 
-        #@project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
-        # @store = Coverband.configuration.store
-        # @verbose  = Coverband.configuration.verbose
-        # @logger   = Coverband.configuration.logger
+        @store = options.fetch(:store) { Coverband.configuration.store }
+        @logger = options.fetch(:logger) { Coverband.configuration.logger }
+        @target = options.fetch(:target) { DEFAULT_TARGET }
 
-        @store = store
-        @target = options[:target] || DEFAULT_TARGET
+        @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
+        @roots = @roots.split(',') if @roots.is_a?(String)
         @logged_views = []
-        @roots = options.fetch(:roots) { "#{Coverband.configuration.root}/" }.split(',')
       end
 
       def track_views(_name, _start, _finish, _id, payload)
@@ -55,7 +54,7 @@ module Coverband
         end
       rescue Errno::EAGAIN, Timeout::Error
         # we don't want to raise errors if Coverband can't reach redis. This is a nice to have not a bring the system down
-        Coverband.configuration.logger&.error 'Coverband: view_tracker failed to store'
+        logger&.error 'Coverband: view_tracker failed to store'
       end
 
       def used_views
@@ -89,6 +88,7 @@ module Coverband
 
       def track_file?(file)
         return false if logged_views.include?(file)
+
         true
         # return true if target.any.match(file)
         # @ignore_patterns.none? do |pattern|
@@ -97,6 +97,10 @@ module Coverband
       end
 
       private
+
+      def redis_store
+        store.raw_store
+      end
 
       def tracker_key
         'render_tracker'

@@ -58,6 +58,10 @@ module Coverband
 
       protected
 
+      def raw_store
+        raise ABSTRACT_KEY
+      end
+
       def split_coverage(types)
         types.reduce({}) do |data, type|
           if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage

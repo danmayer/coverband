@@ -42,6 +42,10 @@ module Coverband
         File.open(path, 'w') { |f| f.write(data.to_json) }
       end
 
+      def raw_store
+        raise NotImplementedError, "FileStore doesn't support raw_store"
+      end
+
       private
 
       attr_accessor :path

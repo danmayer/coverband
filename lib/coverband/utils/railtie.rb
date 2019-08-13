@@ -14,10 +14,9 @@ module Coverband
       app.middleware.use Coverband::BackgroundMiddleware
 
       if Coverband.configuration.track_views
-        # TODO: This isn't a real way to use our stores or get redis fix this.
-        CoverbandViewTracker = Coverband::Collectors::ViewTracker.new(Coverband.configuration.store.send(:redis))
+        CoverbandViewTracker = Coverband::Collectors::ViewTracker.new
 
-        ActiveSupport::Notifications.subscribe /render_partial.action_view|render_template.action_view/ do |name, start, finish, id, payload|
+        ActiveSupport::Notifications.subscribe(/render_partial.action_view|render_template.action_view/) do |name, start, finish, id, payload|
           CoverbandViewTracker.track_views(name, start, finish, id, payload) unless name.include?('!')
         end
       end
