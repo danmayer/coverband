@@ -15,17 +15,17 @@
         <a href='<%= base_path %>settings'>Info</a> &nbsp;
       </div>
       <div id="content">
-        <% tracker = Coverband::Collectors::ViewTracker.new(Coverband.configuration.store.send(:redis)) %>
-        <h2>Used Views:</h2>
+        <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
+        <h2>Unused Views:</h2>
         <ul>
-        <% tracker.used_views.each do |view_file| %>
+        <% tracker.unused_views.each do |view_file| %>
           <li><%= view_file %></li>
         <% end %>
         </ul>
 
-        <h2>Unused Views:</h2>
+        <h2>Used Views:</h2>
         <ul>
-        <% tracker.unused_views.each do |view_file| %>
+        <% tracker.used_views.each do |view_file| %>
           <li><%= view_file %></li>
         <% end %>
         </ul>
