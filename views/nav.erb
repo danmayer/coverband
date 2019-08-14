@@ -1,0 +1,35 @@
+
+<div id="header">
+  <a href='<%= base_path %>'>Coverband Admin</a> &nbsp;
+  <a href='<%= base_path %>settings'>Info</a> &nbsp;
+  <% if Coverband.configuration.web_enable_clear %>
+    <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
+  <% end %>
+  <% if Coverband.configuration.web_debug %>
+    <a href='<%= base_path %>debug_data'>Debug Data</a> &nbsp;
+  <% end %>
+</div>
+<% if notice.to_s.length > 0 %>
+<div class="notice"><%= notice %></div>
+<% end %>
+<div class="timestamp">Generated <%= timeago(Time.now) %></div>
+<br/>
+<% if defined?(result) %>
+  <div class="timestamp">
+    Coverage Recording Started: <%= timeago(result.source_files.first_seen_at) %>
+  </div>
+<% end %>
+
+<ul class="group_tabs">
+</ul>
+
+<ul class="extra_tabs">
+  <% if nav_options[:show_coverage_link] %>
+    <li><a href='<%= base_path %>'>Coverage</a></li>
+  <% end %>
+  <% if Coverband.configuration.track_views %>
+    <li class='<%= nav_options[:show_coverage_link] ? 'active' : '' %>'>
+      <a href='<%= base_path %>view_tracker'>Views Tracker</a>
+    </li>
+  <% end %>
+</ul>

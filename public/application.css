@@ -634,15 +634,15 @@ abbr.timeago {
   float: right;
   color: #dddddd; }
 
-.group_tabs {
+.group_tabs, .extra_tabs {
   list-style: none;
   float: left;
   margin: 0;
   padding: 0; }
-  .group_tabs li {
+  .group_tabs li, .extra_tabs li {
     display: inline;
     float: left; }
-    .group_tabs li a {
+    .group_tabs li a, .extra_tabs li a {
       font-family: Helvetica, Arial, sans-serif;
       display: block;
       float: left;
@@ -664,15 +664,15 @@ abbr.timeago {
       -moz-border-radius-topright: 2px;
       border-top-left-radius: 2px;
       border-top-right-radius: 2px; }
-      .group_tabs li a:hover {
+      .group_tabs li a:hover, .extra_tabs li a:hover {
         background-color: #cccccc;
         background: -webkit-gradient(linear, 0 0, 0 bottom, from(#eeeeee), to(#aaaaaa));
         background: -moz-linear-gradient(#eeeeee, #aaaaaa);
         background: linear-gradient(#eeeeee, #aaaaaa); }
-      .group_tabs li a:active {
+      .group_tabs li a:active, .extra_tabs li a:active {
         padding-top: 5px;
         padding-bottom: 3px; }
-    .group_tabs li.active a {
+    .group_tabs li.active a, .extra_tabs li.active a {
       color: black;
       text-shadow: white 1px 1px 0px;
       background-color: #dddddd;
