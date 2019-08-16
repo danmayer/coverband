@@ -181,7 +181,7 @@ config.ignore +=  ['config/application.rb',
                    'config/boot.rb',
                    'config/puma.rb',
                    'config/schedule.rb',
-                   'bin/*'
+                   'bin/*',
                    'config/environments/*',
                    'lib/tasks/*']
 ```
