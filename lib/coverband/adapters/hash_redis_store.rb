@@ -85,7 +85,11 @@ module Coverband
       end
 
       def size
-        @redis.get(base_key).bytesize
+        'not available'
+      end
+
+      def size_in_mib
+        'not available'
       end
 
       private

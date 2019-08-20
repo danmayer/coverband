@@ -185,6 +185,15 @@ config.ignore +=  ['config/application.rb',
                    'config/environments/*',
                    'lib/tasks/*']
 ```
+### View Tracking
+
+Coverband allows an optional feature to track all view files that are used by an application.
+
+To opt-in to this feature... enable the feature in your Coverband config.
+
+`config.track_views = true`
+
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_view_tracker.png)
 
 ### Writing Coverband Results to S3
 
@@ -207,6 +216,20 @@ ENV['AWS_ACCESS_KEY_ID']
 ENV['AWS_SECRET_ACCESS_KEY']
 ```
 
+### Redis Hash Store
+
+Coverband on very high volume sites with many server processes reporting can have a race condition. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting time period. 
+
+* set the new Redis store: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
+* adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
+* reminder it is recommended to have a unique Redis per workload (background jobs, caching, Coverband), for this store, it may be more important to have a dedicated Redis.
+
+### Clear Coverage
+
+Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.
+
+`rake coverband:clear`
+
 ### Coverage Data Migration
 
 Between the release of 4.0 and 4.1 our data format changed. This resets all your coverage data. If you want to restore your previous coverage data, feel free to migrate.
@@ -214,12 +237,6 @@ Between the release of 4.0 and 4.1 our data format changed. This resets all your
 `rake coverband:migrate`
 
 - We will be working to support migrations going forward, when possible
-
-### Clear Coverage
-
-Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.
-
-`rake coverband:clear`
 
 ### Adding Rake Tasks outside of Rails
 

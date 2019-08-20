@@ -78,9 +78,27 @@ Feature Ideas:
 
 ### Coverband 4.2.2
 
-- ?
+- new experimental hash redis store for high volume collection
+(hundreds of clients), thanks @kbaum
+- view_tracker supports tracking view layer files like `.html.erb`
+- documentation improvements, thanks @brossetti1, @jjb, @kbaum
+- we now have discordapp for discussions, thanks @kbaum,
+https://discordapp.com/channels/609509533999562753/609509533999562756
+- perf fix on Rails initialization, thanks @skangg
+- simplified logging
 
 # Released
+
+### Coverband 4.2.2
+
+- new experimental hash redis store for high volume collection
+(hundreds of clients), thanks @kbaum
+- view_tracker supports tracking view layer files like `.html.erb`
+- documentation improvements, thanks @brossetti1, @jjb, @kbaum
+- we now have discordapp for discussions, thanks @kbaum,
+https://discordapp.com/channels/609509533999562753/609509533999562756
+- perf fix on Rails initialization, thanks @skangg
+- simplified logging
 
 ### Coverband 4.2.1
 

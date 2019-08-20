@@ -13,7 +13,7 @@
       <%= display_nav(show_coverage_link: true) %>
       <div id="content">
         <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
-        <h2>Unused Views:</h2>
+        <h2>Unused Views: (<%= tracker.unused_views.length %>)</h2>
         <p>These views have never been rendered</p>
         <ul>
         <% tracker.unused_views.each do |view_file| %>
@@ -21,7 +21,7 @@
         <% end %>
         </ul>
 
-        <h2>Used Views:</h2>
+        <h2>Used Views: (<%= tracker.used_views.length %>)</h2>
         <p>These views have been rendered at least once</p>
         <ul>
         <% tracker.used_views.each do |view_file| %>
