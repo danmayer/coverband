@@ -84,6 +84,10 @@ module Coverband
         @redis
       end
 
+      def size
+        @redis.get(base_key).bytesize
+      end
+
       private
 
       def add_coverage_for_file(key, hash)
