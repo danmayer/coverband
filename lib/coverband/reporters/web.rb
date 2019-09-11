@@ -34,6 +34,10 @@ module Coverband
 
         if request.post?
           case request.path_info
+          when %r{\/clear_view_tracking_file}
+            clear_view_tracking_file
+          when %r{\/clear_view_tracking}
+            clear_view_tracking
           when %r{\/clear_file}
             clear_file
           when %r{\/clear}
@@ -76,7 +80,11 @@ module Coverband
       end
 
       def view_tracker
-        Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_view_tracker!
+        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params['notice'])}<br/>"
+        notice = request.params['notice'] ? notice : ''
+        Coverband::Utils::HTMLFormatter.new(nil,
+                                            notice: notice,
+                                            base_path: base_path).format_view_tracker!
       end
 
       def debug_data
@@ -110,6 +118,29 @@ module Coverband
           notice = 'web_enable_clear isnt enabled in your configuration'
         end
         [301, { 'Location' => "#{base_path}?notice=#{notice}" }, []]
+      end
+
+      def clear_view_tracking
+        if Coverband.configuration.web_enable_clear
+          tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store)
+          tracker.reset_recordings
+          notice = 'view tracking reset'
+        else
+          notice = 'web_enable_clear isnt enabled in your configuration'
+        end
+        [301, { 'Location' => "#{base_path}/view_tracker?notice=#{notice}" }, []]
+      end
+
+      def clear_view_tracking_file
+        if Coverband.configuration.web_enable_clear
+          tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store)
+          filename = request.params['filename']
+          tracker.clear_file!(filename)
+          notice = "coverage for file #{filename} cleared"
+        else
+          notice = 'web_enable_clear isnt enabled in your configuration'
+        end
+        [301, { 'Location' => "#{base_path}/view_tracker?notice=#{notice}" }, []]
       end
 
       private

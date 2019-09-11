@@ -13,8 +13,13 @@
       <%= display_nav(show_coverage_link: true) %>
       <div id="content">
         <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
+        <h3>
+          <% if Coverband.configuration.web_enable_clear %>
+            <%= button("#{base_path}clear_view_tracking", 'reset view tracker', delete: true) %>
+          <% end %>
+        </h3>
         <h2>Unused Views: (<%= tracker.unused_views.length %>)</h2>
-        <p>These views have never been rendered</p>
+        <p>These views have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>
         <% tracker.unused_views.each do |view_file| %>
           <li><%= view_file %></li>
@@ -24,8 +29,14 @@
         <h2>Used Views: (<%= tracker.used_views.length %>)</h2>
         <p>These views have been rendered at least once</p>
         <ul>
-        <% tracker.used_views.each do |view_file| %>
-          <li><%= view_file %></li>
+        <% tracker.used_views.each_pair do |view_file, time_at| %>
+          <li>
+            <%= view_file %>
+            <span class="last_seen_at">last activity recorded <%= Time.at(time_at.to_i)%></span>
+            <% if Coverband.configuration.web_enable_clear %>
+              <%= button("#{base_path}clear_view_tracking_file?filename=#{view_file}", 'reset tracked file', delete: true) %>
+            <% end %>
+          </li>
         <% end %>
         </ul>
       </div>

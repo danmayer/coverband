@@ -784,6 +784,10 @@ td {
   display: inline-block;
 }
 
+.last_seen_at {
+  font-size: 8px;
+}
+
 .notice {
   color: #856404;
   background-color: #fff3cd;
