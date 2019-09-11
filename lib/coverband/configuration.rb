@@ -109,6 +109,11 @@ module Coverband
     def store=(store)
       raise 'Pass in an instance of Coverband::Adapters' unless store.is_a?(Coverband::Adapters::Base)
 
+      # Default to 5 minutes if using the hash redis store
+      # This is a safer default for the high server volumes that need the hash store
+      # it should avoid overloading the redis with lots of load
+      @background_reporting_sleep_seconds = 300 if store.is_a?(Coverband::Adapters::HashRedisStore)
+
       @store = store
     end
 
