@@ -7,7 +7,8 @@ module Coverband
     ###
     # This class tracks view file usage via ActiveSupport::Notifications
     #
-    # This is a port of Flatfoot, a project I open sourced years ago, but am now rolling into Coverband
+    # This is a port of Flatfoot, a project I open sourced years ago,
+    # but am now rolling into Coverband
     # https://github.com/livingsocial/flatfoot
     #
     # TODO: test and ensure slim, haml, and other support
@@ -31,6 +32,7 @@ module Coverband
 
         @logged_views = []
         @views_to_record = []
+        redis_store.set(tracker_time_key, Time.now.to_i) unless redis_store.exists(tracker_time_key)
       end
 
       ###
@@ -59,26 +61,43 @@ module Coverband
       end
 
       def used_views
-        views = redis_store.smembers(tracker_key)
-        normalized_views = []
-        views.each do |view|
+        views = redis_store.hgetall(tracker_key)
+        normalized_views = {}
+        views.each_pair do |view, time|
           roots.each do |root|
             view = view.gsub(/#{root}/, '')
           end
-          normalized_views << view
+          normalized_views[view] = time
         end
         normalized_views
       end
 
       def unused_views
-        recently_used_views = used_views
+        recently_used_views = used_views.keys
         all_views = target.reject { |view| recently_used_views.include?(view) }
         # since layouts don't include format we count them used if they match with ANY formats
         all_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
       end
 
+      def tracking_since
+        if (tracking_time = redis_store.get(tracker_time_key))
+          Time.at(tracking_time.to_i).iso8601
+        else
+          'N/A'
+        end
+      end
+
       def reset_recordings
         redis_store.del(tracker_key)
+        redis_store.del(tracker_time_key)
+      end
+
+      def clear_file!(filename)
+        return unless filename
+
+        filename = "#{@project_directory}/#{filename}"
+        redis_store.hdel(tracker_key, filename)
+        logged_views.delete(filename)
       end
 
       def self.supported_version?
@@ -86,8 +105,9 @@ module Coverband
       end
 
       def report_views_tracked
+        reported_time = Time.now.to_i
         views_to_record.each do |file|
-          redis_store.sadd(tracker_key, file)
+          redis_store.hset(tracker_key, file, reported_time)
         end
         self.views_to_record = []
       rescue StandardError => e
@@ -117,7 +137,11 @@ module Coverband
       end
 
       def tracker_key
-        'render_tracker'
+        'render_tracker_2'
+      end
+
+      def tracker_time_key
+        'render_tracker_time'
       end
     end
   end

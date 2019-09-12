@@ -2,16 +2,20 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 
 class ReporterTest < Minitest::Test
 
+  def tracker_key
+    'render_tracker_2'
+  end
+
   def setup
     super
-    fake_store.raw_store.del('render_tracker')
+    fake_store.raw_store.del(tracker_key)
   end
 
   test "init correctly" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
-    tracker = Coverband::Collectors::ViewTracker.new(:store => "store", :roots => 'dir')
+    tracker = Coverband::Collectors::ViewTracker.new(:store => fake_store, :roots => 'dir')
     assert_equal 'dir', tracker.roots.first
-    assert_equal 'store', tracker.store
+    assert tracker.store != nil
     assert_equal [], tracker.target
     assert_equal [], tracker.logged_views
   end
@@ -20,7 +24,7 @@ class ReporterTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
-    store.raw_store.expects(:sadd).with('render_tracker', file_path)
+    store.raw_store.expects(:hset).with(tracker_key, file_path, anything)
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:identifier => file_path})
     tracker.report_views_tracked
@@ -31,7 +35,7 @@ class ReporterTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/layout"
-    store.raw_store.expects(:sadd).with('render_tracker', file_path)
+    store.raw_store.expects(:hset).with(tracker_key, file_path, anything)
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:layout => file_path})
     tracker.report_views_tracked
@@ -45,7 +49,7 @@ class ReporterTest < Minitest::Test
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:identifier => file_path})
     tracker.report_views_tracked
-    assert_equal [file_path], tracker.used_views
+    assert_equal [file_path], tracker.used_views.keys
   end
 
   test "report unused partials" do
@@ -62,10 +66,22 @@ class ReporterTest < Minitest::Test
   test "reset store" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
-    store.raw_store.expects(:del).with('render_tracker')
+    store.raw_store.expects(:del).with(tracker_key)
+    store.raw_store.expects(:del).with('render_tracker_time')
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
     tracker.track_views('name', 'start', 'finish', 'id', {:identifier => 'file'})
     tracker.reset_recordings
+  end
+
+  test "clear_file" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
+    store.raw_store.expects(:hdel).with(tracker_key, file_path)
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
+    tracker.track_views('name', 'start', 'finish', 'id', {:identifier => file_path})
+    tracker.clear_file!('file')
+    assert_equal [], tracker.logged_views
   end
 
   protected

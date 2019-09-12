@@ -30,7 +30,7 @@ end
 desc 'load irb with this gem'
 task :console do
   puts 'running console'
-  exec 'bundle exec console'
+  exec 'bundle console'
 end
 
 # This is really just for testing and development because without configuration
