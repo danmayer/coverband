@@ -32,6 +32,7 @@ module Coverband
 
         @logged_views = []
         @views_to_record = []
+        redis_store.set(tracker_time_key, Time.now.to_i) unless redis_store.exists(tracker_time_key)
       end
 
       ###
@@ -104,8 +105,6 @@ module Coverband
       end
 
       def report_views_tracked
-        # TODO: move to initializer
-        redis_store.set(tracker_time_key, Time.now.to_i) unless redis_store.exists(tracker_time_key)
         reported_time = Time.now.to_i
         views_to_record.each do |file|
           redis_store.hset(tracker_key, file, reported_time)

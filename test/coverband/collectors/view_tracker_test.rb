@@ -13,9 +13,9 @@ class ReporterTest < Minitest::Test
 
   test "init correctly" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
-    tracker = Coverband::Collectors::ViewTracker.new(:store => "store", :roots => 'dir')
+    tracker = Coverband::Collectors::ViewTracker.new(:store => fake_store, :roots => 'dir')
     assert_equal 'dir', tracker.roots.first
-    assert_equal 'store', tracker.store
+    assert tracker.store != nil
     assert_equal [], tracker.target
     assert_equal [], tracker.logged_views
   end
