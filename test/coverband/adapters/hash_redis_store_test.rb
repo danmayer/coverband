@@ -134,13 +134,17 @@ class HashRedisStoreTest < Minitest::Test
     @store.save_report(data)
     assert_equal 1, @store.coverage.length
     assert_equal [0, nil, 1, 2], @store.coverage['./dog.rb']['data']
+    # eager_loading doesn't set last_updated_at
+    assert_nil @store.coverage['./dog.rb']['last_updated_at']
     @store.type = Coverband::RUNTIME_TYPE
     data = {
       'app_path/cat.rb' => [1, 2, 0, 1, 5]
     }
+    current_time = Time.now.to_i
     @store.save_report(data)
     assert_equal 1, @store.coverage.length
     assert_equal [1, 2, 0, 1, 5], @store.coverage['./cat.rb']['data']
+    assert current_time <= @store.coverage['./cat.rb']['last_updated_at']
   end
 
   def test_coverage_type
