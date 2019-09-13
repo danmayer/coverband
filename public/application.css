@@ -687,6 +687,10 @@ a.src_link {
   background: url("./magnify.png") no-repeat left 50%;
   padding-left: 18px; }
 
+.red a.src_link {
+    color: #990000;
+   }
+
 tr, td {
   margin: 0;
   padding: 0; }

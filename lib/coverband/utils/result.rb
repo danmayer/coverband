@@ -55,11 +55,16 @@ module Coverband
       # the line-by-line coverage to zero (if relevant) or nil (comments / whitespace etc).
       def self.add_not_loaded_files(result, tracked_files)
         if tracked_files
+          # TODO: Can we get rid of this dup it wastes memory
           result = result.dup
           Dir[tracked_files].each do |file|
             absolute = File.expand_path(file)
 
-            result[absolute] ||= Coverband::Utils::LinesClassifier.new.classify(File.foreach(absolute))
+            puts "hit #{absolute} "*60 if result[absolute].nil?
+            result[absolute] ||= {
+              'data' => Array.new(File.foreach(absolute).to_a.length) { 0 },
+              'never_loaded' => true
+            }
           end
         end
 
