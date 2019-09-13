@@ -62,6 +62,10 @@ describe Coverband::Utils::SourceFile do
     it 'has 80% covered_percent' do
       assert_equal 80.0, subject.covered_percent
     end
+
+    it 'working for nil last_updated_at' do
+      assert_equal "not available", subject.last_updated_at
+    end
   end
 
   describe 'simulating potential Ruby 1.9 defect -- see Issue #56' do

@@ -33,8 +33,10 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
       @store.coverage.each_pair do |key, data|
         assert_equal expected[key], data['data']
       end
+      current_time = Time.now.to_i
       @store.save_report(basic_coverage.dup)
       assert_equal [0, 2, 4], @store.coverage['app_path/dog.rb']['data']
+      assert current_time <= @store.coverage['app_path/dog.rb']['last_updated_at']
     end
 
     def test_store_coverage_by_type
@@ -46,7 +48,6 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
       @store.coverage.each_pair do |key, data|
         assert_equal expected[key], data['data']
       end
-
       @store.type = Coverband::RUNTIME_TYPE
       assert_equal [], @store.coverage.keys
     end
@@ -56,9 +57,13 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
       assert_equal Coverband::RUNTIME_TYPE, @store.type
       @store.type = :eager_loading
       @store.save_report('app_path/dog.rb' => [0, 1, 1])
+      # eager_loading doesn't set last_updated_at
+      assert_nil @store.coverage['app_path/dog.rb']['last_updated_at']
       @store.type = Coverband::RUNTIME_TYPE
+      current_time = Time.now.to_i
       @store.save_report('app_path/dog.rb' => [1, 0, 1])
       assert_equal [1, 1, 2], @store.get_coverage_report[:merged]['app_path/dog.rb']['data']
+      assert current_time <= @store.coverage['app_path/dog.rb']['last_updated_at']
       assert_equal Coverband::RUNTIME_TYPE, @store.type
     end
 
