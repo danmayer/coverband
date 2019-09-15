@@ -59,10 +59,8 @@ module Coverband
           result = result.dup
           Dir[tracked_files].each do |file|
             absolute = File.expand_path(file)
-
-            puts "hit #{absolute} "*60 if result[absolute].nil?
             result[absolute] ||= {
-              'data' => Array.new(File.foreach(absolute).to_a.length) { 0 },
+              'data' => Array.new(File.foreach(absolute).count) { 0 },
               'never_loaded' => true
             }
           end
