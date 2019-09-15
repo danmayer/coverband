@@ -15,6 +15,13 @@
       <% if Coverband.configuration.web_enable_clear %>
         <%= button("#{base_path}clear_file?filename=#{source_file.relative_path}", 'clear file coverage') %> &nbsp;
       <% end %>
+
+      <% if source_file.never_loaded %>
+        <br/>
+        <span class="red">
+          <strong>This file was never loaded during app runtime or loading!</strong>
+        </span>
+      <% end %>
     </h4>
     <div>
       <b><%= source_file.lines_of_code %></b> relevant lines.

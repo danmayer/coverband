@@ -36,6 +36,19 @@ class ReportHTMLTest < Minitest::Test
     assert_match 'app/models/user.rb', html
   end
 
+  test 'files with no Coverage but in project details page list warning' do
+    @store.send(:save_report, basic_coverage_full_path)
+
+    filename = basic_coverage_file_full_path
+    base_path = Dir.pwd
+    # in project, but not in coverage data
+    html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+                                                filename: "#{Dir.pwd}/test/fixtures/app/models/user.rb",
+                                                base_path: base_path,
+                                                open_report: false).file_details
+    assert_match 'This file was never loaded', html
+  end
+
   test 'generate static HTML report file' do
     @store.send(:save_report, basic_coverage)
 

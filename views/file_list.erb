@@ -35,7 +35,8 @@
     <tbody>
       <% source_files.each do |source_file| %>
         <tr>
-          <td class="strong">
+          <% source_class = source_file.never_loaded ? 'strong red' : 'strong'%>
+          <td class="<%= source_class %>">
             <%= link_to_source_file(source_file) %>
           </td>
           <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>

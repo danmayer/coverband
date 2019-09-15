@@ -87,6 +87,8 @@ module Coverband
       attr_reader :first_updated_at
       # the date this version of the file last saw any coverage activity
       attr_reader :last_updated_at
+      # meta data that the file was never loaded during boot or runtime
+      attr_reader :never_loaded
       NOT_AVAILABLE = 'not available'
 
       def initialize(filename, file_data)
@@ -97,6 +99,7 @@ module Coverband
           @first_updated_at = @last_updated_at = NOT_AVAILABLE
           @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
           @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
+          @never_loaded = file_data['never_loaded'] || false
         else
           # TODO: Deprecate this code path this was backwards compatability from 3-4
           @coverage = file_data
