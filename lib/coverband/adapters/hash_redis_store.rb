@@ -54,11 +54,14 @@ module Coverband
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
-        keys = report.map do |file, data|
+
+        keys = []
+        script_inputs = report.map do |file, data|
           relative_file = @relative_file_converter.convert(file)
           file_hash = file_hash(relative_file)
           key = key(relative_file, file_hash: file_hash)
-          script_input = save_report_script_input(
+          keys << key
+          save_report_script_input(
             key: key,
             file: relative_file,
             file_hash: file_hash,
@@ -66,10 +69,13 @@ module Coverband
             report_time: report_time,
             updated_time: updated_time
           )
-          @redis.evalsha(script_id, [script_input[:keys].to_json], [script_input[:args].to_json])
-          key
         end
-        @redis.sadd(files_key, keys) if keys.any?
+        script_keys = script_inputs.map { |script_input| script_input[:keys].to_json }
+        script_args = script_inputs.map { |script_input| script_input[:args].to_json }
+        @redis.pipelined do
+          @redis.evalsha(script_id, script_keys, script_args)
+          @redis.sadd(files_key, keys) if keys.any?
+        end
       end
 
       def coverage(local_type = nil)
@@ -127,32 +133,34 @@ module Coverband
 
       def hash_incr_script
         @hash_incr_script ||= @redis.script(:load, <<~LUA)
-          local args = cjson.decode(ARGV[1])
-          local line_keys = cjson.decode(KEYS[1])
-          local first_updated_at = table.remove(args, 1)
-          local last_updated_at = table.remove(args, 1)
-          local file = table.remove(args, 1)
-          local file_hash = table.remove(args, 1)
-          local ttl = math.floor(table.remove(args, 1))
-          local file_length = table.remove(args, 1)
-          local hash_key = table.remove(line_keys, 1)
-          redis.call('HMSET', hash_key, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
-          if (last_updated_at ~= cjson.null) then
-            redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at)
-          end
-          redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
-          for i, key in ipairs(line_keys) do
-            local increment = math.floor(args[i])
-            local index = math.floor(key)
-            if increment == '-1' then
-              redis.call("HSET", hash_key, key, args[i])
-            else
-              redis.call("HINCRBY", hash_key, index, increment)
+          for c, keys_as_json in ipairs(KEYS) do
+            local args = cjson.decode(ARGV[c])
+            local line_keys = cjson.decode(keys_as_json)
+            local first_updated_at = table.remove(args, 1)
+            local last_updated_at = table.remove(args, 1)
+            local file = table.remove(args, 1)
+            local file_hash = table.remove(args, 1)
+            local ttl = math.floor(table.remove(args, 1))
+            local file_length = table.remove(args, 1)
+            local hash_key = table.remove(line_keys, 1)
+            redis.call('HMSET', hash_key, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
+            if (last_updated_at ~= cjson.null) then
+              redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at)
             end
-          end
-          print('ttl = ' .. ttl)
-          if ttl ~= -1 then
-            redis.call("EXPIRE", hash_key, ttl)
+            redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
+            for i, key in ipairs(line_keys) do
+              local increment = math.floor(args[i])
+              local index = math.floor(key)
+              if increment == '-1' then
+                redis.call("HSET", hash_key, key, args[i])
+              else
+                redis.call("HINCRBY", hash_key, index, increment)
+              end
+            end
+            print('ttl = ' .. ttl)
+            if ttl ~= -1 then
+              redis.call("EXPIRE", hash_key, ttl)
+            end
           end
           return true;
         LUA
