@@ -102,7 +102,8 @@ module Coverband
 
         data = coverage_data_from_redis(data_from_redis)
         hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!('data' => data)
-        hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].blank? ? nil : hash[file][LAST_UPDATED_KEY].to_i
+        last_updated_at = hash[file][LAST_UPDATED_KEY]
+        hash[file][LAST_UPDATED_KEY] = last_updated_at.blank? ? nil : last_updated_at.to_i
         hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY], FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
       end
 
@@ -135,7 +136,10 @@ module Coverband
           local ttl = math.floor(table.remove(args, 1))
           local file_length = table.remove(args, 1)
           local hash_key = table.remove(line_keys, 1)
-          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
+          redis.call('HMSET', hash_key, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
+          if (last_updated_at ~= cjson.null) then
+            redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at)
+          end
           redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
           for i, key in ipairs(line_keys) do
             local increment = math.floor(args[i])
