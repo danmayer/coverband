@@ -54,24 +54,22 @@ module Coverband
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
-        @redis.pipelined do
-          keys = report.map do |file, data|
-            relative_file = @relative_file_converter.convert(file)
-            file_hash = file_hash(relative_file)
-            key = key(relative_file, file_hash: file_hash)
-            script_input = save_report_script_input(
-              key: key,
-              file: relative_file,
-              file_hash: file_hash,
-              data: data,
-              report_time: report_time,
-              updated_time: updated_time
-            )
-            @redis.evalsha(script_id, script_input[:keys], script_input[:args])
-            key
-          end
-          @redis.sadd(files_key, keys) if keys.any?
+        keys = report.map do |file, data|
+          relative_file = @relative_file_converter.convert(file)
+          file_hash = file_hash(relative_file)
+          key = key(relative_file, file_hash: file_hash)
+          script_input = save_report_script_input(
+            key: key,
+            file: relative_file,
+            file_hash: file_hash,
+            data: data,
+            report_time: report_time,
+            updated_time: updated_time
+          )
+          @redis.evalsha(script_id, [script_input[:keys].to_json], [script_input[:args].to_json])
+          key
         end
+        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil)
@@ -128,25 +126,31 @@ module Coverband
 
       def hash_incr_script
         @hash_incr_script ||= @redis.script(:load, <<~LUA)
-          local first_updated_at = table.remove(ARGV, 1)
-          local last_updated_at = table.remove(ARGV, 1)
-          local file = table.remove(ARGV, 1)
-          local file_hash = table.remove(ARGV, 1)
-          local ttl = table.remove(ARGV, 1)
-          local file_length = table.remove(ARGV, 1)
-          local hash_key = table.remove(KEYS, 1)
-          redis.call('HMSET', hash_key, '#{LAST_UPDATED_KEY}', last_updated_at, '#{FILE_KEY}', file, '#{FILE_HASH}', file_hash, '#{FILE_LENGTH_KEY}', file_length)
-          redis.call('HSETNX', hash_key, '#{FIRST_UPDATED_KEY}', first_updated_at)
-          for i, key in ipairs(KEYS) do
-            if ARGV[i] == '-1' then
-              redis.call("HSET", hash_key, key, ARGV[i])
+          local args = cjson.decode(ARGV[1])
+          local line_keys = cjson.decode(KEYS[1])
+          local first_updated_at = table.remove(args, 1)
+          local last_updated_at = table.remove(args, 1)
+          local file = table.remove(args, 1)
+          local file_hash = table.remove(args, 1)
+          local ttl = math.floor(table.remove(args, 1))
+          local file_length = table.remove(args, 1)
+          local hash_key = table.remove(line_keys, 1)
+          redis.call('HMSET', hash_key, 'last_updated_at', last_updated_at, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
+          redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
+          for i, key in ipairs(line_keys) do
+            local increment = math.floor(args[i])
+            local index = math.floor(key)
+            if increment == '-1' then
+              redis.call("HSET", hash_key, key, args[i])
             else
-              redis.call("HINCRBY", hash_key, key, ARGV[i])
+              redis.call("HINCRBY", hash_key, index, increment)
             end
           end
-          if ttl ~= '-1' then
+          print('ttl = ' .. ttl)
+          if ttl ~= -1 then
             redis.call("EXPIRE", hash_key, ttl)
           end
+          return true;
         LUA
       end
 

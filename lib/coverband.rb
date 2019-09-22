@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'json'
+require 'msgpack'
 require 'redis'
 require 'coverband/version'
 require 'coverband/at_exit'
