@@ -127,27 +127,13 @@ module Coverband
       end
 
       def hash_incr_script
-        @hash_incr_script ||= @redis.script(:load, <<~LUA)
-          local first_updated_at = table.remove(ARGV, 1)
-          local last_updated_at = table.remove(ARGV, 1)
-          local file = table.remove(ARGV, 1)
-          local file_hash = table.remove(ARGV, 1)
-          local ttl = table.remove(ARGV, 1)
-          local file_length = table.remove(ARGV, 1)
-          local hash_key = table.remove(KEYS, 1)
-          redis.call('HMSET', hash_key, '#{LAST_UPDATED_KEY}', last_updated_at, '#{FILE_KEY}', file, '#{FILE_HASH}', file_hash, '#{FILE_LENGTH_KEY}', file_length)
-          redis.call('HSETNX', hash_key, '#{FIRST_UPDATED_KEY}', first_updated_at)
-          for i, key in ipairs(KEYS) do
-            if ARGV[i] == '-1' then
-              redis.call("HSET", hash_key, key, ARGV[i])
-            else
-              redis.call("HINCRBY", hash_key, key, ARGV[i])
-            end
-          end
-          if ttl ~= '-1' then
-            redis.call("EXPIRE", hash_key, ttl)
-          end
-        LUA
+        @hash_incr_script ||= @redis.script(:load, lua_script_content)
+      end
+
+      def lua_script_content
+        File.read(File.join(
+                    File.dirname(__FILE__), '../../../lua/lib/persist-coverage.lua'
+                  ))
       end
 
       def values_from_redis(local_type, files)
