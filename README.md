@@ -172,6 +172,18 @@ Coverband.configure do |config|
 end
 ```
 
+### Working with environment variables
+
+Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE coverband is required. 
+
+For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#note-on-load-order
+
+```
+gem 'dotenv-rails', require: 'dotenv/rails-now'
+gem 'coverband'
+gem 'other-gem-that-requires-env-variables'
+```
+
 ### Ignoring Files
 
 Sometimes you have files that are known to be valuable perhaps in other environments or something that is just run very infrequently. Opposed to having to mentally filter them out of the report, you can just have them ignored in the Coverband reporting by using `config.ignore` as shown below. Ignore takes a string but can also match with regex rules see how below ignores all rake tasks as an example.
