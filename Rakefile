@@ -39,3 +39,8 @@ desc 'start webserver'
 task :server do
   exec 'rackup -I lib'
 end
+
+desc 'publish gem with 2 factor auth, reminder how'
+task :publish_gem do
+  exec 'gem push pkg/coverband-4.2.3.XXX.gem'
+end

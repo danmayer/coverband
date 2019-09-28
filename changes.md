@@ -89,6 +89,19 @@ https://discordapp.com/channels/609509533999562753/609509533999562756
 
 # Released
 
+### Coverband 4.2.3
+
+- readme fixes
+- improved defaults for the next redis hash adapter
+- add tooltips
+- improved messaging around non-loaded files
+- fix on last updated nil issue
+- view tracker improvements
+   - clear all
+   - reset individual file
+   - timestamps on last seen activity
+
+
 ### Coverband 4.2.2
 
 - new experimental hash redis store for high volume collection
