@@ -40,7 +40,7 @@ module Coverband
       end
 
       def size_in_mib
-        format('%.2f', (size.to_f / 2**20))
+        format('%<size>.2f', size: (size.to_f / 2**20))
       end
 
       def save_report(_report)
