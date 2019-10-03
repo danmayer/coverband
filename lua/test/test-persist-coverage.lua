@@ -2,9 +2,16 @@ local call_redis_script = require "./lua/test/harness";
 
 describe("incr-and-stor", function()
 
-  -- Flush the database before running the tests
+  function clean_redis() 
+    redis.call('DEL', 'coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd')
+  end
+
   before_each(function()
-    redis.call('FLUSHDB')
+    clean_redis()
+  end)
+
+  after_each(function()
+    clean_redis()
   end)
 
   it("should add single items", function()
