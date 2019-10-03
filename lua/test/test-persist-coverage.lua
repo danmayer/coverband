@@ -4,7 +4,11 @@ describe("incr-and-stor", function()
 
   -- Flush the database before running the tests
   before_each(function()
-    redis.call('FLUSHDB')
+    redis.call('DEL', 'coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd')
+  end)
+
+  after_each(function()
+    redis.call('DEL', 'coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd')
   end)
 
   it("should add single items", function()
