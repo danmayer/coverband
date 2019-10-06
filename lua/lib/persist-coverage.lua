@@ -1,5 +1,14 @@
-local hash_values = redis.call('HGETALL', KEYS[1])
-function remove(key)
+local function hgetall(hash_key)
+  local flat_map = redis.call('HGETALL', hash_key)
+  local result = {}
+  for i = 1, #flat_map, 2 do
+    result[flat_map[i]] = flat_map[i + 1]
+  end
+  return result
+end
+
+local hash_values =  hgetall(KEYS[1])
+local function remove(key)
   local val = hash_values[key]
   hash_values[key] = nil
   return val

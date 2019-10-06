@@ -1,8 +1,18 @@
 local call_redis_script = require "./lua/test/harness";
 
 describe("incr-and-stor", function()
+  local function hgetall(hash_key)
+    local flat_map = redis.call('HGETALL', hash_key)
+    local result = {}
+    for i = 1, #flat_map, 2 do
+      result[flat_map[i]] = flat_map[i + 1]
+    end
+    return result
+  end
 
-  function clean_redis() 
+
+
+  local function clean_redis() 
     redis.call('DEL', 'coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd')
   end
 
@@ -36,7 +46,7 @@ describe("incr-and-stor", function()
 
 
     call_redis_script('persist-coverage.lua',  { key },  {});
-    local results = redis.call('HGETALL', "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
+    local results = hgetall("coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
     assert.are.same({
       ["0"] = "0",
       ["1"] = "1",
@@ -64,7 +74,7 @@ describe("incr-and-stor", function()
     2, 1)
 
     call_redis_script('persist-coverage.lua',  { key },  {} );
-    results = redis.call('HGETALL', "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
+    results = hgetall("coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
     assert.are.same({
       ["0"] = "1",
       ["1"] = "2",

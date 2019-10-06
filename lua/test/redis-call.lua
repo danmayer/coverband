@@ -36,6 +36,14 @@ redis.call = function(cmd, ...)
       end
 
       return result;
+    end,
+    hgetall = function()
+      local new_result = {}
+      for key, value in pairs(result) do
+        table.insert(new_result, key)
+        table.insert(new_result, value)
+      end
+      return new_result
     end
   }
 
