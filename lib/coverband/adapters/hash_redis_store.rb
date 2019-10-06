@@ -56,26 +56,25 @@ module Coverband
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
-        @redis.pipelined do
-          keys = report.map do |file, data|
-            relative_file = @relative_file_converter.convert(file)
-            file_hash = file_hash(relative_file)
-            key = key(relative_file, file_hash: file_hash)
-            script_input = script_input(
-              key: key,
-              file: relative_file,
-              file_hash: file_hash,
-              data: data,
-              report_time: report_time,
-              updated_time: updated_time
-            )
-            arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-            @redis.hmset(arguments_key, *script_input)
-            @redis.evalsha(script_id, [arguments_key])
-            key
-          end
-          @redis.sadd(files_key, keys) if keys.any?
-        end
+        keys = []
+        json = report.map do |file, data|
+          relative_file = @relative_file_converter.convert(file)
+          file_hash = file_hash(relative_file)
+          key = key(relative_file, file_hash: file_hash)
+          keys << key
+          script_input(
+            key: key,
+            file: relative_file,
+            file_hash: file_hash,
+            data: data,
+            report_time: report_time,
+            updated_time: updated_time
+          )
+        end.to_json
+        arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
+        @redis.set(arguments_key, json)
+        @redis.evalsha(script_id, [arguments_key])
+        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil)

@@ -13,7 +13,7 @@ describe("incr-and-stor", function()
 
 
   local function clean_redis() 
-    redis.call('DEL', 'coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd')
+    redis.call('flushdb')
   end
 
   before_each(function()
@@ -24,22 +24,37 @@ describe("incr-and-stor", function()
     clean_redis()
   end)
 
-  it("should add single items", function()
+  it("Adds data on multiple files", function()
     local first_updated_at = "1569453853"
     local last_updated_at = first_updated_at
 
     local key = 'hash_key'
     local json = cjson.encode({
-      hash_key = "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
-      first_updated_at = first_updated_at, 
-      last_updated_at = last_updated_at, 
-      file = "./dog.rb",
-      file_hash = 'abcd', 
-      ttl = '-1', 
-      file_length = 3, 
-      ['0'] = 0, 
-      ['1'] = 1, 
-      ['2'] = 2
+      {
+        hash_key = "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
+        first_updated_at = first_updated_at, 
+        last_updated_at = last_updated_at, 
+        file = "./dog.rb",
+        file_hash = 'abcd', 
+        ttl = -1, 
+        file_length = 3, 
+        ['0'] = 0, 
+        ['1'] = 1, 
+        ['2'] = 2
+      },
+
+      {
+        hash_key = "coverband_hash_3_3.coverband_test.runtime../fish.rb.1234",
+        first_updated_at = first_updated_at, 
+        last_updated_at = last_updated_at, 
+        file = "./fish.rb",
+        file_hash = '1234', 
+        ttl = -1, 
+        file_length = 3, 
+        ['0'] = 1, 
+        ['1'] = 0, 
+        ['2'] = 1 
+      }
     });
     redis.call( 'set', key, json)
 
@@ -55,22 +70,36 @@ describe("incr-and-stor", function()
       first_updated_at = first_updated_at ,
       last_updated_at = last_updated_at
     }, results)
+
+    results = hgetall("coverband_hash_3_3.coverband_test.runtime../fish.rb.1234")
+    assert.are.same({
+      ["0"] = "1",
+      ["1"] = "0",
+      ["2"] = "1",
+      file = "./fish.rb",
+      file_hash = "1234",
+      file_length = "3",
+      first_updated_at = first_updated_at ,
+      last_updated_at = last_updated_at
+    }, results)
+
+
     
     assert.is_false(false, redis.call('exists', key))
 
     last_updated_at = "1569453953"
-    json = cjson.encode({
+    json = cjson.encode({{
       hash_key="coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
       first_updated_at=first_updated_at, 
       last_updated_at=last_updated_at, 
       file="./dog.rb", 
       file_hash='abcd', 
-      ttl='-1', 
+      ttl=-1, 
       file_length=3, 
       ['0']= 1, 
       ['1']= 1, 
       ['2']= 1
-    })
+    }})
     redis.call( 'set', key, json )
 
     call_redis_script('persist-coverage.lua',  { key },  {} );
