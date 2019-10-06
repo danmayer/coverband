@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'securerandom'
+
 module Coverband
   module Adapters
     class HashRedisStore < Base
@@ -59,7 +61,7 @@ module Coverband
             relative_file = @relative_file_converter.convert(file)
             file_hash = file_hash(relative_file)
             key = key(relative_file, file_hash: file_hash)
-            script_input = save_report_script_input(
+            script_input = script_input(
               key: key,
               file: relative_file,
               file_hash: file_hash,
@@ -67,7 +69,9 @@ module Coverband
               report_time: report_time,
               updated_time: updated_time
             )
-            @redis.evalsha(script_id, script_input[:keys], script_input[:args])
+            arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
+            @redis.hmset(arguments_key, *script_input)
+            @redis.evalsha(script_id, [arguments_key])
             key
           end
           @redis.sadd(files_key, keys) if keys.any?
@@ -116,13 +120,18 @@ module Coverband
         end
       end
 
-      def save_report_script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
+      def script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
         data.each_with_index
-            .each_with_object(keys: [key], args: [report_time, updated_time, file, file_hash, @ttl, data.length]) do |(coverage, index), hash|
-          if coverage
-            hash[:keys] << index
-            hash[:args] << coverage
-          end
+            .each_with_object(
+              first_updated_at: report_time,
+              last_updated_at: updated_time,
+              file: file,
+              file_hash: file_hash,
+              ttl: @ttl,
+              file_length: data.length,
+              hash_key: key
+            ) do |(coverage, index), hash|
+          hash[index] = coverage if coverage
         end
       end
 
