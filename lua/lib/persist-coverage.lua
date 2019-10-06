@@ -7,7 +7,7 @@ local function hgetall(hash_key)
   return result
 end
 
-local hash_values =  hgetall(KEYS[1])
+local hash_values =  cjson.decode(redis.call('get', (KEYS[1])))
 local function remove(key)
   local val = hash_values[key]
   hash_values[key] = nil

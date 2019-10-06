@@ -29,21 +29,19 @@ describe("incr-and-stor", function()
     local last_updated_at = first_updated_at
 
     local key = 'hash_key'
-    redis.call( 'hmset', key, 
-    'hash_key', "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
-    'first_updated_at', 
-    first_updated_at, 
-    'last_updated_at', 
-    last_updated_at, 
-    'file', "./dog.rb", 
-    'file_hash', 'abcd', 
-    'ttl', '-1', 
-    'file_length', 3, 
-    0, 0, 
-    1, 1, 
-    2, 2)
-
-
+    local json = cjson.encode({
+      hash_key = "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
+      first_updated_at = first_updated_at, 
+      last_updated_at = last_updated_at, 
+      file = "./dog.rb",
+      file_hash = 'abcd', 
+      ttl = '-1', 
+      file_length = 3, 
+      ['0'] = 0, 
+      ['1'] = 1, 
+      ['2'] = 2
+    });
+    redis.call( 'set', key, json)
 
     call_redis_script('persist-coverage.lua',  { key },  {});
     local results = hgetall("coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
@@ -61,17 +59,19 @@ describe("incr-and-stor", function()
     assert.is_false(false, redis.call('exists', key))
 
     last_updated_at = "1569453953"
-    redis.call( 'hmset', key, 
-    'hash_key', "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
-    'first_updated_at', first_updated_at, 
-    'last_updated_at', last_updated_at, 
-    'file', "./dog.rb", 
-    'file_hash', 'abcd', 
-    'ttl', '-1', 
-    'file_length', 3, 
-    0, 1, 
-    1, 1, 
-    2, 1)
+    json = cjson.encode({
+      hash_key="coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
+      first_updated_at=first_updated_at, 
+      last_updated_at=last_updated_at, 
+      file="./dog.rb", 
+      file_hash='abcd', 
+      ttl='-1', 
+      file_length=3, 
+      ['0']= 1, 
+      ['1']= 1, 
+      ['2']= 1
+    })
+    redis.call( 'set', key, json )
 
     call_redis_script('persist-coverage.lua',  { key },  {} );
     results = hgetall("coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd")
