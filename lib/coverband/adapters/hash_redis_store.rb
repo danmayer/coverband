@@ -71,10 +71,12 @@ module Coverband
             updated_time: updated_time
           )
         end.to_json
+        return unless keys.any?
+
         arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
         @redis.set(arguments_key, json)
         @redis.evalsha(script_id, [arguments_key])
-        @redis.sadd(files_key, keys) if keys.any?
+        @redis.sadd(files_key, keys)
       end
 
       def coverage(local_type = nil)
