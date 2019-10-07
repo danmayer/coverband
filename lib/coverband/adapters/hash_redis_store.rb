@@ -57,7 +57,7 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         script_id = hash_incr_script
         keys = []
-        json = report.map do |file, data|
+        files_data = report.map do |file, data|
           relative_file = @relative_file_converter.convert(file)
           file_hash = file_hash(relative_file)
           key = key(relative_file, file_hash: file_hash)
@@ -70,7 +70,11 @@ module Coverband
             report_time: report_time,
             updated_time: updated_time
           )
-        end.to_json
+        end
+        json =  {
+          ttl: @ttl,
+          files_data: files_data
+        }.to_json
         return unless keys.any?
 
         arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
@@ -122,18 +126,22 @@ module Coverband
       end
 
       def script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
-        data.each_with_index
-            .each_with_object(
-              first_updated_at: report_time,
-              last_updated_at: updated_time,
-              file: file,
-              file_hash: file_hash,
-              ttl: @ttl,
-              file_length: data.length,
-              hash_key: key
-            ) do |(coverage, index), hash|
+        coverage_data = data.each_with_index.each_with_object({}) do |(coverage, index), hash|
           hash[index] = coverage if coverage
         end
+        meta =  {
+          first_updated_at: report_time,
+          file: file,
+          file_hash: file_hash,
+          file_length: data.length,
+          hash_key: key
+        }
+        meta.merge!(last_updated_at: updated_time) if updated_time
+        { 
+          hash_key: key,
+          meta: meta ,
+          coverage: coverage_data
+        }
       end
 
       def hash_incr_script

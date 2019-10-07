@@ -1,25 +1,25 @@
-local hash_values_array =  cjson.decode(redis.call('get', (KEYS[1])))
+local hmset = function (key, dict)
+  if next(dict) == nil then return nil end
+  local bulk = {}
+  for k, v in pairs(dict) do
+    table.insert(bulk, k)
+    table.insert(bulk, v)
+  end
+  return redis.call('HMSET', key, unpack(bulk))
+end
+local payload = cjson.decode(redis.call('get', (KEYS[1])))
+local ttl = payload.ttl
+local files_data = payload.files_data
 redis.call('DEL', KEYS[1])
-for i, hash_values in ipairs(hash_values_array) do
-  local function remove(key)
-    local val = hash_values[key]
-    hash_values[key] = nil
-    return val
-  end
-  local first_updated_at = remove('first_updated_at')
-  local last_updated_at = remove('last_updated_at')
-  local file = remove('file')
-  local file_hash = remove('file_hash')
-  local ttl = remove('ttl')
-  local file_length = remove('file_length')
-  local hash_key = remove('hash_key')
-  redis.call('HMSET', hash_key, 'file', file, 'file_hash', file_hash, 'file_length', file_length)
+for _, file_data in ipairs(files_data) do
 
-  if (last_updated_at ~= cjson.null) then
-    redis.call('HSET', hash_key, 'last_updated_at', last_updated_at)
-  end
+  local hash_key = file_data.hash_key
+  local first_updated_at = file_data.meta.first_updated_at
+  file_data.meta.first_updated_at = nil
+
+  hmset(hash_key, file_data.meta)
   redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
-  for line, coverage in pairs(hash_values) do
+  for line, coverage in pairs(file_data.coverage) do
     if coverage  == '-1' then
       redis.call("HSET", hash_key, line, coverage)
     else
