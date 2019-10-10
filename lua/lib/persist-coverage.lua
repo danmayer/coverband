@@ -20,13 +20,9 @@ for _, file_data in ipairs(files_data) do
   hmset(hash_key, file_data.meta)
   redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
   for line, coverage in pairs(file_data.coverage) do
-    if coverage  == '-1' then
-      redis.call("HSET", hash_key, line, coverage)
-    else
-      redis.call("HINCRBY", hash_key, line, coverage)
-    end
+    redis.call("HINCRBY", hash_key, line, coverage)
   end
-  if ttl > -1 then
+  if ttl and ttl ~= cjson.null then
     redis.call("EXPIRE", hash_key, ttl)
   end
 end

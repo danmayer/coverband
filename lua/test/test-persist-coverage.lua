@@ -28,7 +28,7 @@ describe("persist-coverage", function()
 
     local key = 'hash_key'
     local json = cjson.encode({
-      ttl = -1,
+      ttl = nil,
       files_data = {
         {
           hash_key = "coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
@@ -93,7 +93,7 @@ describe("persist-coverage", function()
 
     last_updated_at = "1569453953"
     json = cjson.encode({
-      ttl = -1,
+      ttl = nil,
       files_data = {
         {
           hash_key="coverband_hash_3_3.coverband_test.runtime../dog.rb.abcd",
