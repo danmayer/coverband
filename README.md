@@ -383,8 +383,9 @@ If you submit a change please make sure the tests and benchmarks are passing.
 
 ### Known Issues
 
-- **total fail** on front end code, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
+- **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
+  - **NOTE:** We now have file level coverage for view files, but don't support line level detail
 - coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library. See [reload files section](#forcing-coverband-to-track-coverage-on-files-loaded-during-boot-safe_reload_files).
 
 ### Debugging Redis Store
