@@ -15,6 +15,8 @@ module Coverband
       ###
       REDIS_STORAGE_FORMAT_VERSION = 'coverband_hash_3_3'
 
+      JSON_PAYLOAD_EXPIRATION = 5 * 60
+
       attr_reader :redis_namespace
 
       def initialize(redis, opts = {})
@@ -55,7 +57,6 @@ module Coverband
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
-        script_id = hash_incr_script
         keys = []
         files_data = report.map do |file, data|
           relative_file = @relative_file_converter.convert(file)
@@ -65,21 +66,17 @@ module Coverband
           script_input(
             key: key,
             file: relative_file,
-            file_hash: file_hash,
+            file_hash: file_hash(relative_file),
             data: data,
             report_time: report_time,
             updated_time: updated_time
           )
         end
-        json = {
-          ttl: @ttl,
-          files_data: files_data
-        }.to_json
         return unless keys.any?
 
         arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-        @redis.set(arguments_key, json)
-        @redis.evalsha(script_id, [arguments_key])
+        @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+        @redis.evalsha(hash_incr_script, [arguments_key])
         @redis.sadd(files_key, keys)
       end
 
