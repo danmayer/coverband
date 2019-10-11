@@ -15,6 +15,8 @@ module Coverband
       ###
       REDIS_STORAGE_FORMAT_VERSION = 'coverband_hash_3_3'
 
+      JSON_PAYLOAD_EXPIRATION = 5 * 60
+
       attr_reader :redis_namespace
 
       def initialize(redis, opts = {})
@@ -24,7 +26,7 @@ module Coverband
         @redis = redis
         raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
 
-        @ttl = opts[:ttl] || -1
+        @ttl = opts[:ttl]
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
       end
 
@@ -55,9 +57,8 @@ module Coverband
       def save_report(report)
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
-        script_id = hash_incr_script
         keys = []
-        json = report.map do |file, data|
+        files_data = report.map do |file, data|
           relative_file = @relative_file_converter.convert(file)
           file_hash = file_hash(relative_file)
           key = key(relative_file, file_hash: file_hash)
@@ -65,17 +66,17 @@ module Coverband
           script_input(
             key: key,
             file: relative_file,
-            file_hash: file_hash,
+            file_hash: file_hash(relative_file),
             data: data,
             report_time: report_time,
             updated_time: updated_time
           )
-        end.to_json
+        end
         return unless keys.any?
 
         arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-        @redis.set(arguments_key, json)
-        @redis.evalsha(script_id, [arguments_key])
+        @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+        @redis.evalsha(hash_incr_script, [arguments_key])
         @redis.sadd(files_key, keys)
       end
 
@@ -122,18 +123,22 @@ module Coverband
       end
 
       def script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
-        data.each_with_index
-            .each_with_object(
-              first_updated_at: report_time,
-              last_updated_at: updated_time,
-              file: file,
-              file_hash: file_hash,
-              ttl: @ttl,
-              file_length: data.length,
-              hash_key: key
-            ) do |(coverage, index), hash|
+        coverage_data = data.each_with_index.each_with_object({}) do |(coverage, index), hash|
           hash[index] = coverage if coverage
         end
+        meta = {
+          first_updated_at: report_time,
+          file: file,
+          file_hash: file_hash,
+          file_length: data.length,
+          hash_key: key
+        }
+        meta.merge!(last_updated_at: updated_time) if updated_time
+        {
+          hash_key: key,
+          meta: meta,
+          coverage: coverage_data
+        }
       end
 
       def hash_incr_script
