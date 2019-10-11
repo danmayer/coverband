@@ -1,6 +1,7 @@
 AllCops:
   TargetRubyVersion: 2.4
   Exclude:
+    - vendor/bundle/**/*
     - docs/**/*
     - test/rails4_dummy/**/*
     - test/rails5_dummy/**/*
