@@ -13,7 +13,7 @@ class FullStackTest < Minitest::Test
     Coverband.configure do |config|
       config.store = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
       config.s3_bucket = nil
-      config.background_reporting_enabled = true
+      config.background_reporting_enabled = false
       config.track_gems = true
     end
     Coverband.configuration.store.clear!
