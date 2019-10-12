@@ -1,10 +1,11 @@
 #!/bin/bash
 
 LUA_DIR="$HOME/lua51"
+BUSTED="$LUA_DIR/bin/busted"
 
-if [ -d "$LUA_DIR" ]
+if [ -f "$BUSTED" ]
 then
-  echo "$LUA_DIR already exists"
+  echo "$BUSTED already exists"
   exit 0
 fi
 
