@@ -13,8 +13,7 @@ class HashRedisStoreTest < Minitest::Test
 
   def setup
     super
-    # FIXME: There should be a centralized redis instance in test helper set to the correct db
-    @redis = Redis.new(db: Coverband::Test::TEST_DB)
+    @redis = Coverband::Test.redis
     # FIXME: remove dependency on configuration and instead pass this in as an argument
     Coverband.configure do |config|
       config.root_paths = ['app_path/']

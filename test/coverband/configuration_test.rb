@@ -12,13 +12,13 @@ class BaseTest < Minitest::Test
       config.root_paths          = ['/app_path/']
       config.ignore              = ['config/envionments']
       config.reporter            = 'std_out'
-      config.store               = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
+      config.store               = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: 'coverband_test')
     end
   end
 
   test 'ignore works with equal' do
     coverband = Coverband::Collectors::Coverage.instance.reset_instance
-    expected = ["vendor", ".erb$", ".slim$", "/tmp", "internal:prelude", "schema.rb", "config/envionments"]
+    expected = ['vendor', '.erb$', '.slim$', '/tmp', 'internal:prelude', 'schema.rb', 'config/envionments']
     assert_equal expected, Coverband.configuration.ignore
   end
 
@@ -27,14 +27,14 @@ class BaseTest < Minitest::Test
       config.ignore += ['config/initializers']
     end
     coverband = Coverband::Collectors::Coverage.instance.reset_instance
-    expected = ["vendor",
-      ".erb$",
-      ".slim$",
-      "/tmp",
-      "internal:prelude",
-      "schema.rb",
-      "config/envionments",
-      "config/initializers"]
+    expected = ['vendor',
+                '.erb$',
+                '.slim$',
+                '/tmp',
+                'internal:prelude',
+                'schema.rb',
+                'config/envionments',
+                'config/initializers']
     assert_equal expected, Coverband.configuration.ignore
   end
 

@@ -31,6 +31,11 @@ end
 module Coverband
   module Test
     TEST_DB = 2
+
+    def self.redis
+      @redis ||= Redis.new(db: TEST_DB)
+    end
+
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
@@ -41,8 +46,7 @@ module Coverband
       Coverband::Utils::AbsoluteFileConverter.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband::Background.stop
-      redis = Coverband.configuration.store.instance_variable_get(:@redis)
-      redis.select(TEST_DB)
+      Coverband.configuration.store.instance_variable_set(:@redis, redis)
       redis.flushdb
     end
 

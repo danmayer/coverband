@@ -5,9 +5,7 @@ require File.expand_path('../../test_helper', File.dirname(__FILE__))
 class HTMLFormatterTest < Minitest::Test
   def setup
     super
-    @redis = Redis.new
-    @store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
-    @store.clear!
+    @store = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: 'coverband_test')
   end
 
   test 'generate dynamic content hosted html report' do
