@@ -13,13 +13,12 @@ class HashRedisStoreTest < Minitest::Test
 
   def setup
     super
-    @redis = Redis.new
+    @redis = Coverband::Test.redis
     # FIXME: remove dependency on configuration and instead pass this in as an argument
     Coverband.configure do |config|
       config.root_paths = ['app_path/']
     end
     @store = Coverband::Adapters::HashRedisStore.new(@redis, redis_namespace: 'coverband_test', relative_file_converter: MockRelativeFileConverter)
-    @store.clear!
     Coverband.configuration.store = @store
   end
 
