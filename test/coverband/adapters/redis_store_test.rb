@@ -8,11 +8,8 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
 
     def setup
       super
-      Coverband.configuration.redis_namespace = 'coverband_test'
-      @redis = Redis.new
-      @store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
-      Coverband.configuration.store = @store
-      @store.clear!
+      @store = Coverband.configuration.store
+      @redis = @store.instance_variable_get(:@redis)
     end
 
     def test_coverage

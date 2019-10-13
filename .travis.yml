@@ -4,6 +4,10 @@ rvm:
   - "2.4"
   - "2.5"
   - "2.6.1"
+cache:
+  bundler: true
+  directories:
+  - $HOME/lua51
 gemfile:
   - Gemfile
   - Gemfile.rails4
@@ -11,7 +15,7 @@ services:
   - redis-server
 script:
   - sudo ./lua/install.sh 
-  - ./tmp/lua51/bin/busted lua/test/*
+  - $HOME/lua51/bin/busted lua/test/*
   - bundle exec rake rubocop
   - COVERBAND_HASH_REDIS_STORE=t bundle exec rake
   - COVERBAND_HASH_REDIS_STORE=t bundle exec rake forked_tests

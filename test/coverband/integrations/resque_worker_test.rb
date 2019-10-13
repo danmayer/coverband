@@ -16,7 +16,6 @@ class ResqueWorkerTest < Minitest::Test
     Coverband.configure do |config|
       config.background_reporting_enabled = false
     end
-    Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
     Coverband.start
     redis = Coverband.configuration.store.instance_eval { @redis }
     Resque.redis = redis

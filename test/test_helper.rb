@@ -30,20 +30,24 @@ end
 
 module Coverband
   module Test
+    TEST_DB = 2
+
+    def self.redis
+      @redis ||= Redis.new(db: TEST_DB)
+    end
+
     def self.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, 'coverband_test')
       Coverband.configuration.store.class.class_variable_set(:@@path_cache, {})
-      %i[eager_loading runtime].each do |type|
-        Coverband.configuration.store.type = type
-        Coverband.configuration.store.clear!
-      end
       Coverband.configuration.reset
       Coverband::Collectors::Coverage.instance.reset_instance
       Coverband::Utils::RelativeFileConverter.reset
       Coverband::Utils::AbsoluteFileConverter.reset
       Coverband.configuration.redis_namespace = 'coverband_test'
       Coverband::Background.stop
+      Coverband.configuration.store.instance_variable_set(:@redis, redis)
+      redis.flushdb
     end
 
     def setup

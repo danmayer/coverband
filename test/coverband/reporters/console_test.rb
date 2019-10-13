@@ -7,15 +7,12 @@ class HTMLReportTest < Minitest::Test
 
   def setup
     super
-    @redis = Redis.new
-    @store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: 'coverband_test')
-    @store.clear!
+    @store = Coverband.configuration.store
   end
 
   test 'report data' do
     Coverband.configure do |config|
-      config.reporter            = 'std_out'
-      config.store               = @store
+      config.reporter = 'std_out'
     end
     Coverband.configuration.logger.stubs('info')
     mock_file_hash

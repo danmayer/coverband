@@ -11,12 +11,10 @@ class FullStackTest < Minitest::Test
     super
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
-      config.store = Coverband::Adapters::RedisStore.new(Redis.new, redis_namespace: 'coverband_test')
       config.s3_bucket = nil
-      config.background_reporting_enabled = true
+      config.background_reporting_enabled = false
       config.track_gems = true
     end
-    Coverband.configuration.store.clear!
     Coverband.start
     Coverband::Collectors::Coverage.instance.eager_loading!
     @rack_file = require_unique_file 'fake_app/basic_rack.rb'
