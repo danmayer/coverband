@@ -66,7 +66,7 @@ module Coverband
           script_input(
             key: key,
             file: relative_file,
-            file_hash: file_hash(relative_file),
+            file_hash: file_hash,
             data: data,
             report_time: report_time,
             updated_time: updated_time
