@@ -7,7 +7,7 @@ module Coverband
     class HashRedisStore < Base
       FILE_KEY = 'file'
       FILE_LENGTH_KEY = 'file_length'
-      META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY].freeze
+      META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY, FILE_HASH].freeze
       ###
       # This key isn't related to the coverband version, but to the interal format
       # used to store data to redis. It is changed only when breaking changes to our
