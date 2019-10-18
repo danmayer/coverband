@@ -32,8 +32,7 @@ module Coverband
                     'db:setup',
                     'db:structure:dump',
                     'db:structure:load',
-                    'db:version'
-                  ]
+                    'db:version']
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
