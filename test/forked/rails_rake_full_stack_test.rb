@@ -45,4 +45,10 @@ class RailsRakeFullStackTest < Minitest::Test
     assert_equal empty_hash, coverage_report[:eager_loading]
     assert_equal empty_hash, coverage_report[:merged]
   end
+
+  test "doesn't exit non-zero with error on missing redis" do
+    output = `COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband_missing_redis.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile -T`
+    assert_equal 0, $?.to_i
+    assert output.match(/coverage failed to store/)
+  end
 end
