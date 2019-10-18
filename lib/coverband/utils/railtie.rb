@@ -11,15 +11,20 @@ module Coverband
 
   class Railtie < Rails::Railtie
     initializer 'coverband.configure' do |app|
-      app.middleware.use Coverband::BackgroundMiddleware
+      begin
+        app.middleware.use Coverband::BackgroundMiddleware
 
-      if Coverband.configuration.track_views
-        CoverbandViewTracker = Coverband::Collectors::ViewTracker.new
-        Coverband.configuration.view_tracker = CoverbandViewTracker
+        if Coverband.configuration.track_views
+          CoverbandViewTracker = Coverband::Collectors::ViewTracker.new
+          Coverband.configuration.view_tracker = CoverbandViewTracker
 
-        ActiveSupport::Notifications.subscribe(/render_partial.action_view|render_template.action_view/) do |name, start, finish, id, payload|
-          CoverbandViewTracker.track_views(name, start, finish, id, payload) unless name.include?('!')
+          ActiveSupport::Notifications.subscribe(/render_partial.action_view|render_template.action_view/) do |name, start, finish, id, payload|
+            CoverbandViewTracker.track_views(name, start, finish, id, payload) unless name.include?('!')
+          end
         end
+      rescue Redis::CannotConnectError => error
+        Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+        Coverband.configuration.logger.info 'If this is a setup task like assets:precompile feel free to ignore'
       end
     end
 

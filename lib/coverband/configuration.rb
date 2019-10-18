@@ -23,7 +23,17 @@ module Coverband
     IGNORE_TASKS = ['coverband:clear',
                     'coverband:coverage',
                     'coverband:coverage_server',
-                    'coverband:migrate']
+                    'coverband:migrate',
+                    'assets:precompile',
+                    'db:version',
+                    'db:create',
+                    'db:drop',
+                    'db:seed',
+                    'db:setup',
+                    'db:structure:dump',
+                    'db:structure:load',
+                    'db:version'
+                  ]
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during

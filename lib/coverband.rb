@@ -98,13 +98,18 @@ module Coverband
   private_class_method def self.coverage_instance
     Coverband::Collectors::Coverage.instance
   end
-  unless ENV['COVERBAND_DISABLE_AUTO_START']
-    # Coverband should be setup as early as possible
-    # to capture usage of things loaded by initializers or other Rails engines
-    configure
-    start
-    require 'coverband/utils/railtie' if defined? ::Rails::Railtie
-    require 'coverband/integrations/resque' if defined? ::Resque
-    require 'coverband/integrations/bundler' if defined? ::Bundler
+  unless ENV['COVERBAND_DISABLE_AUTO_START'] || tasks_to_ignore?
+    begin
+      # Coverband should be setup as early as possible
+      # to capture usage of things loaded by initializers or other Rails engines
+      configure
+      start
+      require 'coverband/utils/railtie' if defined? ::Rails::Railtie
+      require 'coverband/integrations/resque' if defined? ::Resque
+      require 'coverband/integrations/bundler' if defined? ::Bundler
+    rescue Redis::CannotConnectError => error
+      Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+      Coverband.configuration.logger.info 'If this is a setup task like assets:precompile feel free to ignore'
+    end
   end
 end
