@@ -29,9 +29,11 @@ module Coverband
     end
 
     config.after_initialize do
-      Coverband.eager_loading_coverage!
-      Coverband.report_coverage
-      Coverband.runtime_coverage!
+      unless Coverband.tasks_to_ignore?
+        Coverband.eager_loading_coverage!
+        Coverband.report_coverage
+        Coverband.runtime_coverage!
+      end
     end
 
     rake_tasks do
