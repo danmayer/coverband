@@ -79,6 +79,13 @@ module Coverband
         all_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
       end
 
+      def as_json
+        {
+          unused_views: unused_views,
+          used_views: used_views
+        }.to_json
+      end
+
       def tracking_since
         if (tracking_time = redis_store.get(tracker_time_key))
           Time.at(tracking_time.to_i).iso8601
@@ -100,10 +107,6 @@ module Coverband
         logged_views.delete(filename)
       end
 
-      def self.supported_version?
-        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split('.').first.to_i >= 4
-      end
-
       def report_views_tracked
         redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || redis_store.exists(tracker_time_key)
         @one_time_timestamp = true
@@ -116,6 +119,10 @@ module Coverband
         # we don't want to raise errors if Coverband can't reach redis.
         # This is a nice to have not a bring the system down
         logger&.error "Coverband: view_tracker failed to store, error #{e.class.name}"
+      end
+
+      def self.supported_version?
+        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split('.').first.to_i >= 4
       end
 
       protected

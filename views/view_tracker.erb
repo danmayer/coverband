@@ -14,11 +14,14 @@
       <%= display_nav(show_coverage_link: true) %>
       <div id="content">
         <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
-        <h3>
+        <h4>
           <% if Coverband.configuration.web_enable_clear %>
             <%= button("#{base_path}clear_view_tracking", 'reset view tracker', delete: true) %>
           <% end %>
-        </h3>
+          <% if Coverband.configuration.web_debug %>
+            <a href='<%= "#{base_path}view_tracker_data" %>'>view tracker data</a>
+          <% end %>
+        </h4>
         <h2>Unused Views: (<%= tracker.unused_views.length %>)</h2>
         <p>These views have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>

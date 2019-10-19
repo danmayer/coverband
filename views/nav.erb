@@ -6,7 +6,7 @@
     <%= button("#{base_path}clear", 'clear coverage report', delete: true) %>
   <% end %>
   <% if Coverband.configuration.web_debug %>
-    <a href='<%= base_path %>debug_data'>Debug Data</a> &nbsp;
+    <a href='<%= base_path %>debug_data'>Coverage Data</a> &nbsp;
   <% end %>
 </div>
 <% if notice.to_s.length > 0 %>

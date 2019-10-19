@@ -51,6 +51,8 @@ module Coverband
             @static.call(env)
           when %r{\/settings}
             [200, { 'Content-Type' => 'text/html' }, [settings]]
+          when %r{\/view_tracker_data}
+            [200, { 'Content-Type' => 'text/json' }, [view_tracker_data]]
           when %r{\/view_tracker}
             [200, { 'Content-Type' => 'text/html' }, [view_tracker]]
           when %r{\/debug_data}
@@ -85,6 +87,10 @@ module Coverband
         Coverband::Utils::HTMLFormatter.new(nil,
                                             notice: notice,
                                             base_path: base_path).format_view_tracker!
+      end
+
+      def view_tracker_data
+        Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store).as_json
       end
 
       def debug_data
