@@ -32,6 +32,8 @@ Metrics/ParameterLists:
   Max: 10
 Naming/AccessorMethodName:
   Enabled: false
+Naming/RescuedExceptionsVariableName:
+  Enabled: false
 Naming/PredicateName:
   Enabled: true
 Style/TernaryParentheses:

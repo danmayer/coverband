@@ -29,10 +29,10 @@ module Coverband
 
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
         @roots = @roots.split(',') if @roots.is_a?(String)
+        @one_time_timestamp = false
 
         @logged_views = []
         @views_to_record = []
-        redis_store.set(tracker_time_key, Time.now.to_i) unless redis_store.exists(tracker_time_key)
       end
 
       ###
@@ -105,6 +105,8 @@ module Coverband
       end
 
       def report_views_tracked
+        redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || redis_store.exists(tracker_time_key)
+        @one_time_timestamp = true
         reported_time = Time.now.to_i
         views_to_record.each do |file|
           redis_store.hset(tracker_key, file, reported_time)
