@@ -78,6 +78,13 @@ Feature Ideas:
 
 ### Coverband 4.2.4
 
+- fixes related to startup without Redis, skipping Coverband on common rake tasks (assets:precompile), etc
+- avoid calls to redis if coverage not updated
+- split out lua work and added testing around lua scripts use for the hash redis store
+- improvements to hash redis store resulting in 25% faster perf
+- avoid duplicate hash calculations
+- debug data now includes md5_hashes
+- added support to download coverage and view data in JSON format
 - documentation about working with environment variables
 
 # Released
