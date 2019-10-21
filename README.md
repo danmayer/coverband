@@ -67,7 +67,7 @@ See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 
 ## Rails
 
-The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
+The Railtie integration means you shouldn't need to do anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
 
 ## Sinatra
 
@@ -114,7 +114,7 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 - **force coverage collection:** This triggers coverage collection on the current webserver process
 - **clear coverage report:** This will clear the coverage data. This wipes out all collected data (**dangerous**)
 - View individual file details
-- **clear individual file coverage:** This will clear the details of the file you are looking at. This is helpful if you don't want to loose all Coverage data but made a change that you expect would impact a particular file.
+- **clear individual file coverage:** This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
 
 ### Rake Tasks
 
