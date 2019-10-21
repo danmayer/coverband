@@ -67,7 +67,7 @@ See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 
 ## Rails
 
-The Railtie integration means you shouldn't need to do anything anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
+The Railtie integration means you shouldn't need to do anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
 
 ## Sinatra
 
