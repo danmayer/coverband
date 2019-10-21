@@ -278,22 +278,6 @@ rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
 
-### Forcing Coverband to Track Coverage on files loaded during boot `safe_reload_files`
-
-Coverband will report code usage for anything `required` or `loaded` after calling `Coverband.start` which happens automatically when coverband is required. This means some of the files loaded before coverband such as the Rails application.rb will be reported as having no coverage.
-
-The `safe_reload_files` reload option in the configuration options can help to ensure you can track any files regardless of loading before Coverband. For example if I wanted to show the coverage of `config/coverband.rb`, which has to be loaded before calling `Coverband.start`, I could do that by adding that path to the `safe_reload_files` option.
-
-```
-Coverband.configure do |config|
-  # ... a bunch of other options
-  # using the new safe reload to enforce files loaded
-  config.safe_reload_files = ['config/coverband.rb']
-end
-```
-
-By adding any files above you will get reporting on those files as part of your coverage runtime report. The files are reloaded when Coverband first starts, you can also trigger a reload via the web interface.
-
 ### Collecting Gem / Library Usage
 
 __WARNING:__ Gem Tracking is still in experimental stages and not recommended for production. We have some performance issues when view reports on large applications. Gem tracing also during background thread data collection has HIGH memory requirements, during report merging (seemingly around 128mb of extra memory, which is crazy). We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
@@ -386,7 +370,6 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
-- coverage doesn't show for Rails `config/application.rb` or `config/boot.rb` as they get loaded when loading the Rake environment prior to starting the `Coverage` library. See [reload files section](#forcing-coverband-to-track-coverage-on-files-loaded-during-boot-safe_reload_files).
 
 ### Debugging Redis Store
 
