@@ -30,6 +30,7 @@ module Coverband
                     'db:drop',
                     'db:seed',
                     'db:setup',
+                    'db:test:prepare',
                     'db:structure:dump',
                     'db:structure:load',
                     'db:version']
