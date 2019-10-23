@@ -36,6 +36,15 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
       assert current_time <= @store.coverage['app_path/dog.rb']['last_updated_at']
     end
 
+    def test_file_hash_change
+      mock_file_hash(hash: 'abc')
+      @store.save_report('app_path/dog.rb' => [0, nil, 1, 2])
+      assert_equal [0, nil, 1, 2], @store.coverage['app_path/dog.rb']['data']
+      mock_file_hash(hash: '123')
+      $debug = true
+      assert_nil @store.coverage['app_path/dog.rb']
+    end
+
     def test_store_coverage_by_type
       mock_file_hash
       expected = basic_coverage

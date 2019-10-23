@@ -77,7 +77,9 @@ module Coverband
       def coverage(local_type = nil, opts = {})
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = redis.get type_base_key(local_type)
-        data ? JSON.parse(data) : {}
+        data = data ? JSON.parse(data) : {}
+        data.delete_if { |file_path, data| file_hash(file_path) != data['file_hash'] } unless opts[:skip_hash_check]
+        data
       end
 
       # Note: This could lead to slight race on redis
@@ -86,7 +88,7 @@ module Coverband
       # and the tradeoff has always been acceptable
       def save_report(report)
         data = report.dup
-        data = merge_reports(data, coverage)
+        data = merge_reports(data, coverage(nil, skip_hash_check: true))
         save_coverage(data)
       end
 
