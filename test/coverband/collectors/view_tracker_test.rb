@@ -32,6 +32,26 @@ class ReporterTest < Minitest::Test
     assert_equal [file_path], tracker.logged_views
   end
 
+  test 'track partials that include the word vendor in the path' do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/vendor_relations/file"
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
+    tracker.track_views('name', 'start', 'finish', 'id', identifier: file_path)
+    tracker.report_views_tracked
+    assert_equal [file_path], tracker.used_views.keys
+  end
+
+  test 'ignore partials that include the folder vendor in the path' do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/vendor/file"
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: 'dir')
+    tracker.track_views('name', 'start', 'finish', 'id', identifier: file_path)
+    tracker.report_views_tracked
+    assert_equal Hash.new, tracker.used_views
+  end
+
   test 'track layouts' do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store

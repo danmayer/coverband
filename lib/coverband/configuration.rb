@@ -38,7 +38,7 @@ module Coverband
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
     # heroku asset compilation
-    IGNORE_DEFAULTS = %w[vendor .erb$ .slim$ /tmp internal:prelude schema.rb]
+    IGNORE_DEFAULTS = %w[vendor/ .erb$ .slim$ /tmp internal:prelude schema.rb]
 
     # Add in missing files which were never loaded
     # we need to know what all paths to check for unloaded files
@@ -154,7 +154,7 @@ module Coverband
 
       # by default we ignore vendor where many deployments put gems
       # we will remove this default if track_gems is set
-      @ignore.delete('vendor')
+      @ignore.delete('vendor/')
       # while we want to allow vendored gems we don't want to track vendored ruby STDLIB
       @ignore << 'vendor/ruby-*' unless @ignore.include?('vendor/ruby-*')
       add_group('App', root)
