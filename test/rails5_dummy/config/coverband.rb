@@ -3,7 +3,7 @@
 Coverband.configure do |config|
   config.root              = Dir.pwd
   config.store             = Coverband::Adapters::RedisStore.new(Redis.new(db: 2, url: ENV['REDIS_URL']), redis_namespace: 'coverband_test') if defined? Redis
-  config.ignore            = %w[vendor .erb$ .slim$]
+  config.ignore            = %w[.erb$ .slim$]
   config.root_paths        = []
   config.logger            = Rails.logger
   config.verbose           = true
