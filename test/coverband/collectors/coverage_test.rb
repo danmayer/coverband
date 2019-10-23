@@ -82,6 +82,15 @@ class CollectorsCoverageTest < Minitest::Test
     assert_equal false, @coverband.send(:track_file?, heroku_build_file)
   end
 
+  # verifies a fix where we were storing, merging, and tracking ignored files
+  # then just filtering them out of the final report
+  test 'ignores uses regex same as reporter does' do
+    regex_file = Coverband.configuration.current_root + '/config/initializers/fake.rb'
+    assert_equal true, @coverband.send(:track_file?, regex_file)
+    @coverband.instance_variable_set(:@ignore_patterns, ['config/initializers/*'])
+    assert_equal false, @coverband.send(:track_file?, regex_file)
+  end
+
   test 'one shot line coverage disabled for ruby >= 2.6' do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
 

@@ -71,7 +71,7 @@ module Coverband
       ###
       def track_file?(file)
         @ignore_patterns.none? do |pattern|
-          file.include?(pattern)
+          file.match(pattern)
         end && (file.start_with?(@project_directory) ||
                 (@track_gems &&
                  Coverband.configuration.gem_paths.any? { |path| file.start_with?(path) }))
