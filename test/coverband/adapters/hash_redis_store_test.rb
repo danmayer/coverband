@@ -123,7 +123,6 @@ class HashRedisStoreTest < Minitest::Test
     assert_equal [0, nil, 1, 2], @store.coverage['./dog.rb']['data']
     @store.instance_eval { @file_hash_cache = {} }
     mock_file_hash(hash: '123')
-    $debug = true
     assert_nil @store.coverage['./dog.rb']
   end
 

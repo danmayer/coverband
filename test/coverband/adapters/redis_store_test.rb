@@ -41,7 +41,6 @@ unless ENV['COVERBAND_HASH_REDIS_STORE']
       @store.save_report('app_path/dog.rb' => [0, nil, 1, 2])
       assert_equal [0, nil, 1, 2], @store.coverage['app_path/dog.rb']['data']
       mock_file_hash(hash: '123')
-      $debug = true
       assert_nil @store.coverage['app_path/dog.rb']
     end
 
