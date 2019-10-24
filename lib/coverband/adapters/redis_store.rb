@@ -78,7 +78,7 @@ module Coverband
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = redis.get type_base_key(local_type)
         data = data ? JSON.parse(data) : {}
-        data.delete_if { |file_path, data| file_hash(file_path) != data['file_hash'] } unless opts[:skip_hash_check]
+        data.delete_if { |file_path, file_data| file_hash(file_path) != file_data['file_hash'] } unless opts[:skip_hash_check]
         data
       end
 
