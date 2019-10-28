@@ -86,6 +86,7 @@ Feature Ideas:
 - debug data now includes md5_hashes
 - added support to download coverage and view data in JSON format
 - documentation about working with environment variables
+- add cache wiggle to avoid Redis CPU spikes (cache stampede on Redis server)
 
 # Released
 
