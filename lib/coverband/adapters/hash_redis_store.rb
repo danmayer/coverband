@@ -81,8 +81,13 @@ module Coverband
       end
 
       def coverage(local_type = nil)
-        files_set(local_type).each_with_object({}) do |key, hash|
-          add_coverage_for_file(key, hash)
+        files_set = files_set(local_type)
+        @redis.pipelined do
+          files_set.map do |key|
+            @redis.hgetall(key)
+          end
+        end.each_with_object({}) do |data_from_redis, hash|
+          add_coverage_for_file(data_from_redis, hash)
         end
       end
 
@@ -100,9 +105,7 @@ module Coverband
 
       private
 
-      def add_coverage_for_file(key, hash)
-        data_from_redis = @redis.hgetall(key)
-
+      def add_coverage_for_file(data_from_redis, hash)
         return if data_from_redis.empty?
 
         file = data_from_redis[FILE_KEY]
