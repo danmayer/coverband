@@ -22,6 +22,7 @@ module Coverband
       def initialize(redis, opts = {})
         super()
         @redis_namespace = opts[:redis_namespace]
+        @save_report_batch_size = opts[:save_report_batch_size] || 5
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
         raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
@@ -58,26 +59,28 @@ module Coverband
         report_time = Time.now.to_i
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         keys = []
-        files_data = report.map do |file, data|
-          relative_file = @relative_file_converter.convert(file)
-          file_hash = file_hash(relative_file)
-          key = key(relative_file, file_hash: file_hash)
-          keys << key
-          script_input(
-            key: key,
-            file: relative_file,
-            file_hash: file_hash,
-            data: data,
-            report_time: report_time,
-            updated_time: updated_time
-          )
-        end
-        return unless keys.any?
+        report.each_slice(@save_report_batch_size) do |slice|
+          files_data = slice.map do |(file, data)|
+            relative_file = @relative_file_converter.convert(file)
+            file_hash = file_hash(relative_file)
+            key = key(relative_file, file_hash: file_hash)
+            keys << key
+            script_input(
+              key: key,
+              file: relative_file,
+              file_hash: file_hash,
+              data: data,
+              report_time: report_time,
+              updated_time: updated_time
+            )
+          end
+          next unless files_data.any?
 
-        arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-        @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
-        @redis.evalsha(hash_incr_script, [arguments_key])
-        @redis.sadd(files_key, keys)
+          arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
+          @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+          @redis.evalsha(hash_incr_script, [arguments_key])
+        end
+        @redis.sadd(files_key, keys) if keys.any?
       end
 
       def coverage(local_type = nil)
