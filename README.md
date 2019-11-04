@@ -385,6 +385,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
+  - The view file detection doesn't workf or mailers at the moment only for web related views / JSON templates. This is due to how Rails active mailer notifications work. 
 
 ### Debugging Redis Store
 
