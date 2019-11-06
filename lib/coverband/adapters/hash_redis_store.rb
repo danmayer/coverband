@@ -77,7 +77,7 @@ module Coverband
           next unless files_data.any?
 
           arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-          @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+          @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_msgpack, ex: JSON_PAYLOAD_EXPIRATION)
           @redis.evalsha(hash_incr_script, [arguments_key])
         end
         @redis.sadd(files_key, keys) if keys.any?

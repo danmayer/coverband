@@ -27,7 +27,7 @@ describe("persist-coverage", function()
     local last_updated_at = first_updated_at
 
     local key = 'hash_key'
-    local json = cjson.encode({
+    local json = cmsgpack.pack({
       ttl = nil,
       files_data = {
         {
@@ -92,7 +92,7 @@ describe("persist-coverage", function()
     assert.is_false(false, redis.call('exists', key))
 
     last_updated_at = "1569453953"
-    json = cjson.encode({
+    json = cmsgpack.pack({
       ttl = nil,
       files_data = {
         {

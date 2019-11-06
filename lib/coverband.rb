@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'logger'
+require 'msgpack'
 require 'json'
 require 'redis'
 require 'coverband/version'

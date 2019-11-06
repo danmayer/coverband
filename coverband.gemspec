@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   # to test support for sdk 1, uncomment this line
   # spec.add_development_dependency 'aws-sdk', '~> 1'
   # to test sdk 2 use this one
+  spec.add_dependency 'msgpack'
   spec.add_development_dependency 'aws-sdk-s3', '~> 1'
   spec.add_development_dependency 'benchmark-ips'
   spec.add_development_dependency 'capybara'

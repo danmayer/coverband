@@ -7,7 +7,7 @@ local hmset = function (key, dict)
   end
   return redis.call('HMSET', key, unpack(bulk))
 end
-local payload = cjson.decode(redis.call('get', (KEYS[1])))
+local payload = cmsgpack.unpack(redis.call('get', (KEYS[1])))
 local ttl = payload.ttl
 local files_data = payload.files_data
 redis.call('DEL', KEYS[1])
@@ -22,7 +22,7 @@ for _, file_data in ipairs(files_data) do
   for line, coverage in pairs(file_data.coverage) do
     redis.call("HINCRBY", hash_key, line, coverage)
   end
-  if ttl and ttl ~= cjson.null then
+  if ttl then
     redis.call("EXPIRE", hash_key, ttl)
   end
 end

@@ -1,5 +1,5 @@
 inspect = require "inspect"
-cjson = require 'cjson'
+cmsgpack = require "cmsgpack"
 require './lua/test/redis-call'
 
 
