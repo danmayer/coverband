@@ -22,7 +22,7 @@ module Coverband
       def initialize(redis, opts = {})
         super()
         @redis_namespace = opts[:redis_namespace]
-        @save_report_batch_size = opts[:save_report_batch_size] || 5
+        @save_report_batch_size = opts[:save_report_batch_size] || 100
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
         raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
