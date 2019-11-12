@@ -1,16 +1,13 @@
 #!/bin/bash
 
 LUA_DIR="$HOME/lua51"
-BUSTED="$LUA_DIR/bin/busted"
+LUA="$LUA_DIR/bin/lua"
 
-if [ -f "$BUSTED" ]
-then
-  echo "$BUSTED already exists"
-  exit 0
+if [ ! -f $LUA ]; then
+  echo "Installing lua"
+  pip install hererocks
+  hererocks $LUA_DIR -l5.1 -rlatest
 fi
-
-pip install hererocks
-hererocks $LUA_DIR -l5.1 -rlatest
 source $LUA_DIR/bin/activate
 lua -v
 for i in luacov busted redis-lua inspect lua-cjson; do 
