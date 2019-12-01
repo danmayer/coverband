@@ -28,7 +28,6 @@ module Coverband
         rescue StandardError
           err_msg = 'Coverband requires aws-sdk in order use S3Report.'
           Coverband.configuration.logger&.error err_msg
-          return
         end
       end
 
