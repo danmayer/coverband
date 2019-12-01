@@ -139,7 +139,7 @@ module Coverband
           file_length: data.length,
           hash_key: key
         }
-        meta.merge!(last_updated_at: updated_time) if updated_time
+        meta[:last_updated_at] = updated_time if updated_time
         {
           hash_key: key,
           meta: meta,

@@ -8,6 +8,8 @@ AllCops:
     - test/fixtures/**/*
     # Get the code passing first then we will enable for tests
     - test/**/*
+Performance:
+  enabled: true    
 Documentation:
   Enabled: false
 Metrics/MethodLength:
