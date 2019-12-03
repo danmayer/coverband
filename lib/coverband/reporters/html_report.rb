@@ -32,6 +32,10 @@ module Coverband
         end
       end
 
+      def report_data
+        report_dynamic_data
+      end
+
       private
 
       def static?
@@ -53,6 +57,12 @@ module Coverband
         Coverband::Utils::HTMLFormatter.new(filtered_report_files,
                                             base_path: base_path,
                                             notice: notice).format_dynamic_html!
+      end
+
+      def report_dynamic_data
+        Coverband::Utils::HTMLFormatter.new(filtered_report_files,
+                                            base_path: base_path,
+                                            notice: notice).format_dynamic_data!
       end
     end
   end

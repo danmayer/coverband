@@ -29,6 +29,10 @@ module Coverband
         format_html(@coverage_result)
       end
 
+      def format_dynamic_data!
+        format_data(@coverage_result)
+      end
+
       def format_settings!
         format_settings
       end
@@ -69,6 +73,10 @@ module Coverband
 
       def format_html(result)
         template('layout').result(binding)
+      end
+
+      def format_data(result)
+        template('data').result(binding)
       end
 
       # Returns the an erb instance for the template of given name

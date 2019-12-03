@@ -55,6 +55,8 @@ module Coverband
             [200, { 'Content-Type' => 'text/json' }, [view_tracker_data]]
           when %r{\/view_tracker}
             [200, { 'Content-Type' => 'text/html' }, [view_tracker]]
+          when %r{\/enriched_debug_data}
+            [200, { 'Content-Type' => 'text/json' }, [enriched_debug_data]]
           when %r{\/debug_data}
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/load_file_details}
@@ -95,6 +97,14 @@ module Coverband
 
       def debug_data
         Coverband.configuration.store.get_coverage_report.to_json
+      end
+
+      def enriched_debug_data
+        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+                                             static: false,
+                                             base_path: base_path,
+                                             notice: '',
+                                             open_report: false).report_data
       end
 
       def load_file_details
