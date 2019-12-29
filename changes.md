@@ -76,6 +76,12 @@ Feature Ideas:
 
 # Alpha / Beta / Release Candidates
 
+### Coverband 4.2.5
+
+- ?
+
+# Released
+
 ### Coverband 4.2.4
 
 - fixes related to startup without Redis, skipping Coverband on common rake tasks (assets:precompile), etc
@@ -87,8 +93,8 @@ Feature Ideas:
 - added support to download coverage and view data in JSON format
 - documentation about working with environment variables
 - add cache wiggle to avoid Redis CPU spikes (cache stampede on Redis server)
-
-# Released
+- make the nocov consistant on the data download and html view
+- small performance improvements
 
 ### Coverband 4.2.3
 
