@@ -7,14 +7,12 @@ AllCops:
     - test/rails5_dummy/**/*
     - test/fixtures/**/*
     # Get the code passing first then we will enable for tests
-    - test/**/*
-Performance:
-  enabled: true    
+    - test/**/*    
 Documentation:
   Enabled: false
 Metrics/MethodLength:
   Enabled: false
-Metrics/LineLength:
+Layout/LineLength:
   Max: 160
 Metrics/BlockNesting:
   Max: 5
@@ -63,10 +61,6 @@ Style/ClassAndModuleChildren:
 Style/SymbolProc:
   Enabled: false
 Style/RegexpLiteral:
-  Enabled: false
-Performance/Casecmp:
-  Enabled: false
-Performance/RegexpMatch:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
   Enabled: true
