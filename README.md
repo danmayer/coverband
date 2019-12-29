@@ -206,6 +206,8 @@ config.ignore +=  ['config/application.rb',
                    'lib/tasks/*']
 ```
 
+__Ignoring Custom Gem Locations:__ Note, if you have your gems in a custom location under your app folder you likely want to add them to `config.ignore`. For example, if you have your gems not in a default ignored location of `app/vendor` but have them in `app/gems` you would need to add `gems/*` to your ignore list.
+
 ### View Tracking
 
 Coverband allows an optional feature to track all view files that are used by an application.
