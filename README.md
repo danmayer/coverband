@@ -239,6 +239,19 @@ ENV['AWS_ACCESS_KEY_ID']
 ENV['AWS_SECRET_ACCESS_KEY']
 ```
 
+### Fixing Coverage Only Shows Loading Hits
+
+If all your coverage is being counted as loading or eager_loading coverage, and nothing is showing as runtime Coverage the initialization hook failed for some reason. The most likely reason for this issue is manually calling `eager_load!` on some Plugin/Gem. If you or a plugin is altering the Rails initialization process, you can manually flip Coverband to runtime coverage by calling these two lines, in an `after_initialize` block, in `application.rb`.
+
+```ruby
+config.after_initialize do
+  unless Coverband.tasks_to_ignore?
+    Coverband.report_coverage # record the last of the loading coverage
+    Coverband.runtime_coverage! # set all future coverage to runtime
+  end
+end
+```
+
 ### Avoiding Cache Stampede
 
 If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. 
