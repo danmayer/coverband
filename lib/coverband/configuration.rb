@@ -54,7 +54,7 @@ module Coverband
       @root = Dir.pwd
       @root_paths = []
       @ignore = IGNORE_DEFAULTS.dup
-      @seach_paths = TRACKED_DEFAULT_PATHS.dup
+      @search_paths = TRACKED_DEFAULT_PATHS.dup
       @additional_files = []
       @verbose = false
       @reporter = 'scov'
@@ -134,14 +134,14 @@ module Coverband
     # Search Paths
     ###
     def tracked_search_paths
-      "#{Coverband.configuration.current_root}/{#{@seach_paths.join(',')}}/**/*.{rb}"
+      "#{Coverband.configuration.current_root}/{#{@search_paths.join(',')}}/**/*.{rb}"
     end
 
     ###
     # Don't allow the to override defaults
     ###
     def search_paths=(path_array)
-      @seach_paths = (@seach_paths + path_array).uniq
+      @search_paths = (@search_paths + path_array).uniq
     end
 
     ###
