@@ -252,6 +252,16 @@ config.after_initialize do
 end
 ```
 
+or if you know you are manually calling eager load anywhere in your initialization process immediately adfter call those two lines. A user reported an issue after calling `ResqueWeb::Engine.eager_load!` for example.
+
+```ruby
+Rails.application.routes.draw do
+  ResqueWeb::Engine.eager_load!
+  Coverband.report_coverage
+  Coverband.runtime_coverage!
+end
+```
+
 ### Avoiding Cache Stampede
 
 If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. 
