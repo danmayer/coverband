@@ -61,7 +61,7 @@ module Coverband
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/load_file_details}
             [200, { 'Content-Type' => 'text/json' }, [load_file_details]]
-          when %r{\^$}
+          when %r{\/$|^$}
             [200, { 'Content-Type' => 'text/html' }, [index]]
           else
             [404, { 'Content-Type' => 'text/html' }, ['404 error!']]
