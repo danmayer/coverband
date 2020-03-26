@@ -31,7 +31,8 @@ module Coverband
         @request = Rack::Request.new(env)
 
         return [401, { 'www-authenticate' => 'Basic realm=""' }, ['']] unless check_auth
-
+        
+        request.path_info = (request.path_info == "") ? "/" : request.path_info
         if request.post?
           case request.path_info
           when %r{\/clear_view_tracking_file}
@@ -61,7 +62,7 @@ module Coverband
             [200, { 'Content-Type' => 'text/json' }, [debug_data]]
           when %r{\/load_file_details}
             [200, { 'Content-Type' => 'text/json' }, [load_file_details]]
-          when %r{\/$|^$}
+          when %r{\/$}
             [200, { 'Content-Type' => 'text/html' }, [index]]
           else
             [404, { 'Content-Type' => 'text/html' }, ['404 error!']]
