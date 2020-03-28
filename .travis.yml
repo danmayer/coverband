@@ -4,7 +4,7 @@ rvm:
   - "2.4"
   - "2.5"
   - "2.6.1"
-  - "2.7"
+#  - "2.7" #disable until I can detect and exclude rails for on Ruby 2.7
 cache:
   bundler: true
   directories:
