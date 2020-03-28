@@ -4,17 +4,18 @@ rvm:
   - "2.4"
   - "2.5"
   - "2.6.1"
+  - "2.7"
 cache:
   bundler: true
   directories:
-  - $HOME/lua51
+    - $HOME/lua51
 gemfile:
   - Gemfile
   - Gemfile.rails4
 services:
   - redis-server
 script:
-  - sudo ./lua/install.sh 
+  - sudo ./lua/install.sh
   - $HOME/lua51/bin/busted lua/test/*
   - bundle exec rake rubocop
   - COVERBAND_HASH_REDIS_STORE=t bundle exec rake
