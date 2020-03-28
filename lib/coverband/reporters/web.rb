@@ -31,7 +31,8 @@ module Coverband
         @request = Rack::Request.new(env)
 
         return [401, { 'www-authenticate' => 'Basic realm=""' }, ['']] unless check_auth
-
+        
+        request.path_info = (request.path_info == "") ? "/" : request.path_info
         if request.post?
           case request.path_info
           when %r{\/clear_view_tracking_file}
