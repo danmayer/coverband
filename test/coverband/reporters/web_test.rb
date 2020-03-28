@@ -27,6 +27,12 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
         assert_match 'Coverband Admin', last_response.body
       end
 
+      test 'renders index content for empty path' do
+        get ''
+        assert last_response.ok?
+        assert_match 'Coverband Admin', last_response.body
+      end
+
       test 'renders 404' do
         get '/show'
         assert last_response.not_found?

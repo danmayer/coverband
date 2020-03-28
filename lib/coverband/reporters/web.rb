@@ -31,10 +31,10 @@ module Coverband
         @request = Rack::Request.new(env)
 
         return [401, { 'www-authenticate' => 'Basic realm=""' }, ['']] unless check_auth
-        
-        request.path_info = (request.path_info == "") ? "/" : request.path_info
+
+        request_path_info = (request.path_info == '') ? '/' : request.path_info
         if request.post?
-          case request.path_info
+          case request_path_info
           when %r{\/clear_view_tracking_file}
             clear_view_tracking_file
           when %r{\/clear_view_tracking}
@@ -47,7 +47,7 @@ module Coverband
             [404, { 'Content-Type' => 'text/html' }, ['404 error!']]
           end
         else
-          case request.path_info
+          case request_path_info
           when /.*\.(css|js|gif|png)/
             @static.call(env)
           when %r{\/settings}
