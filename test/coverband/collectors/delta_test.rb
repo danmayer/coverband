@@ -49,6 +49,21 @@ class CollectorsDeltaTest < Minitest::Test
     assert_equal(current_coverage, results)
   end
 
+  test 'Coverage has branching enabled and has gone up' do
+    current_coverage = {
+      'car.rb' => { lines: [nil, 1, 5, 1] }
+    }
+    ::Coverage.expects(:peek_result).returns(current_coverage)
+    results = Coverband::Collectors::Delta.results
+
+    current_coverage = {
+      'car.rb' => { lines: [nil, 1, 7, 1] }
+    }
+    ::Coverage.expects(:peek_result).returns(current_coverage)
+    results = Coverband::Collectors::Delta.results
+    assert_equal({ 'car.rb' => [nil, 0, 2, 0] }, results)
+  end
+
   if Coverband.configuration.one_shot_coverage_implemented_in_ruby_version?
     test 'oneshot coverage calls clear' do
       Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
