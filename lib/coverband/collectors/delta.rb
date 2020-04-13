@@ -44,11 +44,17 @@ module Coverband
       private
 
       def generate
+        # TODO: if we filtered before doing this we would avoid calculating the line diff on a ton of files
+        # This would be a fairly noticeable perf win
         current_coverage.each_with_object({}) do |(file, line_counts), new_results|
+          # This handles Coverage branch support, setup by default in
+          # simplecov 0.18.x
+          arr_line_counts = line_counts.is_a?(Hash) ? line_counts[:lines] : line_counts
           new_results[file] = if @@previous_coverage && @@previous_coverage[file]
-                                array_diff(line_counts, @@previous_coverage[file])
+                                prev_line_counts = @@previous_coverage[file].is_a?(Hash) ? @@previous_coverage[file][:lines] : @@previous_coverage[file]
+                                array_diff(arr_line_counts, prev_line_counts)
                               else
-                                line_counts
+                                arr_line_counts
                               end
         end
       end
