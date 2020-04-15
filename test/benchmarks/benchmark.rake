@@ -247,7 +247,7 @@ namespace :benchmarks do
 
   desc 'checks memory of collector'
   task memory_check: [:setup] do
-    require 'pry-byebug'
+    # require 'pry-byebug'
     require 'objspace'
     puts 'memory load check'
     puts(ObjectSpace.memsize_of_all / 2**20)
@@ -337,7 +337,7 @@ namespace :benchmarks do
     require 'memory_profiler'
     require './test/unique_files'
 
-    4000.times { |index| require_unique_file('dog.rb.erb', dog_number: index) }
+    4000.times { |index| require_unique_file('big_dog.rb.erb', dog_number: index) }
     # warmup
     3.times { Coverband.report_coverage }
     dogs = 400.times.map { |index| Object.const_get("Dog#{index}") }
