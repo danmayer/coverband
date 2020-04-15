@@ -4,7 +4,15 @@ rvm:
   - "2.4"
   - "2.5"
   - "2.6.1"
-#  - "2.7" #disable until I can detect and exclude rails for on Ruby 2.7
+  #  - "2.7" #disable until I can detect and exclude rails4 for on Ruby 2.7
+  - jruby-9.2.6.0
+
+env:
+  global:
+    # --dev improves JRuby startup time
+    # See https://github.com/jruby/jruby/wiki/Improving-startup-time
+    - JRUBY_OPTS="--dev"
+
 cache:
   bundler: true
   directories:
