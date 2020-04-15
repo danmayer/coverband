@@ -38,10 +38,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-performance'
 
   spec.add_development_dependency 'coveralls'
-  # add when debugging
-  # require 'byebug'; byebug
-  spec.add_development_dependency 'pry-byebug'
-
   spec.add_development_dependency 'minitest-profile'
 
   # TODO: Remove when other production adapters exist
