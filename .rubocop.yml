@@ -62,6 +62,8 @@ Style/NumericLiteralPrefix:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
+Style/SymbolArray:
+  Enabled: false 
 Style/SymbolProc:
   Enabled: false
 Style/RegexpLiteral:
