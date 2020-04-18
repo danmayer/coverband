@@ -22,9 +22,13 @@ Rake::TestTask.new(:test) do |test|
 end
 
 Rake::TestTask.new(:forked_tests) do |test|
-  test.libs << 'lib' << 'test'
-  test.test_files = FileList['test/forked/**/*_test.rb']
-  test.verbose = true
+  if RUBY_PLATFORM == 'java'
+    puts 'forked tests not supported on JRuby'
+  else
+    test.libs << 'lib' << 'test'
+    test.test_files = FileList['test/forked/**/*_test.rb']
+    test.verbose = true
+  end
 end
 
 desc 'load irb with this gem'
