@@ -4,10 +4,11 @@ rvm:
   - "2.4"
   - "2.5"
   - "2.6.1"
-  #  - "2.7" #disable until I can detect and exclude rails4 for on Ruby 2.7
+  - "2.7"
   - jruby-9.2.6.0
 gemfile:
   - Gemfile
+  - Gemfile.rails4
   - Gemfile.rails6
 env:
   global:
@@ -21,6 +22,10 @@ jobs:
       gemfile: Gemfile.rails6
     - rvm: "2.4"
       gemfile: Gemfile.rails6
+    - rvm: "2.7"
+      gemfile: Gemfile.rails4
+    - rvm: jruby-9.2.6.0
+      gemfile: Gemfile.rails4
 
 cache:
   bundler: true
