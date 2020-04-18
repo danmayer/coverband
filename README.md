@@ -115,6 +115,17 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 - View individual file details
 - **clear individual file coverage:** This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
 
+### JRuby Support
+
+Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on oldre versions of JRuby could be significant, improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
+
+* older versions of JRuby need tracing enabled to work (and this could cause bad performance)
+  * run Jruby with the `--debug` option
+  * add into your `.jrubyrc` the `debug.fullTrace=true` setting
+* For best performance the `oneshot_lines` is recommended, and in the latest releases should have very low overhead
+* See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
+* JRuby is tested via CI against Rails 5 and 6 
+
 ### Rake Tasks
 
 The rake task generates a report locally and opens a browser pointing to `coverage/index.html`.
