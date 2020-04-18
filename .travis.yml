@@ -6,20 +6,26 @@ rvm:
   - "2.6.1"
   #  - "2.7" #disable until I can detect and exclude rails4 for on Ruby 2.7
   - jruby-9.2.6.0
-
+gemfile:
+  - Gemfile
+  - Gemfile.rails6
 env:
   global:
     # --dev improves JRuby startup time
     # See https://github.com/jruby/jruby/wiki/Improving-startup-time
     - JRUBY_OPTS="--dev"
 
+jobs:
+  exclude:
+    - rvm: "2.3"
+      gemfile: Gemfile.rails6
+    - rvm: "2.4"
+      gemfile: Gemfile.rails6
+
 cache:
   bundler: true
   directories:
     - $HOME/lua51
-gemfile:
-  - Gemfile
-  - Gemfile.rails6
 services:
   - redis-server
 script:
