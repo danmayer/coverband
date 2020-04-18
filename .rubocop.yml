@@ -4,6 +4,7 @@ AllCops:
     - vendor/bundle/**/*
     - docs/**/*
     - test/rails6_dummy/**/*
+    - test/rails4_dummy/**/*
     - test/rails5_dummy/**/*
     - test/fixtures/**/*
     # Get the code passing first then we will enable for tests
