@@ -19,7 +19,7 @@ cache:
     - $HOME/lua51
 gemfile:
   - Gemfile
-  - Gemfile.rails4
+  - Gemfile.rails6
 services:
   - redis-server
 script:

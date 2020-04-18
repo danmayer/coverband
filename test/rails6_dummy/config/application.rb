@@ -7,7 +7,7 @@ require 'action_controller/railtie'
 require 'coverband'
 Bundler.require(*Rails.groups)
 
-module Rails4Dummy
+module Rails6Dummy
   class Application < Rails::Application
     config.eager_load = true
   end

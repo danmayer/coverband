@@ -7,7 +7,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/1e6682f9540d75f26da7/maintainability)](https://codeclimate.com/github/danmayer/coverband/maintainability)
 [![Discord Shield](https://img.shields.io/discord/609509533999562753)](https://discord.gg/KAH38EV)
 
-
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#installation">Installation</a> •
@@ -182,7 +181,7 @@ end
 
 ### Working with environment variables
 
-Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE coverband is required. 
+Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE coverband is required.
 
 For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#note-on-load-order
 
@@ -206,7 +205,7 @@ config.ignore +=  ['config/application.rb',
                    'lib/tasks/*']
 ```
 
-__Ignoring Custom Gem Locations:__ Note, if you have your gems in a custom location under your app folder you likely want to add them to `config.ignore`. For example, if you have your gems not in a default ignored location of `app/vendor` but have them in `app/gems` you would need to add `gems/*` to your ignore list.
+**Ignoring Custom Gem Locations:** Note, if you have your gems in a custom location under your app folder you likely want to add them to `config.ignore`. For example, if you have your gems not in a default ignored location of `app/vendor` but have them in `app/gems` you would need to add `gems/*` to your ignore list.
 
 ### View Tracking
 
@@ -264,7 +263,7 @@ end
 
 ### Avoiding Cache Stampede
 
-If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. 
+If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server.
 
 Add a wiggle (in seconds) to the background thread to avoid all your servers reporting at the same time:
 
@@ -272,11 +271,11 @@ Add a wiggle (in seconds) to the background thread to avoid all your servers rep
 
 ### Redis Hash Store
 
-Coverband on very high volume sites with many server processes reporting can have a race condition. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting time period. 
+Coverband on very high volume sites with many server processes reporting can have a race condition. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting time period.
 
-* set the new Redis store: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
-* adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
-* reminder it is recommended to have a unique Redis per workload (background jobs, caching, Coverband), for this store, it may be more important to have a dedicated Redis.
+- set the new Redis store: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
+- adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
+- reminder it is recommended to have a unique Redis per workload (background jobs, caching, Coverband), for this store, it may be more important to have a dedicated Redis.
 
 ### Clear Coverage
 
@@ -314,7 +313,7 @@ rake coverband:coverage      # report runtime coverband code coverage
 
 ### Collecting Gem / Library Usage
 
-__WARNING:__ Gem Tracking is still in experimental stages and not recommended for production. We have some performance issues when view reports on large applications. Gem tracing also during background thread data collection has HIGH memory requirements, during report merging (seemingly around 128mb of extra memory, which is crazy). We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
+**WARNING:** Gem Tracking is still in experimental stages and not recommended for production. We have some performance issues when view reports on large applications. Gem tracing also during background thread data collection has HIGH memory requirements, during report merging (seemingly around 128mb of extra memory, which is crazy). We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
 
 Gem usage can be tracked by enabling the `track_gems` config.
 
@@ -378,7 +377,7 @@ If you are trying to debug locally wondering what code is being run during a req
 
 ### Ruby and Rails Version Support
 
-We will match Heroku & Ruby's support lifetime, supporting the last 3 major Ruby releases. For details see [supported runtimes](https://devcenter.heroku.com/articles/ruby-support#supported-runtimes). 
+We will match Heroku & Ruby's support lifetime, supporting the last 3 major Ruby releases. For details see [supported runtimes](https://devcenter.heroku.com/articles/ruby-support#supported-runtimes).
 
 For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. This means at the moment we primaryly target Rails 6.x, 5.x, and will try to keep current functionality working for Rails 4.x but may release new features that do not work on that target.
 
@@ -399,7 +398,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 
 - run tests:
   - `bundle exec rake`
-  - `BUNDLE_GEMFILE=Gemfile.rails4 bundle exec rake` (Same tests using rails 4 instead of 5)
+  - `BUNDLE_GEMFILE=Gemfile.rails6 bundle exec rake` (Same tests using rails 6 instead of 5)
 - view test coverage: `open coverage/index.html`
 - run the benchmarks before and after your change to see impact
   - `rake benchmarks`
@@ -410,7 +409,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
-  - The view file detection doesn't workf or mailers at the moment only for web related views / JSON templates. This is due to how Rails active mailer notifications work. 
+  - The view file detection doesn't workf or mailers at the moment only for web related views / JSON templates. This is due to how Rails active mailer notifications work.
 
 ### Debugging Redis Store
 
