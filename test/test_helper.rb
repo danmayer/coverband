@@ -15,7 +15,7 @@ require 'ostruct'
 require 'json'
 require 'redis'
 require 'resque'
-require 'pry-byebug' unless ENV['CI'] # Ruby 2.3 on CI crashes on pry
+# require 'pry-byebug' unless ENV['CI'] # Ruby 2.3 on CI crashes on pry & JRuby doesn't support it
 require_relative 'unique_files'
 $VERBOSE = original_verbosity
 

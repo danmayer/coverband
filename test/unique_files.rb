@@ -20,6 +20,12 @@ def require_unique_file(file = 'dog.rb', variables = {})
   Coverband::Utils::RelativeFileConverter.convert(File.expand_path(temp_file))
 end
 
+@@dogs = 0
+def require_class_unique_file
+  @@dogs +=1
+  require_unique_file('dog.rb.erb', dog_number: @@dogs)
+end
+
 def remove_unique_files
   FileUtils.rm_r(UNIQUE_FILES_DIR) if File.exist?(UNIQUE_FILES_DIR)
 end

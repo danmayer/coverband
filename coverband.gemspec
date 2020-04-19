@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.version       = Coverband::VERSION
   spec.authors       = ['Dan Mayer', 'Karl Baum']
   spec.email         = ['dan@mayerdan.com']
-  spec.description   = 'Rack middleware to help measure production code usage (LOC runtime usage)'
-  spec.summary       = 'Rack middleware to help measure production code usage (LOC runtime usage)'
+  spec.description   = 'Rack middleware to measure production code usage (LOC runtime usage)'
+  spec.summary       = 'Rack middleware to measure production code usage (LOC runtime usage)'
   spec.homepage      = 'https://github.com/danmayer/coverband'
   spec.license       = 'MIT'
 
@@ -38,10 +38,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-performance'
 
   spec.add_development_dependency 'coveralls'
-  # add when debugging
-  # require 'byebug'; byebug
-  spec.add_development_dependency 'pry-byebug'
-
   spec.add_development_dependency 'minitest-profile'
 
   # TODO: Remove when other production adapters exist

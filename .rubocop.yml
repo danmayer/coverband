@@ -3,11 +3,12 @@ AllCops:
   Exclude:
     - vendor/bundle/**/*
     - docs/**/*
+    - test/rails6_dummy/**/*
     - test/rails4_dummy/**/*
     - test/rails5_dummy/**/*
     - test/fixtures/**/*
     # Get the code passing first then we will enable for tests
-    - test/**/*    
+    - test/**/*
 Documentation:
   Enabled: false
 Metrics/MethodLength:
@@ -49,7 +50,7 @@ Style/MultilineBlockChain:
 Style/StringLiterals:
   Enabled: false
 Style/IfInsideElse:
-  Enabled: false    
+  Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: true
 Style/GuardClause:
@@ -61,6 +62,8 @@ Style/NumericLiterals:
 Style/NumericLiteralPrefix:
   Enabled: false
 Style/ClassAndModuleChildren:
+  Enabled: false
+Style/SymbolArray:
   Enabled: false
 Style/SymbolProc:
   Enabled: false
