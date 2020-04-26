@@ -17,12 +17,8 @@ module Coverband
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
-        @base_path = options.fetch(:base_path) { nil }
+        @base_path = options.fetch(:base_path) { "./" }
         @coverage_result = Coverband::Utils::Results.new(report) if report
-      end
-
-      def format_static_html!
-        format(@coverage_result)
       end
 
       def format_dynamic_html!
@@ -97,19 +93,11 @@ module Coverband
       end
 
       def served_html?
-        !static_html?
-      end
-
-      def static_html?
-        base_path.nil?
+        true
       end
 
       def assets_path(name)
-        if static_html?
-          File.join(name)
-        else
-          File.join(base_path, name)
-        end
+        File.join(base_path, name)
       end
 
       def button(url, title, opts = {})
