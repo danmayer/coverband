@@ -17,7 +17,7 @@ module Coverband
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice) { nil }
-        @base_path = options.fetch(:base_path) { './' }
+        @base_path = options.fetch(:base_path) { "./" }
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
