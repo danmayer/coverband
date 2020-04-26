@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
-# This lets us ignore warnings from our test dependencies when loaded
-# We do this because of aws-sdk-s3
-# aws-sdk-s3 is written in such a way to cause dozens of warnings
 original_verbosity = $VERBOSE
 $VERBOSE = nil
 require 'rubygems'
-require 'aws-sdk-s3'
 require 'simplecov'
 require 'coveralls'
 require 'minitest/autorun'

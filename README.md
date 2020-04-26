@@ -116,12 +116,12 @@ The web endpoint is a barebones endpoint that you can either expose direct (afte
 
 Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant, improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
 
-* older versions of JRuby need tracing enabled to work (and this could cause bad performance)
-  * run Jruby with the `--debug` option
-  * add into your `.jrubyrc` the `debug.fullTrace=true` setting
-* For best performance the `oneshot_lines` is recommended, and in the latest releases should have very low overhead
-* See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
-* JRuby is tested via CI against Rails 5 and 6 
+- older versions of JRuby need tracing enabled to work (and this could cause bad performance)
+  - run Jruby with the `--debug` option
+  - add into your `.jrubyrc` the `debug.fullTrace=true` setting
+- For best performance the `oneshot_lines` is recommended, and in the latest releases should have very low overhead
+- See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
+- JRuby is tested via CI against Rails 5 and 6
 
 ### Rake Tasks
 
@@ -165,11 +165,6 @@ Below is an example config file for a Rails 5 app:
 Coverband.configure do |config|
   config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['MY_REDIS_URL']))
   config.logger = Rails.logger
-  # configure S3 integration
-  config.s3_bucket = 'coverband-demo'
-  config.s3_region = 'us-east-1'
-  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
-  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
 
   # config options false, true. (defaults to false)
   # true and debug can give helpful and interesting code usage information
@@ -224,27 +219,6 @@ To opt-in to this feature... enable the feature in your Coverband config.
 `config.track_views = true`
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_view_tracker.png)
-
-### Writing Coverband Results to S3
-
-If you add some additional Coverband configuration your coverage html report will be written directly to S3, update `config/coverband.rb` like below.
-
-```
-  # configure S3 integration
-  config.s3_bucket = 'coverband-demo'
-  config.s3_region = 'us-east-1'
-  config.s3_access_key_id = ENV['AWS_ACCESS_KEY_ID']
-  config.s3_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
-```
-
-Alternatively, Coverband if you don't set via the `config.s3_*` accessor methods will look for the standard S3 environment variables.
-
-```
-ENV['AWS_BUCKET']
-ENV['AWS_REGION']
-ENV['AWS_ACCESS_KEY_ID']
-ENV['AWS_SECRET_ACCESS_KEY']
-```
 
 ### Fixing Coverage Only Shows Loading Hits
 

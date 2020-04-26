@@ -76,11 +76,12 @@ module Coverband
       @all_root_patterns = nil
       @password = nil
 
-      # TODO: should we push these to adapter configs
+      # TODO: these are deprecated
       @s3_region = nil
       @s3_bucket = nil
       @s3_access_key_id = nil
       @s3_secret_access_key = nil
+
       @redis_namespace = nil
       @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
       @reporting_wiggle = nil
@@ -99,19 +100,19 @@ module Coverband
     end
 
     def s3_bucket
-      @s3_bucket || ENV['AWS_BUCKET']
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_region
-      @s3_region || ENV['AWS_REGION']
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_access_key_id
-      @s3_access_key_id || ENV['AWS_ACCESS_KEY_ID']
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_secret_access_key
-      @s3_secret_access_key || ENV['AWS_SECRET_ACCESS_KEY']
+      puts 'deprecated, s3 is no longer support'
     end
 
     def store

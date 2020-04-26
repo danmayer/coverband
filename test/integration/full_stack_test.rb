@@ -11,7 +11,6 @@ class FullStackTest < Minitest::Test
     super
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
-      config.s3_bucket = nil
       config.background_reporting_enabled = false
       config.track_gems = true
     end
