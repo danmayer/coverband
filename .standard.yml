@@ -1,3 +1,4 @@
+ruby_version: 2.5
 fix: true # default: false
 parallel: true # default: false
 format: progress # default: Standard::Formatter
@@ -14,5 +15,6 @@ ignore: # default: []
       - Layout/AlignHash
       - Style/GlobalVars
       - Lint/InterpolationCheck # a test is verifying comments
+      - Standard/SemanticBlocks # not valid in older Ruby
   - "test/benchmarks/benchmark.rake":
       - Lint/UselessAssignment # oddity of memory benchmarking
