@@ -39,14 +39,24 @@ module Coverband
 
       def self.reset
         @@previous_coverage = {}
+        @@project_directory = File.expand_path(Coverband.configuration.root)
+        @@ignore_patterns = Coverband.configuration.ignore
       end
 
       private
 
       def generate
-        # TODO: if we filtered before doing this we would avoid calculating the line diff on a ton of files
-        # This would be a fairly noticeable perf win
         current_coverage.each_with_object({}) do |(file, line_counts), new_results|
+          ###
+          # Eager filter:
+          # Normally I would break this out into additional methods
+          # and improve the readability but this is in a tight loop
+          # on the critical performance path, and any refactoring I come up with
+          # would slow down the performance.
+          ###
+          next unless @@ignore_patterns.none? { |pattern| file.match(pattern) } &&
+                      file.start_with?(@@project_directory)
+
           # This handles Coverage branch support, setup by default in
           # simplecov 0.18.x
           arr_line_counts = line_counts.is_a?(Hash) ? line_counts[:lines] : line_counts

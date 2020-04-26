@@ -147,19 +147,7 @@ module Coverband
         title_id = title_id
         options = options
 
-        if title == 'Gems'
-          template('gem_list').result(binding)
-        else
-          template('file_list').result(binding)
-        end
-      end
-
-      def view_gems?
-        Coverband.configuration.track_gems
-      end
-
-      def gem_details?
-        Coverband.configuration.gem_details
+        template('file_list').result(binding)
       end
 
       def coverage_css_class(covered_percent)
@@ -199,11 +187,6 @@ module Coverband
 
       def shortened_filename(source_file)
         source_file.short_name
-      end
-
-      def link_to_gem_list(gem_name)
-        gem_id = gem_name.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
-        %(<a href="##{gem_id}" class="gem-link" title="#{gem_name}">#{gem_name}</a>)
       end
 
       def link_to_source_file(source_file)

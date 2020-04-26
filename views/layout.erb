@@ -18,11 +18,7 @@
       <%= display_nav %>
 
       <div id="content">
-        <%= formatted_file_list("All Files", result, result.source_files) unless view_gems? %>
-
-        <% result.groups.each do |name, files| %>
-          <%= formatted_file_list(name, result, files) %>
-        <% end %>
+        <%= formatted_file_list("Coverage", result, result.source_files) %>
       </div>
 
       <div id="footer">
@@ -31,12 +27,10 @@
 
       <div class="source_files">
       <% result.source_files.each do |source_file| %>
-        <% if (!source_file.gem? || (view_gems? && gem_details? && source_file.gem? )) %>
-          <% if static_html? %>
-            <%= formatted_source_file(result, source_file) %>
-          <% else %>
-            <%= formatted_source_file_loader(result, source_file) %>
-          <% end %>
+        <% if static_html? %>
+          <%= formatted_source_file(result, source_file) %>
+        <% else %>
+          <%= formatted_source_file_loader(result, source_file) %>
         <% end %>
       <% end %>
       </div>

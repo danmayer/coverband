@@ -67,7 +67,6 @@ module Coverband
       @track_gems = false
       @gem_details = false
       @track_views = false
-      @groups = {}
       @web_debug = false
       @report_on_exit = true
       @use_oneshot_lines_coverage = ENV['ONESHOT'] || false
@@ -151,43 +150,8 @@ module Coverband
       @ignore = (@ignore + ignored_array).uniq
     end
 
-    def track_gems=(value)
-      @track_gems = value
-      return unless @track_gems
-
-      # by default we ignore vendor where many deployments put gems
-      # we will remove this default if track_gems is set
-      @ignore.delete('vendor/')
-      # while we want to allow vendored gems we don't want to track vendored ruby STDLIB
-      @ignore << 'vendor/ruby-*' unless @ignore.include?('vendor/ruby-*')
-      add_group('App', root)
-      # TODO: rework support for multiple gem paths
-      # this works but seems hacky and error prone
-      # basically since it is converted to a regex we join all the paths
-      # with a regex 'OR' using '|'
-      add_group('Gems', gem_paths.join('|'))
-    end
-
-    #
-    # Returns the configured groups. Add groups using SimpleCov.add_group
-    #
-    def groups
-      @groups ||= {}
-    end
-
-    #
-    # Define a group for files. Works similar to add_filter, only that the first
-    # argument is the desired group name and files PASSING the filter end up in the group
-    # (while filters exclude when the filter is applicable).
-    #
-    def add_group(group_name, filter_argument = nil)
-      groups[group_name] = filter_argument
-    end
-
-    def gem_paths
-      # notes ignore any paths that aren't on this system, resolves
-      # bug related to multiple ruby version managers / bad dot files
-      Gem::PathSupport.new(ENV).path.select { |path| File.exist?(path) }
+    def track_gems=(_value)
+      puts "gem tracking is deprecated, setting this will be ignored"
     end
 
     def current_root
@@ -198,7 +162,6 @@ module Coverband
       return @all_root_paths if @all_root_paths
 
       @all_root_paths = Coverband.configuration.root_paths.dup
-      @all_root_paths += Coverband.configuration.gem_paths.dup if Coverband.configuration.track_gems
       @all_root_paths << "#{Coverband.configuration.current_root}/"
       @all_root_paths
     end
@@ -210,7 +173,7 @@ module Coverband
     SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
     def to_h
       instance_variables
-        .each_with_object('gem_paths': gem_paths) do |var, hash|
+        .each_with_object({}) do |var, hash|
           hash[var.to_s.delete('@')] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
         end
     end

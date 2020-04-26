@@ -2,7 +2,6 @@
 
 require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
 require 'rails'
-require 'pundit'
 
 class RailsRakeFullStackTest < Minitest::Test
   def setup
@@ -11,27 +10,9 @@ class RailsRakeFullStackTest < Minitest::Test
     Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
   end
 
-  test 'rake tasks shows coverage properly within eager_loading' do
-    store.instance_variable_set(:@redis_namespace, 'coverband_test')
-    store.clear!
-    system("COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile middleware")
-    store.instance_variable_set(:@redis_namespace, 'coverband_test')
-    store.type = :eager_loading
-    pundit_file = store.coverage.keys.grep(/pundit.rb/).first
-    refute_nil pundit_file
-    pundit_coverage = store.coverage[pundit_file]
-    refute_nil pundit_coverage
-    assert_includes pundit_coverage['data'], 1
-
-    store.type = Coverband::RUNTIME_TYPE
-    if ENV['SIMULATE_ONESHOT']
-      pundit_coverage = store.get_coverage_report[Coverband::RUNTIME_TYPE][pundit_file]
-      assert pundit_coverage['data'].compact.all? { |el| el == 0 }
-    else
-      pundit_coverage = store.coverage[pundit_file]
-      assert_nil pundit_coverage
-    end
-  end
+  # test 'rake tasks shows coverage properly within eager_loading' do
+  # this was testing gem data, which we no logner support and I dont know if this makes sense anymre
+  # end
 
   test "ignored rake tasks don't add coverage" do
     store.clear!

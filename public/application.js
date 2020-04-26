@@ -33,23 +33,6 @@ $(document).ready(function() {
     ]
   });
 
-  // Configuration for fancy sortable tables for source file groups
-  $(".gem_list").dataTable({
-    aaSorting: [[1, "asc"]],
-    bPaginate: false,
-    bJQueryUI: true,
-    aoColumns: [
-      null,
-      { sType: "percent" },
-      { sType: "percent" },
-      null,
-      null,
-      null,
-      null,
-      null
-    ]
-  });
-
   // Syntax highlight all files up front - deactivated
   // $('.source_table pre code').each(function(i, e) {hljs.highlightBlock(e, '  ')});
 
@@ -184,17 +167,6 @@ $(document).ready(function() {
     return false;
   });
 
-  $("a.gem-link").live("click", function() {
-    $(".file_list_container").hide();
-    $(".file_list_container" + $(this).attr("href")).show();
-    window.location.href =
-      window.location.href.split("#")[0] +
-      $(this)
-        .attr("href")
-        .replace("#", "#_");
-    return false;
-  });
-
   if (jQuery.url.attr("anchor")) {
     var anchor = jQuery.url.attr("anchor");
     // source file hash
@@ -203,8 +175,6 @@ $(document).ready(function() {
     } else {
       if ($(".group_tabs a." + anchor.replace("_", "")).length > 0) {
         $(".group_tabs a." + anchor.replace("_", "")).click();
-      } else {
-        $("a.gem-link[href=#" + anchor.replace("_", "") + "]").click();
       }
     }
   } else {

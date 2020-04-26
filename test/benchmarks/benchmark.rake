@@ -31,13 +31,14 @@ namespace :benchmarks do
   task :setup do
     require 'benchmark'
     require 'benchmark/ips'
+    require 'redis'
 
     if ENV['COVERAGE'] || ENV['ONESHOT']
       require 'coverage'
       ::Coverage.start(oneshot_lines: !!ENV['ONESHOT'])
     end
-    require 'redis'
     require 'coverband'
+
     require File.join(File.dirname(__FILE__), 'dog')
   end
 
@@ -396,7 +397,7 @@ namespace :benchmarks do
     puts 'comparing Coverage loaded/not, this takes some time for output...'
     puts 'coverage loaded'
     puts `COVERAGE=true rake benchmarks:run_file`
-    puts 'just the work'
+    puts 'without coverage'
     puts `rake benchmarks:run_file`
   end
 
@@ -405,7 +406,7 @@ namespace :benchmarks do
     puts 'comparing Coverage loaded/not, this takes some time for output...'
     puts 'coverage loaded'
     puts `COVERAGE=true rake benchmarks:run_redis`
-    puts 'just the work'
+    puts 'without coverage'
     puts `rake benchmarks:run_redis`
   end
 end

@@ -13,6 +13,7 @@ class CollectorsDeltaTest < Minitest::Test
 
   def setup
     Coverband::Collectors::Delta.reset
+    Coverband::Collectors::Delta.class_variable_set(:@@project_directory, 'car.rb')
   end
 
   test 'No previous results' do
@@ -45,8 +46,35 @@ class CollectorsDeltaTest < Minitest::Test
     current_coverage = {
       'dealership.rb' => [nil, 1, 1, nil]
     }
+    Coverband::Collectors::Delta.class_variable_set(:@@project_directory, 'dealership.rb')
     results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
     assert_equal(current_coverage, results)
+  end
+
+  test 'default tmp ignores' do
+    heroku_build_file = '/tmp/build_81feca8c72366e4edf020dc6f1937485/config/initializers/assets.rb'
+
+    current_coverage = {
+      heroku_build_file => [0, 5, 1]
+    }
+    Coverband::Collectors::Delta.class_variable_set(:@@project_directory, heroku_build_file)
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+    assert_equal({}, results)
+  end
+
+  # verifies a fix where we were storing, merging, and tracking ignored files
+  # then just filtering them out of the final report
+  test 'ignores uses regex same as reporter does' do
+    regex_file = Coverband.configuration.current_root + '/config/initializers/fake.rb'
+
+    current_coverage = {
+      regex_file => [0, 5, 1]
+    }
+
+    Coverband::Collectors::Delta.class_variable_set(:@@project_directory, regex_file)
+    Coverband::Collectors::Delta.class_variable_set(:@@ignore_patterns, ['config/initializers/*'])
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+    assert_equal({}, results)
   end
 
   test 'Coverage has branching enabled and has gone up' do

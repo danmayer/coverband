@@ -43,17 +43,6 @@ class FullStackTest < Minitest::Test
     expected = [nil, nil, 1, nil, 1, 1, 0, nil, nil]
   end
 
-  test 'call app with gem tracking' do
-    require 'rainbow'
-    Rainbow('this text is red').red
-    request = Rack::MockRequest.env_for('/anything.json')
-    middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
-    results = middleware.call(request)
-    assert_equal 'Hello Rack!', results.last
-    Coverband.report_coverage
-    assert Coverband.configuration.store.coverage.keys.any? { |key| key.end_with?('rainbow/global.rb') }
-  end
-
   private
 
   def fake_app_with_lines

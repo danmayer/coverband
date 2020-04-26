@@ -30,7 +30,6 @@ The primary goal of Coverband is giving deep insight into your production runtim
 - Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
 - Splits load time (Rails eager load) and Run time metrics
 - Easy to understand actionable insights from the report
-- Tracks Gem usage (still in experimental stages and not recommended for production)
 - Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
 
@@ -54,8 +53,6 @@ Add this line to your application's `Gemfile`, remember to `bundle install` afte
 gem 'coverband'
 ```
 
-If [tracking gem usage](#collecting-gem--library-usage), be sure to include coverband before other gems you would like to track.
-
 ## Upgrading to Latest
 
 ### No custom code or middleware required
@@ -66,7 +63,7 @@ See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 
 ## Rails
 
-The Railtie integration means you shouldn't need to do anything else other than ensure coverband is required after rails within your Gemfile. The only exception to this is gem tracking of `Bundle.require` which depends on requiring coverband within the application.rb. See [Collecting Gem / Library Usage](https://github.com/danmayer/coverband#collecting-gem--library-usage).
+The Railtie integration means you shouldn't need to do anything else other than ensure Coverband is required after Rails within your Gemfile.
 
 ## Sinatra
 
@@ -321,46 +318,6 @@ rake -T coverband
 rake coverband:clear         # reset coverband coverage data
 rake coverband:coverage      # report runtime coverband code coverage
 ```
-
-### Collecting Gem / Library Usage
-
-**WARNING:** Gem Tracking is still in experimental stages and not recommended for production. We have some performance issues when view reports on large applications. Gem tracing also during background thread data collection has HIGH memory requirements, during report merging (seemingly around 128mb of extra memory, which is crazy). We recommend deploying WITHOUT `track_gems` first and only enabling it after confirming that Coverband is working and performing well.
-
-Gem usage can be tracked by enabling the `track_gems` config.
-
-```
-Coverband.configure do |config|
-  config.track_gems = true
-end
-```
-
-The `track_gems` feature exposes a Gems tab in the report which prints out the percentage usage of each Gem. See demo [here](https://coverband-demo.herokuapp.com/coverage?#_Gems).
-
-When tracking gems, it is important that `Coverband#start` is called before the gems to be tracked are required. The best way to do this is to require coverband before Bundle.require is called. Within rails, require coverband within the application.rb like so:
-
-```ruby
-require 'coverband'
-Bundler.require(*Rails.groups)
-```
-
-If you are using the resque integration, resque needs to be required before coverband since the integration will not run unless resque is loaded. Within the application.rb just require resque before coverband.
-
-```ruby
-require 'resque'
-require 'coverband'
-Bundler.require(*Rails.groups)
-```
-
-The track_gems config only exposes the overall usage of a gem. In order to see the detail of each file, enable the `gem_details` flag.
-
-```
-Coverband.configure do |config|
-  config.track_gems = true
-  config.gem_details = true
-end
-```
-
-This flag exposes line by line usage of gem files. Unfortunately due to the way the coverband report is currently rendered, enabling `gem_details` slows down viewing of the coverage report in the browser and is not yet recommended.
 
 ### Manually Starting Coverband
 
