@@ -71,9 +71,9 @@ class CollectorsCoverageTest < Minitest::Test
     @coverband.reset_instance
     Coverband::Adapters::RedisStore.any_instance.stubs(:save_report).raises("Oh no")
     logger.expects(:error).at_least(3)
-    error = assert_raises RuntimeError {
+    error = assert_raises RuntimeError do
       @coverband.report_coverage
-    }
+    end
     assert_match %r{Oh no}, error.message
   end
 

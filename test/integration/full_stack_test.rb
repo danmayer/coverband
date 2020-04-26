@@ -24,7 +24,7 @@ class FullStackTest < Minitest::Test
   test "call app" do
     request = Rack::MockRequest.env_for("/anything.json")
     middleware = Coverband::BackgroundMiddleware.new(fake_app_with_lines)
-    middleware.call(request)
+    results = middleware.call(request)
     assert_equal "Hello Rack!", results.last
     Coverband.report_coverage
     expected = [nil, nil, 0, nil, 0, 0, 1, nil, nil]
