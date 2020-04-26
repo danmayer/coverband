@@ -1,0 +1,20 @@
+ruby_version: 2.3
+fix: false # default: false
+parallel: true # default: false
+format: progress # default: Standard::Formatter
+default_ignores: false # default: true
+
+ignore: # default: []
+  - "lib/**/*":
+      - Style/IdenticalConditionalBranches # these are just easier to read sometimes
+      - Style/IfInsideElse # these are just easier to read sometimes
+      - Standard/SemanticBlocks # not valid in older Ruby
+  - "vendor/**/*"
+  - "pkg/**/*"
+  - "test/**/*":
+      - Layout/AlignHash
+      - Style/GlobalVars
+      - Lint/InterpolationCheck # a test is verifying comments
+      - Standard/SemanticBlocks # not valid in older Ruby
+  - "test/benchmarks/benchmark.rake":
+      - Lint/UselessAssignment # oddity of memory benchmarking

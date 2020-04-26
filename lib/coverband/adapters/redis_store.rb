@@ -11,19 +11,19 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_3_2'
+      REDIS_STORAGE_FORMAT_VERSION = "coverband_3_2"
 
       attr_reader :redis_namespace
 
       def initialize(redis, opts = {})
         super()
-        @redis           = redis
-        @ttl             = opts[:ttl]
+        @redis = redis
+        @ttl = opts[:ttl]
         @redis_namespace = opts[:redis_namespace]
-        @format_version  = REDIS_STORAGE_FORMAT_VERSION
-        @keys            = {}
+        @format_version = REDIS_STORAGE_FORMAT_VERSION
+        @keys = {}
         Coverband::TYPES.each do |type|
-          @keys[type] = [@format_version, @redis_namespace, type].compact.join('.')
+          @keys[type] = [@format_version, @redis_namespace, type].compact.join(".")
         end
       end
 
@@ -54,15 +54,15 @@ module Coverband
       ###
       def migrate!
         reset_base_key
-        @format_version = 'coverband3_1'
+        @format_version = "coverband3_1"
         previous_data = coverage
         if previous_data.empty?
-          puts 'no previous data to migrate found'
+          puts "no previous data to migrate found"
           exit 0
         end
-        relative_path_report = previous_data.each_with_object({}) do |(key, vals), fixed_report|
+        relative_path_report = previous_data.each_with_object({}) { |(key, vals), fixed_report|
           fixed_report[Utils::RelativeFileConverter.convert(key)] = vals
-        end
+        }
         clear!
         reset_base_key
         @format_version = REDIS_STORAGE_FORMAT_VERSION
@@ -78,7 +78,7 @@ module Coverband
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = redis.get type_base_key(local_type)
         data = data ? JSON.parse(data) : {}
-        data.delete_if { |file_path, file_data| file_hash(file_path) != file_data['file_hash'] } unless opts[:skip_hash_check]
+        data.delete_if { |file_path, file_data| file_hash(file_path) != file_data["file_hash"] } unless opts[:skip_hash_check]
         data
       end
 
@@ -105,7 +105,7 @@ module Coverband
       end
 
       def base_key
-        @base_key ||= [@format_version, @redis_namespace, type].compact.join('.')
+        @base_key ||= [@format_version, @redis_namespace, type].compact.join(".")
       end
 
       def type_base_key(local_type)

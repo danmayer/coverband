@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'singleton'
+require "singleton"
 
 module Coverband
   module Collectors
@@ -14,12 +14,12 @@ module Coverband
     # TODO: test and ensure slim, haml, and other support
     ###
     class ViewTracker
-      DEFAULT_TARGET = Dir.glob('app/views/**/*.html.erb').reject { |file| file.match(/(_mailer)/) }
+      DEFAULT_TARGET = Dir.glob("app/views/**/*.html.erb").reject { |file| file.match(/(_mailer)/) }
       attr_accessor :target, :logged_views, :views_to_record
       attr_reader :logger, :roots, :store, :ignore_patterns
 
       def initialize(options = {})
-        raise NotImplementedError, 'View Tracker requires Rails 4 or greater' unless self.class.supported_version?
+        raise NotImplementedError, "View Tracker requires Rails 4 or greater" unless self.class.supported_version?
 
         @project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
@@ -28,7 +28,7 @@ module Coverband
         @target = options.fetch(:target) { DEFAULT_TARGET }
 
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
-        @roots = @roots.split(',') if @roots.is_a?(String)
+        @roots = @roots.split(",") if @roots.is_a?(String)
         @one_time_timestamp = false
 
         @logged_views = []
@@ -65,7 +65,7 @@ module Coverband
         normalized_views = {}
         views.each_pair do |view, time|
           roots.each do |root|
-            view = view.gsub(/#{root}/, '')
+            view = view.gsub(/#{root}/, "")
           end
           normalized_views[view] = time
         end
@@ -90,7 +90,7 @@ module Coverband
         if (tracking_time = redis_store.get(tracker_time_key))
           Time.at(tracking_time.to_i).iso8601
         else
-          'N/A'
+          "N/A"
         end
       end
 
@@ -115,14 +115,14 @@ module Coverband
           redis_store.hset(tracker_key, file, reported_time)
         end
         self.views_to_record = []
-      rescue StandardError => e
+      rescue => e
         # we don't want to raise errors if Coverband can't reach redis.
         # This is a nice to have not a bring the system down
         logger&.error "Coverband: view_tracker failed to store, error #{e.class.name}"
       end
 
       def self.supported_version?
-        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split('.').first.to_i >= 4
+        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 4
       end
 
       protected
@@ -146,11 +146,11 @@ module Coverband
       end
 
       def tracker_key
-        'render_tracker_2'
+        "render_tracker_2"
       end
 
       def tracker_time_key
-        'render_tracker_time'
+        "render_tracker_time"
       end
     end
   end

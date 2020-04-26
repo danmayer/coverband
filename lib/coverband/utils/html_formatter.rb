@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'erb'
-require 'cgi'
-require 'fileutils'
-require 'digest/sha1'
-require 'time'
+require "erb"
+require "cgi"
+require "fileutils"
+require "digest/sha1"
+require "time"
 
 ####
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov-html
@@ -47,41 +47,41 @@ module Coverband
         if source_file
           formatted_source_file(@coverage_result, source_file)
         else
-          'File No Longer Available'
+          "File No Longer Available"
         end
       end
 
       private
 
       def format_settings
-        template('settings').result(binding)
+        template("settings").result(binding)
       end
 
       def format_view_tracker
-        template('view_tracker').result(binding)
+        template("view_tracker").result(binding)
       end
 
       def format(result)
-        Dir[File.join(File.dirname(__FILE__), '../../../public/*')].each do |path|
+        Dir[File.join(File.dirname(__FILE__), "../../../public/*")].each do |path|
           FileUtils.cp_r(path, asset_output_path)
         end
 
-        File.open(File.join(output_path, 'index.html'), 'wb') do |file|
-          file.puts template('layout').result(binding)
+        File.open(File.join(output_path, "index.html"), "wb") do |file|
+          file.puts template("layout").result(binding)
         end
       end
 
       def format_html(result)
-        template('layout').result(binding)
+        template("layout").result(binding)
       end
 
       def format_data(result)
-        template('data').result(binding)
+        template("data").result(binding)
       end
 
       # Returns the an erb instance for the template of given name
       def template(name)
-        ERB.new(File.read(File.join(File.dirname(__FILE__), '../../../views/', "#{name}.erb")))
+        ERB.new(File.read(File.join(File.dirname(__FILE__), "../../../views/", "#{name}.erb")))
       end
 
       def output_path
@@ -114,61 +114,61 @@ module Coverband
 
       def button(url, title, opts = {})
         delete = opts.fetch(:delete) { false }
-        button_css = delete ? 'coveraband-button del' : 'coveraband-button'
+        button_css = delete ? "coveraband-button del" : "coveraband-button"
         button = "<form action='#{url}' class='coverband-admin-form' method='post'>"
         button += "<button class='#{button_css}' type='submit'>#{title}</button>"
-        button + '</form>'
+        button + "</form>"
       end
 
       def display_nav(nav_options = {})
-        template('nav').result(binding)
+        template("nav").result(binding)
       end
 
       # Returns the html for the given source_file
       def formatted_source_file(result, source_file)
-        template('source_file').result(binding)
+        template("source_file").result(binding)
       rescue Encoding::CompatibilityError => e
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
       # Returns the html to ajax load a given source_file
       def formatted_source_file_loader(result, source_file)
-        template('source_file_loader').result(binding)
+        template("source_file_loader").result(binding)
       rescue Encoding::CompatibilityError => e
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
       # Returns a table containing the given source files
       def formatted_file_list(title, result, source_files, options = {})
-        title_id = title.gsub(/^[^a-zA-Z]+/, '').gsub(/[^a-zA-Z0-9\-\_]/, '')
+        title_id = title.gsub(/^[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9\-\_]/, "")
         # Silence a warning by using the following variable to assign to itself:
         # "warning: possibly useless use of a variable in void context"
         # The variable is used by ERB via binding.
         title_id = title_id
         options = options
 
-        template('file_list').result(binding)
+        template("file_list").result(binding)
       end
 
       def coverage_css_class(covered_percent)
         if covered_percent.nil?
-          ''
+          ""
         elsif covered_percent > 90
-          'green'
+          "green"
         elsif covered_percent > 80
-          'yellow'
+          "yellow"
         else
-          'red'
+          "red"
         end
       end
 
       def strength_css_class(covered_strength)
         if covered_strength > 1
-          'green'
+          "green"
         elsif covered_strength == 1
-          'yellow'
+          "yellow"
         else
-          'red'
+          "red"
         end
       end
 
@@ -181,7 +181,7 @@ module Coverband
         if time
           "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
         else
-          'Not Available'
+          "Not Available"
         end
       end
 

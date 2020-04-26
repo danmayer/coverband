@@ -1,42 +1,42 @@
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', File.dirname(__FILE__))
+require File.expand_path("../test_helper", File.dirname(__FILE__))
 
 class CoverbandTest < Minitest::Test
-  test 'Coverband#start kicks off background reporting if enabled and not in rack server' do
-    Coverband.configuration.stubs(:background_reporting_enabled).returns(:true)
+  test "Coverband#start kicks off background reporting if enabled and not in rack server" do
+    Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
     Coverband::RackServerCheck.expects(:running?).returns(false)
     Coverband::Background.expects(:start)
     Coverband.start
   end
 
-  test 'Coverband#start delays background reporting if enabled and running in a rack server' do
+  test "Coverband#start delays background reporting if enabled and running in a rack server" do
     Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
     Coverband::RackServerCheck.expects(:running?).returns(true)
     Coverband::Background.expects(:start).never
     Coverband.start
   end
 
-  test 'Coverband#start does not kick off background reporting if not enabled' do
+  test "Coverband#start does not kick off background reporting if not enabled" do
     Coverband.configuration.stubs(:background_reporting_enabled).returns(false)
     Coverband::Background.expects(:start).never
     ::Coverband.start
   end
 
-  test 'Coverband#configured? works' do
+  test "Coverband#configured? works" do
     Coverband.configure
     assert Coverband.configured?
   end
 
-  test 'Eager load coverage block' do
-    Coverband.eager_loading_coverage {
-      #some code
+  test "Eager load coverage block" do
+    Coverband.eager_loading_coverage do
+      # some code
       1 + 1
-    }
+    end
     assert_equal :runtime, Coverband.configuration.store.type
   end
 
-  test 'Eager load coverage' do
+  test "Eager load coverage" do
     Coverband.eager_loading_coverage!
     assert_equal :eager_loading, Coverband.configuration.store.type
     Coverband.runtime_coverage!

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', File.dirname(__FILE__))
-require 'rack'
+require File.expand_path("../../test_helper", File.dirname(__FILE__))
+require "rack"
 
 class BackgroundMiddlewareTest < Minitest::Test
   def setup
@@ -11,23 +11,23 @@ class BackgroundMiddlewareTest < Minitest::Test
     end
   end
 
-  test 'call app' do
-    request = Rack::MockRequest.env_for('/anything.json')
+  test "call app" do
+    request = Rack::MockRequest.env_for("/anything.json")
     Coverband::Collectors::Coverage.instance.reset_instance
     middleware = Coverband::BackgroundMiddleware.new(fake_app)
     results = middleware.call(request)
-    assert_equal '/anything.json', results.last
+    assert_equal "/anything.json", results.last
   end
 
-  test 'pass all rack lint checks' do
+  test "pass all rack lint checks" do
     Coverband::Collectors::Coverage.instance.reset_instance
     app = Rack::Lint.new(Coverband::BackgroundMiddleware.new(fake_app))
-    env = Rack::MockRequest.env_for('/hello')
+    env = Rack::MockRequest.env_for("/hello")
     app.call(env)
   end
 
-  test 'starts background reporter when configured' do
-    request = Rack::MockRequest.env_for('/anything.json')
+  test "starts background reporter when configured" do
+    request = Rack::MockRequest.env_for("/anything.json")
     Coverband.configuration.stubs(:background_reporting_enabled).returns(true)
     Coverband::Background.expects(:start)
     middleware = Coverband::BackgroundMiddleware.new(fake_app)
@@ -38,7 +38,7 @@ class BackgroundMiddlewareTest < Minitest::Test
 
   def fake_app
     @fake_app ||= lambda do |env|
-      [200, { 'Content-Type' => 'text/plain' }, env['PATH_INFO']]
+      [200, {"Content-Type" => "text/plain"}, env["PATH_INFO"]]
     end
   end
 end

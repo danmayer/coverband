@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require 'securerandom'
+require "securerandom"
 
 module Coverband
   module Adapters
     class HashRedisStore < Base
-      FILE_KEY = 'file'
-      FILE_LENGTH_KEY = 'file_length'
+      FILE_KEY = "file"
+      FILE_LENGTH_KEY = "file_length"
       META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY, FILE_HASH].freeze
       ###
       # This key isn't related to the coverband version, but to the interal format
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_hash_3_3'
+      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_3_3"
 
       JSON_PAYLOAD_EXPIRATION = 5 * 60
 
@@ -25,14 +25,14 @@ module Coverband
         @save_report_batch_size = opts[:save_report_batch_size] || 100
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
-        raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
+        raise "HashRedisStore requires redis >= 2.6.0" unless supported?
 
         @ttl = opts[:ttl]
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
       end
 
       def supported?
-        Gem::Version.new(@redis.info['redis_version']) >= Gem::Version.new('2.6.0')
+        Gem::Version.new(@redis.info["redis_version"]) >= Gem::Version.new("2.6.0")
       end
 
       def clear!
@@ -60,7 +60,7 @@ module Coverband
         updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
         keys = []
         report.each_slice(@save_report_batch_size) do |slice|
-          files_data = slice.map do |(file, data)|
+          files_data = slice.map { |(file, data)|
             relative_file = @relative_file_converter.convert(file)
             file_hash = file_hash(relative_file)
             key = key(relative_file, file_hash: file_hash)
@@ -73,11 +73,11 @@ module Coverband
               report_time: report_time,
               updated_time: updated_time
             )
-          end
+          }
           next unless files_data.any?
 
-          arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-          @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+          arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join(".")
+          @redis.set(arguments_key, {ttl: @ttl, files_data: files_data}.to_json, ex: JSON_PAYLOAD_EXPIRATION)
           @redis.evalsha(hash_incr_script, [arguments_key])
         end
         @redis.sadd(files_key, keys) if keys.any?
@@ -85,11 +85,11 @@ module Coverband
 
       def coverage(local_type = nil)
         files_set = files_set(local_type)
-        @redis.pipelined do
+        @redis.pipelined {
           files_set.map do |key|
             @redis.hgetall(key)
           end
-        end.each_with_object({}) do |data_from_redis, hash|
+        }.each_with_object({}) do |data_from_redis, hash|
           add_coverage_for_file(data_from_redis, hash)
         end
       end
@@ -99,11 +99,11 @@ module Coverband
       end
 
       def size
-        'not available'
+        "not available"
       end
 
       def size_in_mib
-        'not available'
+        "not available"
       end
 
       private
@@ -115,7 +115,7 @@ module Coverband
         return unless file_hash(file) == data_from_redis[FILE_HASH]
 
         data = coverage_data_from_redis(data_from_redis)
-        hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!('data' => data)
+        hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!("data" => data)
         hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].blank? ? nil : hash[file][LAST_UPDATED_KEY].to_i
         hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY], FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
       end
@@ -129,9 +129,9 @@ module Coverband
       end
 
       def script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
-        coverage_data = data.each_with_index.each_with_object({}) do |(coverage, index), hash|
+        coverage_data = data.each_with_index.each_with_object({}) { |(coverage, index), hash|
           hash[index] = coverage if coverage
-        end
+        }
         meta = {
           first_updated_at: report_time,
           file: file,
@@ -153,8 +153,8 @@ module Coverband
 
       def lua_script_content
         File.read(File.join(
-                    File.dirname(__FILE__), '../../../lua/lib/persist-coverage.lua'
-                  ))
+          File.dirname(__FILE__), "../../../lua/lib/persist-coverage.lua"
+        ))
       end
 
       def values_from_redis(local_type, files)
@@ -178,12 +178,12 @@ module Coverband
       end
 
       def key(file, local_type = nil, file_hash:)
-        [key_prefix(local_type), file, file_hash].join('.')
+        [key_prefix(local_type), file, file_hash].join(".")
       end
 
       def key_prefix(local_type = nil)
         local_type ||= type
-        [@format_version, @redis_namespace, local_type].compact.join('.')
+        [@format_version, @redis_namespace, local_type].compact.join(".")
       end
     end
   end

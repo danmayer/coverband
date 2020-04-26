@@ -32,14 +32,14 @@ module Coverband
         alias number line_number
 
         def initialize(src, line_number, coverage)
-          raise ArgumentError, 'Only String accepted for source' unless src.is_a?(String)
-          raise ArgumentError, 'Only Integer accepted for line_number' unless line_number.is_a?(Integer)
-          raise ArgumentError, 'Only Integer and nil accepted for coverage' unless coverage.is_a?(Integer) || coverage.nil?
+          raise ArgumentError, "Only String accepted for source" unless src.is_a?(String)
+          raise ArgumentError, "Only Integer accepted for line_number" unless line_number.is_a?(Integer)
+          raise ArgumentError, "Only Integer and nil accepted for coverage" unless coverage.is_a?(Integer) || coverage.nil?
 
-          @src         = src
+          @src = src
           @line_number = line_number
-          @coverage    = coverage
-          @skipped     = false
+          @coverage = coverage
+          @skipped = false
         end
 
         # Returns true if this is a line that should have been covered, but was not
@@ -71,10 +71,10 @@ module Coverband
         # The status of this line - either covered, missed, skipped or never. Useful i.e. for direct use
         # as a css class in report generation
         def status
-          return 'skipped' if skipped?
-          return 'never' if never?
-          return 'missed' if missed?
-          return 'covered' if covered?
+          return "skipped" if skipped?
+          return "never" if never?
+          return "missed" if missed?
+          return "covered" if covered?
         end
       end
 
@@ -89,17 +89,17 @@ module Coverband
       attr_reader :last_updated_at
       # meta data that the file was never loaded during boot or runtime
       attr_reader :never_loaded
-      NOT_AVAILABLE = 'not available'
+      NOT_AVAILABLE = "not available"
 
       def initialize(filename, file_data)
         @filename = filename
         @runtime_relavant_lines = nil
         if file_data.is_a?(Hash)
-          @coverage = file_data['data']
+          @coverage = file_data["data"]
           @first_updated_at = @last_updated_at = NOT_AVAILABLE
-          @first_updated_at = Time.at(file_data['first_updated_at']) if file_data['first_updated_at']
-          @last_updated_at =  Time.at(file_data['last_updated_at']) if file_data['last_updated_at']
-          @never_loaded = file_data['never_loaded'] || false
+          @first_updated_at = Time.at(file_data["first_updated_at"]) if file_data["first_updated_at"]
+          @last_updated_at = Time.at(file_data["last_updated_at"]) if file_data["last_updated_at"]
+          @never_loaded = file_data["never_loaded"] || false
         else
           # TODO: Deprecate this code path this was backwards compatability from 3-4
           @coverage = file_data
@@ -117,14 +117,14 @@ module Coverband
 
       # The path to this source file relative to the projects directory
       def project_filename
-        @filename.sub(/^#{Coverband.configuration.root}/, '')
+        @filename.sub(/^#{Coverband.configuration.root}/, "")
       end
 
       # The source code for this file. Aliased as :source
       def src
         # We intentionally read source code lazily to
         # suppress reading unused source code.
-        @src ||= File.open(filename, 'rb', &:readlines)
+        @src ||= File.open(filename, "rb", &:readlines)
       end
       alias source src
 
@@ -138,9 +138,9 @@ module Coverband
       def build_lines
         coverage_exceeding_source_warn if coverage.size > src.size
 
-        lines = src.map.with_index(1) do |src, i|
+        lines = src.map.with_index(1) { |src, i|
           Coverband::Utils::SourceFile::Line.new(src, i, coverage[i - 1])
-        end
+        }
 
         process_skipped_lines(lines)
       end
@@ -241,8 +241,8 @@ module Coverband
       # was at the start of the file name
       # I had previously patched this in my local Rails app
       def short_name
-        filename.sub(/^#{Coverband.configuration.root}/, '.')
-                .gsub(%r{^\.\/}, '')
+        filename.sub(/^#{Coverband.configuration.root}/, ".")
+          .gsub(%r{^\.\/}, "")
       end
 
       def relative_path

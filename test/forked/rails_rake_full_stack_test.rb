@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
-require 'rails'
+require File.expand_path("../rails_test_helper", File.dirname(__FILE__))
+require "rails"
 
 class RailsRakeFullStackTest < Minitest::Test
   def setup
@@ -16,7 +16,7 @@ class RailsRakeFullStackTest < Minitest::Test
 
   test "ignored rake tasks don't add coverage" do
     store.clear!
-    store.instance_variable_set(:@redis_namespace, 'coverband_test')
+    store.instance_variable_set(:@redis_namespace, "coverband_test")
     store.send(:save_report, basic_coverage_full_path)
     output = `COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile coverband:clear`
     assert_nil output.match(/Coverband: Reported coverage via thread/)
@@ -30,7 +30,7 @@ class RailsRakeFullStackTest < Minitest::Test
   test "doesn't exit non-zero with error on missing redis" do
     output = `COVERBAND_CONFIG=./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband_missing_redis.rb bundle exec rake -f test/rails#{Rails::VERSION::MAJOR}_dummy/Rakefile -T`
     assert_equal 0, $?.to_i
-    if ENV['COVERBAND_HASH_REDIS_STORE']
+    if ENV["COVERBAND_HASH_REDIS_STORE"]
       assert output.match(/Redis is not available/)
     else
       assert output.match(/coverage failed to store/)

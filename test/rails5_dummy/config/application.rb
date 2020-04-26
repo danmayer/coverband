@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'rails'
-require 'action_controller/railtie'
-require 'coverband'
+require "rails"
+require "action_controller/railtie"
+require "coverband"
 Bundler.require(*Rails.groups)
 
 module Rails5Dummy
