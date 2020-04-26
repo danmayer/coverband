@@ -1,4 +1,4 @@
-ruby_version: 2.5
+ruby_version: 2.3
 fix: true # default: false
 parallel: true # default: false
 format: progress # default: Standard::Formatter
