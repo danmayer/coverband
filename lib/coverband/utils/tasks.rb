@@ -6,11 +6,7 @@ namespace :coverband do
 
   desc "report runtime Coverband code coverage"
   task :coverage do
-    if Coverband.configuration.reporter == "scov"
-      Coverband::Reporters::HTMLReport.new(Coverband.configuration.store).report
-    else
-      Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
-    end
+    Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
   end
 
   desc "report runtime Coverband code coverage"
