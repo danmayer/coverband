@@ -27,9 +27,9 @@ module Coverband
       @semaphore.synchronize do
         return if running?
 
-        logger.debug('Coverband: Starting background reporting') if Coverband.configuration.verbose
+        logger.debug("Coverband: Starting background reporting") if Coverband.configuration.verbose
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
-        @thread = Thread.new do
+        @thread = Thread.new {
           loop do
             Coverband.report_coverage
             Coverband.configuration.view_tracker&.report_views_tracked
@@ -41,7 +41,7 @@ module Coverband
             end
             sleep(sleep_seconds)
           end
-        end
+        }
       end
     end
   end

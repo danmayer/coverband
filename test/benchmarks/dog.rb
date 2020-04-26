@@ -2,6 +2,6 @@
 
 class Dog
   def bark
-    'bark'
+    "bark"
   end
 end

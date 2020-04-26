@@ -36,7 +36,7 @@ services:
 script:
   - sudo ./lua/install.sh
   - $HOME/lua51/bin/busted lua/test/*
-  - bundle exec rake rubocop
+  - bundle exec standardrb
   - COVERBAND_HASH_REDIS_STORE=t bundle exec rake
   - COVERBAND_HASH_REDIS_STORE=t bundle exec rake forked_tests
   - bundle exec rake

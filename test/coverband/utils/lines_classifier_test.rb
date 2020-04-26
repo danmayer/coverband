@@ -1,34 +1,34 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', File.dirname(__FILE__))
+require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 ####
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov-html
 # initial version of test pulled into Coverband from Simplecov 12/17/2018
 ####
 describe Coverband::Utils::LinesClassifier do
-  describe '#classify' do
+  describe "#classify" do
     def subject
       Coverband::Utils::LinesClassifier.new
     end
 
-    describe 'relevant lines' do
-      it 'determines code as relevant' do
+    describe "relevant lines" do
+      it "determines code as relevant" do
         classified_lines = subject.classify [
-          'module Foo',
-          '  class Baz',
-          '    def Bar',
+          "module Foo",
+          "  class Baz",
+          "    def Bar",
           "      puts 'hi'",
-          '    end',
-          '  end',
-          'end'
+          "    end",
+          "  end",
+          "end"
         ]
 
         assert_equal 7, classified_lines.length
         assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::RELEVANT })
       end
 
-      it 'determines invalid UTF-8 byte sequences as relevant' do
+      it "determines invalid UTF-8 byte sequences as relevant" do
         classified_lines = subject.classify [
           "bytes = \"\xF1t\xEBrn\xE2ti\xF4n\xE0liz\xE6ti\xF8n\""
         ]
@@ -38,11 +38,11 @@ describe Coverband::Utils::LinesClassifier do
       end
     end
 
-    describe 'not-relevant lines' do
-      it 'determines whitespace is not-relevant' do
+    describe "not-relevant lines" do
+      it "determines whitespace is not-relevant" do
         classified_lines = subject.classify [
-          '',
-          '   ',
+          "",
+          "   ",
           "\t\t"
         ]
 
@@ -50,11 +50,11 @@ describe Coverband::Utils::LinesClassifier do
         assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
       end
 
-      describe 'comments' do
-        it 'determines comments are not-relevant' do
+      describe "comments" do
+        it "determines comments are not-relevant" do
           classified_lines = subject.classify [
-            '#Comment',
-            ' # Leading space comment',
+            "#Comment",
+            " # Leading space comment",
             "\t# Leading tab comment"
           ]
 
@@ -72,27 +72,27 @@ describe Coverband::Utils::LinesClassifier do
         end
       end
 
-      describe ':nocov: blocks' do
-        it 'determines :nocov: blocks are not-relevant' do
+      describe ":nocov: blocks" do
+        it "determines :nocov: blocks are not-relevant" do
           classified_lines = subject.classify [
-            '# :nocov:',
-            'def hi',
-            'end',
-            '# :nocov:'
+            "# :nocov:",
+            "def hi",
+            "end",
+            "# :nocov:"
           ]
 
           assert_equal 4, classified_lines.length
           assert(classified_lines.all? { |line| line == Coverband::Utils::LinesClassifier::NOT_RELEVANT })
         end
 
-        it 'determines all lines after a non-closing :nocov: as not-relevant' do
+        it "determines all lines after a non-closing :nocov: as not-relevant" do
           classified_lines = subject.classify [
-            '# :nocov:',
+            "# :nocov:",
             "puts 'Not relevant'",
-            '# :nocov:',
+            "# :nocov:",
             "puts 'Relevant again'",
             "puts 'Still relevant'",
-            '# :nocov:',
+            "# :nocov:",
             "puts 'Not relevant till the end'",
             "puts 'Ditto'"
           ]

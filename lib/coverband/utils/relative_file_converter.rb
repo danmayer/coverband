@@ -24,8 +24,8 @@ module Coverband
         @cache[file] ||= begin
                            relative_file = file
                            @roots.each do |root|
-                             relative_file = file.gsub(/^#{root}/, '.')
-                             break relative_file if relative_file.start_with?('.')
+                             relative_file = file.gsub(/^#{root}/, ".")
+                             break relative_file if relative_file.start_with?(".")
                            end
                            relative_file
                          end

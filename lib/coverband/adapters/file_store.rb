@@ -39,7 +39,7 @@ module Coverband
       def save_report(report)
         data = report.dup
         data = merge_reports(data, coverage)
-        File.open(path, 'w') { |f| f.write(data.to_json) }
+        File.open(path, "w") { |f| f.write(data.to_json) }
       end
 
       def raw_store

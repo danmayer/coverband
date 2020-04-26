@@ -12,7 +12,7 @@ module Coverband
         scov_style_report.each_pair do |file, usage|
           # TODO: In Coverband 5 deprecate none hash format
           if usage.is_a?(Hash)
-            Coverband.configuration.logger.info "#{file}: #{usage['data']}"
+            Coverband.configuration.logger.info "#{file}: #{usage["data"]}"
           else
             Coverband.configuration.logger.info "#{file}: #{usage}"
           end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'digest/sha1'
-require 'forwardable'
+require "digest/sha1"
+require "forwardable"
 
 ####
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov
@@ -31,9 +31,9 @@ module Coverband
       def initialize(original_result)
         @original_result = (original_result || {}).freeze
 
-        @files = Coverband::Utils::FileList.new(@original_result.map do |filename, coverage|
+        @files = Coverband::Utils::FileList.new(@original_result.map { |filename, coverage|
           Coverband::Utils::SourceFile.new(filename, coverage) if File.file?(filename)
-        end.compact.sort_by(&:short_name))
+        }.compact.sort_by(&:short_name))
       end
 
       # Returns all filenames for source files contained in this result
@@ -55,8 +55,8 @@ module Coverband
           Dir[tracked_files].each do |file|
             absolute = File.expand_path(file)
             result[absolute] ||= {
-              'data' => Array.new(File.foreach(absolute).count) { 0 },
-              'never_loaded' => true
+              "data" => Array.new(File.foreach(absolute).count) { 0 },
+              "never_loaded" => true
             }
           end
         end

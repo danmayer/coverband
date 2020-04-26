@@ -3,11 +3,11 @@
 module Coverband
   module Adapters
     class Base
-      DATA_KEY = 'data'
-      FIRST_UPDATED_KEY = 'first_updated_at'
-      LAST_UPDATED_KEY = 'last_updated_at'
-      FILE_HASH = 'file_hash'
-      ABSTRACT_KEY = 'abstract'
+      DATA_KEY = "data"
+      FIRST_UPDATED_KEY = "first_updated_at"
+      LAST_UPDATED_KEY = "last_updated_at"
+      FILE_HASH = "file_hash"
+      ABSTRACT_KEY = "abstract"
 
       attr_accessor :type
 
@@ -40,11 +40,11 @@ module Coverband
       end
 
       def size_in_mib
-        format('%<size>.2f', size: (size.to_f / 2**20))
+        format("%<size>.2f", size: (size.to_f / 2**20))
       end
 
       def save_report(_report)
-        raise 'abstract'
+        raise "abstract"
       end
 
       def get_coverage_report
@@ -76,7 +76,7 @@ module Coverband
         runtime_data = coverage(Coverband::RUNTIME_TYPE)
         eager_data = coverage(Coverband::EAGER_TYPE)
         eager_data.values do |vals|
-          vals['data'].map! { |line_coverage| line_coverage ? (0 - line_coverage) : line_coverage }
+          vals["data"].map! { |line_coverage| line_coverage ? (0 - line_coverage) : line_coverage }
         end
         merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
@@ -117,14 +117,14 @@ module Coverband
         keys = (new_report.keys + old_report.keys).uniq
         keys.each do |file|
           new_report[file] = if new_report[file] &&
-                                old_report[file] &&
-                                new_report[file][FILE_HASH] == old_report[file][FILE_HASH]
-                               merge_expanded_data(new_report[file], old_report[file])
-                             elsif new_report[file]
-                               new_report[file]
-                             else
-                               old_report[file]
-                             end
+              old_report[file] &&
+              new_report[file][FILE_HASH] == old_report[file][FILE_HASH]
+            merge_expanded_data(new_report[file], old_report[file])
+          elsif new_report[file]
+            new_report[file]
+          else
+            old_report[file]
+          end
         end
         new_report
       end
@@ -145,7 +145,7 @@ module Coverband
         elsif Coverband.configuration.simulate_oneshot_lines_coverage
           latest.map.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
         else
-          latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
+          latest.map.with_index { |v, i| v && original[i] ? v + original[i] : nil }
         end
       end
     end

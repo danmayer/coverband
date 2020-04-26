@@ -4,7 +4,7 @@ module Coverband
   module Reporters
     class HTMLReport < Base
       attr_accessor :filtered_report_files, :open_report, :static, :notice,
-                    :base_path, :filename
+        :base_path, :filename
 
       def initialize(store, options = {})
         coverband_reports = Coverband::Reporters::Base.report(store, options)
@@ -20,8 +20,8 @@ module Coverband
 
       def file_details
         Coverband::Utils::HTMLFormatter.new(filtered_report_files,
-                                            base_path: base_path,
-                                            notice: notice).format_source_file!(filename)
+          base_path: base_path,
+          notice: notice).format_source_file!(filename)
       end
 
       def report
@@ -47,20 +47,20 @@ module Coverband
         if open_report
           `open #{Coverband.configuration.root}/coverage/index.html`
         else
-          Coverband.configuration.logger.info 'report is ready and viewable: open coverage/index.html'
+          Coverband.configuration.logger.info "report is ready and viewable: open coverage/index.html"
         end
       end
 
       def report_dynamic_html
         Coverband::Utils::HTMLFormatter.new(filtered_report_files,
-                                            base_path: base_path,
-                                            notice: notice).format_dynamic_html!
+          base_path: base_path,
+          notice: notice).format_dynamic_html!
       end
 
       def report_dynamic_data
         Coverband::Utils::HTMLFormatter.new(filtered_report_files,
-                                            base_path: base_path,
-                                            notice: notice).format_dynamic_data!
+          base_path: base_path,
+          notice: notice).format_dynamic_data!
       end
     end
   end

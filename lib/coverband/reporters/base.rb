@@ -8,7 +8,7 @@ module Coverband
     ###
     class Base
       class << self
-        DATA_KEY = 'data'
+        DATA_KEY = "data"
 
         def report(store, _options = {})
           all_roots = Coverband.configuration.all_root_paths
@@ -49,7 +49,7 @@ module Coverband
         protected
 
         def fix_file_names(report_hash, roots)
-          Coverband.configuration.logger.debug "fixing root: #{roots.join(', ')}" if Coverband.configuration.verbose
+          Coverband.configuration.logger.debug "fixing root: #{roots.join(", ")}" if Coverband.configuration.verbose
 
           # normalize names across servers
           report_hash.each_with_object({}) do |(name, report), fixed_report|
@@ -57,12 +57,12 @@ module Coverband
             report.each_pair do |key, vals|
               filename = Coverband::Utils::AbsoluteFileConverter.convert(key)
               fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename][DATA_KEY] && vals[DATA_KEY]
-                                               merged_data = merge_arrays(fixed_report[name][filename][DATA_KEY], vals[DATA_KEY])
-                                               vals[DATA_KEY] = merged_data
-                                               vals
-                                             else
-                                               vals
-                                             end
+                merged_data = merge_arrays(fixed_report[name][filename][DATA_KEY], vals[DATA_KEY])
+                vals[DATA_KEY] = merged_data
+                vals
+              else
+                vals
+              end
             end
           end
         end
@@ -75,8 +75,8 @@ module Coverband
 
           longest.each_with_index do |_line, index|
             merged[index] = if first[index] || second[index]
-                              (first[index].to_i + second[index].to_i)
-                            end
+              (first[index].to_i + second[index].to_i)
+            end
           end
 
           merged

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../rails_test_helper', File.dirname(__FILE__))
+require File.expand_path("../rails_test_helper", File.dirname(__FILE__))
 
 class RailsFullStackTest < Minitest::Test
   include Capybara::DSL
@@ -11,8 +11,8 @@ class RailsFullStackTest < Minitest::Test
     rails_setup
     # preload first coverage hit
     Coverband.report_coverage
-    require 'rainbow'
-    Rainbow('this text is red').red
+    require "rainbow"
+    Rainbow("this text is red").red
   end
 
   def teardown
@@ -24,26 +24,27 @@ class RailsFullStackTest < Minitest::Test
   # We have to combine everything in one test
   # because we can only initialize rails once per test
   # run. Possibly fork test runs to avoid this problem in future?
-  unless ENV['COVERBAND_MEMORY_TEST']
-    test 'this is how we do it' do
-      visit '/dummy/show'
+  unless ENV["COVERBAND_MEMORY_TEST"]
+    test "this is how we do it" do
+      visit "/dummy/show"
       Coverband.report_coverage
-      assert_content('I am no dummy')
-      visit '/coverage'
-      within page.find('a', text: /dummy_controller.rb/).find(:xpath, '../..') do
-        assert_selector('td', text: '100.0 %')
+      assert_content("I am no dummy")
+      visit "/coverage"
+      within page.find("a", text: /dummy_controller.rb/).find(:xpath, "../..") do
+        assert_selector("td", text: "100.0 %")
       end
 
       # Test eager load data stored separately
       dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
       store.type = :eager_loading
       eager_expected = [1, 1, 0, nil, nil]
-      results = store.coverage[dummy_controller]['data']
+      results = store.coverage[dummy_controller]["data"]
       assert_equal(eager_expected, results)
 
       store.type = Coverband::RUNTIME_TYPE
       runtime_expected = [0, 0, 1, nil, nil]
-      results = store.coverage[dummy_controller]['data']
+      results = store.coverage[dummy_controller]["data"]
+      assert_equal(runtime_expected, results)
     end
   end
 
@@ -51,20 +52,20 @@ class RailsFullStackTest < Minitest::Test
   # as we run it in single test mode via the benchmarks.
   # Add new tests below this test
   ###
-  if ENV['COVERBAND_MEMORY_TEST']
-    test 'memory usage' do
-      return unless ENV['COVERBAND_MEMORY_TEST']
+  if ENV["COVERBAND_MEMORY_TEST"]
+    test "memory usage" do
+      return unless ENV["COVERBAND_MEMORY_TEST"]
 
       # we don't want this to run during our standard test suite
       # as the below profiler changes the runtime
       # and shold only be included for isolated processes
       begin
-        require 'memory_profiler'
+        require "memory_profiler"
 
         # warmup
         3.times do
-          visit '/dummy/show'
-          assert_content('I am no dummy')
+          visit "/dummy/show"
+          assert_content("I am no dummy")
           Coverband.report_coverage
         end
 
@@ -72,10 +73,10 @@ class RailsFullStackTest < Minitest::Test
         capture = StringIO.new
         $stdout = capture
 
-        MemoryProfiler.report do
+        MemoryProfiler.report {
           15.times do
-            visit '/dummy/show'
-            assert_content('I am no dummy')
+            visit "/dummy/show"
+            assert_content("I am no dummy")
             Coverband.report_coverage
             ###
             # Set to nil not {} as it is easier to verify that no memory is retained when nil gets released
@@ -87,12 +88,12 @@ class RailsFullStackTest < Minitest::Test
             # needed to test older versions to discover when we had the regression
             # Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)
           end
-        end.pretty_print
+        }.pretty_print
         data = $stdout.string
         $stdout = previous_out
         if data.match(/retained objects by gem(.*)retained objects by file/m)[0]&.match(/coverband/)
           puts data
-          raise 'leaking memory!!!'
+          raise "leaking memory!!!"
         end
       ensure
         $stdout = previous_out

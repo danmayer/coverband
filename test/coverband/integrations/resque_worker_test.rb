@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', File.dirname(__FILE__))
+require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 class ResqueWorkerTest < Minitest::Test
   def enqueue_and_run_job
     Resque.enqueue(TestResqueJob)
-    queue = ENV['QUEUE'] = 'resque_coverband'
+    ENV["QUEUE"] = "resque_coverband"
     worker = Resque::Worker.new
     worker.startup
     worker.work_one_job
@@ -21,9 +21,9 @@ class ResqueWorkerTest < Minitest::Test
     Resque.redis = redis
   end
 
-  test 'resque job coverage' do
-    relative_job_file = './test/coverband/integrations/test_resque_job.rb'
-    resque_job_file = File.expand_path('./test_resque_job.rb', File.dirname(__FILE__))
+  test "resque job coverage" do
+    relative_job_file = "./test/coverband/integrations/test_resque_job.rb"
+    resque_job_file = File.expand_path("./test_resque_job.rb", File.dirname(__FILE__))
     require resque_job_file
 
     enqueue_and_run_job
@@ -35,13 +35,13 @@ class ResqueWorkerTest < Minitest::Test
     Coverband.runtime_coverage!
     report = Coverband.configuration.store.get_coverage_report
 
-    if RUBY_PLATFORM == 'java'
+    if RUBY_PLATFORM == "java"
       # NOTE: the todo test only issue seems to be slightly different in JRuby
       # were nothing is showing up as runtime Coverage... This appears to be a test only issue
-      assert_equal 1, report[Coverband::EAGER_TYPE][relative_job_file]['data'][6]
+      assert_equal 1, report[Coverband::EAGER_TYPE][relative_job_file]["data"][6]
     else
-      assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]['data'][6]
-      assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]['data'][6]
+      assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]["data"][6]
+      assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]["data"][6]
     end
   end
 end

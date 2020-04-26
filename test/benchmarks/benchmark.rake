@@ -14,9 +14,11 @@ namespace :benchmarks do
       run_gc
     end
 
-    def warmup_stats(*); end
+    def warmup_stats(*)
+    end
 
-    def add_report(*); end
+    def add_report(*)
+    end
 
     private
 
@@ -29,47 +31,47 @@ namespace :benchmarks do
 
   # desc 'setup standard benchmark'
   task :setup do
-    require 'benchmark'
-    require 'benchmark/ips'
-    require 'redis'
+    require "benchmark"
+    require "benchmark/ips"
+    require "redis"
 
-    if ENV['COVERAGE'] || ENV['ONESHOT']
-      require 'coverage'
-      ::Coverage.start(oneshot_lines: !!ENV['ONESHOT'])
+    if ENV["COVERAGE"] || ENV["ONESHOT"]
+      require "coverage"
+      ::Coverage.start(oneshot_lines: !!ENV["ONESHOT"])
     end
-    require 'coverband'
+    require "coverband"
 
-    require File.join(File.dirname(__FILE__), 'dog')
+    require File.join(File.dirname(__FILE__), "dog")
   end
 
   def benchmark_redis_store
-    redis = if ENV['REDIS_TEST_URL']
-              Redis.new(url: ENV['REDIS_TEST_URL'])
-            else
-              Redis.new
-            end
+    redis = if ENV["REDIS_TEST_URL"]
+      Redis.new(url: ENV["REDIS_TEST_URL"])
+    else
+      Redis.new
+    end
     Coverband::Adapters::RedisStore.new(redis,
-                                        redis_namespace: 'coverband_bench')
+      redis_namespace: "coverband_bench")
   end
 
   # desc 'set up coverband with Redis'
   task :setup_redis do
     Coverband.configure do |config|
-      config.root                = Dir.pwd
-      config.logger              = $stdout
-      config.store               = benchmark_redis_store
-      config.use_oneshot_lines_coverage = true if ENV['ONESHOT']
-      config.simulate_oneshot_lines_coverage = true if ENV['SIMULATE_ONESHOT']
+      config.root = Dir.pwd
+      config.logger = $stdout
+      config.store = benchmark_redis_store
+      config.use_oneshot_lines_coverage = true if ENV["ONESHOT"]
+      config.simulate_oneshot_lines_coverage = true if ENV["SIMULATE_ONESHOT"]
     end
   end
 
   # desc 'set up coverband with filestore'
   task :setup_file do
     Coverband.configure do |config|
-      config.root                = Dir.pwd
-      config.logger              = $stdout
-      file_path                  = '/tmp/benchmark_store.json'
-      config.store               = Coverband::Adapters::FileStore.new(file_path)
+      config.root = Dir.pwd
+      config.logger = $stdout
+      file_path = "/tmp/benchmark_store.json"
+      config.store = Coverband::Adapters::FileStore.new(file_path)
     end
   end
 
@@ -84,14 +86,14 @@ namespace :benchmarks do
     suite = GCSuite.new
     Benchmark.ips do |x|
       x.config(time: 12, warmup: 5, suite: suite)
-      x.report 'coverband' do
+      x.report "coverband" do
         work
         Coverband.report_coverage
       end
-      x.report 'no coverband' do
+      x.report "no coverband" do
         work
       end
-      x.hold! 'temp_results' if hold_work
+      x.hold! "temp_results" if hold_work
       x.compare!
     end
     Coverband::Collectors::Coverage.instance.reset_instance
@@ -101,7 +103,7 @@ namespace :benchmarks do
   NON_NIL_LINES = 18
   def fake_line_numbers
     LINES.times.map do |line|
-      coverage = (line < NON_NIL_LINES) ? rand(5) : nil
+      coverage = line < NON_NIL_LINES ? rand(5) : nil
     end
   end
 
@@ -142,18 +144,18 @@ namespace :benchmarks do
     5.times { store.save_report(report) }
     Benchmark.ips do |x|
       x.config(time: 15, warmup: 5)
-      x.report('store_reports_all') { store.save_report(report) }
+      x.report("store_reports_all") { store.save_report(report) }
     end
     keys_subset = report.keys.first(100)
     report_subset = report.select { |key, _value| keys_subset.include?(key) }
     Benchmark.ips do |x|
       x.config(time: 20, warmup: 5)
-      x.report('store_reports_subset') { store.save_report(report_subset) }
+      x.report("store_reports_subset") { store.save_report(report_subset) }
     end
   end
 
   def measure_memory
-    require 'memory_profiler'
+    require "memory_profiler"
     report = fake_report
     store = benchmark_redis_store
     store.clear!
@@ -166,21 +168,21 @@ namespace :benchmarks do
     capture = StringIO.new
     $stdout = capture
 
-    MemoryProfiler.report do
+    MemoryProfiler.report {
       10.times { store.save_report(report) }
-    end.pretty_print
+    }.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    unless data.match('Total retained:  0 bytes')
+    unless data.match?("Total retained:  0 bytes")
       puts data
-      raise 'leaking memory!!!'
+      raise "leaking memory!!!"
     end
   ensure
     $stdout = previous_out
   end
 
   def measure_memory_report_coverage
-    require 'memory_profiler'
+    require "memory_profiler"
     report = fake_report
     store = benchmark_redis_store
     store.clear!
@@ -193,7 +195,7 @@ namespace :benchmarks do
     capture = StringIO.new
     $stdout = capture
 
-    MemoryProfiler.report do
+    MemoryProfiler.report {
       10.times do
         Coverband.report_coverage
         ###
@@ -203,12 +205,12 @@ namespace :benchmarks do
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
       end
-    end.pretty_print
+    }.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    unless data.match('Total retained:  0 bytes')
+    unless data.match?("Total retained:  0 bytes")
       puts data
-      raise 'leaking memory!!!'
+      raise "leaking memory!!!"
     end
   ensure
     $stdout = previous_out
@@ -220,7 +222,7 @@ namespace :benchmarks do
   # not including in test suite but we can try to figure it out and fix.
   ###
   def measure_configure_memory
-    require 'memory_profiler'
+    require "memory_profiler"
     # warmup
     3.times { Coverband.configure }
 
@@ -228,31 +230,31 @@ namespace :benchmarks do
     capture = StringIO.new
     $stdout = capture
 
-    MemoryProfiler.report do
+    MemoryProfiler.report {
       10.times do
         Coverband.configure do |config|
-          redis_url = ENV['CACHE_REDIS_URL'] || ENV['REDIS_URL']
-          config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_namespace: 'coverband_bench_data')
+          redis_url = ENV["CACHE_REDIS_URL"] || ENV["REDIS_URL"]
+          config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_namespace: "coverband_bench_data")
         end
       end
-    end.pretty_print
+    }.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    unless data.match('Total retained:  0 bytes')
+    unless data.match?("Total retained:  0 bytes")
       puts data
-      raise 'leaking memory!!!'
+      raise "leaking memory!!!"
     end
   ensure
     $stdout = previous_out
   end
 
-  desc 'checks memory of collector'
+  desc "checks memory of collector"
   task memory_check: [:setup] do
     # require 'pry-byebug'
-    require 'objspace'
-    puts 'memory load check'
+    require "objspace"
+    puts "memory load check"
     puts(ObjectSpace.memsize_of_all / 2**20)
-    data = File.read('./tmp/debug_data.json')
+    data = File.read("./tmp/debug_data.json")
     # about 2mb
     puts(ObjectSpace.memsize_of(data) / 2**20)
 
@@ -289,65 +291,67 @@ namespace :benchmarks do
     json_data = nil
     GC.start
     puts(ObjectSpace.memsize_of_all / 2**20)
-    debugger
-    puts 'done'
+
+    # dig in some more...
+    # debugger
+    puts "done"
   end
 
-  desc 'runs memory reporting on Redis store'
+  desc "runs memory reporting on Redis store"
   task memory_reporting: [:setup] do
-    puts 'runs memory benchmarking to ensure we dont leak'
+    puts "runs memory benchmarking to ensure we dont leak"
     measure_memory
   end
 
-  desc 'runs memory reporting on report_coverage'
+  desc "runs memory reporting on report_coverage"
   task memory_reporting_report_coverage: [:setup] do
-    puts 'runs memory benchmarking on report_coverage to ensure we dont leak'
+    puts "runs memory benchmarking on report_coverage to ensure we dont leak"
     measure_memory_report_coverage
   end
 
-  desc 'runs memory reporting on configure'
+  desc "runs memory reporting on configure"
   task memory_configure_reporting: [:setup] do
-    puts 'runs memory benchmarking on configure to ensure we dont leak'
+    puts "runs memory benchmarking on configure to ensure we dont leak"
     measure_configure_memory
   end
 
-  desc 'runs memory leak check via Rails tests'
+  desc "runs memory leak check via Rails tests"
   task memory_rails: [:setup] do
-    puts 'runs memory rails test to ensure we dont leak'
+    puts "runs memory rails test to ensure we dont leak"
     puts `COVERBAND_MEMORY_TEST=true bundle exec test/forked/rails_full_stack_test.rb`
   end
 
-  desc 'runs memory leak checks'
+  desc "runs memory leak checks"
   task memory: %i[memory_reporting memory_reporting_report_coverage memory_rails] do
-    puts 'done'
+    puts "done"
   end
 
-  desc 'runs benchmarks on reporting large sets of files to redis'
+  desc "runs benchmarks on reporting large sets of files to redis"
   task redis_reporting: [:setup] do
-    puts 'runs benchmarks on reporting large sets of files to redis'
+    puts "runs benchmarks on reporting large sets of files to redis"
     reporting_speed
   end
 
   # desc 'runs benchmarks on default redis setup'
   task run_redis: %i[setup setup_redis] do
-    puts 'Coverband configured with default Redis store'
+    puts "Coverband configured with default Redis store"
     run_work(true)
   end
 
   def run_big
-    require 'memory_profiler'
-    require './test/unique_files'
+    require "memory_profiler"
+    require "./test/unique_files"
 
-    4000.times { |index| require_unique_file('big_dog.rb.erb', dog_number: index) }
+    4000.times { |index| require_unique_file("big_dog.rb.erb", dog_number: index) }
     # warmup
     3.times { Coverband.report_coverage }
     dogs = 400.times.map { |index| Object.const_get("Dog#{index}") }
-    MemoryProfiler.report do
+    MemoryProfiler.report {
       10.times do
         dogs.each(&:bark)
         Coverband.report_coverage
       end
-    end.pretty_print
+    }.pretty_print
   end
 
   task run_big: %i[setup setup_redis] do
@@ -359,18 +363,18 @@ namespace :benchmarks do
 
   # desc 'runs benchmarks file store'
   task run_file: %i[setup setup_file] do
-    puts 'Coverband configured with file store'
+    puts "Coverband configured with file store"
     run_work(true)
   end
 
-  desc 'benchmarks external requests to coverband_demo site'
+  desc "benchmarks external requests to coverband_demo site"
   task :coverband_demo do
     # for local testing
     # puts `ab -n 500 -c 5 "http://127.0.0.1:3000/posts"`
     puts `ab -n 2000 -c 10 "https://coverband-demo.herokuapp.com/posts"`
   end
 
-  desc 'benchmarks external requests to coverband_demo site'
+  desc "benchmarks external requests to coverband_demo site"
   task :coverband_demo_graph do
     # for local testing
     # puts `ab -n 200 -c 5 "http://127.0.0.1:3000/posts"`
@@ -380,38 +384,38 @@ namespace :benchmarks do
     `open tmp/timeseries.jpg`
   end
 
-  desc 'benchmark initialization of rails'
+  desc "benchmark initialization of rails"
   task :init_rails do
-    require 'benchmark'
-    require 'benchmark/ips'
+    require "benchmark"
+    require "benchmark/ips"
     Benchmark.ips do |x|
       x.config(time: 60, warmup: 0)
-      x.report('init_rails') do
-        system('bundle exec rake init_rails -f ./test/benchmarks/init_rails.rake')
+      x.report("init_rails") do
+        system("bundle exec rake init_rails -f ./test/benchmarks/init_rails.rake")
       end
     end
   end
 
-  desc 'compare Coverband Ruby Coverage with Filestore with normal Ruby'
+  desc "compare Coverband Ruby Coverage with Filestore with normal Ruby"
   task :compare_file do
-    puts 'comparing Coverage loaded/not, this takes some time for output...'
-    puts 'coverage loaded'
+    puts "comparing Coverage loaded/not, this takes some time for output..."
+    puts "coverage loaded"
     puts `COVERAGE=true rake benchmarks:run_file`
-    puts 'without coverage'
+    puts "without coverage"
     puts `rake benchmarks:run_file`
   end
 
-  desc 'compare Coverband Ruby Coverage with Redis and normal Ruby'
+  desc "compare Coverband Ruby Coverage with Redis and normal Ruby"
   task :compare_redis do
-    puts 'comparing Coverage loaded/not, this takes some time for output...'
-    puts 'coverage loaded'
+    puts "comparing Coverage loaded/not, this takes some time for output..."
+    puts "coverage loaded"
     puts `COVERAGE=true rake benchmarks:run_redis`
-    puts 'without coverage'
+    puts "without coverage"
     puts `rake benchmarks:run_redis`
   end
 end
 
-desc 'runs benchmarks'
-task benchmarks: ['benchmarks:redis_reporting',
-                  'benchmarks:compare_file',
-                  'benchmarks:compare_redis']
+desc "runs benchmarks"
+task benchmarks: ["benchmarks:redis_reporting",
+                  "benchmarks:compare_file",
+                  "benchmarks:compare_redis"]

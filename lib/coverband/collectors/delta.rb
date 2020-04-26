@@ -55,17 +55,17 @@ module Coverband
           # would slow down the performance.
           ###
           next unless @@ignore_patterns.none? { |pattern| file.match(pattern) } &&
-                      file.start_with?(@@project_directory)
+            file.start_with?(@@project_directory)
 
           # This handles Coverage branch support, setup by default in
           # simplecov 0.18.x
           arr_line_counts = line_counts.is_a?(Hash) ? line_counts[:lines] : line_counts
           new_results[file] = if @@previous_coverage && @@previous_coverage[file]
-                                prev_line_counts = @@previous_coverage[file].is_a?(Hash) ? @@previous_coverage[file][:lines] : @@previous_coverage[file]
-                                array_diff(arr_line_counts, prev_line_counts)
-                              else
-                                arr_line_counts
-                              end
+            prev_line_counts = @@previous_coverage[file].is_a?(Hash) ? @@previous_coverage[file][:lines] : @@previous_coverage[file]
+            array_diff(arr_line_counts, prev_line_counts)
+          else
+            arr_line_counts
+          end
         end
       end
 
@@ -78,9 +78,9 @@ module Coverband
       def transform_oneshot_lines_results(results)
         results.each_with_object({}) do |(file, coverage), new_results|
           @@stubs[file] ||= ::Coverage.line_stub(file)
-          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) do |line_number, line_counts|
+          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) { |line_number, line_counts|
             line_counts[line_number - 1] = 1
-          end
+          }
           new_results[file] = transformed_line_counts
         end
       end
