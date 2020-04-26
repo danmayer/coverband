@@ -5,5 +5,5 @@
 # use format '4.2.1.rc.1' ~> 4.2.1.rc to prerelease versions like v4.2.1.rc.2 and v4.2.1.rc.3
 ###
 module Coverband
-  VERSION = '4.2.5.rc.3'
+  VERSION = '5.0.0.rc.1'
 end
