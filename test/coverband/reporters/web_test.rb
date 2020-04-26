@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require File.expand_path('../../test_helper', File.dirname(__FILE__))
-require 'aws-sdk-s3'
 require File.expand_path('../../../lib/coverband/reporters/web', File.dirname(__FILE__))
 require 'rack/test'
 
@@ -18,7 +17,6 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.2.0')
 
       def teardown
         super
-        Coverband.configuration.s3_bucket = nil
       end
 
       test 'renders index content' do

@@ -49,8 +49,6 @@ module Coverband
         else
           Coverband.configuration.logger.info 'report is ready and viewable: open coverage/index.html'
         end
-
-        Coverband::Utils::S3Report.instance.persist! if Coverband.configuration.s3_bucket
       end
 
       def report_dynamic_html

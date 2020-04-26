@@ -13,13 +13,10 @@ require 'coverband/adapters/redis_store'
 require 'coverband/adapters/hash_redis_store'
 require 'coverband/adapters/file_store'
 require 'coverband/utils/file_hasher'
-require 'coverband/utils/s3_report'
 require 'coverband/utils/html_formatter'
 require 'coverband/utils/result'
 require 'coverband/utils/file_list'
-require 'coverband/utils/gem_list'
 require 'coverband/utils/source_file'
-require 'coverband/utils/file_groups'
 require 'coverband/utils/lines_classifier'
 require 'coverband/utils/results'
 require 'coverband/collectors/coverage'
@@ -100,6 +97,7 @@ module Coverband
   end
   unless ENV['COVERBAND_DISABLE_AUTO_START']
     begin
+      # TODO: unless already exists, as this was patched in Jruby latest
       require 'coverband/utils/jruby_ext' if RUBY_PLATFORM == 'java'
       # Coverband should be setup as early as possible
       # to capture usage of things loaded by initializers or other Rails engines
@@ -107,7 +105,6 @@ module Coverband
       start
       require 'coverband/utils/railtie' if defined? ::Rails::Railtie
       require 'coverband/integrations/resque' if defined? ::Resque
-      require 'coverband/integrations/bundler' if defined? ::Bundler
     rescue Redis::CannotConnectError => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info 'If this is a setup task like assets:precompile feel free to ignore'

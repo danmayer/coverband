@@ -41,11 +41,6 @@ module Coverband
         files.map(&:filename)
       end
 
-      # Returns a Hash of groups for this result. Define groups using Coverband.add_group 'Models', 'app/models'
-      def groups
-        @groups ||= FileGroups.new(files).grouped_results
-      end
-
       # Defines when this result has been created. Defaults to Time.now
       def created_at
         @created_at ||= Time.now

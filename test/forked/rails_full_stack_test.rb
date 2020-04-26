@@ -34,10 +34,6 @@ class RailsFullStackTest < Minitest::Test
         assert_selector('td', text: '100.0 %')
       end
 
-      # Test gems are reporting coverage
-      assert_content('Gems')
-      assert page.html.match('rainbow/wrapper.rb')
-
       # Test eager load data stored separately
       dummy_controller = "./test/rails#{Rails::VERSION::MAJOR}_dummy/app/controllers/dummy_controller.rb"
       store.type = :eager_loading

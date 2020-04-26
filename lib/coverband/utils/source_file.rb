@@ -242,20 +242,11 @@ module Coverband
       # I had previously patched this in my local Rails app
       def short_name
         filename.sub(/^#{Coverband.configuration.root}/, '.')
-                .sub(%r{^.*\/gems\/}, '.')
                 .gsub(%r{^\.\/}, '')
       end
 
       def relative_path
         RelativeFileConverter.convert(filename)
-      end
-
-      def gem?
-        filename =~ %r{^.*\/gems\/}
-      end
-
-      def gem_name
-        gem? ? short_name.split('/').first.gsub(%r{^\.}, '') : nil
       end
 
       private
