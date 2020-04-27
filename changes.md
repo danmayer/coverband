@@ -76,11 +76,17 @@ Feature Ideas:
 
 # Alpha / Beta / Release Candidates
 
-### Coverband 4.2.5
+### Coverband 5.0.0
 
 - ?
 
 # Released
+
+### Coverband 4.2.5
+
+* alpha support of jRuby
+* fix for rails 4.0 by rswaminathan
+* do not error on branch coverage / simplecov compatibility by desertcart
 
 ### Coverband 4.2.4
 
