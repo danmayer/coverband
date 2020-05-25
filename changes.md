@@ -51,33 +51,15 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - add gem_details_safe list to report on details on some gems
 - - display gems that are in loaded with 0 coverage, thanks @kbaum
 
-### Coverband_jam_session
-
-This is a possible gem to host experimental or more complex features, which would require tuning, configuration, and performance trade offs. If something is really valuable it could be promoted into the main line.
-
-Feature Ideas:
-
-- per request coverage implemented via Ruby 2.6.0 coverage.clear https://bugs.ruby-lang.org/issues/15022
-- statsd adapters (it would allow passing in date ranges on usage)
-- Possibly add ability to record code run for a given route
-- integrate recording with deploy tag or deploy timestamp
-  - diff code usage across deployed versions
-  - what methods increased usage or decreased
-- ability to change the Coverband config at runtime by changing the config pushed to the Redis hash. In memory cache around the changes to only make that call periodically.
-- Opposed to just showing code usage on a route allow 'tagging' events which would record line coverage for that tag (this would allow tagging all code that modified an ActiveRecord model for example
-- additional adapters (tracepoint, ruby-profiler, etc)
-- tagged coverage reports
-  - code route tracing (entry point to all code executed for example /some_path -> code coverage of that path)
-  - deploy git hash tagging of reported Coverage
-  - allow only to collect coverage based on route (limiting or scoped coverage)
-  - coverage over some other variable like a set of alpha users
-- document how to use this on staging / selenium test suite runs
-  - possible add API to pull report at end of run
-
 # Alpha / Beta / Release Candidates
 
 ### Coverband 5.0.0
 
+- Full JRuby support
+- Reduced footprint
+  - drops S3 support
+  - drops static report support
+  - drops gem support
 - ?
 
 # Released
