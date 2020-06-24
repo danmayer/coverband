@@ -23,19 +23,19 @@ module Coverband
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
     IGNORE_TASKS = ["coverband:clear",
-      "coverband:coverage",
-      "coverband:coverage_server",
-      "coverband:migrate",
-      "assets:precompile",
-      "db:version",
-      "db:create",
-      "db:drop",
-      "db:seed",
-      "db:setup",
-      "db:test:prepare",
-      "db:structure:dump",
-      "db:structure:load",
-      "db:version"]
+                    "coverband:coverage",
+                    "coverband:coverage_server",
+                    "coverband:migrate",
+                    "assets:precompile",
+                    "db:version",
+                    "db:create",
+                    "db:drop",
+                    "db:seed",
+                    "db:setup",
+                    "db:test:prepare",
+                    "db:structure:dump",
+                    "db:structure:load",
+                    "db:version"]
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during

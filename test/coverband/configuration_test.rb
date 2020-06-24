@@ -27,13 +27,13 @@ class BaseTest < Minitest::Test
     end
     Coverband::Collectors::Coverage.instance.reset_instance
     expected = ["vendor/",
-      ".erb$",
-      ".slim$",
-      "/tmp",
-      "internal:prelude",
-      "schema.rb",
-      "config/envionments",
-      "config/initializers"]
+                ".erb$",
+                ".slim$",
+                "/tmp",
+                "internal:prelude",
+                "schema.rb",
+                "config/envionments",
+                "config/initializers"]
     assert_equal expected, Coverband.configuration.ignore
   end
 

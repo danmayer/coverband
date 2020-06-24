@@ -417,5 +417,5 @@ end
 
 desc "runs benchmarks"
 task benchmarks: ["benchmarks:redis_reporting",
-  "benchmarks:compare_file",
-  "benchmarks:compare_redis"]
+                  "benchmarks:compare_file",
+                  "benchmarks:compare_redis"]
