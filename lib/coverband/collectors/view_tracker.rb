@@ -108,7 +108,7 @@ module Coverband
       end
 
       def report_views_tracked
-        redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || redis_store.exists(tracker_time_key)
+        redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
         @one_time_timestamp = true
         reported_time = Time.now.to_i
         views_to_record.each do |file|
@@ -143,6 +143,14 @@ module Coverband
 
       def redis_store
         store.raw_store
+      end
+
+      def tracker_time_key_exists?
+        if defined?(redis_store.exists?)
+          redis_store.exists?(tracker_time_key)
+        else
+          redis_store.exists(tracker_time_key)
+        end
       end
 
       def tracker_key
