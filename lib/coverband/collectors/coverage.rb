@@ -72,6 +72,11 @@ module Coverband
         raise NotImplementedError, "Coverage needs Ruby > 2.3.0" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.3.0")
 
         require "coverage"
+        if RUBY_PLATFORM == "java"
+          unless ::Coverage.respond_to?(:line_stub)
+            require "coverband/utils/jruby_ext"
+          end
+        end
         if defined?(SimpleCov) && defined?(Rails) && defined?(Rails.env) && Rails.env.test?
           puts "Coverband: detected SimpleCov in test Env, allowing it to start Coverage"
           puts "Coverband: to ensure no error logs or missing Coverage call `SimpleCov.start` prior to requiring Coverband"

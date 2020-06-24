@@ -97,11 +97,6 @@ module Coverband
   end
   unless ENV["COVERBAND_DISABLE_AUTO_START"]
     begin
-      if RUBY_PLATFORM == "java"
-        unless Coverage.respond_to?(:line_stub)
-          require "coverband/utils/jruby_ext"
-        end
-      end
       # Coverband should be setup as early as possible
       # to capture usage of things loaded by initializers or other Rails engines
       configure
