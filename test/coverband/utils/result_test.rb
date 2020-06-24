@@ -49,11 +49,11 @@ describe "result" do
       end
 
       %i[covered_percent
-         covered_percentages
-         covered_strength
-         covered_lines
-         missed_lines
-         total_lines].each do |msg|
+        covered_percentages
+        covered_strength
+        covered_lines
+        missed_lines
+        total_lines].each do |msg|
         it "responds to #{msg}" do
           assert(subject.respond_to?(msg))
         end
