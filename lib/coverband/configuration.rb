@@ -23,19 +23,19 @@ module Coverband
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
     IGNORE_TASKS = ["coverband:clear",
-                    "coverband:coverage",
-                    "coverband:coverage_server",
-                    "coverband:migrate",
-                    "assets:precompile",
-                    "db:version",
-                    "db:create",
-                    "db:drop",
-                    "db:seed",
-                    "db:setup",
-                    "db:test:prepare",
-                    "db:structure:dump",
-                    "db:structure:load",
-                    "db:version"]
+      "coverband:coverage",
+      "coverband:coverage_server",
+      "coverband:migrate",
+      "assets:precompile",
+      "db:version",
+      "db:create",
+      "db:drop",
+      "db:seed",
+      "db:setup",
+      "db:test:prepare",
+      "db:structure:dump",
+      "db:structure:load",
+      "db:version"]
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
@@ -180,7 +180,7 @@ module Coverband
     end
 
     def use_oneshot_lines_coverage=(value)
-      raise(Exception, "One shot line coverage is only available in ruby >= 2.6") unless one_shot_coverage_implemented_in_ruby_version? || !value
+      raise(StandardError, "One shot line coverage is only available in ruby >= 2.6") unless one_shot_coverage_implemented_in_ruby_version? || !value
 
       @use_oneshot_lines_coverage = value
     end
