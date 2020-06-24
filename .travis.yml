@@ -14,7 +14,7 @@ env:
   global:
     # --dev improves JRuby startup time
     # See https://github.com/jruby/jruby/wiki/Improving-startup-time
-    - JRUBY_OPTS="--dev"
+    - JRUBY_OPTS="--dev --add-opens java.base/java.security.cert=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.base/java.util.zip=ALL-UNNAMED"
 
 jobs:
   exclude:
