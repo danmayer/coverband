@@ -10,6 +10,7 @@ ignore: # default: []
       - Style/IfInsideElse # these are just easier to read sometimes
       - Standard/SemanticBlocks # not valid in older Ruby
       - Style/RedundantRegexpEscape # fix later, enforcement changed
+      - Layout/ArrayAlignment # WTF all of master broken from a few changes in rubocop that pass locally
   - "vendor/**/*"
   - "pkg/**/*"
   - "test/**/*":
