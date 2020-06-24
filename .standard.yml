@@ -9,6 +9,7 @@ ignore: # default: []
       - Style/IdenticalConditionalBranches # these are just easier to read sometimes
       - Style/IfInsideElse # these are just easier to read sometimes
       - Standard/SemanticBlocks # not valid in older Ruby
+      - Style/RedundantRegexpEscape # fix later, enforcement changed
   - "vendor/**/*"
   - "pkg/**/*"
   - "test/**/*":
