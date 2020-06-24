@@ -167,8 +167,11 @@ module Coverband
       # mount Coverband::Web, at: '/coverage'
       # "/coverage/collect_coverage?" become:
       # /coverage/
+      # NOTE: DO NOT let standardrb `autofix` this to regex match
+      # %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : "/"
+      # ^^ the above is NOT valid Ruby 2.3/2.4 even though rubocop / standard think it is
       def base_path
-        %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : "/"
+        request.path =~ %r{\/.*\/} ? request.path.match("\/.*\/")[0] : "/"
       end
     end
   end
