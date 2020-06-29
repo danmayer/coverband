@@ -76,9 +76,15 @@ Feature Ideas:
 
 # Alpha / Beta / Release Candidates
 
+### Coverband 4.2.6
+
+- Address Redis `exists` deprecation warning by baffers
+
 ### Coverband 4.2.5
 
-- ?
+- alpha support of jRuby
+- fix for rails 4.0 by rswaminathan
+- do not error on branch coverage / simplecov compatibility by desertcart
 
 # Released
 
@@ -104,19 +110,18 @@ Feature Ideas:
 - improved messaging around non-loaded files
 - fix on last updated nil issue
 - view tracker improvements
-   - clear all
-   - reset individual file
-   - timestamps on last seen activity
-
+  - clear all
+  - reset individual file
+  - timestamps on last seen activity
 
 ### Coverband 4.2.2
 
 - new experimental hash redis store for high volume collection
-(hundreds of clients), thanks @kbaum
+  (hundreds of clients), thanks @kbaum
 - view_tracker supports tracking view layer files like `.html.erb`
 - documentation improvements, thanks @brossetti1, @jjb, @kbaum
 - we now have discordapp for discussions, thanks @kbaum,
-https://discordapp.com/channels/609509533999562753/609509533999562756
+  https://discordapp.com/channels/609509533999562753/609509533999562756
 - perf fix on Rails initialization, thanks @skangg
 - simplified logging
 
