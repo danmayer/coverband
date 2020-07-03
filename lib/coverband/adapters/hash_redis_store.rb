@@ -33,6 +33,9 @@ module Coverband
 
       def supported?
         Gem::Version.new(@redis.info["redis_version"]) >= Gem::Version.new("2.6.0")
+      rescue Redis::CannotConnectError => error
+        Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+        Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
       end
 
       def clear!
