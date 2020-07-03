@@ -5,7 +5,7 @@ module Coverband
     ###
     # FilesStore store a merged coverage file to local disk
     # Generally this is for testing and development
-    # Not recommended for production deployment
+    # Not recommended for production deployment, as it doesn't handle concurrency
     ###
     class FileStore < Base
       def initialize(path, _opts = {})

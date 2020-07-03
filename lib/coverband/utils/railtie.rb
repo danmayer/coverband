@@ -36,6 +36,18 @@ module Coverband
       end
     end
 
+    config.before_configuration do
+      unless ENV["COVERBAND_DISABLE_AUTO_START"]
+        begin
+          Coverband.configure
+          Coverband.start
+        rescue Redis::CannotConnectError => error
+          Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+          Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
+        end
+      end
+    end
+
     rake_tasks do
       load "coverband/utils/tasks.rb"
     end

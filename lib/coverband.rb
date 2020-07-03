@@ -99,9 +99,14 @@ module Coverband
     begin
       # Coverband should be setup as early as possible
       # to capture usage of things loaded by initializers or other Rails engines
-      configure
-      start
-      require "coverband/utils/railtie" if defined? ::Rails::Railtie
+      # but after gems are loaded to avoid slowing down gem usage
+      # best is in application.rb after the bundler line but we get close with Railtie
+      if defined? ::Rails::Railtie
+        require "coverband/utils/railtie"
+      else
+        configure
+        start
+      end
       require "coverband/integrations/resque" if defined? ::Resque
     rescue Redis::CannotConnectError => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
