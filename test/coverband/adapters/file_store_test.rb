@@ -13,12 +13,11 @@ class AdaptersFileStoreTest < Minitest::Test
     def setup
       super
       @test_file_path = "/tmp/coverband_filestore_test_path.json"
-      File.open(@test_file_path, "w") { |f| f.write(test_data.to_json) }
+      previous_file_path = "#{@test_file_path}.#{::Process.pid}"
+      `rm #{@test_file_path}` if File.exist?(@test_file_path)
+      `rm #{previous_file_path}` if File.exist?(previous_file_path)
+      File.open(previous_file_path, "w") { |f| f.write(test_data.to_json) }
       @store = Coverband::Adapters::FileStore.new(@test_file_path)
-    end
-
-    def test_size
-      assert @store.size > 1
     end
 
     def test_coverage
@@ -31,7 +30,7 @@ class AdaptersFileStoreTest < Minitest::Test
     end
 
     def test_covered_files
-      assert_equal @store.covered_files, ["dog.rb"]
+      assert @store.covered_files.include?("dog.rb")
     end
 
     def test_clear
@@ -43,6 +42,7 @@ class AdaptersFileStoreTest < Minitest::Test
       mock_file_hash
       @store.send(:save_report, "cat.rb" => [0, 1])
       assert_equal @store.coverage["cat.rb"]["data"][1], 1
+      assert @store.size > 1
     end
 
     def test_data
