@@ -36,6 +36,13 @@ module Coverband
       end
     end
 
+    config.before_configuration do
+      unless ENV["COVERBAND_DISABLE_AUTO_START"]
+        Coverband.configure
+        Coverband.start
+      end
+    end
+
     rake_tasks do
       load "coverband/utils/tasks.rb"
     end
