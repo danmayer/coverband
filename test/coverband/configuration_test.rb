@@ -17,7 +17,7 @@ class BaseTest < Minitest::Test
 
   test "ignore works with equal" do
     Coverband::Collectors::Coverage.instance.reset_instance
-    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "schema.rb", "config/envionments"]
+    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "db/schema.rb", "config/envionments"]
     assert_equal expected, Coverband.configuration.ignore
   end
 
@@ -31,7 +31,7 @@ class BaseTest < Minitest::Test
       ".slim$",
       "/tmp",
       "internal:prelude",
-      "schema.rb",
+      "db/schema.rb",
       "config/envionments",
       "config/initializers"]
     assert_equal expected, Coverband.configuration.ignore
