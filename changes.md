@@ -64,11 +64,20 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Released
 
+###Coverband 4.2.7
+
+- Ignore patterns too aggressive #382, thanks @thijsnado
+- Stack level too deep error when running certain activejob jobs #367, thanks @kejordan and @hanslauwers
+
+###Coverband 4.2.6
+
+- Address Redis exists deprecation warning by baffers
+
 ### Coverband 4.2.5
 
-* alpha support of jRuby
-* fix for rails 4.0 by rswaminathan
-* do not error on branch coverage / simplecov compatibility by desertcart
+- alpha support of jRuby
+- fix for rails 4.0 by rswaminathan
+- do not error on branch coverage / simplecov compatibility by desertcart
 
 ### Coverband 4.2.4
 
@@ -92,19 +101,18 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - improved messaging around non-loaded files
 - fix on last updated nil issue
 - view tracker improvements
-   - clear all
-   - reset individual file
-   - timestamps on last seen activity
-
+  - clear all
+  - reset individual file
+  - timestamps on last seen activity
 
 ### Coverband 4.2.2
 
 - new experimental hash redis store for high volume collection
-(hundreds of clients), thanks @kbaum
+  (hundreds of clients), thanks @kbaum
 - view_tracker supports tracking view layer files like `.html.erb`
 - documentation improvements, thanks @brossetti1, @jjb, @kbaum
 - we now have discordapp for discussions, thanks @kbaum,
-https://discordapp.com/channels/609509533999562753/609509533999562756
+  https://discordapp.com/channels/609509533999562753/609509533999562756
 - perf fix on Rails initialization, thanks @skangg
 - simplified logging
 
