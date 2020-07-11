@@ -36,6 +36,8 @@ Naming/RescuedExceptionsVariableName:
   Enabled: false
 Naming/PredicateName:
   Enabled: true
+Style/Alias:
+  Enabled: false
 Style/TernaryParentheses:
   Enabled: false
 Style/MutableConstant:
