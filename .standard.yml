@@ -9,6 +9,7 @@ ignore: # default: []
       - Style/IdenticalConditionalBranches # these are just easier to read sometimes
       - Style/IfInsideElse # these are just easier to read sometimes
       - Standard/SemanticBlocks # not valid in older Ruby
+      - Style/Alias # This isn't always right and alias and alias_method can have different usage
       - Style/RedundantRegexpEscape # fix later, enforcement changed
       - Layout/ArrayAlignment # WTF all of master broken from a few changes in rubo
       - Performance/RegexpMatch # Rubocop / standardrb have this WRONG for Ruby 2.3/2.4 not compatiable

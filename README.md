@@ -312,6 +312,22 @@ Note: To debug issues getting Coverband working. I recommend running in developm
 
 If you are trying to debug locally wondering what code is being run during a request. The verbose modes `config.verbose = true` && `Rails.logger.level = :debug`. With true set it will output the number of lines executed per file, to the passed in log.
 
+### Solving: stack level too deep errors
+
+If you start seeing SystemStackError: stack level too deep errors from background jobs after installing Coverband, this means there is another patch for ResqueWorker that conflicts with Coverband's patch in your application. To fix this, change coverband gem line in your Gemfile to the following:
+
+```
+gem 'coverband', require: ['alternative_coverband_patch', 'coverband']
+```
+
+If you currently have require: false, remove the 'coverband' string from the require array above so the gem line becomes like this:
+
+```
+gem 'coverband', require: ['alternative_coverband_patch']
+```
+
+This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to  method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
+
 # Prerequisites
 
 - Coverband 3.0.X+ requires Ruby 2.3+

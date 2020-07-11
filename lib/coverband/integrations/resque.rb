@@ -22,4 +22,16 @@ module Coverband
   end
 end
 
-Resque::Job.prepend(Coverband::ResqueWorker)
+if defined?(Coverband::COVERBAND_ALTERNATE_PATCH)
+  Resque::Job.class_eval do
+    def perform_with_coverband
+      perform_without_coverband
+    ensure
+      Coverband.report_coverage
+    end
+    alias perform_without_coverband perform
+    alias perform perform_with_coverband
+  end
+else
+  Resque::Job.prepend(Coverband::ResqueWorker)
+end
