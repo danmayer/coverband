@@ -11,6 +11,17 @@ require "ostruct"
 require "json"
 require "redis"
 require "resque"
+
+require "coverband"
+require "coverband/reporters/web"
+require "coverband/utils/html_formatter"
+require "coverband/utils/result"
+require "coverband/utils/file_list"
+require "coverband/utils/source_file"
+require "coverband/utils/lines_classifier"
+require "coverband/utils/results"
+require "coverband/reporters/html_report"
+
 # require 'pry-byebug' unless ENV['CI'] # Ruby 2.3 on CI crashes on pry & JRuby doesn't support it
 require_relative "unique_files"
 $VERBOSE = original_verbosity
