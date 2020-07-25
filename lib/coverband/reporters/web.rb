@@ -12,6 +12,10 @@ module Coverband
       attr_reader :request
 
       def initialize
+        init_web
+      end
+
+      def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
         @static = Rack::Static.new(self,
           root: File.expand_path("public", full_path),

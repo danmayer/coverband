@@ -13,18 +13,10 @@ require "coverband/adapters/redis_store"
 require "coverband/adapters/hash_redis_store"
 require "coverband/adapters/file_store"
 require "coverband/utils/file_hasher"
-require "coverband/utils/html_formatter"
-require "coverband/utils/result"
-require "coverband/utils/file_list"
-require "coverband/utils/source_file"
-require "coverband/utils/lines_classifier"
-require "coverband/utils/results"
 require "coverband/collectors/coverage"
 require "coverband/collectors/view_tracker"
 require "coverband/reporters/base"
-require "coverband/reporters/html_report"
 require "coverband/reporters/console_report"
-require "coverband/reporters/web"
 require "coverband/integrations/background"
 require "coverband/integrations/background_middleware"
 require "coverband/integrations/rack_server_check"
@@ -111,6 +103,26 @@ module Coverband
     rescue Redis::CannotConnectError => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
+    end
+  end
+
+  module Reporters
+    class Web
+      ###
+      # NOTE: if the user doesn't setup the webreporter
+      # we don't need any of the below files loaded or using memory
+      ###
+      def initialize
+        require "coverband/reporters/web"
+        require "coverband/utils/html_formatter"
+        require "coverband/utils/result"
+        require "coverband/utils/file_list"
+        require "coverband/utils/source_file"
+        require "coverband/utils/lines_classifier"
+        require "coverband/utils/results"
+        require "coverband/reporters/html_report"
+        init_web
+      end
     end
   end
 end
