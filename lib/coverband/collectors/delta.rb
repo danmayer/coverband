@@ -77,6 +77,16 @@ module Coverband
 
       def transform_oneshot_lines_results(results)
         results.each_with_object({}) do |(file, coverage), new_results|
+          ###
+          # Eager filter:
+          # Normally I would break this out into additional methods
+          # and improve the readability but this is in a tight loop
+          # on the critical performance path, and any refactoring I come up with
+          # would slow down the performance.
+          ###
+          next unless @@ignore_patterns.none? { |pattern| file.match(pattern) } &&
+            file.start_with?(@@project_directory)
+
           @@stubs[file] ||= ::Coverage.line_stub(file)
           transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) { |line_number, line_counts|
             line_counts[line_number - 1] = 1

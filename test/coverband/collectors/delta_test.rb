@@ -114,6 +114,7 @@ class CollectorsDeltaTest < Minitest::Test
           oneshot_lines: [2, 3]
         }
       }
+      Coverband::Collectors::Delta.class_variable_set(:@@project_directory, "dealership.rb")
       ::Coverage.expects(:line_stub).with("dealership.rb").returns([nil, 0, 0, nil])
       results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
       expected = {
