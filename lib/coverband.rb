@@ -26,6 +26,7 @@ Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore if ENV["CO
 
 module Coverband
   @@configured = false
+  SERVICE_CONFIG = "./config/coverband_service.rb"
   CONFIG_FILE = "./config/coverband.rb"
   RUNTIME_TYPE = :runtime
   EAGER_TYPE = :eager_loading
@@ -34,7 +35,11 @@ module Coverband
   ALL_TYPES = TYPES + [:merged]
 
   def self.configure(file = nil)
-    configuration_file = file || ENV.fetch("COVERBAND_CONFIG", CONFIG_FILE)
+    configuration_file = file || ENV["COVERBAND_CONFIG"]
+    if configuration_file.nil?
+      configuration_file = File.exists?(SERVICE_CONFIG) ? SERVICE_CONFIG : CONFIG_FILE
+    end
+
     configuration
     if block_given?
       yield(configuration)
@@ -88,6 +93,7 @@ module Coverband
   private_class_method def self.coverage_instance
     Coverband::Collectors::Coverage.instance
   end
+
   unless ENV["COVERBAND_DISABLE_AUTO_START"]
     begin
       # Coverband should be setup as early as possible

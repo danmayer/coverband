@@ -9,7 +9,7 @@ module Coverband
       :background_reporting_sleep_seconds, :test_env,
       :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
       :simulate_oneshot_lines_coverage, :track_views, :view_tracker,
-      :reporting_wiggle
+      :reporting_wiggle, :api_key
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password
@@ -187,6 +187,10 @@ module Coverband
 
     def one_shot_coverage_implemented_in_ruby_version?
       Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    end
+
+    def api_key
+      ENV['COVERBAND_API_KEY'] || Coverband.configuration.api_key
     end
 
     private
