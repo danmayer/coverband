@@ -37,7 +37,7 @@ module Coverband
   def self.configure(file = nil)
     configuration_file = file || ENV["COVERBAND_CONFIG"]
     if configuration_file.nil?
-      configuration_file = File.exists?(SERVICE_CONFIG) ? SERVICE_CONFIG : CONFIG_FILE
+      configuration_file = File.exist?(SERVICE_CONFIG) ? SERVICE_CONFIG : CONFIG_FILE
     end
 
     configuration
