@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "coverband"
+
 begin
   require "rack"
 rescue LoadError
@@ -10,10 +12,6 @@ module Coverband
   module Reporters
     class Web
       attr_reader :request
-
-      def initialize
-        init_web
-      end
 
       def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
