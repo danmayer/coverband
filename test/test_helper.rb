@@ -21,6 +21,7 @@ require "coverband/utils/source_file"
 require "coverband/utils/lines_classifier"
 require "coverband/utils/results"
 require "coverband/reporters/html_report"
+require "webmock/minitest"
 
 # require 'pry-byebug' unless ENV['CI'] # Ruby 2.3 on CI crashes on pry & JRuby doesn't support it
 require_relative "unique_files"
@@ -51,6 +52,7 @@ module Coverband
       Coverband::Collectors::Coverage.instance.reset_instance
       Coverband::Utils::RelativeFileConverter.reset
       Coverband::Utils::AbsoluteFileConverter.reset
+      Coverband.configuration.reporting_wiggle = 0
       Coverband.configuration.redis_namespace = "coverband_test"
       Coverband::Background.stop
       Coverband.configuration.store.instance_variable_set(:@redis, redis)

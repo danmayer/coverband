@@ -6,13 +6,14 @@ module Coverband
       :additional_files, :verbose,
       :reporter, :redis_namespace, :redis_ttl,
       :background_reporting_enabled,
-      :background_reporting_sleep_seconds, :test_env,
-      :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
-      :simulate_oneshot_lines_coverage, :track_views, :view_tracker,
-      :reporting_wiggle
-
+      :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
+      :simulate_oneshot_lines_coverage,
+      :view_tracker
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
-      :s3_secret_access_key, :password, :api_key
+      :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
+      :service_test_mode, :proces_type, :report_period, :track_views,
+      :background_reporting_sleep_seconds, :reporting_wiggle
+
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
     #####
@@ -61,12 +62,13 @@ module Coverband
       @logger = nil
       @store = nil
       @background_reporting_enabled = true
-      @background_reporting_sleep_seconds = 30
+      @background_reporting_sleep_seconds = nil
       @test_env = nil
       @web_enable_clear = false
       @track_gems = false
       @gem_details = false
-      @track_views = false
+      @track_views = true
+      @view_tracker = nil
       @web_debug = false
       @report_on_exit = true
       @use_oneshot_lines_coverage = ENV["ONESHOT"] || false
@@ -75,6 +77,15 @@ module Coverband
       @all_root_paths = nil
       @all_root_patterns = nil
       @password = nil
+
+      # coverband service settings
+      @api_key = nil
+      @service_url = nil
+      @coverband_timeout = nil
+      @service_dev_mode = nil
+      @service_test_mode = nil
+      @proces_type = nil
+      @report_period = nil
 
       # TODO: these are deprecated
       @s3_region = nil
@@ -115,8 +126,29 @@ module Coverband
       puts "deprecated, s3 is no longer support"
     end
 
+    def background_reporting_sleep_seconds
+      @background_reporting_sleep_seconds ||= if Coverband.coverband_service?
+        Coverband.configuration.coverband_env == "production" ? Coverband.configuration.report_period : 60
+      else
+        60
+      end
+    end
+
+    def reporting_wiggle
+      @reporting_wiggle ||= 30
+    end
+
     def store
-      @store ||= Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
+      @store ||= if Coverband.coverband_service?
+        require "coverband/adapters/web_service_store"
+        Coverband::Adapters::WebServiceStore.new(service_url)
+      else
+        Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
+      end
+    end
+
+    def track_views
+      @track_views ||= service_disabled_dev_test_env? ? false : true
     end
 
     def store=(store)
@@ -190,7 +222,40 @@ module Coverband
     end
 
     def api_key
-      ENV["COVERBAND_API_KEY"] || Coverband.configuration.api_key
+      @api_key ||= ENV["COVERBAND_API_KEY"]
+    end
+
+    def service_url
+      @service_url ||= ENV["COVERBAND_URL"] || "https://coverband.io"
+    end
+
+    def coverband_env
+      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || (defined?(Rails) && Rails.respond_to?(:env) ? Rails.env : "unknown")
+    end
+
+    def coverband_timeout
+      @coverband_timeout ||= coverband_env == "development" ? 5 : 2
+    end
+
+    def service_dev_mode
+      @service_dev_mode ||= ENV["COVERBAND_ENABLE_DEV_MODE"] || false
+    end
+
+    def service_test_mode
+      @service_dev_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
+    end
+
+    def proces_type
+      @process_type ||= ENV["PROCESS_TYPE"] || "unknown"
+    end
+
+    def report_period
+      @process_type ||= (ENV["COVERBAND_REPORT_PERIOD"] || 600).to_i
+    end
+
+    def service_disabled_dev_test_env?
+      (coverband_env == "test" && !Coverband.configuration.service_test_mode) ||
+        (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
     end
 
     private

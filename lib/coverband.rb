@@ -16,6 +16,7 @@ require "coverband/adapters/stdout_store"
 require "coverband/utils/file_hasher"
 require "coverband/collectors/coverage"
 require "coverband/collectors/view_tracker"
+require "coverband/collectors/view_tracker_service"
 require "coverband/reporters/base"
 require "coverband/reporters/console_report"
 require "coverband/integrations/background"
@@ -37,7 +38,7 @@ module Coverband
   def self.configure(file = nil)
     configuration_file = file || ENV["COVERBAND_CONFIG"]
     if configuration_file.nil?
-      configuration_file = File.exist?(SERVICE_CONFIG) ? SERVICE_CONFIG : CONFIG_FILE
+      configuration_file = coverband_service? ? SERVICE_CONFIG : CONFIG_FILE
     end
 
     configuration
@@ -50,6 +51,10 @@ module Coverband
     end
     @@configured = true
     coverage_instance.reset_instance
+  end
+
+  def self.coverband_service?
+    !!File.exist?(SERVICE_CONFIG)
   end
 
   def self.configured?

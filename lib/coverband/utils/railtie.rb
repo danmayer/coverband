@@ -15,11 +15,16 @@ module Coverband
         app.middleware.use Coverband::BackgroundMiddleware
 
         if Coverband.configuration.track_views
-          CoverbandViewTracker = Coverband::Collectors::ViewTracker.new
-          Coverband.configuration.view_tracker = CoverbandViewTracker
+          COVERBAND_VIEW_TRACKER = if Coverband.coverband_service?
+            Coverband::Collectors::ViewTrackerService.new
+          else
+            Coverband::Collectors::ViewTracker.new
+          end
+
+          Coverband.configuration.view_tracker = COVERBAND_VIEW_TRACKER
 
           ActiveSupport::Notifications.subscribe(/render_partial.action_view|render_template.action_view/) do |name, start, finish, id, payload|
-            CoverbandViewTracker.track_views(name, start, finish, id, payload) unless name.include?("!")
+            COVERBAND_VIEW_TRACKER.track_views(name, start, finish, id, payload) unless name.include?("!")
           end
         end
       rescue Redis::CannotConnectError => error

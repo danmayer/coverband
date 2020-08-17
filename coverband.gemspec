@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "minitest-profile"
+  spec.add_development_dependency "webmock"
 
   # TODO: Remove when other production adapters exist
   # because the default configuration of redis store, we really do require

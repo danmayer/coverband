@@ -28,18 +28,18 @@ module Coverband
         return if running?
 
         logger.debug("Coverband: Starting background reporting") if Coverband.configuration.verbose
-        sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds
+        sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i
         @thread = Thread.new {
           loop do
             Coverband.report_coverage
             Coverband.configuration.view_tracker&.report_views_tracked
             if Coverband.configuration.reporting_wiggle
-              sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds + rand(Coverband.configuration.reporting_wiggle.to_i)
+              sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i + rand(Coverband.configuration.reporting_wiggle.to_i)
             end
             if Coverband.configuration.verbose
               logger.debug("Coverband: background reporting coverage (#{Coverband.configuration.store.type}). Sleeping #{sleep_seconds}s")
             end
-            sleep(sleep_seconds)
+            sleep(sleep_seconds.to_i)
           end
         }
       end

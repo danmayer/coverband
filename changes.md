@@ -7,7 +7,7 @@
   - [redis bitfield](https://stackoverflow.com/questions/47100606/optimal-way-to-store-array-of-integers-in-redis-database)
 - Add support for [zadd](http://redis.io/topics/data-types-intro) so one could determine single call versus multiple calls on a line, letting us determine the most executed code in production.
 
-### Coverband 4.X
+### Coverband Future...
 
 Will be the fully modern release that drops maintenance legacy support in favor of increased performance, ease of use, and maintainability.
 
@@ -60,7 +60,14 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - drops S3 support
   - drops static report support
   - drops gem support
-- ?
+  - only loaded web reporter files when required
+- improved load order allowing more time for ENV vars (better dotenv, figaro, rails secrets support)
+- improved resque patching pattern
+- improved default ignores
+- additional adapters
+  - supports web-service adapter for http coverage collection
+  - support log/file adapter
+- reduce logs / errors / alerts on bad startup configurations
 
 # Released
 
