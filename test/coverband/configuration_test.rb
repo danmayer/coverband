@@ -4,6 +4,7 @@ require File.expand_path("../test_helper", File.dirname(__FILE__))
 
 class BaseTest < Minitest::Test
   def setup
+    Coverband.configuration.reset
     super
     Coverband.configuration.reset
     Coverband.configure do |config|
@@ -52,11 +53,49 @@ class BaseTest < Minitest::Test
     assert_equal current_paths, Coverband.configuration.root_paths
   end
 
-  test "store raises issues" do
+  test "store raises when not set to supported adapter" do
     Coverband::Collectors::Coverage.instance.reset_instance
     assert_raises RuntimeError do
       Coverband.configure do |config|
         config.store = "fake"
+      end
+    end
+  end
+
+  test "store defaults to redis store" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    assert_equal Coverband.configuration.store.class, Coverband::Adapters::RedisStore
+  end
+
+  test "store is a service store when api_key is set" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.reset
+    Coverband.configure do |config|
+      config.redis_url = nil
+      config.api_key = "test-key"
+    end
+    assert_equal Coverband.configuration.store.class.to_s, "Coverband::Adapters::WebServiceStore"
+  end
+
+  test "store raises when api key set but not set to service" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.reset
+    assert_raises RuntimeError do
+      Coverband.configure do |config|
+        config.api_key = "test-key"
+        config.redis_url = "redis://localhost:3333"
+        config.store = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
+      end
+    end
+  end
+
+  test "store raises when api key and redis_url" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.reset
+    assert_raises RuntimeError do
+      Coverband.configure do |config|
+        config.api_key = "test-key"
+        config.redis_url = "redis://localhost:3333"
       end
     end
   end

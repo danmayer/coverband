@@ -3,7 +3,7 @@
 module Coverband
   class Configuration
     attr_accessor :root_paths, :root,
-      :additional_files, :verbose,
+      :verbose,
       :reporter, :redis_namespace, :redis_ttl,
       :background_reporting_enabled,
       :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
@@ -11,7 +11,7 @@ module Coverband
       :view_tracker
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
-      :service_test_mode, :proces_type, :report_period, :track_views,
+      :service_test_mode, :process_type, :track_views, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle
 
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
@@ -20,7 +20,6 @@ module Coverband
     # TODO: This is is brittle and not a great solution to avoid deploy time
     # actions polluting the 'runtime' metrics
     #
-    # * should we skip /bin/rails webpacker:compile ?
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
     IGNORE_TASKS = ["coverband:clear",
@@ -28,6 +27,7 @@ module Coverband
                     "coverband:coverage_server",
                     "coverband:migrate",
                     "assets:precompile",
+                    "webpacker:compile",
                     "db:version",
                     "db:create",
                     "db:drop",
@@ -56,7 +56,6 @@ module Coverband
       @root_paths = []
       @ignore = IGNORE_DEFAULTS.dup
       @search_paths = TRACKED_DEFAULT_PATHS.dup
-      @additional_files = []
       @verbose = false
       @reporter = "scov"
       @logger = nil
@@ -65,8 +64,6 @@ module Coverband
       @background_reporting_sleep_seconds = nil
       @test_env = nil
       @web_enable_clear = false
-      @track_gems = false
-      @gem_details = false
       @track_views = true
       @view_tracker = nil
       @web_debug = false
@@ -85,17 +82,19 @@ module Coverband
       @service_dev_mode = nil
       @service_test_mode = nil
       @proces_type = nil
-      @report_period = nil
+
+      @redis_url = nil
+      @redis_namespace = nil
+      @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
+      @reporting_wiggle = nil
 
       # TODO: these are deprecated
       @s3_region = nil
       @s3_bucket = nil
       @s3_access_key_id = nil
       @s3_secret_access_key = nil
-
-      @redis_namespace = nil
-      @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
-      @reporting_wiggle = nil
+      @track_gems = false
+      @gem_details = false
     end
 
     def logger
@@ -110,25 +109,16 @@ module Coverband
       @password || ENV["COVERBAND_PASSWORD"]
     end
 
-    def s3_bucket
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_region
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_access_key_id
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_secret_access_key
-      puts "deprecated, s3 is no longer support"
-    end
-
+    # The adjustments here either protect the redis or service from being overloaded
+    # the tradeoff being the delay in when reporting data is available
+    # if running your own redis increasing this number reduces load on the redis CPU
     def background_reporting_sleep_seconds
-      @background_reporting_sleep_seconds ||= if Coverband.coverband_service?
-        Coverband.configuration.coverband_env == "production" ? Coverband.configuration.report_period : 60
+      @background_reporting_sleep_seconds ||= if service?
+        # default to 10m for service
+        Coverband.configuration.coverband_env == "production" ? 600 : 60
+      elsif store.is_a?(Coverband::Adapters::HashRedisStore)
+        # Default to 5 minutes if using the hash redis store
+        300
       else
         60
       end
@@ -139,7 +129,8 @@ module Coverband
     end
 
     def store
-      @store ||= if Coverband.coverband_service?
+      @store ||= if service?
+        raise "invalid configuration: unclear default store coverband expects either api_key or redis_url" if redis_url
         require "coverband/adapters/web_service_store"
         Coverband::Adapters::WebServiceStore.new(service_url)
       else
@@ -147,19 +138,16 @@ module Coverband
       end
     end
 
-    def track_views
-      @track_views ||= service_disabled_dev_test_env? ? false : true
-    end
-
     def store=(store)
       raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
-
-      # Default to 5 minutes if using the hash redis store
-      # This is a safer default for the high server volumes that need the hash store
-      # it should avoid overloading the redis with lots of load
-      @background_reporting_sleep_seconds = 300 if store.is_a?(Coverband::Adapters::HashRedisStore)
+      raise "invalid configuration: only coverband service expects an API Key" if api_key && !store.is_a?(Coverband::Adapters::WebServiceStore)
+      raise "invalid configuration: coverband service shouldn't have redis url set" if redis_url && store.is_a?(Coverband::Adapters::WebServiceStore)
 
       @store = store
+    end
+
+    def track_views
+      @track_views ||= service_disabled_dev_test_env? ? false : true
     end
 
     ###
@@ -183,10 +171,6 @@ module Coverband
       @ignore = (@ignore + ignored_array).uniq
     end
 
-    def track_gems=(_value)
-      puts "gem tracking is deprecated, setting this will be ignored"
-    end
-
     def current_root
       @current_root ||= File.expand_path(Coverband.configuration.root).freeze
     end
@@ -203,7 +187,7 @@ module Coverband
       @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
-    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store]
+    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store @api_key @password]
     def to_h
       instance_variables
         .each_with_object({}) do |var, hash|
@@ -219,6 +203,10 @@ module Coverband
 
     def one_shot_coverage_implemented_in_ruby_version?
       Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    end
+
+    def redis_url
+      @redis_url ||= ENV["COVERBAND_REDIS_URL"] || ENV["REDIS_URL"]
     end
 
     def api_key
@@ -245,12 +233,12 @@ module Coverband
       @service_dev_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
     end
 
-    def proces_type
+    def process_type
       @process_type ||= ENV["PROCESS_TYPE"] || "unknown"
     end
 
-    def report_period
-      @process_type ||= (ENV["COVERBAND_REPORT_PERIOD"] || 600).to_i
+    def service?
+      Coverband.coverband_service? || !api_key.nil?
     end
 
     def service_disabled_dev_test_env?
@@ -258,11 +246,27 @@ module Coverband
         (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
     end
 
-    private
-
-    def redis_url
-      ENV["COVERBAND_REDIS_URL"] || ENV["REDIS_URL"]
+    def s3_bucket
+      puts "deprecated, s3 is no longer support"
     end
+
+    def s3_region
+      puts "deprecated, s3 is no longer support"
+    end
+
+    def s3_access_key_id
+      puts "deprecated, s3 is no longer support"
+    end
+
+    def s3_secret_access_key
+      puts "deprecated, s3 is no longer support"
+    end
+
+    def track_gems=(_value)
+      puts "gem tracking is deprecated, setting this will be ignored"
+    end
+
+    private
 
     def redis_store_options
       {ttl: Coverband.configuration.redis_ttl,

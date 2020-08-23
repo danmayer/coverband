@@ -3,8 +3,7 @@
 module Coverband
   module Adapters
     ###
-    # WebServiceStore store a merged coverage file to local disk
-    # TODO: add webmock tests
+    # WebServiceStore: store a checkpoint of coverage to a remote service
     ###
     class WebServiceStore < Base
       attr_reader :coverband_url, :process_type, :runtime_env, :hostname, :pid
