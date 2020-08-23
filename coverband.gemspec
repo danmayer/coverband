@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
-  spec.add_development_dependency "standard", "= 0.4.6"
+  spec.add_development_dependency "standard", "= 0.2.5"
   spec.add_development_dependency "standardrb"
 
   spec.add_development_dependency "coveralls"
