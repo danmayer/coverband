@@ -55,8 +55,7 @@ module Coverband
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
           http.request(req)
         end
-        coverage_data = JSON.parse(res.body)
-        coverage_data
+        JSON.parse(res.body)
       rescue => e
         logger&.error "Coverband: Error while retrieving coverage #{e}" if Coverband.configuration.verbose || Coverband.configuration.service_dev_mode
       end

@@ -2,7 +2,7 @@ require "coverage"
 
 Coverage.start
 
-require "./test/dog.rb"
+require "./test/dog"
 
 puts Coverage.peek_result
 

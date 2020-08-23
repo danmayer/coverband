@@ -101,8 +101,7 @@ module Coverband
             end
           end
 
-          scov_style_report = fix_file_names(scov_style_report, roots)
-          scov_style_report
+          fix_file_names(scov_style_report, roots)
         end
       end
     end
