@@ -45,6 +45,7 @@ module Coverband
     end
 
     def self.reset
+      Coverband.configuration.reset
       Coverband.configuration.redis_namespace = "coverband_test"
       Coverband.configuration.store.instance_variable_set(:@redis_namespace, "coverband_test")
       Coverband.configuration.store.class.class_variable_set(:@@path_cache, {})
