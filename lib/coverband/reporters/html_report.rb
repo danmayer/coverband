@@ -7,7 +7,6 @@ module Coverband
         :base_path, :filename
 
       def initialize(store, options = {})
-        super(store, options = {})
         coverband_reports = Coverband::Reporters::Base.report(store, options)
         self.open_report = options.fetch(:open_report) { true }
         # TODO: refactor notice out to top level of web only
