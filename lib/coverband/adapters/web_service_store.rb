@@ -3,8 +3,7 @@
 module Coverband
   module Adapters
     ###
-    # WebServiceStore store a merged coverage file to local disk
-    # TODO: add webmock tests
+    # WebServiceStore: store a checkpoint of coverage to a remote service
     ###
     class WebServiceStore < Base
       attr_reader :coverband_url, :process_type, :runtime_env, :hostname, :pid
@@ -56,8 +55,7 @@ module Coverband
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
           http.request(req)
         end
-        coverage_data = JSON.parse(res.body)
-        coverage_data
+        JSON.parse(res.body)
       rescue => e
         logger&.error "Coverband: Error while retrieving coverage #{e}" if Coverband.configuration.verbose || Coverband.configuration.service_dev_mode
       end

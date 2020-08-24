@@ -61,7 +61,11 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - drops static report support
   - drops gem support
   - only loaded web reporter files when required
-- improved load order allowing more time for ENV vars (better dotenv, figaro, rails secrets support)
+- configuration improvements
+	- improved load order allowing more time for ENV vars (better dotenv, figaro, rails secrets support)
+	- all config options can be set via coverband config, not requiring ENV var support
+	- deprecation notices on soon to be removed config options
+	- config exceptions on invalid configuration combinations
 - improved resque patching pattern
 - improved default ignores
 - additional adapters
