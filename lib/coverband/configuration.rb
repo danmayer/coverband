@@ -140,8 +140,8 @@ module Coverband
 
     def store=(store)
       raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
-      raise "invalid configuration: only coverband service expects an API Key" if api_key && !store.is_a?(Coverband::Adapters::WebServiceStore)
-      raise "invalid configuration: coverband service shouldn't have redis url set" if redis_url && store.is_a?(Coverband::Adapters::WebServiceStore)
+      raise "invalid configuration: only coverband service expects an API Key" if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
+      raise "invalid configuration: coverband service shouldn't have redis url set" if redis_url && store.class.to_s == "Coverband::Adapters::WebServiceStore"
 
       @store = store
     end
