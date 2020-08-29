@@ -66,11 +66,14 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 	- all config options can be set via coverband config, not requiring ENV var support
 	- deprecation notices on soon to be removed config options
 	- config exceptions on invalid configuration combinations
+	- additional testing around configurations
+	- improved defaults and reduced configuration options
 - improved resque patching pattern
 - improved default ignores
 - additional adapters
   - supports web-service adapter for http coverage collection
   - support log/file adapter
+  - extendable pattern to support any additional backends
 - reduce logs / errors / alerts on bad startup configurations
 
 # Released
