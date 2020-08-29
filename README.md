@@ -259,6 +259,8 @@ Coverband on very high volume sites with many server processes reporting can hav
 - adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
 - reminder it is recommended to have a unique Redis per workload (background jobs, caching, Coverband), for this store, it may be more important to have a dedicated Redis.
 
+See more discussion [here](https://github.com/danmayer/coverband/issues/384).
+
 ### Clear Coverage
 
 Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.
