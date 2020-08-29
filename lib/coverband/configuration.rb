@@ -130,7 +130,7 @@ module Coverband
 
     def store
       @store ||= if service?
-        raise "invalid configuration: unclear default store coverband expects either api_key or redis_url" if redis_url
+        raise "invalid configuration: unclear default store coverband expects either api_key or redis_url" if ENV["COVERBAND_REDIS_URL"]
         require "coverband/adapters/web_service_store"
         Coverband::Adapters::WebServiceStore.new(service_url)
       else

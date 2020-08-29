@@ -89,14 +89,26 @@ class BaseTest < Minitest::Test
     end
   end
 
-  test "store raises when api key and redis_url" do
+  test "store raises when api key and coverband redis env" do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configuration.reset
-    assert_raises RuntimeError do
-      Coverband.configure do |config|
-        config.api_key = "test-key"
-        config.redis_url = "redis://localhost:3333"
+
+    env = ENV.to_hash.merge("COVERBAND_REDIS_URL" => "redis://localhost:3333")
+      Object.stub_const(:ENV, env) do
+      assert_raises RuntimeError do
+        Coverband.configure do |config|
+          config.api_key = "test-key"
+        end
       end
+    end
+  end
+
+  test "store doesnt raises when api key and redis_url" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.reset
+    Coverband.configure do |config|
+      config.api_key = "test-key"
+      config.redis_url = "redis://localhost:3333"
     end
   end
 
