@@ -75,6 +75,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - support log/file adapter
   - extendable pattern to support any additional backends
 - reduce logs / errors / alerts on bad startup configurations
+- fix: #301 runtime vs eagerload should always remain correct
 
 # Released
 
