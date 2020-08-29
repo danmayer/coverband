@@ -94,7 +94,7 @@ class BaseTest < Minitest::Test
     Coverband.configuration.reset
 
     env = ENV.to_hash.merge("COVERBAND_REDIS_URL" => "redis://localhost:3333")
-      Object.stub_const(:ENV, env) do
+    Object.stub_const(:ENV, env) do
       assert_raises RuntimeError do
         Coverband.configure do |config|
           config.api_key = "test-key"
