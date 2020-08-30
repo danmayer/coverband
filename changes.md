@@ -53,6 +53,12 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Alpha / Beta / Release Candidates
 
+### Coverband 5.0.1
+
+- ?
+
+# Released
+
 ### Coverband 5.0.0
 
 - Full JRuby support
@@ -76,8 +82,6 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - extendable pattern to support any additional backends
 - reduce logs / errors / alerts on bad startup configurations
 - fix: #301 runtime vs eagerload should always remain correct
-
-# Released
 
 ###Coverband 4.2.7
 
