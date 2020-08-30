@@ -139,19 +139,6 @@ This is especially useful for projects that are api only and cannot support the 
  COVERBAND_REDIS_URL=redis://username:password:redis_production_server:2322 bundle exec rake coverband:coverage_server
 ```
 
-## JRuby Support
-
-
-
-Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
-
-- older versions of JRuby need tracing enabled to work (and this could cause bad performance)
-  - run Jruby with the `--debug` option
-  - add into your `.jrubyrc` the `debug.fullTrace=true` setting
-- For best performance the `oneshot_lines` is recommended, and in the latest releases should have very low overhead
-- See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
-- JRuby is tested via CI against Rails 5 and 6
-
 # Coverband Demo
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
@@ -352,6 +339,17 @@ This conflict happens when a ruby method is patched twice, once using module pre
 We will match Heroku & Ruby's support lifetime, supporting the last 3 major Ruby releases. For details see [supported runtimes](https://devcenter.heroku.com/articles/ruby-support#supported-runtimes).
 
 For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. This means at the moment we primaryly target Rails 6.x, 5.x, and will try to keep current functionality working for Rails 4.x but may release new features that do not work on that target.
+
+### JRuby Support
+
+Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
+
+- older versions of JRuby need tracing enabled to work (and this could cause bad performance)
+  - run Jruby with the `--debug` option
+  - add into your `.jrubyrc` the `debug.fullTrace=true` setting
+- For best performance the `oneshot_lines` is recommended, and in the latest releases should have very low overhead
+- See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
+- JRuby is tested via CI against Rails 5 and 6
 
 # Contributing To Coverband
 
