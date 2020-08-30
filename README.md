@@ -28,7 +28,7 @@ The primary goal of Coverband is giving deep insight into your production runtim
 - Low performance overhead
 - Simple setup and configuration
 - Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
-- Splits load time (Rails eager load) and Run time metrics
+- Splits load time (Rails eager load) and runtime metrics
 - Easy to understand actionable insights from the report
 - Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
@@ -41,7 +41,7 @@ Coverband stores coverage data in Redis. The Redis endpoint is looked for in thi
 
 1. `ENV['COVERBAND_REDIS_URL']`
 2. `ENV['REDIS_URL']`
-3. `localhost`
+3. `localhost:6379`
 
 The redis store can also be explicitly defined within the coverband.rb. See [advanced config](#advanced-config).
 
@@ -67,7 +67,7 @@ The Railtie integration means you shouldn't need to do anything else other than 
 
 ## Sinatra
 
-For the best coverage you want this loaded as early as possible. I have been putting it directly in my `config.ru` but you could use an initializer, though you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
+For the best coverage you want this loaded as early as possible. We recommend requiring cover band directly in the `config.ru`.  Requiring coverband within an initializer could also work, but you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
 
 ```ruby
 require 'coverband'
@@ -78,6 +78,8 @@ run ActionController::Dispatcher.new
 ```
 
 # Coverage Report
+
+### Mounting the Rack APP
 
 Coverband comes with a mountable rack app for viewing reports. For Rails this can be done in `config/routes.rb` with:
 
@@ -97,24 +99,55 @@ Rails.application.routes.draw do
 end
 ```
 
-or you can enable basic auth by setting `ENV['COVERBAND_PASSWORD']` or via your configuration `config.password = 'my_pass'`
+or you can enable basic auth by setting `ENV['COVERBAND_PASSWORD']` or via your configuration `config.password = <YOUR_COMPLEX_UNGUESSABLE_PASSWORD>`
 
-### Coverband Web Endpoint
+### Standalone
 
-The web endpoint is a barebones endpoint that you can either expose direct (after authentication) or you can just link to the actions you wish to expose. The index is intended as a example to showcase all the features.
+The coverage server can be started standalone with a rake task:
+
+```
+ bundle exec rake coverband:coverage_server
+```
+
+The web UI should then be available here: http://localhost:1022/
+
+This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point coverband at your production redis server and ensure to checkout the production version of the code locally.
+
+```
+ COVERBAND_REDIS_URL=redis://username:password:redis_production_server:2322 bundle exec rake coverband:coverage_server
+```
+
+
+
+### Coverband Web UI
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
 
-> The web index as available on the Coverband Demo site
+> The web index as available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage)
 
-- **force coverage collection:** This triggers coverage collection on the current webserver process
-- **clear coverage report:** This will clear the coverage data. This wipes out all collected data (**dangerous**)
+- View overall coverage information
+
+- Drill into individual file coverage
+
 - View individual file details
-- **clear individual file coverage:** This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
+
+- Clear Coverage - disabled by default as it could be considered a danager operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
+  - Clear coverage report
+  
+      This will clear the coverage data. This wipes out all collected data. 
+  - Clear individual file coverage
+
+      This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
+  
+- Force coverage collection
+
+  This triggers coverage collection on the current webserver process. Useful in development but confusing in production environments where many ruby processes are usually running.
+
+
 
 ### JRuby Support
 
-Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant, improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
+Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
 
 - older versions of JRuby need tracing enabled to work (and this could cause bad performance)
   - run Jruby with the `--debug` option
@@ -124,8 +157,6 @@ Coverband is compatible with JRuby. If you want to run on JRuby note that I have
 - JRuby is tested via CI against Rails 5 and 6
 
 ### Rake Tasks
-
-The rake task generates a report locally and opens a browser pointing to `coverage/index.html`.
 
 `rake coverband:coverage`
 
@@ -245,7 +276,7 @@ end
 
 ### Avoiding Cache Stampede
 
-If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server.
+If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. Note, the default wiggle is set to 30 seconds.
 
 Add a wiggle (in seconds) to the background thread to avoid all your servers reporting at the same time:
 
@@ -253,11 +284,10 @@ Add a wiggle (in seconds) to the background thread to avoid all your servers rep
 
 ### Redis Hash Store
 
-Coverband on very high volume sites with many server processes reporting can have a race condition. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting time period.
+Coverband on very high volume sites with many server processes reporting can have a race condition which can cause hit counts to be inaccurate. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting frequency.
 
-- set the new Redis store: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
-- adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
-- reminder it is recommended to have a unique Redis per workload (background jobs, caching, Coverband), for this store, it may be more important to have a dedicated Redis.
+- Use a dedicated coverband redis instance: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
+- Adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
 
 See more discussion [here](https://github.com/danmayer/coverband/issues/384).
 
@@ -266,6 +296,8 @@ See more discussion [here](https://github.com/danmayer/coverband/issues/384).
 Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.
 
 `rake coverband:clear`
+
+This can also be done through the web if `config.web_enable_clear` is enabled.
 
 ### Coverage Data Migration
 
