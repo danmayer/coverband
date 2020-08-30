@@ -8,14 +8,8 @@ module Coverband
     class ConsoleReport < Base
       def self.report(store, options = {})
         scov_style_report = super(store, options)
-
-        scov_style_report.each_pair do |file, usage|
-          # TODO: In Coverband 5 deprecate none hash format
-          if usage.is_a?(Hash)
-            Coverband.configuration.logger.info "#{file}: #{usage["data"]}"
-          else
-            Coverband.configuration.logger.info "#{file}: #{usage}"
-          end
+        scov_style_report[:merged].each_pair do |file, usage|
+          Coverband.configuration.logger.info "#{file}: #{usage["data"]}"
         end
         scov_style_report
       end
