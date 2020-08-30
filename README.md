@@ -10,7 +10,7 @@
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#installation">Installation</a> •
-  <a href="#coverage-report">Coverage Report</a> •
+  <a href="#coverband-web-ui">Coverband Web UI</a> •
   <a href="#advanced-config">Advanced Config</a> •
   <a href="#license">License</a> •
   <a href="/changes.md">Change Log / Roadmap</a> •
@@ -53,8 +53,6 @@ Add this line to your application's `Gemfile`, remember to `bundle install` afte
 gem 'coverband'
 ```
 
-## Upgrading to Latest
-
 ### No custom code or middleware required
 
 With older versions of coverband, projects would report to redis using rack or sidekiq middleware. After coverband 4.0, this should no longer be required and could cause performance issues. Reporting to redis is now automatically done within a background thread with no custom code needed.
@@ -77,9 +75,33 @@ use Coverband::BackgroundMiddleware
 run ActionController::Dispatcher.new
 ```
 
-# Coverage Report
+## Coverband Web UI
 
-### Mounting the Rack APP
+![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
+
+> The web index as available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage)
+
+- View overall coverage information
+
+- Drill into individual file coverage
+
+- View individual file details
+
+- Clear Coverage - disabled by default as it could be considered a danager operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
+
+  - Clear coverage report
+
+    This will clear the coverage data. This wipes out all collected data. 
+
+  - Clear individual file coverage
+
+    This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
+
+- Force coverage collection
+
+  This triggers coverage collection on the current webserver process. Useful in development but confusing in production environments where many ruby processes are usually running.
+
+### Mounting as a Rack App
 
 Coverband comes with a mountable rack app for viewing reports. For Rails this can be done in `config/routes.rb` with:
 
@@ -103,7 +125,7 @@ or you can enable basic auth by setting `ENV['COVERBAND_PASSWORD']` or via your 
 
 ### Standalone
 
-The coverage server can be started standalone with a rake task:
+The coverage server can also be started standalone with a rake task:
 
 ```
  bundle exec rake coverband:coverage_server
@@ -111,41 +133,15 @@ The coverage server can be started standalone with a rake task:
 
 The web UI should then be available here: http://localhost:1022/
 
-This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point coverband at your production redis server and ensure to checkout the production version of the code locally.
+This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point coverband at your production redis server and ensure to checkout the production version of your project code locally.
 
 ```
  COVERBAND_REDIS_URL=redis://username:password:redis_production_server:2322 bundle exec rake coverband:coverage_server
 ```
 
+## JRuby Support
 
 
-### Coverband Web UI
-
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
-
-> The web index as available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage)
-
-- View overall coverage information
-
-- Drill into individual file coverage
-
-- View individual file details
-
-- Clear Coverage - disabled by default as it could be considered a danager operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
-  - Clear coverage report
-  
-      This will clear the coverage data. This wipes out all collected data. 
-  - Clear individual file coverage
-
-      This will clear the details of the file you are looking at. This is helpful if you don't want to lose all Coverage data but made a change that you expect would impact a particular file.
-  
-- Force coverage collection
-
-  This triggers coverage collection on the current webserver process. Useful in development but confusing in production environments where many ruby processes are usually running.
-
-
-
-### JRuby Support
 
 Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
 
