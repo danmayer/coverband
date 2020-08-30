@@ -152,22 +152,6 @@ Coverband is compatible with JRuby. If you want to run on JRuby note that I have
 - See JRuby support in a Rails app configured to run via JRuby, in [Coverband Demo](https://github.com/coverband-service/coverband_demo)
 - JRuby is tested via CI against Rails 5 and 6
 
-### Rake Tasks
-
-`rake coverband:coverage`
-
-This is mostly useful in your local development environment.
-
-##### Example Output
-
-Since Coverband is [Simplecov](https://github.com/colszowka/simplecov) output compatible it should work with any of the `SimpleCov::Formatter`'s available. The output below is produced using the default Simplecov HTML formatter.
-
-Index Page
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_index.png)
-
-Details on an example Sinatra app
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_details.png)
-
 # Coverband Demo
 
 Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://coverband-demo.herokuapp.com/). The [full source code for the demo](https://github.com/danmayer/coverband_demo) is available to help with installation, configuration, and understanding of basic usage.
