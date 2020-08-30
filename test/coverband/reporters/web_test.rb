@@ -22,13 +22,13 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.2.0")
       test "renders index content" do
         get "/"
         assert last_response.ok?
-        assert_match "Coverband Admin", last_response.body
+        assert_match "Coverband Home", last_response.body
       end
 
       test "renders index content for empty path" do
         get ""
         assert last_response.ok?
-        assert_match "Coverband Admin", last_response.body
+        assert_match "Coverband Home", last_response.body
       end
 
       test "renders 404" do
