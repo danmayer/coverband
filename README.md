@@ -87,7 +87,7 @@ run ActionController::Dispatcher.new
 
 - View individual file details
 
-- Clear Coverage - disabled by default as it could be considered a danager operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
+- Clear Coverage - disabled by default as it could be considered a dangerous operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
 
   - Clear coverage report
 
