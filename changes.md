@@ -83,12 +83,12 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 - reduce logs / errors / alerts on bad startup configurations
 - fix: #301 runtime vs eagerload should always remain correct
 
-###Coverband 4.2.7
+### Coverband 4.2.7
 
 - Ignore patterns too aggressive #382, thanks @thijsnado
 - Stack level too deep error when running certain activejob jobs #367, thanks @kejordan and @hanslauwers
 
-###Coverband 4.2.6
+### Coverband 4.2.6
 
 - Address Redis exists deprecation warning by baffers
 
@@ -271,7 +271,7 @@ Will be a stable and fast release that drops maintenance legacy support in favor
   - implemented for Redis and File store
 - improved mountable web interface
 
-# 2.0.3
+### 2.0.3
 
 - don''t include docs in the gemfile thanks @bquorning
 - pipeline_redis to reduce network overhead thanks @Kallin
