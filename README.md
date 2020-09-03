@@ -307,7 +307,7 @@ Coverband.start
 
 ### Verbose Debug / Development Mode
 
-Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. We respect the log level, and I would recommend log level info generally, but if you are investigating a prolbem Coverband logs additional data at the `debug` level. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
+Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. We respect the log level, and I would recommend log level info generally, but if you are investigating a problem Coverband logs additional data at the `debug` level. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
 
 ---
 
