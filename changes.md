@@ -53,11 +53,15 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Alpha / Beta / Release Candidates
 
-### Coverband 5.0.1
+### Coverband 5.0.2
 
 - ?
 
 # Released
+
+### Coverband 5.0.1
+
+- fix for race condition on view tracker redis configuration setting ensuring it is set after it is configured... bug only impacted apps that have multiple redis connections for the same system and have Coverband not on the default REDIS_URL
 
 ### Coverband 5.0.0
 
