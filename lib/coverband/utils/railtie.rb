@@ -13,7 +13,21 @@ module Coverband
     initializer "coverband.configure" do |app|
       begin
         app.middleware.use Coverband::BackgroundMiddleware
+      rescue Redis::CannotConnectError => error
+        Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+        Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
+      end
+    end
 
+    config.after_initialize do
+      unless Coverband.tasks_to_ignore?
+        Coverband.configure
+        Coverband.eager_loading_coverage!
+        Coverband.report_coverage
+        Coverband.runtime_coverage!
+      end
+
+      begin
         if Coverband.configuration.track_views
           COVERBAND_VIEW_TRACKER = if Coverband.coverband_service?
             Coverband::Collectors::ViewTrackerService.new
@@ -30,15 +44,6 @@ module Coverband
       rescue Redis::CannotConnectError => error
         Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
         Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
-      end
-    end
-
-    config.after_initialize do
-      unless Coverband.tasks_to_ignore?
-        Coverband.configure
-        Coverband.eager_loading_coverage!
-        Coverband.report_coverage
-        Coverband.runtime_coverage!
       end
     end
 
