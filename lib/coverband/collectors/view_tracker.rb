@@ -20,6 +20,7 @@ module Coverband
 
       def initialize(options = {})
         raise NotImplementedError, "View Tracker requires Rails 4 or greater" unless self.class.supported_version?
+        raise "Coverband: view tracker initialized before configuration!" if !Coverband.configured? && ENV["COVERBAND_TEST"] == "test"
 
         @project_directory = File.expand_path(Coverband.configuration.root)
         @ignore_patterns = Coverband.configuration.ignore
