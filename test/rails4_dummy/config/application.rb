@@ -10,5 +10,6 @@ Bundler.require(*Rails.groups)
 module Rails4Dummy
   class Application < Rails::Application
     config.eager_load = true
+    config.consider_all_requests_local = true
   end
 end

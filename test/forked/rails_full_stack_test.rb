@@ -46,6 +46,15 @@ class RailsFullStackTest < Minitest::Test
       results = store.coverage[dummy_controller]["data"]
       assert_equal(runtime_expected, results)
     end
+
+    test "check view tracker" do
+      visit "/dummy_view/show"
+      assert page.body.match(/rendered view/)
+      assert page.body.match(/I am no dummy view tracker text/)
+      Coverband.configuration.view_tracker&.report_views_tracked
+      visit "/coverage/view_tracker"
+      assert_selector("div", text: /These views have been rendered at least once.*\/app\/views\/dummy_view\/show\.html\.erb/)
+    end
   end
 
   ###
