@@ -15,5 +15,7 @@ else
 end
 
 gem "rails", "~>5"
+gem "haml"
+gem "slim"
 # these gems are used for testing gem tracking
 gem "irb", require: false

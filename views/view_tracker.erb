@@ -26,7 +26,7 @@
         <p>These views have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>
         <% tracker.unused_views.each do |view_file| %>
-          <li><%= view_file %></li>
+          <li class="unused-views"><%= view_file %></li>
         <% end %>
         </ul>
 
@@ -34,7 +34,7 @@
         <p>These views have been rendered at least once</p>
         <ul>
         <% tracker.used_views.each_pair do |view_file, time_at| %>
-          <li>
+          <li class="used-views">
             <%= view_file %>
             <span class="last_seen_at">last activity recorded <%= Time.at(time_at.to_i)%></span>
             <% if Coverband.configuration.web_enable_clear %>

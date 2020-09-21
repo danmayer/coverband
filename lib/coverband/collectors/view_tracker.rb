@@ -10,11 +10,8 @@ module Coverband
     # This is a port of Flatfoot, a project I open sourced years ago,
     # but am now rolling into Coverband
     # https://github.com/livingsocial/flatfoot
-    #
-    # TODO: test and ensure slim, haml, and other support
     ###
     class ViewTracker
-      DEFAULT_TARGET = Dir.glob("app/views/**/*.html.erb").reject { |file| file.match(/(_mailer)/) }
       attr_accessor :target, :logged_views, :views_to_record
       attr_reader :logger, :roots, :store, :ignore_patterns
 
@@ -26,7 +23,7 @@ module Coverband
         @ignore_patterns = Coverband.configuration.ignore
         @store = options.fetch(:store) { Coverband.configuration.store }
         @logger = options.fetch(:logger) { Coverband.configuration.logger }
-        @target = options.fetch(:target) { DEFAULT_TARGET }
+        @target = options.fetch(:target) { Dir.glob("#{@project_directory}/app/views/**/*.html.{erb,haml,slim}").reject { |file| file.match(/(_mailer)/) }.freeze }
 
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
         @roots = @roots.split(",") if @roots.is_a?(String)
