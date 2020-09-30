@@ -62,6 +62,9 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 ### Coverband 5.0.1
 
 - fix for race condition on view tracker redis configuration setting ensuring it is set after it is configured... bug only impacted apps that have multiple redis connections for the same system and have Coverband not on the default REDIS_URL
+- change default port of local server
+- update on readme about issue with scout app, thanks @mrbongiolo 
+- fix on configuration page not loading when redis can't load
 
 ### Coverband 5.0.0
 
