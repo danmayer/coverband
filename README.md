@@ -128,10 +128,16 @@ or you can enable basic auth by setting `ENV['COVERBAND_PASSWORD']` or via your 
 The coverage server can also be started standalone with a rake task:
 
 ```
- bundle exec rake coverband:coverage_server
+bundle exec rake coverband:coverage_server
 ```
 
-The web UI should then be available here: http://localhost:1022/
+The web UI should then be available here: http://localhost:9022/
+
+If you want to run on an alternative port:
+
+```
+COVERBAND_COVERAGE_PORT=8086 bundle exec rake coverband:coverage_server
+```
 
 This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point coverband at your production redis server and ensure to checkout the production version of your project code locally.
 

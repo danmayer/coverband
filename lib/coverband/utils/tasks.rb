@@ -13,7 +13,7 @@ namespace :coverband do
   task :coverage_server do
     Rake.application["environment"].invoke if Rake::Task.task_defined?("environment")
     Coverband.configuration.store.merge_mode = true if Coverband.configuration.store.is_a?(Coverband::Adapters::FileStore)
-    Rack::Server.start app: Coverband::Reporters::Web.new, Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 1022).to_i
+    Rack::Server.start app: Coverband::Reporters::Web.new, Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
   end
 
   ###

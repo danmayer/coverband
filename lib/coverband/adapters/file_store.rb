@@ -20,7 +20,7 @@ module Coverband
     # files matching the path pattern, in this case `log/coverage.log.*`
     #
     # run: `bundle exec rake coverband:coverage_server`
-    # open http://localhost:1022/
+    # open http://localhost:9022/
     #
     # one could also build a report via code, the output is suitable to feed into SimpleCov
     #
