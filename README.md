@@ -380,6 +380,9 @@ If you submit a change please make sure the tests and benchmarks are passing.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
   - The view file detection doesn't workf or mailers at the moment only for web related views / JSON templates. This is due to how Rails active mailer notifications work.
+- **Coverage does NOT work when used alongside Scout APM Auto Instrumentation**
+  - In an environment that uses Scout's `AUTO_INSTRUMENT=true` (usually production or staging) it stops reporting any coverage, it will show one or two files that have been loaded at the start but everything else will show up as having 0% coverage
+  - Bug tracked here: https://github.com/scoutapp/scout_apm_ruby/issues/343
 
 ### Debugging Redis Store
 
