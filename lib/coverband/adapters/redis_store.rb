@@ -44,7 +44,7 @@ module Coverband
       end
 
       def size
-        @redis.get(base_key).bytesize
+        @redis.get(base_key) ? @redis.get(base_key).bytesize : "N/A"
       end
 
       ###
