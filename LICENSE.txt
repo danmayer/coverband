@@ -1,4 +1,4 @@
-Copyright (c) 2010-2018 Dan Mayer
+Copyright (c) 2010-2020 Dan Mayer
 
 MIT License
 
