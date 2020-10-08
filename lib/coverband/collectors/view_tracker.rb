@@ -63,18 +63,29 @@ module Coverband
         normalized_views = {}
         views.each_pair do |view, time|
           roots.each do |root|
-            view = view.gsub(/#{root}/, "")
+            view = view.gsub(root, "")
           end
           normalized_views[view] = time
         end
         normalized_views
       end
 
+      def all_views
+        all_views = []
+        target.each do |view|
+          roots.each do |root|
+            view = view.gsub(root, "")
+          end
+          all_views << view
+        end
+        all_views.uniq
+      end
+
       def unused_views
         recently_used_views = used_views.keys
-        all_views = target.reject { |view| recently_used_views.include?(view) }
+        unused_views = all_views.reject { |view| recently_used_views.include?(view) }
         # since layouts don't include format we count them used if they match with ANY formats
-        all_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
+        unused_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
       end
 
       def as_json

@@ -25,6 +25,7 @@ class RailsFullStackTest < Minitest::Test
     Coverband.configuration.view_tracker&.report_views_tracked
     visit "/coverage/view_tracker"
     assert_content("Used Views: (1)")
+    assert_content("Unused Views: (2)")
     assert_selector("li.used-views", text: "dummy_view/show.html.erb")
     assert_selector("li.unused-views", text: "dummy_view/show_haml.html.haml")
     assert_selector("li.unused-views", text: "dummy_view/show_slim.html.slim")
@@ -35,6 +36,7 @@ class RailsFullStackTest < Minitest::Test
     Coverband.configuration.view_tracker&.report_views_tracked
     visit "/coverage/view_tracker"
     assert_content("Used Views: (2)")
+    assert_content("Unused Views: (1)")
     assert_selector("li.used-views", text: "dummy_view/show_haml.html.haml")
 
     visit "/dummy_view/show_slim"
@@ -43,6 +45,7 @@ class RailsFullStackTest < Minitest::Test
     Coverband.configuration.view_tracker&.report_views_tracked
     visit "/coverage/view_tracker"
     assert_content("Used Views: (3)")
+    assert_content("Unused Views: (0)")
     assert_selector("li.used-views", text: "dummy_view/show_slim.html.slim")
   end
 end
