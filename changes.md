@@ -53,11 +53,16 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Alpha / Beta / Release Candidates
 
-### Coverband 5.0.3
+### Coverband 5.0.4
 
 - ?
 
 # Released
+
+### Coverband 5.0.3
+
+- fix for non standard root paths for view_tracker thx @markshawtoronto 
+- support basic auth for Rack prior to 2.0 thx @kadru
 
 ### Coverband 5.0.2
 
