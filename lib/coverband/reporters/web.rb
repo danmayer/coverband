@@ -23,7 +23,8 @@ module Coverband
       def check_auth
         return true unless Coverband.configuration.password
 
-        auth_header = request.get_header("HTTP_AUTHORIZATION")
+        # support rack 1.6.x and rack 2.0 (get_header)
+        auth_header = request.respond_to?(:get_header) ? request.get_header("HTTP_AUTHORIZATION") : request.env["HTTP_AUTHORIZATION"]
         return unless auth_header
 
         Coverband.configuration.password == Base64.decode64(auth_header.split[1]).split(":")[1]
