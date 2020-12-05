@@ -2,7 +2,7 @@
 
 # Coverband
 
-[![Build Status](https://travis-ci.org/danmayer/coverband.svg?branch=master)](https://travis-ci.org/danmayer/coverband)
+[![GithubCI](https://github.com/danmayer/coverband/workflows/CI/badge.svg)](https://github.com/danmayer/coverband/actions)
 [![Coverage Status](https://coveralls.io/repos/github/danmayer/coverband/badge.svg?branch=master)](https://coveralls.io/github/danmayer/coverband?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1e6682f9540d75f26da7/maintainability)](https://codeclimate.com/github/danmayer/coverband/maintainability)
 [![Discord Shield](https://img.shields.io/discord/609509533999562753)](https://discord.gg/KAH38EV)
@@ -65,7 +65,7 @@ The Railtie integration means you shouldn't need to do anything else other than 
 
 ## Sinatra
 
-For the best coverage you want this loaded as early as possible. We recommend requiring cover band directly in the `config.ru`.  Requiring coverband within an initializer could also work, but you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
+For the best coverage you want this loaded as early as possible. We recommend requiring cover band directly in the `config.ru`. Requiring coverband within an initializer could also work, but you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
 
 ```ruby
 require 'coverband'
@@ -91,7 +91,7 @@ run ActionController::Dispatcher.new
 
   - Clear coverage report
 
-    This will clear the coverage data. This wipes out all collected data. 
+    This will clear the coverage data. This wipes out all collected data.
 
   - Clear individual file coverage
 
@@ -333,7 +333,7 @@ If you currently have require: false, remove the 'coverband' string from the req
 gem 'coverband', require: ['alternative_coverband_patch']
 ```
 
-This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to  method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
+This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
 
 # Prerequisites
 

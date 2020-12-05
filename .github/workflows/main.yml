@@ -14,18 +14,10 @@ jobs:
         # need to figure out how to use redis on macos github actions
         # os: [ubuntu, macos]
         os: [ubuntu]
-        ruby:
-          [
-            2.3,
-            2.4,
-            2.5,
-            2.6,
-            2.7,
-            jruby,
-            jruby-head,
-            truffleruby,
-            truffleruby-head,
-          ]
+        # remove until I sort out CI issues for truffle
+        # truffleruby,
+        # truffleruby-head,
+        ruby: [2.3, 2.4, 2.5, 2.6, 2.7, jruby, jruby-head]
         redis-version: [5]
     runs-on: ${{ matrix.os }}-latest
     steps:
