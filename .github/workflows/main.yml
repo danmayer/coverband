@@ -24,6 +24,7 @@ jobs:
             truffleruby,
             truffleruby-head,
           ]
+        redis-version: [5]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
