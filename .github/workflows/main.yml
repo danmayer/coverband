@@ -11,14 +11,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
+        # need to figure out how to use redis on macos github actions
+        # os: [ubuntu, macos]
+        os: [ubuntu]
         ruby:
           [
+            2.3,
+            2.4,
             2.5,
             2.6,
             2.7,
-            head,
-            debug,
             jruby,
             jruby-head,
             truffleruby,
