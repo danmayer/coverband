@@ -303,6 +303,8 @@ rake coverband:coverage      # report runtime coverband code coverage
 ### Manually Starting Coverband
 
 Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments.
+ 
+__NOTE:__ That any value set for `COVERBAND_DISABLE_AUTO_START` is considered true, it does not match the string content but only checks the presence of the ENV variable.
 
 In order to start coverband manually yourself when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
 
