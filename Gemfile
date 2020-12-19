@@ -11,7 +11,7 @@ if ENV["CI"]
   # skipping pry-byebug as it has issues on Ruby 2.3 on travis
   # and we don't really need it on CI
 else
-  gem "pry-byebug", platforms: [:mri, :mingw, :x64_mingw]
+  gem "pry-byebug"
 end
 
 gem "rails", "~>5"
