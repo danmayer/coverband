@@ -8,6 +8,13 @@ module Coverband
           method_definition.body.coverage?(coverage)
         end
       end
+
+      def self.scan_all
+        coverage = Coverband.configuration.store.coverage
+        coverage.flat_map do |file_path, coverage|
+          scan(file_path: file_path, coverage: coverage["data"])
+        end
+      end
     end
   end
 end

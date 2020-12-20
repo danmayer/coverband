@@ -24,6 +24,16 @@ if defined?(RubyVM::AbstractSyntaxTree)
           assert_equal(6, dead_method.last_line_number)
         end
 
+        def test_all_dead_methods
+          file_path = require_unique_file
+          @coverband.report_coverage
+          dead_methods = DeadMethods.scan_all
+          dead_method = dead_methods.find { |method| method.class_name == :Dog }
+          assert(dead_method)
+          assert_equal(4, dead_method.first_line_number)
+          assert_equal(6, dead_method.last_line_number)
+        end
+
         def test_dog_methods_not_dead
           file = require_unique_file
           coverage = [nil, nil, 1, 1, 1, nil, nil]
