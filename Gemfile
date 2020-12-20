@@ -7,10 +7,7 @@ gemspec
 
 # add when debugging
 # require 'byebug'; byebug
-if ENV["CI"]
-  # skipping pry-byebug as it has issues on Ruby 2.3 on travis
-  # and we don't really need it on CI
-else
+unless ENV["CI"]
   gem "pry-byebug"
 end
 

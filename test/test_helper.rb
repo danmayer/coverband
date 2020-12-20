@@ -3,6 +3,7 @@
 original_verbosity = $VERBOSE
 $VERBOSE = nil
 require "rubygems"
+require "pry-byebug" unless ENV["CI"]
 require "simplecov"
 require "coveralls"
 require "minitest/autorun"
