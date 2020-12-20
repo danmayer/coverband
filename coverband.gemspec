@@ -8,16 +8,18 @@ Gem::Specification.new do |spec|
   spec.name = "coverband"
   spec.version = Coverband::VERSION
   spec.authors = ["Dan Mayer", "Karl Baum"]
-  spec.email = ["dan@mayerdan.com"]
-  spec.description = "Rack middleware to measure production code usage (LOC runtime usage)"
-  spec.summary = "Rack middleware to measure production code usage (LOC runtime usage)"
+  spec.email = %w[dan@mayerdan.com]
+  spec.description =
+    "Rack middleware to measure production code usage (LOC runtime usage)"
+  spec.summary =
+    "Rack middleware to measure production code usage (LOC runtime usage)"
   spec.homepage = "https://github.com/danmayer/coverband"
   spec.license = "MIT"
 
   spec.files = `git ls-files`.split("\n").reject { |f| f.start_with?("docs") }
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
-  spec.require_paths = ["lib"]
+  spec.require_paths = %w[lib]
 
   spec.add_development_dependency "benchmark-ips"
   spec.add_development_dependency "capybara"

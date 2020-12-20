@@ -9,11 +9,25 @@ namespace :coverband do
     Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
   end
 
+  if defined?(RubyVM::AbstractSyntaxTree)
+    require "coverband/utils/dead_methods"
+
+    desc "Output all dead methods"
+    task :dead_methods do
+      Coverband::Utils::DeadMethods.output_all
+    end
+  end
+
   desc "report runtime Coverband code coverage"
   task :coverage_server do
-    Rake.application["environment"].invoke if Rake::Task.task_defined?("environment")
-    Coverband.configuration.store.merge_mode = true if Coverband.configuration.store.is_a?(Coverband::Adapters::FileStore)
-    Rack::Server.start app: Coverband::Reporters::Web.new, Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
+    if Rake::Task.task_defined?("environment")
+      Rake.application["environment"].invoke
+    end
+    if Coverband.configuration.store.is_a?(Coverband::Adapters::FileStore)
+      Coverband.configuration.store.merge_mode = true
+    end
+    Rack::Server.start app: Coverband::Reporters::Web.new,
+                       Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
   end
 
   ###

@@ -3,6 +3,7 @@
 require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 if defined?(RubyVM::AbstractSyntaxTree)
+  require "coverband/utils/method_definition_scanner"
   module Coverband
     module Utils
       class MethodBodyTest < Minitest::Test
@@ -13,7 +14,8 @@ if defined?(RubyVM::AbstractSyntaxTree)
                 first_line_number: 4,
                 last_line_number: 6,
                 name: :bark,
-                class_name: :Dog
+                class_name: :Dog,
+                file_path: "./test/dog.rb"
               )
             )
           refute(method_body.coverage?([nil, nil, 1, 1, 0, nil, 1]))
@@ -26,7 +28,8 @@ if defined?(RubyVM::AbstractSyntaxTree)
                 first_line_number: 4,
                 last_line_number: 6,
                 name: :bark,
-                class_name: :Dog
+                class_name: :Dog,
+                file_path: "./test/dog.rb"
               )
             )
           assert(method_body.coverage?([nil, nil, 1, 1, 1, nil, 1]))

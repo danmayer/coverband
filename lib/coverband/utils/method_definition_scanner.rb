@@ -24,7 +24,8 @@ if defined?(RubyVM::AbstractSyntaxTree)
           end
 
           def coverage?(file_coverage)
-            body_coverage = file_coverage[(first_line_number - 1)..(last_line_number - 1)]
+            body_coverage =
+              file_coverage[(first_line_number - 1)..(last_line_number - 1)]
             body_coverage.map(&:to_i).any?(&:positive?)
           end
 
@@ -40,13 +41,24 @@ if defined?(RubyVM::AbstractSyntaxTree)
         end
 
         class MethodDefinition
-          attr_reader :last_line_number, :first_line_number, :name, :class_name
+          attr_reader :last_line_number,
+            :first_line_number,
+            :name,
+            :class_name,
+            :file_path
 
-          def initialize(first_line_number:, last_line_number:, name:, class_name:)
+          def initialize(
+            first_line_number:,
+            last_line_number:,
+            name:,
+            class_name:,
+            file_path:
+          )
             @first_line_number = first_line_number
             @last_line_number = last_line_number
             @name = name
             @class_name = class_name
+            @file_path = file_path
           end
 
           def body
@@ -57,24 +69,26 @@ if defined?(RubyVM::AbstractSyntaxTree)
         private
 
         def scan_node(node, class_name)
-          return [] unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
           definitions = []
-          current_class = class_name
+          return definitions unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
+          current_class = node.type == :CLASS ? node.children.first.children.last : class_name
           if node.type == :DEFN
             definitions <<
               MethodDefinition.new(
                 first_line_number: node.first_lineno,
                 last_line_number: node.last_lineno,
                 name: node.children.first,
-                class_name: current_class
+                class_name: current_class,
+                file_path: path
               )
-          elsif node.type == :CLASS
-            current_class = node.children.first.children.last
           end
-          definitions +
-            node.children.flatten.compact.map { |child|
-              scan_node(child, current_class)
-            }.flatten
+          definitions + scan_children(node, current_class)
+        end
+
+        def scan_children(node, current_class)
+          node.children.flatten.compact.map { |child|
+            scan_node(child, current_class)
+          }.flatten
         end
       end
     end
