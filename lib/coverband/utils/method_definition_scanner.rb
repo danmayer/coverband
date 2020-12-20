@@ -40,11 +40,12 @@ if defined?(RubyVM::AbstractSyntaxTree)
         end
 
         class MethodDefinition
-          attr_reader :last_line_number, :first_line_number
+          attr_reader :last_line_number, :first_line_number, :name
 
-          def initialize(first_line_number:, last_line_number:)
+          def initialize(first_line_number:, last_line_number:, name:)
             @first_line_number = first_line_number
             @last_line_number = last_line_number
+            @name = name
           end
 
           def body
@@ -61,7 +62,8 @@ if defined?(RubyVM::AbstractSyntaxTree)
             definitions <<
               MethodDefinition.new(
                 first_line_number: node.first_lineno,
-                last_line_number: node.last_lineno
+                last_line_number: node.last_lineno,
+                name: node.children.first
               )
           end
           definitions +

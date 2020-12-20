@@ -7,12 +7,12 @@ if defined?(RubyVM::AbstractSyntaxTree)
     module Utils
       class MethodBodyTest < Minitest::Test
         def test_no_method_body_coverage
-          method_body = MethodDefinitionScanner::MethodBody.new(MethodDefinitionScanner::MethodDefinition.new(first_line_number: 4, last_line_number: 6))
+          method_body = MethodDefinitionScanner::MethodBody.new(MethodDefinitionScanner::MethodDefinition.new(first_line_number: 4, last_line_number: 6, name: :bark))
           refute(method_body.coverage?([nil, nil, 1, 1, 0, nil, 1]))
         end
 
         def test_method_body_coverage
-          method_body = MethodDefinitionScanner::MethodBody.new(MethodDefinitionScanner::MethodDefinition.new(first_line_number: 4, last_line_number: 6))
+          method_body = MethodDefinitionScanner::MethodBody.new(MethodDefinitionScanner::MethodDefinition.new(first_line_number: 4, last_line_number: 6, name: :bark))
           assert(method_body.coverage?([nil, nil, 1, 1, 1, nil, 1]))
         end
       end
@@ -25,6 +25,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
           method_definition = method_definitions.first # assert_equal(4, method.first_line)
           assert_equal(4, method_definition.first_line_number)
           assert_equal(6, method_definition.last_line_number)
+          assert_equal(:bark, method_definition.name)
         end
 
         def test_scan_large_class
