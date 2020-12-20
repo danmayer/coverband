@@ -11,7 +11,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
         end
 
         def scan
-          scan_node(RubyVM::AbstractSyntaxTree.parse_file(path))
+          scan_node(RubyVM::AbstractSyntaxTree.parse_file(path), nil)
         end
 
         def self.scan(path)
@@ -40,12 +40,13 @@ if defined?(RubyVM::AbstractSyntaxTree)
         end
 
         class MethodDefinition
-          attr_reader :last_line_number, :first_line_number, :name
+          attr_reader :last_line_number, :first_line_number, :name, :class_name
 
-          def initialize(first_line_number:, last_line_number:, name:)
+          def initialize(first_line_number:, last_line_number:, name:, class_name:)
             @first_line_number = first_line_number
             @last_line_number = last_line_number
             @name = name
+            @class_name = class_name
           end
 
           def body
@@ -55,20 +56,24 @@ if defined?(RubyVM::AbstractSyntaxTree)
 
         private
 
-        def scan_node(node)
+        def scan_node(node, class_name)
           return [] unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
           definitions = []
+          current_class = class_name
           if node.type == :DEFN
             definitions <<
               MethodDefinition.new(
                 first_line_number: node.first_lineno,
                 last_line_number: node.last_lineno,
-                name: node.children.first
+                name: node.children.first,
+                class_name: current_class
               )
+          elsif node.type == :CLASS
+            current_class = node.children.first.children.last
           end
           definitions +
             node.children.flatten.compact.map { |child|
-              scan_node(child)
+              scan_node(child, current_class)
             }.flatten
         end
       end
