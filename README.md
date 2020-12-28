@@ -12,6 +12,7 @@
   <a href="#installation">Installation</a> •
   <a href="#coverband-web-ui">Coverband Web UI</a> •
   <a href="#advanced-config">Advanced Config</a> •
+  <a href="#newer-features">Newer Features</a> •
   <a href="#license">License</a> •
   <a href="/changes.md">Change Log / Roadmap</a> •
   <a href="/CODE_OF_CONDUCT.md">Code of Conduct</a>
@@ -32,6 +33,7 @@ The primary goal of Coverband is giving deep insight into your production runtim
 - Easy to understand actionable insights from the report
 - Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
+
 
 # Installation
 
@@ -334,6 +336,30 @@ gem 'coverband', require: ['alternative_coverband_patch']
 ```
 
 This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to  method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
+
+# Newer Features
+
+### Dead Method Scanning (ruby 2.6+)
+
+Rake task that outputs dead methods based on current coverage data:
+
+```
+bundle exec rake coverband:dead_methods
+```
+
+Outputs:
+
+```
+---------------------------------------------------------------------------------------------------
+| file                                  | class           | method                  | line_number |
+| ./config/routes.rb                    | AdminConstraint | matches?                | 20          |
+| ./app/controllers/home_controller.rb  | HomeController  | trigger_jobs            | 8           |
+| ./app/controllers/home_controller.rb  | HomeController  | data_tracer             | 14          |
+| ./app/controllers/posts_controller.rb | PostsController | edit                    | 22          |
+| ./app/controllers/posts_controller.rb | PostsController | destroy_bad_dangerously | 73          |
+---------------------------------------------------------------------------------------------------
+```
+
 
 # Prerequisites
 
