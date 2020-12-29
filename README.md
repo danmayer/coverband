@@ -303,8 +303,8 @@ rake coverband:coverage      # report runtime coverband code coverage
 ### Manually Starting Coverband
 
 Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments.
- 
-__NOTE:__ That any value set for `COVERBAND_DISABLE_AUTO_START` is considered true, it does not match the string content but only checks the presence of the ENV variable.
+
+**NOTE:** That any value set for `COVERBAND_DISABLE_AUTO_START` is considered true, it does not match the string content but only checks the presence of the ENV variable.
 
 In order to start coverband manually yourself when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
 
@@ -387,7 +387,6 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
-  - The view file detection doesn't workf or mailers at the moment only for web related views / JSON templates. This is due to how Rails active mailer notifications work.
 - **Coverage does NOT work when used alongside Scout APM Auto Instrumentation**
   - In an environment that uses Scout's `AUTO_INSTRUMENT=true` (usually production or staging) it stops reporting any coverage, it will show one or two files that have been loaded at the start but everything else will show up as having 0% coverage
   - Bug tracked here: https://github.com/scoutapp/scout_apm_ruby/issues/343

@@ -23,7 +23,7 @@ module Coverband
         @ignore_patterns = Coverband.configuration.ignore
         @store = options.fetch(:store) { Coverband.configuration.store }
         @logger = options.fetch(:logger) { Coverband.configuration.logger }
-        @target = options.fetch(:target) { Dir.glob("#{@project_directory}/app/views/**/*.html.{erb,haml,slim}").reject { |file| file.match(/(_mailer)/) }.freeze }
+        @target = options.fetch(:target) { Dir.glob("#{@project_directory}/app/views/**/*.html.{erb,haml,slim}") }
 
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
         @roots = @roots.split(",") if @roots.is_a?(String)
