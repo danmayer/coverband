@@ -55,19 +55,19 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 ### Coverband 5.0.4
 
-- ?
+- add support for tracking email view templates/partials
 
 # Released
 
 ### Coverband 5.0.3
 
-- fix for non standard root paths for view_tracker thx @markshawtoronto 
+- fix for non standard root paths for view_tracker thx @markshawtoronto
 - support basic auth for Rack prior to 2.0 thx @kadru
 
 ### Coverband 5.0.2
 
 - change default port of local server
-- update on readme about issue with scout app, thanks @mrbongiolo 
+- update on readme about issue with scout app, thanks @mrbongiolo
 - fix on configuration page not loading when redis can't load
 
 ### Coverband 5.0.1
@@ -82,13 +82,7 @@ Will be the fully modern release that drops maintenance legacy support in favor 
   - drops static report support
   - drops gem support
   - only loaded web reporter files when required
-- configuration improvements
-	- improved load order allowing more time for ENV vars (better dotenv, figaro, rails secrets support)
-	- all config options can be set via coverband config, not requiring ENV var support
-	- deprecation notices on soon to be removed config options
-	- config exceptions on invalid configuration combinations
-	- additional testing around configurations
-	- improved defaults and reduced configuration options
+- configuration improvements - improved load order allowing more time for ENV vars (better dotenv, figaro, rails secrets support) - all config options can be set via coverband config, not requiring ENV var support - deprecation notices on soon to be removed config options - config exceptions on invalid configuration combinations - additional testing around configurations - improved defaults and reduced configuration options
 - improved resque patching pattern
 - improved default ignores
 - additional adapters
