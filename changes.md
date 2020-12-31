@@ -53,11 +53,14 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 # Alpha / Beta / Release Candidates
 
-### Coverband 5.0.4
-
-- add support for tracking email view templates/partials
+### Coverband 5.?.?
 
 # Released
+
+### Coverband 5.1.0
+
+- add support for dead method detection rake task
+- add support for tracking email view templates/partials
 
 ### Coverband 5.0.3
 
