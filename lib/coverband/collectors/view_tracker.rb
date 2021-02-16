@@ -90,16 +90,17 @@ module Coverband
         all_views.uniq
       end
 
-      def unused_views
-        recently_used_views = used_views.keys
-        unused_views = all_views.reject { |view| recently_used_views.include?(view) }
+      def unused_views(used_views = nil)
+        recently_used_views = (used_views || self.used_views).keys
+        unused_views = all_views - recently_used_views
         # since layouts don't include format we count them used if they match with ANY formats
         unused_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
       end
 
       def as_json
+        used_views = self.used_views
         {
-          unused_views: unused_views,
+          unused_views: unused_views(used_views),
           used_views: used_views
         }.to_json
       end
