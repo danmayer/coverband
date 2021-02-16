@@ -8,8 +8,8 @@ module Coverband
     class ViewTrackerService < ViewTracker
       def report_views_tracked
         reported_time = Time.now.to_i
-        if views_to_record.any?
-          relative_views = views_to_record.map! do |view|
+        if @views_to_record.any?
+          relative_views = @views_to_record.map! do |view|
             roots.each do |root|
               view = view.gsub(/#{root}/, "")
             end
@@ -17,7 +17,7 @@ module Coverband
           end
           save_tracked_views(views: relative_views, reported_time: reported_time)
         end
-        self.views_to_record = []
+        @views_to_record = []
       rescue => e
         # we don't want to raise errors if Coverband can't reach the service
         logger&.error "Coverband: view_tracker failed to store, error #{e.class.name}" if Coverband.configuration.verbose || Coverband.configuration.service_dev_mode
