@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "singleton"
 
 module Coverband
@@ -12,7 +13,7 @@ module Coverband
     # https://github.com/livingsocial/flatfoot
     ###
     class ViewTracker
-      attr_accessor :target, :logged_views, :views_to_record
+      attr_accessor :target
       attr_reader :logger, :roots, :store, :ignore_patterns
 
       def initialize(options = {})
@@ -29,8 +30,16 @@ module Coverband
         @roots = @roots.split(",") if @roots.is_a?(String)
         @one_time_timestamp = false
 
-        @logged_views = []
-        @views_to_record = []
+        @logged_views = Set.new
+        @views_to_record = Set.new
+      end
+
+      def logged_views
+        @logged_views.to_a
+      end
+
+      def views_to_record
+        @views_to_record.to_a
       end
 
       ###
@@ -40,8 +49,8 @@ module Coverband
       def track_views(_name, _start, _finish, _id, payload)
         if (file = payload[:identifier])
           if newly_seen_file?(file)
-            logged_views << file
-            views_to_record << file if track_file?(file)
+            @logged_views << file
+            @views_to_record << file if track_file?(file)
           end
         end
 
@@ -54,8 +63,8 @@ module Coverband
         return unless (layout_file = payload[:layout])
         return unless newly_seen_file?(layout_file)
 
-        logged_views << layout_file
-        views_to_record << layout_file if track_file?(layout_file, layout: true)
+        @logged_views << layout_file
+        @views_to_record << layout_file if track_file?(layout_file, layout: true)
       end
 
       def used_views
@@ -113,17 +122,17 @@ module Coverband
 
         filename = "#{@project_directory}/#{filename}"
         redis_store.hdel(tracker_key, filename)
-        logged_views.delete(filename)
+        @logged_views.delete(filename)
       end
 
       def report_views_tracked
         redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
         @one_time_timestamp = true
         reported_time = Time.now.to_i
-        views_to_record.each do |file|
+        @views_to_record.each do |file|
           redis_store.hset(tracker_key, file, reported_time)
         end
-        self.views_to_record = []
+        @views_to_record.clear
       rescue => e
         # we don't want to raise errors if Coverband can't reach redis.
         # This is a nice to have not a bring the system down
@@ -137,15 +146,12 @@ module Coverband
       protected
 
       def newly_seen_file?(file)
-        return false if logged_views.include?(file)
-
-        true
+        !@logged_views.include?(file)
       end
 
       def track_file?(file, options = {})
-        @ignore_patterns.none? do |pattern|
-          file.include?(pattern)
-        end && (file.start_with?(@project_directory) || options[:layout])
+        (file.start_with?(@project_directory) || options[:layout]) &&
+          @ignore_patterns.none? { |pattern| file.include?(pattern) }
       end
 
       private
