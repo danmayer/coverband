@@ -21,7 +21,7 @@ module Coverband
 
     config.after_initialize do
       unless Coverband.tasks_to_ignore?
-        Coverband.configure
+        Coverband.configure unless Coverband.configured?
         Coverband.eager_loading_coverage!
         Coverband.report_coverage
         Coverband.runtime_coverage!
@@ -50,6 +50,7 @@ module Coverband
     config.before_configuration do
       unless ENV["COVERBAND_DISABLE_AUTO_START"]
         begin
+          Coverband.configure unless Coverband.configured?
           Coverband.start
         rescue Redis::CannotConnectError => error
           Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
