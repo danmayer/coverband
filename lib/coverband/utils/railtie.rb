@@ -37,7 +37,7 @@ module Coverband
 
           Coverband.configuration.view_tracker = COVERBAND_VIEW_TRACKER
 
-          ActiveSupport::Notifications.subscribe(/render_partial.action_view|render_template.action_view/) do |name, start, finish, id, payload|
+          ActiveSupport::Notifications.subscribe(/render_(template|partial|collection).action_view/) do |name, start, finish, id, payload|
             COVERBAND_VIEW_TRACKER.track_views(name, start, finish, id, payload) unless name.include?("!")
           end
         end
