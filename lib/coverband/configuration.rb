@@ -147,7 +147,9 @@ module Coverband
     end
 
     def track_views
-      @track_views ||= service_disabled_dev_test_env? ? false : true
+      return false if service_disabled_dev_test_env?
+
+      @track_views
     end
 
     ###
