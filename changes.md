@@ -93,7 +93,7 @@
 - larger changes
   - reduce memory usage
   - fix issue where reports didn't include files with 0 activity
-  - updated runtime relavent lines and runtime percentages
+  - updated runtime relevant lines and runtime percentages
   - add Oneshot coverage support for Ruby 2.6.0 thanks @zwalker
   - I would consider this our test oneshot release, please report any issues
   - improved control over memory vs functionality
@@ -125,7 +125,7 @@
 
 ### Coverband 4.2.0
 
-**NOTE:** This release introduces load time and runtime Coverage. To get the full benifit of this feature you need to reset you coverage data (`rake coverband:clear` or clear via the web UI). Until you clear the combined result is still correct, but your runtime data will be mixed with previous data. This is due to an additive change in how we store coverage. We didn't reset by default as the coverage history for some folks may be more important than runtime breakdown.
+**NOTE:** This release introduces load time and runtime Coverage. To get the full benefit of this feature you need to reset you coverage data (`rake coverband:clear` or clear via the web UI). Until you clear the combined result is still correct, but your runtime data will be mixed with previous data. This is due to an additive change in how we store coverage. We didn't reset by default as the coverage history for some folks may be more important than runtime breakdown.
 
 - loadtime vs runtime coverage
   - This fixes the coverage last seen date to exclude just load time data

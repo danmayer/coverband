@@ -284,7 +284,7 @@ Between the release of 4.0 and 4.1 our data format changed. This resets all your
 
 ### Adding Rake Tasks outside of Rails
 
-Rails apps should automaticallly include the tasks via the Railtie.
+Rails apps should automatically include the tasks via the Railtie.
 
 For non Rails apps, either add the below to your `Rakefile` or to a file included in your `Rakefile` such as `lib/tasks/coverband.rake` if you want to break it up that way.
 

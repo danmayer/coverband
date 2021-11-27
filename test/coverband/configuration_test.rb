@@ -10,7 +10,7 @@ class BaseTest < Minitest::Test
     Coverband.configure do |config|
       config.root = Dir.pwd
       config.root_paths = ["/app_path/"]
-      config.ignore = ["config/envionments"]
+      config.ignore = ["config/environments"]
       config.reporter = "std_out"
       config.store = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
     end
@@ -18,7 +18,7 @@ class BaseTest < Minitest::Test
 
   test "ignore works with equal" do
     Coverband::Collectors::Coverage.instance.reset_instance
-    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "db/schema.rb", "config/envionments"]
+    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "db/schema.rb", "config/environments"]
     assert_equal expected, Coverband.configuration.ignore
   end
 
@@ -33,7 +33,7 @@ class BaseTest < Minitest::Test
       "/tmp",
       "internal:prelude",
       "db/schema.rb",
-      "config/envionments",
+      "config/environments",
       "config/initializers"]
     assert_equal expected, Coverband.configuration.ignore
   end
@@ -47,7 +47,7 @@ class BaseTest < Minitest::Test
     Coverband::Collectors::Coverage.instance.reset_instance
     current_paths = Coverband.configuration.root_paths.dup
     # verify previous bug fix
-    # it would extend the root_paths instance variable on each invokation
+    # it would extend the root_paths instance variable on each invocation
     Coverband.configuration.all_root_paths
     Coverband.configuration.all_root_paths
     assert_equal current_paths, Coverband.configuration.root_paths
@@ -103,7 +103,7 @@ class BaseTest < Minitest::Test
     end
   end
 
-  test "store doesnt raises when api key and redis_url" do
+  test "store doesn't raises when api key and redis_url" do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configuration.reset
     Coverband.configure do |config|
