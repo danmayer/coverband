@@ -103,7 +103,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
                 return this.rel;
             },
             href: function() {
-                // using this.href would give the absolute url, when the href may have been inteded as a selector (e.g. '#container')
+                // using this.href would give the absolute url, when the href may have been intedned as a selector (e.g. '#container')
                 return $(this).attr('href');
             },
             title: function() {
@@ -397,7 +397,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
                 loadedHeight = $loaded.outerHeight(true);
                 loadedWidth = $loaded.outerWidth(true);
 
-                // Opens inital empty Colorbox prior to content being loaded.
+                // Opens initial empty Colorbox prior to content being loaded.
                 var initialWidth = setSize(settings.get('initialWidth'), 'x');
                 var initialHeight = setSize(settings.get('initialHeight'), 'y');
                 var maxWidth = settings.get('maxWidth');
@@ -983,7 +983,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
                         return;
                     }
 
-                    // A small pause because some browsers will occassionaly report a
+                    // A small pause because some browsers will occasionally report a
                     // img.width and img.height of zero immediately after the img.onload fires
                     setTimeout(function(){
                         var percent;
@@ -1236,7 +1236,7 @@ u;this.oApi._fnAddColumn=y;this.oApi._fnColumnOptions=C;this.oApi._fnAddData=w;t
 Q;this.oApi._fnFilterCreateSearch=fa;this.oApi._fnDataToSearch=ga;this.oApi._fnSort=O;this.oApi._fnSortAttachListener=$;this.oApi._fnSortingClasses=W;this.oApi._fnFeatureHtmlPaginate=wa;this.oApi._fnPageChange=Ba;this.oApi._fnFeatureHtmlInfo=va;this.oApi._fnUpdateInfo=Ca;this.oApi._fnFeatureHtmlLength=ra;this.oApi._fnFeatureHtmlProcessing=ta;this.oApi._fnProcessingDisplay=K;this.oApi._fnVisibleToColumnIndex=da;this.oApi._fnColumnIndexToVisible=N;this.oApi._fnNodeToDataIndex=R;this.oApi._fnVisbleColumns=
 T;this.oApi._fnCalculateEnd=F;this.oApi._fnConvertToWidth=Da;this.oApi._fnCalculateColumnWidths=ea;this.oApi._fnScrollingWidthAdjust=ia;this.oApi._fnGetWidestNode=Ea;this.oApi._fnGetMaxLenString=Fa;this.oApi._fnStringToCss=v;this.oApi._fnArrayCmp=La;this.oApi._fnDetectType=Z;this.oApi._fnSettingsFromNode=B;this.oApi._fnGetDataMaster=V;this.oApi._fnGetTrNodes=S;this.oApi._fnGetTdNodes=X;this.oApi._fnEscapeRegex=ha;this.oApi._fnDeleteIndex=ja;this.oApi._fnReOrderIndex=qa;this.oApi._fnColumnOrdering=
 aa;this.oApi._fnLog=J;this.oApi._fnClearTable=ba;this.oApi._fnSaveState=Ga;this.oApi._fnLoadState=Ia;this.oApi._fnCreateCookie=Ha;this.oApi._fnReadCookie=ka;this.oApi._fnGetUniqueThs=ca;this.oApi._fnScrollBarWidth=Ja;this.oApi._fnApplyToChildren=M;this.oApi._fnMap=n;var Ka=this;return this.each(function(){var a=0,b,c,d,f;a=0;for(b=E.length;a<b;a++){if(E[a].nTable==this)if(typeof g=="undefined"||typeof g.bRetrieve!="undefined"&&g.bRetrieve===true)return E[a].oInstance;else if(typeof g.bDestroy!="undefined"&&
-g.bDestroy===true){E[a].oInstance.fnDestroy();break}else{J(E[a],0,"Cannot reinitialise DataTable.\n\nTo retrieve the DataTables object for this table, please pass either no arguments to the dataTable() function, or set bRetrieve to true. Alternatively, to destory the old table and create a new one, set bDestroy to true (note that a lot of changes to the configuration can be made through the API which is usually much faster).");return}if(E[a].sTableId!==""&&E[a].sTableId==this.getAttribute("id")){E.splice(a,
+g.bDestroy===true){E[a].oInstance.fnDestroy();break}else{J(E[a],0,"Cannot reinitialise DataTable.\n\nTo retrieve the DataTables object for this table, please pass either no arguments to the dataTable() function, or set bRetrieve to true. Alternatively, to destroy the old table and create a new one, set bDestroy to true (note that a lot of changes to the configuration can be made through the API which is usually much faster).");return}if(E[a].sTableId!==""&&E[a].sTableId==this.getAttribute("id")){E.splice(a,
 1);break}}var e=new l;E.push(e);var i=false,h=false;a=this.getAttribute("id");if(a!==null){e.sTableId=a;e.sInstance=a}else e.sInstance=m._oExternConfig.iNextUnique++;e.oInstance=Ka;e.nTable=this;e.oApi=Ka.oApi;if(typeof g!="undefined"&&g!==null){e.oInit=g;n(e.oFeatures,g,"bPaginate");n(e.oFeatures,g,"bLengthChange");n(e.oFeatures,g,"bFilter");n(e.oFeatures,g,"bSort");n(e.oFeatures,g,"bInfo");n(e.oFeatures,g,"bProcessing");n(e.oFeatures,g,"bAutoWidth");n(e.oFeatures,g,"bSortClasses");n(e.oFeatures,
 g,"bServerSide");n(e.oScroll,g,"sScrollX","sX");n(e.oScroll,g,"sScrollXInner","sXInner");n(e.oScroll,g,"sScrollY","sY");n(e.oScroll,g,"bScrollCollapse","bCollapse");n(e,g,"asStripClasses");n(e,g,"fnRowCallback");n(e,g,"fnHeaderCallback");n(e,g,"fnFooterCallback");n(e,g,"fnInitComplete");n(e,g,"fnServerData");n(e,g,"fnFormatNumber");n(e,g,"aaSorting");n(e,g,"aaSortingFixed");n(e,g,"aLengthMenu");n(e,g,"sPaginationType");n(e,g,"sAjaxSource");n(e,g,"iCookieDuration");n(e,g,"sCookiePrefix");n(e,g,"sDom");
 n(e,g,"oSearch","oPreviousSearch");n(e,g,"aoSearchCols","aoPreSearchCols");n(e,g,"iDisplayLength","_iDisplayLength");n(e,g,"bJQueryUI","bJUI");typeof g.fnDrawCallback=="function"&&e.aoDrawCallback.push({fn:g.fnDrawCallback,sName:"user"});e.oFeatures.bServerSide&&e.oFeatures.bSort&&e.oFeatures.bSortClasses&&e.aoDrawCallback.push({fn:W,sName:"server_side_sort_classes"});if(typeof g.bJQueryUI!="undefined"&&g.bJQueryUI){e.oClasses=m.oJUIClasses;if(typeof g.sDom=="undefined")e.sDom='<"H"lfr>t<"F"ip>'}if(e.oScroll.sX!==

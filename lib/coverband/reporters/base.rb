@@ -15,7 +15,7 @@ module Coverband
           scov_style_report = get_current_scov_data_imp(store, all_roots)
 
           # These are extremelhy verbose but useful during coverband development, not generally for users
-          # Only avaiable by uncommenting this mode is never released
+          # Only available by uncommenting this mode is never released
           # if Coverband.configuration.verbose
           #   # msg = "report:\n #{scov_style_report.inspect}"
           #   # Coverband.configuration.logger.debug msg

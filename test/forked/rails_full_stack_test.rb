@@ -58,7 +58,7 @@ class RailsFullStackTest < Minitest::Test
 
       # we don't want this to run during our standard test suite
       # as the below profiler changes the runtime
-      # and shold only be included for isolated processes
+      # and should only be included for isolated processes
       begin
         require "memory_profiler"
 

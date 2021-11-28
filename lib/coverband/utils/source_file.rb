@@ -101,7 +101,7 @@ module Coverband
           @last_updated_at = Time.at(file_data["last_updated_at"]) if file_data["last_updated_at"]
           @never_loaded = file_data["never_loaded"] || false
         else
-          # TODO: Deprecate this code path this was backwards compatability from 3-4
+          # TODO: Deprecate this code path this was backwards compatibility from 3-4
           @coverage = file_data
           @first_updated_at = NOT_AVAILABLE
           @last_updated_at = NOT_AVAILABLE

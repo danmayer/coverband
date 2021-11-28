@@ -4,7 +4,7 @@ module Coverband
   module Adapters
     ###
     # NullStore is for benchmarking the impacts of calculating
-    # and storing coverage data independant of Coverband/Coverage
+    # and storing coverage data independent of Coverband/Coverage
     #
     # Usage:
     # config.store = Coverband::Adapters::NullStore.new

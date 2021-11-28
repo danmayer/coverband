@@ -124,7 +124,7 @@ module Coverband
           Coverband.configuration.store.clear!
           notice = "coverband coverage cleared"
         else
-          notice = "web_enable_clear isnt enabled in your configuration"
+          notice = "web_enable_clear isn't enabled in your configuration"
         end
         [301, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
@@ -135,7 +135,7 @@ module Coverband
           Coverband.configuration.store.clear_file!(filename)
           notice = "coverage for file #{filename} cleared"
         else
-          notice = "web_enable_clear isnt enabled in your configuration"
+          notice = "web_enable_clear isn't enabled in your configuration"
         end
         [301, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
@@ -146,7 +146,7 @@ module Coverband
           tracker.reset_recordings
           notice = "view tracking reset"
         else
-          notice = "web_enable_clear isnt enabled in your configuration"
+          notice = "web_enable_clear isn't enabled in your configuration"
         end
         [301, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
       end
@@ -158,7 +158,7 @@ module Coverband
           tracker.clear_file!(filename)
           notice = "coverage for file #{filename} cleared"
         else
-          notice = "web_enable_clear isnt enabled in your configuration"
+          notice = "web_enable_clear isn't enabled in your configuration"
         end
         [301, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
       end

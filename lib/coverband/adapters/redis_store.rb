@@ -7,7 +7,7 @@ module Coverband
     ###
     class RedisStore < Base
       ###
-      # This key isn't related to the coverband version, but to the interal format
+      # This key isn't related to the coverband version, but to the internal format
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###

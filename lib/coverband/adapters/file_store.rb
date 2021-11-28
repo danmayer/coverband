@@ -14,7 +14,7 @@ module Coverband
     #
     # View Reports:
     # Using this assumes you are syncing the coverage files
-    # to some shared storage that is accessable outside of the production server
+    # to some shared storage that is accessible outside of the production server
     # download files to a system where you want to view the reports..
     # When viewing coverage from the filestore adapter it merges all coverage
     # files matching the path pattern, in this case `log/coverage.log.*`
