@@ -139,7 +139,7 @@ module Coverband
         coverage_exceeding_source_warn if coverage.size > src.size
 
         lines = src.map.with_index(1) { |src, i|
-          Coverband::Utils::SourceFile::Line.new(src, i, coverage[i - 1])
+          Coverband::Utils::SourceFile::Line.new(src, i, never_loaded ? 0 : coverage[i - 1])
         }
 
         process_skipped_lines(lines)
