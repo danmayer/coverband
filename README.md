@@ -427,6 +427,12 @@ What is the coverage data in Redis?
 
 `Coverband.configuration.store.coverage`
 
+### Diagram
+
+A diagram of the code.
+
+![Visualization of this repo](./diagram.svg)
+
 ## Logo
 
 The Coverband logo was created by [Dave Woodall](http://davewoodall.com). Thanks Dave!
