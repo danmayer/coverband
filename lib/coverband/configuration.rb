@@ -8,7 +8,7 @@ module Coverband
       :background_reporting_enabled,
       :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
       :simulate_oneshot_lines_coverage,
-      :view_tracker
+      :view_tracker, :defer_eager_loading_data
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
@@ -62,6 +62,7 @@ module Coverband
       @store = nil
       @background_reporting_enabled = true
       @background_reporting_sleep_seconds = nil
+      @defer_eager_loading_data = false
       @test_env = nil
       @web_enable_clear = false
       @track_views = true
@@ -241,6 +242,10 @@ module Coverband
 
     def service?
       Coverband.coverband_service? || !api_key.nil?
+    end
+
+    def defer_eager_loading_data?
+      @defer_eager_loading_data
     end
 
     def service_disabled_dev_test_env?

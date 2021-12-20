@@ -31,15 +31,18 @@ module Coverband
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i
         @thread = Thread.new {
           loop do
-            Coverband.report_coverage
-            Coverband.configuration.view_tracker&.report_views_tracked
             if Coverband.configuration.reporting_wiggle
               sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i + rand(Coverband.configuration.reporting_wiggle.to_i)
             end
+            # NOTE: Normally as processes first start we immediately report, this causes a redis spike on deploys
+            # if deferred is set also sleep frst to spread load
+            sleep(sleep_seconds.to_i) if Coverband.configuration.defer_eager_loading_data?
+            Coverband.report_coverage
+            Coverband.configuration.view_tracker&.report_views_tracked
             if Coverband.configuration.verbose
               logger.debug("Coverband: background reporting coverage (#{Coverband.configuration.store.type}). Sleeping #{sleep_seconds}s")
             end
-            sleep(sleep_seconds.to_i)
+            sleep(sleep_seconds.to_i) unless Coverband.configuration.defer_eager_loading_data?
           end
         }
       end
