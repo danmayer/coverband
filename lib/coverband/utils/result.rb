@@ -55,7 +55,7 @@ module Coverband
           Dir[tracked_files].each do |file|
             absolute = File.expand_path(file)
             result[absolute] ||= {
-              "data" => Array.new(File.foreach(absolute).count) { 0 },
+              "data" => [],
               "never_loaded" => true
             }
           end
