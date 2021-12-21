@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   
   spec.required_ruby_version = '>= 2.3'
 
-  gem.metadata = {
+  spec.metadata = {
     "homepage_uri" => "https://github.com/danmayer/coverband",
     "bug_tracker_uri" => "https://github.com/danmayer/coverband/issues",
     "documentation_uri" => "https://github.com/danmayer/coverband",
