@@ -52,8 +52,9 @@ module Coverband
       end
 
       def get_coverage_report
-        data = Coverband.configuration.store.split_coverage(Coverband::TYPES)
-        data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES))
+        coverage_cache = {}
+        data = Coverband.configuration.store.split_coverage(Coverband::TYPES, coverage_cache)
+        data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES, coverage_cache))
       end
 
       def covered_files
@@ -66,12 +67,12 @@ module Coverband
 
       protected
 
-      def split_coverage(types)
+      def split_coverage(types, coverage_cache)
         types.reduce({}) do |data, type|
           if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage
-            data.update(type => simulated_runtime_coverage)
+            data.update(type => coverage_cache[type] ||= simulated_runtime_coverage)
           else
-            data.update(type => coverage(type))
+            data.update(type => coverage_cache[type] ||= coverage(type))
           end
         end
       end
@@ -85,9 +86,9 @@ module Coverband
         merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
 
-      def merged_coverage(types)
+      def merged_coverage(types, coverage_cache)
         types.reduce({}) do |data, type|
-          merge_reports(data, coverage(type), skip_expansion: true)
+          merge_reports(data, coverage_cache[type] ||= coverage(type), skip_expansion: true)
         end
       end
 
