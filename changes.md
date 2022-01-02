@@ -1,3 +1,18 @@
+### Coverband 5.2.0
+
+- (Fumiaki MATSUSHIMA) Fix CI setting for Ruby 3.0
+- (Fumiaki MATSUSHIMA) Avoid calling coverage with the same type twice on get_coverage_report
+- (kei-s) Fix filling zero for not loaded files
+- (wonda-tea-coffee) cleanup readme / fix typos
+- support deferred eager loading data
+- (Donatas Stundys) Fix disabling views tracking
+- (Simon) Improve View tracker to track render collection too
+
+### Coverband 5.1.1
+
+- Fix early report error
+- Improved view tracker perf Hosam Aly
+
 ### Coverband 5.1.0
 
 - add support for dead method detection rake task
