@@ -249,6 +249,8 @@ module Coverband
     end
 
     def service_disabled_dev_test_env?
+      return false unless service?
+
       (coverband_env == "test" && !Coverband.configuration.service_test_mode) ||
         (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
     end
