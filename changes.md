@@ -1,3 +1,7 @@
+### Coverband 5.2.1
+
+- fix for `can't add a new key into hash during iteration` https://github.com/danmayer/coverband/issues/436
+
 ### Coverband 5.2.0
 
 - (Fumiaki MATSUSHIMA) Fix CI setting for Ruby 3.0
