@@ -130,7 +130,7 @@ module Coverband
         redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
         @one_time_timestamp = true
         reported_time = Time.now.to_i
-        @views_to_record.each do |file|
+        @views_to_record.to_a.each do |file|
           redis_store.hset(tracker_key, file, reported_time)
         end
         @views_to_record.clear
