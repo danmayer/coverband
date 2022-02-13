@@ -1,3 +1,7 @@
+### Coverband 5.2.2
+
+- fix for deprecated redis pipeline usage by @casperisfine
+
 ### Coverband 5.2.1
 
 - fix for `can't add a new key into hash during iteration` https://github.com/danmayer/coverband/issues/436
