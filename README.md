@@ -205,7 +205,7 @@ gem 'other-gem-that-requires-env-variables'
 Sometimes you have files that are known to be valuable perhaps in other environments or something that is just run very infrequently. Opposed to having to mentally filter them out of the report, you can just have them ignored in the Coverband reporting by using `config.ignore` as shown below. Ignore takes a string but can also match with regex rules see how below ignores all rake tasks as an example.
 
 ```
-config.ignore +=  ['config/application.rb',
+config.ignore =  ['config/application.rb',
                    'config/boot.rb',
                    'config/puma.rb',
                    'config/schedule.rb',
