@@ -251,7 +251,7 @@ end
 
 ### Avoiding Cache Stampede
 
-If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is do to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. Note, the default wiggle is set to 30 seconds.
+If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is due to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. Note, the default wiggle is set to 30 seconds.
 
 Add a wiggle (in seconds) to the background thread to avoid all your servers reporting at the same time:
 
