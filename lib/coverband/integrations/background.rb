@@ -46,6 +46,8 @@ module Coverband
           end
         }
       end
+    rescue ThreadError
+      stop
     end
   end
 end
