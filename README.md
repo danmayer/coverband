@@ -339,6 +339,10 @@ gem 'coverband', require: ['alternative_coverband_patch']
 
 This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
 
+### Redis Sizing Info
+
+A few folks have asked about what size of Redis is. needed to run coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
+
 # Newer Features
 
 ### Dead Method Scanning (ruby 2.6+)
