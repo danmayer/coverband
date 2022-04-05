@@ -1,3 +1,8 @@
+### Coverband 5.2.3
+
+- fix for thread error bubbling up
+- additional documentation around Redis
+
 ### Coverband 5.2.2
 
 - fix for deprecated redis pipeline usage by @casperisfine
