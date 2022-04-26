@@ -13,11 +13,27 @@ module Coverband
     class Web
       attr_reader :request
 
+      CSP_HEADER = [
+        "default-src 'self' https: http:",
+        "child-src 'self'",
+        "connect-src 'self' https: http: wss: ws:",
+        "font-src 'self' https: http:",
+        "frame-src 'self'",
+        "img-src 'self' https: http: data:",
+        "manifest-src 'self'",
+        "media-src 'self'",
+        "object-src 'none'",
+        "script-src 'self' https: http: 'unsafe-inline'",
+        "style-src 'self' https: http: 'unsafe-inline'",
+        "worker-src 'self'",
+        "base-uri 'self'"
+      ].join("; ").freeze
+
       def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
         @static = Rack::Static.new(self,
-          root: File.expand_path("public", full_path),
-          urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/])
+                                   root: File.expand_path("public", full_path),
+                                   urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/])
       end
 
       def check_auth
@@ -36,6 +52,7 @@ module Coverband
         return [401, {"www-authenticate" => 'Basic realm=""'}, [""]] unless check_auth
 
         request_path_info = request.path_info == "" ? "/" : request.path_info
+        content_security_policy_header = { "Content-Security-Policy-Report-Only" => CSP_HEADER }
         if request.post?
           case request_path_info
           when %r{\/clear_view_tracking_file}
@@ -54,21 +71,21 @@ module Coverband
           when /.*\.(css|js|gif|png)/
             @static.call(env)
           when %r{\/settings}
-            [200, {"Content-Type" => "text/html"}, [settings]]
+            [200, {"Content-Type" => "text/html"}.merge(content_security_policy_header), [settings]]
           when %r{\/view_tracker_data}
-            [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
+            [200, {"Content-Type" => "text/json"}.merge(content_security_policy_header), [view_tracker_data]]
           when %r{\/view_tracker}
-            [200, {"Content-Type" => "text/html"}, [view_tracker]]
+            [200, {"Content-Type" => "text/html"}.merge(content_security_policy_header), [view_tracker]]
           when %r{\/enriched_debug_data}
-            [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
+            [200, {"Content-Type" => "text/json"}.merge(content_security_policy_header), [enriched_debug_data]]
           when %r{\/debug_data}
-            [200, {"Content-Type" => "text/json"}, [debug_data]]
+            [200, {"Content-Type" => "text/json"}.merge(content_security_policy_header), [debug_data]]
           when %r{\/load_file_details}
-            [200, {"Content-Type" => "text/json"}, [load_file_details]]
+            [200, {"Content-Type" => "text/json"}.merge(content_security_policy_header), [load_file_details]]
           when %r{\/$}
-            [200, {"Content-Type" => "text/html"}, [index]]
+            [200, {"Content-Type" => "text/html"}.merge(content_security_policy_header), [index]]
           else
-            [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            [404, {"Content-Type" => "text/html"}.merge(content_security_policy_header), ["404 error!"]]
           end
         end
       end
@@ -77,10 +94,10 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-          static: false,
-          base_path: base_path,
-          notice: notice,
-          open_report: false).report
+                                             static: false,
+                                             base_path: base_path,
+                                             notice: notice,
+                                             open_report: false).report
       end
 
       def settings
@@ -91,8 +108,8 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
-          notice: notice,
-          base_path: base_path).format_view_tracker!
+                                            notice: notice,
+                                            base_path: base_path).format_view_tracker!
       end
 
       def view_tracker_data
@@ -105,18 +122,18 @@ module Coverband
 
       def enriched_debug_data
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-          static: false,
-          base_path: base_path,
-          notice: "",
-          open_report: false).report_data
+                                             static: false,
+                                             base_path: base_path,
+                                             notice: "",
+                                             open_report: false).report_data
       end
 
       def load_file_details
         filename = request.params["filename"]
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-          filename: filename,
-          base_path: base_path,
-          open_report: false).file_details
+                                             filename: filename,
+                                             base_path: base_path,
+                                             open_report: false).file_details
       end
 
       def clear
