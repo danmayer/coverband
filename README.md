@@ -162,7 +162,7 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 If you need to configure coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
 
 - See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
-- By default Coverband will try to stored data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
+- By default Coverband will try to store data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
 
 Below is an example config file for a Rails 5 app:
 
