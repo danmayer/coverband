@@ -239,7 +239,7 @@ config.after_initialize do
 end
 ```
 
-or if you know you are manually calling eager load anywhere in your initialization process immediately adfter call those two lines. A user reported an issue after calling `ResqueWeb::Engine.eager_load!` for example.
+or if you know you are manually calling eager load anywhere in your initialization process immediately after call those two lines. A user reported an issue after calling `ResqueWeb::Engine.eager_load!` for example.
 
 ```ruby
 Rails.application.routes.draw do
@@ -341,7 +341,7 @@ This conflict happens when a ruby method is patched twice, once using module pre
 
 ### Redis Sizing Info
 
-A few folks have asked about what size of Redis is. needed to run coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
+A few folks have asked about what size of Redis is needed to run coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
 
 # Newer Features
 
@@ -376,7 +376,7 @@ Outputs:
 
 We will match Heroku & Ruby's support lifetime, supporting the last 3 major Ruby releases. For details see [supported runtimes](https://devcenter.heroku.com/articles/ruby-support#supported-runtimes).
 
-For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. This means at the moment we primaryly target Rails 6.x, 5.x, and will try to keep current functionality working for Rails 4.x but may release new features that do not work on that target.
+For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. This means at the moment we primarily target Rails 6.x, 5.x, and will try to keep current functionality working for Rails 4.x but may release new features that do not work on that target.
 
 ### JRuby Support
 
