@@ -420,6 +420,9 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **Coverage does NOT work when used alongside Scout APM Auto Instrumentation**
   - In an environment that uses Scout's `AUTO_INSTRUMENT=true` (usually production or staging) it stops reporting any coverage, it will show one or two files that have been loaded at the start but everything else will show up as having 0% coverage
   - Bug tracked here: https://github.com/scoutapp/scout_apm_ruby/issues/343
+- **Coverband, [Elastic APM](https://github.com/elastic/apm-agent-ruby) and resque**
+  - In an environment that uses the Elastic APM ruby agent, resque jobs will fail with `Transactions may not be nested. Already inside #<ElasticAPM::Transaction>` if the `elastic-apm` gem is loaded _before_ the `coverband` gem
+  - Put `coverage` ahead of `elastic-apm` in your Gemfile
 
 ### Debugging Redis Store
 
