@@ -4,6 +4,14 @@ namespace :coverband do
   # handles configuring in require => false and COVERBAND_DISABLE_AUTO_START cases
   Coverband.configure unless Coverband.configured?
 
+  desc "install coverband configuration file defaults"
+  task :install do
+    require "fileutils"
+    full_path = Gem::Specification.find_by_name("coverband").full_gem_path
+    config_template = File.expand_path("lib/coverband/utils/configuration_template.rb", full_path)
+    FileUtils.cp(config_template, "./config/coverband.rb")
+  end
+
   desc "report runtime Coverband code coverage"
   task :coverage do
     Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
