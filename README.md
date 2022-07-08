@@ -29,11 +29,9 @@ The primary goal of Coverband is giving deep insight into your production runtim
 - Low performance overhead
 - Simple setup and configuration
 - Out of the box support for all standard code execution paths (web, cron, background jobs, rake tasks, etc)
-- Splits load time (Rails eager load) and runtime metrics
+- Splits code loading usage (Rails eager load) and runtime usage metrics
 - Easy to understand actionable insights from the report
-- Development mode, offers deep insight of code usage details (number of LOC execution during single request, etc) during development.
 - Mountable web interface to easily share reports
-
 
 # Installation
 
@@ -45,7 +43,7 @@ Coverband stores coverage data in Redis. The Redis endpoint is looked for in thi
 2. `ENV['REDIS_URL']`
 3. `localhost:6379`
 
-The redis store can also be explicitly defined within the coverband.rb. See [advanced config](#advanced-config).
+The redis store can also be explicitly defined within the `config/coverband.rb`. See [advanced config](#advanced-config).
 
 ## Gem Installation
 
@@ -167,7 +165,7 @@ If you need to configure coverband, this can be done by creating a `config/cover
 Below is an example config file for a Rails 5 app:
 
 ```ruby
-#config/coverband.rb
+# config/coverband.rb NOT in the initializers
 Coverband.configure do |config|
   config.store = Coverband::Adapters::RedisStore.new(Redis.new(url: ENV['MY_REDIS_URL']))
   config.logger = Rails.logger

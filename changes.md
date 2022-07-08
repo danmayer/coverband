@@ -1,3 +1,7 @@
+### Coverband 5.2.4
+
+- add install task with example configuration file
+
 ### Coverband 5.2.3
 
 - fix for thread error bubbling up
