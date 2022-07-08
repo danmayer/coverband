@@ -100,7 +100,8 @@ module Coverband
           puts "Coverband: to ensure no error logs or missing Coverage call `SimpleCov.start` prior to requiring Coverband"
         else
           if Coverage.ruby_version_greater_than_or_equal_to?("2.6.0")
-            ::Coverage.start(oneshot_lines: Coverband.configuration.use_oneshot_lines_coverage) unless ::Coverage.running?
+            ::Coverage.start(oneshot_lines: false) unless ::Coverage.running?
+            #::Coverage.start(oneshot_lines: Coverband.configuration.use_oneshot_lines_coverage) unless ::Coverage.running?
           elsif Coverage.ruby_version_greater_than_or_equal_to?("2.5.0")
             ::Coverage.start unless ::Coverage.running?
           else
