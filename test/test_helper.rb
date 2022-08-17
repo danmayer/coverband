@@ -1,11 +1,22 @@
 # frozen_string_literal: true
 
+require 'bigdecimal'
+
 original_verbosity = $VERBOSE
 $VERBOSE = nil
+
+if ENV['SKIP_SIMPLECOV'] || BigDecimal(RUBY_VERSION[0, 3]) >= BigDecimal('3.1')
+  $SKIP_SIMPLECOV = true
+end
+
 require "rubygems"
 require "pry-byebug" unless ENV["CI"]
-require "simplecov"
-require "coveralls"
+
+unless $SKIP_SIMPLECOV
+  require "simplecov"
+  require "coveralls"
+end
+
 require "minitest/autorun"
 require "minitest/stub_const"
 require "mocha/minitest"
@@ -29,7 +40,7 @@ require "webmock/minitest"
 require_relative "unique_files"
 $VERBOSE = original_verbosity
 
-unless ENV["ONESHOT"] || ENV["SIMULATE_ONESHOT"]
+unless ENV["ONESHOT"] || ENV["SIMULATE_ONESHOT"] || $SKIP_SIMPLECOV
   SimpleCov.formatter = Coveralls::SimpleCov::Formatter
   SimpleCov.start do
     add_filter "test/forked"
