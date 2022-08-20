@@ -77,8 +77,25 @@ class CollectorsCoverageTest < Minitest::Test
     assert_match %r{Oh no}, error.message
   end
 
+  test "using coverage state idle with ruby >= 3.1.0" do
+    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.1.0")
+
+    ::Coverage.expects(:state).returns(:idle)
+    ::Coverage.expects(:start).with(oneshot_lines: false)
+    Coverband::Collectors::Coverage.send(:new)
+  end
+
+  test "using coverage state suspended with ruby >= 3.1.0" do
+    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.1.0")
+
+    ::Coverage.expects(:state).returns(:suspended).at_least_once
+    ::Coverage.expects(:resume)
+    Coverband::Collectors::Coverage.send(:new)
+  end
+
   test "one shot line coverage disabled for ruby >= 2.6" do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
+    ::Coverage.expects(:respond_to?).returns(false)
 
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
     ::Coverage.expects(:running?).returns(false)
@@ -88,6 +105,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test "one shot line coverage enabled for ruby >= 2.6" do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
+    ::Coverage.expects(:respond_to?).returns(false)
 
     Coverband.configuration.expects(:use_oneshot_lines_coverage).returns(true)
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
@@ -98,6 +116,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test "one shot line coverage for ruby >= 2.6 when already running" do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
+    ::Coverage.expects(:respond_to?).returns(false)
 
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
     ::Coverage.expects(:running?).returns(true)
@@ -107,6 +126,7 @@ class CollectorsCoverageTest < Minitest::Test
 
   test "no one shot line coverage for ruby < 2.6" do
     return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
+    ::Coverage.expects(:respond_to?).returns(false)
 
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(false)
     Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.5.0").returns(true)
