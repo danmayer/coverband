@@ -132,7 +132,7 @@ module Coverband
       rescue => e
         # we don't want to raise errors if Coverband can't reach redis.
         # This is a nice to have not a bring the system down
-        logger&.error "Coverband: route_tracker failed to store, error #{e.class.name}"
+        logger&.error "Coverband: route_tracker failed to store, error #{e.class.name} info #{e.message}"
       end
 
       def self.supported_version?
