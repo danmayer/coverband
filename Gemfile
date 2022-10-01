@@ -11,9 +11,9 @@ unless ENV["CI"]
   gem "pry-byebug"
 end
 
-gem "rails", "~>6"
+gem "rails", "~>5"
 gem "haml"
 gem "slim"
-gem "puma"
+gem "webrick"
 # these gems are used for testing gem tracking
 gem "irb", require: false
