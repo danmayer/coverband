@@ -126,7 +126,7 @@ module Coverband
         @one_time_timestamp = true
         reported_time = Time.now.to_i
         @routes_to_record.to_a.each do |route|
-          redis_store.hset(tracker_key, route, reported_time)
+          redis_store.hset(tracker_key, route.to_s, reported_time)
         end
         @routes_to_record.clear
       rescue => e

@@ -26,7 +26,7 @@ class RouterTrackerTest < Minitest::Test
   test "track redirect routes" do
     store = fake_store
     route_hash = {controller: nil, action: nil, url_path: "path", verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, route_hash, anything)
+    store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       request: OpenStruct.new(
@@ -42,7 +42,7 @@ class RouterTrackerTest < Minitest::Test
   test "track controller routes" do
     store = fake_store
     route_hash = {controller: "SomeController", action: "index", url_path: "path", verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, route_hash, anything)
+    store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       controller: "SomeController",
