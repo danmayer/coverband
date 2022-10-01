@@ -11,7 +11,7 @@ unless ENV["CI"]
   gem "pry-byebug"
 end
 
-gem "rails", "~>6"
+gem "rails", "~>5"
 gem "haml"
 gem "slim"
 gem "webrick"
