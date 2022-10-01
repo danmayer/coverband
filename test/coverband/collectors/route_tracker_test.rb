@@ -4,6 +4,9 @@ require File.expand_path("../../test_helper", File.dirname(__FILE__))
 require "ostruct"
 
 class RouterTrackerTest < Minitest::Test
+  # NOTE: using struct vs open struct as open struct has a special keyword method that overshadows the method value on Ruby 2.x
+  Payload = Struct.new(:path, :method)
+
   def tracker_key
     Coverband::Collectors::RouteTracker.expects(:supported_version?).at_least_once.returns(true)
     Coverband::Collectors::RouteTracker.new.send(:tracker_key)
@@ -28,11 +31,9 @@ class RouterTrackerTest < Minitest::Test
     route_hash = {controller: nil, action: nil, url_path: "path", verb: "GET"}
     store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
+
     payload = {
-      request: OpenStruct.new(
-        path: "path",
-        method: "GET"
-      )
+      request: Payload.new("path", "GET")
     }
     tracker.track_routes("name", "start", "finish", "id", payload)
     tracker.report_routes_tracked
