@@ -39,6 +39,7 @@ module Coverband
             sleep(sleep_seconds.to_i) if Coverband.configuration.defer_eager_loading_data?
             Coverband.report_coverage
             Coverband.configuration.view_tracker&.report_views_tracked
+            Coverband.configuration.route_tracker&.report_routes_tracked
             if Coverband.configuration.verbose
               logger.debug("Coverband: background reporting coverage (#{Coverband.configuration.store.type}). Sleeping #{sleep_seconds}s")
             end

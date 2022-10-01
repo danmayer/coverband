@@ -23,12 +23,17 @@ class RailsFullStackTest < Minitest::Test
     assert_content("I am no dummy view tracker text")
     Coverband.report_coverage
     Coverband.configuration.view_tracker&.report_views_tracked
+    Coverband.configuration.route_tracker&.report_routes_tracked
     visit "/coverage/view_tracker"
     assert_content("Used Views: (1)")
     assert_content("Unused Views: (2)")
     assert_selector("li.used-views", text: "dummy_view/show.html.erb")
     assert_selector("li.unused-views", text: "dummy_view/show_haml.html.haml")
     assert_selector("li.unused-views", text: "dummy_view/show_slim.html.slim")
+
+    visit "/coverage/route_tracker"
+    assert_content("Used Routes: (1)")
+    assert_content("Unused Routes: (5)")
 
     visit "/dummy_view/show_haml"
     assert_content("I am haml text")

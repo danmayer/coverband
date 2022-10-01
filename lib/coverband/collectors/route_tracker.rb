@@ -19,7 +19,20 @@ module Coverband
         @ignore_patterns = Coverband.configuration.ignore
         @store = options.fetch(:store) { Coverband.configuration.store }
         @logger = options.fetch(:logger) { Coverband.configuration.logger }
-        @target = options.fetch(:target) { [Rails.routes] }
+        @target = options.fetch(:target) do
+          if defined?(Rails.application)
+            Rails.application.routes.routes.map do |route|
+              {
+                controller: route.defaults[:controller],
+                action: route.defaults[:action],
+                url_path: route.path.spec.to_s.gsub("(.:format)", ""),
+                verb: route.verb
+              }.to_s
+            end
+          else
+            []
+          end
+        end
 
         @one_time_timestamp = false
 
@@ -40,7 +53,22 @@ module Coverband
       # and ensure high performance
       ###
       def track_routes(_name, _start, _finish, _id, payload)
-        if (route = payload[:identifier])
+        route = if payload[:request]
+          {
+            controller: nil,
+            action: nil,
+            url_path: payload[:request].path,
+            verb: payload[:request].method
+          }
+        else
+          {
+            controller: payload[:controller],
+            action: payload[:action],
+            url_path: payload[:path],
+            verb: payload[:method]
+          }
+        end
+        if route
           if newly_seen_route?(route)
             @logged_routes << route
             @routes_to_record << route if track_route?(route)
@@ -52,7 +80,6 @@ module Coverband
         redis_store.hgetall(tracker_key)
       end
 
-      # TODO: likely not needed
       def all_routes
         all_routes = []
         target.each do |route|
@@ -119,7 +146,7 @@ module Coverband
       end
 
       def track_route?(route, options = {})
-        @ignore_patterns.none? { |pattern| route.include?(pattern) }
+        @ignore_patterns.none? { |pattern| route.to_s.include?(pattern) }
       end
 
       private

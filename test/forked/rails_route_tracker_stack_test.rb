@@ -2,7 +2,7 @@
 
 require File.expand_path("../rails_test_helper", File.dirname(__FILE__))
 
-class RailsWithoutConfigStackTest < Minitest::Test
+class RailsRoutesWithoutConfigStackTest < Minitest::Test
   def setup
     super
     setup_server
@@ -13,13 +13,14 @@ class RailsWithoutConfigStackTest < Minitest::Test
     shutdown_server
   end
 
-  test "check view tracker" do
+  test "check route tracker" do
     output = `sleep 7 && curl http://localhost:9999/dummy_view/show`
     assert output.match(/rendered view/)
     assert output.match(/I am no dummy view tracker text/)
-    output = `sleep 2 && curl http://localhost:9999/coverage/view_tracker`
-    assert output.match(/Used Views: \(1\)/)
+    output = `sleep 2 && curl http://localhost:9999/coverage/route_tracker`
+    assert output.match(/Used Routes: \(1\)/)
     assert output.match(/dummy_view\/show/)
+    assert output.match(/GET/)
   end
 
   private

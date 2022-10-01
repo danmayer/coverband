@@ -11,34 +11,31 @@
 
   <body>
     <div id="wrapper" style="">
-      <%= display_nav(active_link: 'view_tracker') %>
+      <%= display_nav(active_link: 'route_tracker') %>
       <div id="content">
-        <% tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store) %>
+        <% tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store) %>
         <h4>
           <% if Coverband.configuration.web_enable_clear %>
-            <%= button("#{base_path}clear_view_tracking", 'reset view tracker', delete: true) %>
-          <% end %>
-          <% if Coverband.configuration.web_debug %>
-            <a href='<%= "#{base_path}view_tracker_data" %>'>view tracker data</a>
+            <%= button("#{base_path}clear_route_tracking", 'reset route tracker', delete: true) %>
           <% end %>
         </h4>
-        <h2>Unused Views: (<%= tracker.unused_views.length %>)</h2>
-        <p>These views have not been rendered since recording started at <%= tracker.tracking_since %></p>
+        <h2>Unused Routes: (<%= tracker.unused_routes.length %>)</h2>
+        <p>These routes have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>
-        <% tracker.unused_views.each do |view_file| %>
-          <li class="unused-views"><%= view_file %></li>
+        <% tracker.unused_routes.each do |route| %>
+          <li class="unused-routes"><%= route %></li>
         <% end %>
         </ul>
 
-        <h2>Used Views: (<%= tracker.used_views.length %>)</h2>
-        <p>These views have been rendered at least once</p>
+        <h2>Used Routes: (<%= tracker.used_routes.length %>)</h2>
+        <p>These routes have been rendered at least once</p>
         <ul>
-        <% tracker.used_views.each_pair do |view_file, time_at| %>
-          <li class="used-views">
-            <%= view_file %>
+        <% tracker.used_routes.each_pair do |route, time_at| %>
+          <li class="used-routes">
+            <%= route %>
             <span class="last_seen_at">last activity recorded <%= Time.at(time_at.to_i)%></span>
             <% if Coverband.configuration.web_enable_clear %>
-              <%= button("#{base_path}clear_view_tracking_file?filename=#{view_file}", 'reset tracked file', delete: true) %>
+              <%= button("#{base_path}clear_route_tracking_route?route=#{route}", 'reset tracked route', delete: true) %>
             <% end %>
           </li>
         <% end %>

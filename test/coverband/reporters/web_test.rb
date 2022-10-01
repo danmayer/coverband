@@ -39,7 +39,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.2.0")
 
       test "clears coverband" do
         post "/clear"
-        assert_equal 301, last_response.status
+        assert_equal 302, last_response.status
       end
     end
   end

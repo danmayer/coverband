@@ -38,6 +38,10 @@ module Coverband
         request_path_info = request.path_info == "" ? "/" : request.path_info
         if request.post?
           case request_path_info
+          when %r{\/clear_route_tracking_route}
+            clear_route_tracking_route
+          when %r{\/clear_route_tracking}
+            clear_route_tracking
           when %r{\/clear_view_tracking_file}
             clear_view_tracking_file
           when %r{\/clear_view_tracking}
@@ -59,6 +63,8 @@ module Coverband
             [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
           when %r{\/view_tracker}
             [200, {"Content-Type" => "text/html"}, [view_tracker]]
+          when %r{\/route_tracker}
+            [200, {"Content-Type" => "text/html"}, [route_tracker]]
           when %r{\/enriched_debug_data}
             [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
           when %r{\/debug_data}
@@ -95,6 +101,14 @@ module Coverband
           base_path: base_path).format_view_tracker!
       end
 
+      def route_tracker
+        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
+        notice = request.params["notice"] ? notice : ""
+        Coverband::Utils::HTMLFormatter.new(nil,
+          notice: notice,
+          base_path: base_path).format_route_tracker!
+      end
+
       def view_tracker_data
         Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store).as_json
       end
@@ -126,7 +140,7 @@ module Coverband
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [301, {"Location" => "#{base_path}?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
 
       def clear_file
@@ -137,7 +151,7 @@ module Coverband
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [301, {"Location" => "#{base_path}?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
 
       def clear_view_tracking
@@ -148,7 +162,7 @@ module Coverband
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [301, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
       end
 
       def clear_view_tracking_file
@@ -160,7 +174,30 @@ module Coverband
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [301, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
+      end
+
+      def clear_route_tracking
+        if Coverband.configuration.web_enable_clear
+          tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store)
+          tracker.reset_recordings
+          notice = "route tracking reset"
+        else
+          notice = "web_enable_clear isn't enabled in your configuration"
+        end
+        [302, {"Location" => "#{base_path}/route_tracker?notice=#{notice}"}, []]
+      end
+
+      def clear_route_tracking_route
+        if Coverband.configuration.web_enable_clear
+          tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store)
+          route = request.params["route"]
+          tracker.clear_route!(route)
+          notice = "coverage for route #{route} cleared"
+        else
+          notice = "web_enable_clear isn't enabled in your configuration"
+        end
+        [302, {"Location" => "#{base_path}/route_tracker?notice=#{notice}"}, []]
       end
 
       private
