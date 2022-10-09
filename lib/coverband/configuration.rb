@@ -8,7 +8,8 @@ module Coverband
       :background_reporting_enabled,
       :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
       :simulate_oneshot_lines_coverage,
-      :view_tracker, :defer_eager_loading_data
+      :view_tracker, :defer_eager_loading_data,
+      :track_routes, :route_tracker
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
@@ -67,6 +68,8 @@ module Coverband
       @web_enable_clear = false
       @track_views = true
       @view_tracker = nil
+      @track_routes = false
+      @route_tracker = nil
       @web_debug = false
       @report_on_exit = true
       @use_oneshot_lines_coverage = ENV["ONESHOT"] || false

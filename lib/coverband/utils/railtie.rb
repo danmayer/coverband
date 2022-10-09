@@ -28,6 +28,22 @@ module Coverband
       end
 
       begin
+        if Coverband.configuration.track_routes
+          Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
+
+          ActiveSupport::Notifications.subscribe("start_processing.action_controller") do |name, start, finish, id, payload|
+            Coverband.configuration.route_tracker.track_routes(name, start, finish, id, payload)
+          end
+
+          # NOTE: This event was instrumented in Aug 10th 2022, but didn't make the 7.0.4 release and should be in the next release
+          # https://github.com/rails/rails/pull/43755
+          # Automatic tracking of redirects isn't avaible before Rails 7.1.0 (currently tested against the 7.1.0.alpha)
+          # We could consider back porting or patching a solution that works on previous Rails versions
+          ActiveSupport::Notifications.subscribe("redirect.action_dispatch") do |name, start, finish, id, payload|
+            Coverband.configuration.route_tracker.track_routes(name, start, finish, id, payload)
+          end
+        end
+
         if Coverband.configuration.track_views
           COVERBAND_VIEW_TRACKER = if Coverband.coverband_service?
             Coverband::Collectors::ViewTrackerService.new

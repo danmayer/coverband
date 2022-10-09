@@ -2,7 +2,7 @@
 
 require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
-class ReporterTest < Minitest::Test
+class ViewTrackerTest < Minitest::Test
   def tracker_key
     "render_tracker_2"
   end
