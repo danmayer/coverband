@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'bigdecimal'
+require "bigdecimal"
 
 original_verbosity = $VERBOSE
 $VERBOSE = nil
 
-if ENV['SKIP_SIMPLECOV'] || BigDecimal(RUBY_VERSION[0, 3]) >= BigDecimal('3.1')
+if ENV["SKIP_SIMPLECOV"] || BigDecimal(RUBY_VERSION[0, 3]) >= BigDecimal("3.1")
   $SKIP_SIMPLECOV = true
 end
 
