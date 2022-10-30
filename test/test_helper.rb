@@ -10,7 +10,6 @@ if ENV["SKIP_SIMPLECOV"] || BigDecimal(RUBY_VERSION[0, 3]) >= BigDecimal("3.1")
 end
 
 require "rubygems"
-require "pry-byebug" unless ENV["CI"]
 
 unless $SKIP_SIMPLECOV
   require "simplecov"
@@ -36,7 +35,6 @@ require "coverband/utils/results"
 require "coverband/reporters/html_report"
 require "webmock/minitest"
 
-# require 'pry-byebug' unless ENV['CI'] # Ruby 2.3 on CI crashes on pry & JRuby doesn't support it
 require_relative "unique_files"
 $VERBOSE = original_verbosity
 

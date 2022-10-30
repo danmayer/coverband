@@ -250,7 +250,6 @@ namespace :benchmarks do
 
   desc "checks memory of collector"
   task memory_check: [:setup] do
-    # require 'pry-byebug'
     require "objspace"
     puts "memory load check"
     puts(ObjectSpace.memsize_of_all / 2**20)

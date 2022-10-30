@@ -31,8 +31,6 @@ module Coverband
         Coverband::TYPES.each do |type|
           @redis.del(type_base_key(type))
         end
-        # temporarily clear the old namespace of coverband_3_2
-        @redis.del(type_base_key(nil))
       end
 
       def clear_file!(filename)
