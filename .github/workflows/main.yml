@@ -20,7 +20,8 @@ jobs:
         # truffleruby-head,
         # removing jruby again to flaky
         # ruby: [2.3, 2.4, 2.5, 2.6, 2.7, "3.0", "3.1", jruby]
-        ruby: [2.3, 2.4, 2.5, 2.6, 2.7, "3.0", "3.1"]
+        # need to add support for multiple gemfiles
+        ruby: ["2.7", "3.0", "3.1"]
         redis-version: [4, 5, 6]
     runs-on: ${{ matrix.os }}-latest
     steps:
