@@ -42,10 +42,11 @@ class RouterTrackerTest < Minitest::Test
 
   test "track controller routes" do
     store = fake_store
-    route_hash = {controller: "SomeController", action: "index", url_path: "path", verb: "GET"}
+    route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
     store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
+      params: {"controller" => "some/controller"},
       controller: "SomeController",
       action: "index",
       path: "path",
@@ -58,9 +59,10 @@ class RouterTrackerTest < Minitest::Test
 
   test "report used routes" do
     store = fake_store
-    route_hash = {controller: "SomeController", action: "index", url_path: "path", verb: "GET"}
+    route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
+      params: {"controller" => "some/controller"},
       controller: "SomeController",
       action: "index",
       path: "path",
@@ -73,11 +75,49 @@ class RouterTrackerTest < Minitest::Test
 
   test "report unused routes" do
     store = fake_store
-    tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
+    app_routes = [
+      {
+        controller: "some/controller",
+        action: "show",
+        url_path: "some/controller/show",
+        verb: "GET"
+      },
+      {
+        controller: "some/controller",
+        action: "index",
+        url_path: "some/controller/show",
+        verb: "GET"
+      }
+    ]
+    tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir", target: app_routes)
     payload = {
+      params: {"controller" => "some/controller"},
       controller: "SomeController",
       action: "index",
       path: "path",
+      method: "GET"
+    }
+    tracker.track_routes("name", "start", "finish", "id", payload)
+    tracker.report_routes_tracked
+    assert_equal [app_routes.first], tracker.unused_routes
+  end
+
+  test "report unused routes pulls out parameterized routes" do
+    store = fake_store
+    app_routes = [
+      {
+        controller: "some/controller",
+        action: "show",
+        url_path: "some/controller/:user_id",
+        verb: "GET"
+      }
+    ]
+    tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir", target: app_routes)
+    payload = {
+      params: {"controller" => "some/controller"},
+      controller: "SomeController",
+      action: "show",
+      path: "some/controller/123",
       method: "GET"
     }
     tracker.track_routes("name", "start", "finish", "id", payload)
@@ -88,6 +128,7 @@ class RouterTrackerTest < Minitest::Test
   test "reset store" do
     store = fake_store
     payload = {
+      params: {"controller" => "some/controller"},
       controller: "SomeController",
       action: "index",
       path: "path",
@@ -102,9 +143,10 @@ class RouterTrackerTest < Minitest::Test
 
   test "clear_file" do
     store = fake_store
-    route_hash = {controller: "SomeController", action: "index", url_path: "path", verb: "GET"}
+    route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
+      params: {"controller" => "some/controller"},
       controller: "SomeController",
       action: "index",
       path: "path",
