@@ -27,7 +27,7 @@ module Coverband
                 action: route.defaults[:action],
                 url_path: route.path.spec.to_s.gsub("(.:format)", ""),
                 verb: route.verb
-              }.to_s
+              }
             end
           else
             []
@@ -62,9 +62,9 @@ module Coverband
           }
         else
           {
-            controller: payload[:controller],
+            controller: payload[:params]["controller"],
             action: payload[:action],
-            url_path: payload[:path],
+            url_path: nil,
             verb: payload[:method]
           }
         end
@@ -81,16 +81,13 @@ module Coverband
       end
 
       def all_routes
-        all_routes = []
-        target.each do |route|
-          all_routes << route
-        end
-        all_routes.uniq
+        target.uniq
       end
 
       def unused_routes(used_routes = nil)
         recently_used_routes = (used_routes || self.used_routes).keys
-        all_routes - recently_used_routes
+        # NOTE: we match with or without path to handle paths with named params like `/user/:user_id` to used routes filling with all the variable named paths
+        all_routes.reject { |r| recently_used_routes.include?(r.to_s) || recently_used_routes.include?(r.merge(url_path: nil).to_s) }
       end
 
       def as_json

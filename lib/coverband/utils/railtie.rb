@@ -29,6 +29,10 @@ module Coverband
 
       begin
         if Coverband.configuration.track_routes
+          if Gem::Version.new(Rails.version) >= Gem::Version.new("6.0.0") && Gem::Version.new(Rails.version) < Gem::Version.new("7.1.0")
+            require_relative "rails6_ext"
+          end
+
           Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
 
           ActiveSupport::Notifications.subscribe("start_processing.action_controller") do |name, start, finish, id, payload|
