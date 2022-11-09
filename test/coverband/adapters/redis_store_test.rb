@@ -92,7 +92,7 @@ unless ENV["COVERBAND_HASH_REDIS_STORE"]
     end
 
     def test_clear
-      @redis.expects(:del).times(3)
+      @redis.expects(:del).times(2)
       @store.clear!
     end
 
