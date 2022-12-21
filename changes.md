@@ -1,6 +1,6 @@
-### Coverband 6.0.0
+### Coverband 5.2.5
 
-- (colemanja91/danmayer) support for route tracking
+- (colemanja91/danmayer) experimental support for route tracking, opt-in
 - remove deprecations for old coverband, rails, and ruby versions out of support
    - Note: official support is now:
       - Ruby: 2.7.6, 3.0.4, 3.1.2 (min versions)
