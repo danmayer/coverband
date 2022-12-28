@@ -48,6 +48,13 @@ module Coverband
           end
         end
 
+        if Coverband.configuration.track_translations
+          Coverband.configuration.translations_tracker = Coverband::Collectors::TranslationTracker.new
+
+          # plugin to i18n
+          I18n::Backend::Simple.send :include, Coverband::Collectors::I18n::KeyRegistry
+        end
+
         if Coverband.configuration.track_views
           COVERBAND_VIEW_TRACKER = if Coverband.coverband_service?
             Coverband::Collectors::ViewTrackerService.new

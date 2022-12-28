@@ -1,3 +1,7 @@
+### Coverband 5.2.6
+
+- add support for translation keys
+
 ### Coverband 5.2.5
 
 - (colemanja91/danmayer) experimental support for route tracking, opt-in

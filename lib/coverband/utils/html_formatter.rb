@@ -16,8 +16,8 @@ module Coverband
       attr_reader :notice, :base_path
 
       def initialize(report, options = {})
-        @notice = options.fetch(:notice) { nil }
-        @base_path = options.fetch(:base_path) { "./" }
+        @notice = options.fetch(:notice, nil)
+        @base_path = options.fetch(:base_path, "./")
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
@@ -39,6 +39,10 @@ module Coverband
 
       def format_route_tracker!
         format_route_tracker
+      end
+
+      def format_translations_tracker!
+        format_translations_tracker
       end
 
       def format_source_file!(filename)
@@ -63,6 +67,10 @@ module Coverband
 
       def format_route_tracker
         template("route_tracker").result(binding)
+      end
+
+      def format_translations_tracker
+        template("translations_tracker").result(binding)
       end
 
       def format(result)
@@ -109,7 +117,7 @@ module Coverband
       end
 
       def button(url, title, opts = {})
-        delete = opts.fetch(:delete) { false }
+        delete = opts.fetch(:delete, false)
         button_css = delete ? "coveraband-button del" : "coveraband-button"
         button = "<form action='#{url}' class='coverband-admin-form' method='post'>"
         button += "<button class='#{button_css}' type='submit'>#{title}</button>"

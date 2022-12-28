@@ -33,9 +33,14 @@
       <a href='<%= base_path %>view_tracker'>Views Tracker</a>
     </li>
   <% end %>
-    <% if Coverband.configuration.track_routes %>
+  <% if Coverband.configuration.track_routes %>
     <li class='<%= nav_options[:active_link] == 'route_tracker' ? 'active' : '' %>'>
       <a href='<%= base_path %>route_tracker'>Route Tracker</a>
+    </li>
+  <% end %>
+    <% if Coverband.configuration.track_translations %>
+    <li class='<%= nav_options[:active_link] == 'translations_tracker' ? 'active' : '' %>'>
+      <a href='<%= base_path %>translations_tracker'>Translations Tracker</a>
     </li>
   <% end %>
 </ul>
