@@ -23,7 +23,7 @@ class RouterTrackerTest < Minitest::Test
     assert_equal nil, tracker.target.first
     assert !tracker.store.nil?
     assert_equal [], tracker.target
-    assert_equal [], tracker.logged_routes
+    assert_equal [], tracker.logged_keys
   end
 
   test "track redirect routes" do
@@ -35,9 +35,9 @@ class RouterTrackerTest < Minitest::Test
     payload = {
       request: Payload.new("path", "GET")
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [route_hash], tracker.logged_routes
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [route_hash], tracker.logged_keys
   end
 
   test "track controller routes" do
@@ -52,9 +52,9 @@ class RouterTrackerTest < Minitest::Test
       path: "path",
       method: "GET"
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [route_hash], tracker.logged_routes
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [route_hash], tracker.logged_keys
   end
 
   test "report used routes" do
@@ -68,9 +68,9 @@ class RouterTrackerTest < Minitest::Test
       path: "path",
       method: "GET"
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [route_hash.to_s], tracker.used_routes.keys
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [route_hash.to_s], tracker.used_keys.keys
   end
 
   test "report unused routes" do
@@ -97,9 +97,9 @@ class RouterTrackerTest < Minitest::Test
       path: "path",
       method: "GET"
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [app_routes.first], tracker.unused_routes
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [app_routes.first], tracker.unused_keys
   end
 
   test "report unused routes pulls out parameterized routes" do
@@ -120,9 +120,9 @@ class RouterTrackerTest < Minitest::Test
       path: "some/controller/123",
       method: "GET"
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [], tracker.unused_routes
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [], tracker.unused_keys
   end
 
   test "reset store" do
@@ -135,9 +135,9 @@ class RouterTrackerTest < Minitest::Test
       method: "GET"
     }
     store.raw_store.expects(:del).with(tracker_key)
-    store.raw_store.expects(:del).with("route_tracker_time")
+    store.raw_store.expects(:del).with("RouteTracker_tracker_time")
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
-    tracker.track_routes("name", "start", "finish", "id", payload)
+    tracker.track_key(payload)
     tracker.reset_recordings
   end
 
@@ -152,10 +152,10 @@ class RouterTrackerTest < Minitest::Test
       path: "path",
       method: "GET"
     }
-    tracker.track_routes("name", "start", "finish", "id", payload)
-    tracker.report_routes_tracked
-    assert_equal [route_hash.to_s], tracker.used_routes.keys
-    tracker.clear_route!(route_hash.to_s)
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [route_hash.to_s], tracker.used_keys.keys
+    tracker.clear_key!(route_hash.to_s)
     assert_equal [], tracker.store.raw_store.hgetall(tracker_key).keys
   end
 

@@ -206,7 +206,7 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store)
           route = request.params["route"]
-          tracker.clear_route!(route)
+          tracker.clear_key!(route)
           notice = "coverage for route #{route} cleared"
         else
           notice = "web_enable_clear isn't enabled in your configuration"

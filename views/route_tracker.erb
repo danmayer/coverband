@@ -19,18 +19,18 @@
             <%= button("#{base_path}clear_route_tracking", 'reset route tracker', delete: true) %>
           <% end %>
         </h4>
-        <h2>Unused Routes: (<%= tracker.unused_routes.length %>)</h2>
+        <h2>Unused Routes: (<%= tracker.unused_keys.length %>)</h2>
         <p>These routes have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>
-        <% tracker.unused_routes.each do |route| %>
+        <% tracker.unused_keys.each do |route| %>
           <li class="unused-routes"><%= route %></li>
         <% end %>
         </ul>
 
-        <h2>Used Routes: (<%= tracker.used_routes.length %>)</h2>
+        <h2>Used Routes: (<%= tracker.used_keys.length %>)</h2>
         <p>These routes have been rendered at least once</p>
         <ul>
-        <% tracker.used_routes.each_pair do |route, time_at| %>
+        <% tracker.used_keys.each_pair do |route, time_at| %>
           <li class="used-routes">
             <%= route %>
             <span class="last_seen_at">last activity recorded <%= Time.at(time_at.to_i)%></span>

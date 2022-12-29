@@ -6,7 +6,7 @@ module Coverband
     # This class extends view tracker to support web service reporting
     ###
     class ViewTrackerService < ViewTracker
-      def report_views_tracked
+      def save_report
         reported_time = Time.now.to_i
         if @views_to_record.any?
           relative_views = @views_to_record.map! do |view|

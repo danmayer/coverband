@@ -42,7 +42,7 @@ module Coverband
       end
 
       def format_translations_tracker!
-        format_translations_tracker
+        template("translations_tracker").result(binding)
       end
 
       def format_source_file!(filename)
@@ -67,10 +67,6 @@ module Coverband
 
       def format_route_tracker
         template("route_tracker").result(binding)
-      end
-
-      def format_translations_tracker
-        template("translations_tracker").result(binding)
       end
 
       def format(result)

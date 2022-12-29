@@ -36,7 +36,7 @@ module Coverband
           Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
 
           ActiveSupport::Notifications.subscribe("start_processing.action_controller") do |name, start, finish, id, payload|
-            Coverband.configuration.route_tracker.track_routes(name, start, finish, id, payload)
+            Coverband.configuration.route_tracker.track_key(payload)
           end
 
           # NOTE: This event was instrumented in Aug 10th 2022, but didn't make the 7.0.4 release and should be in the next release
@@ -44,7 +44,7 @@ module Coverband
           # Automatic tracking of redirects isn't avaible before Rails 7.1.0 (currently tested against the 7.1.0.alpha)
           # We could consider back porting or patching a solution that works on previous Rails versions
           ActiveSupport::Notifications.subscribe("redirect.action_dispatch") do |name, start, finish, id, payload|
-            Coverband.configuration.route_tracker.track_routes(name, start, finish, id, payload)
+            Coverband.configuration.route_tracker.track_key(payload)
           end
         end
 
@@ -65,7 +65,7 @@ module Coverband
           Coverband.configuration.view_tracker = COVERBAND_VIEW_TRACKER
 
           ActiveSupport::Notifications.subscribe(/render_(template|partial|collection).action_view/) do |name, start, finish, id, payload|
-            COVERBAND_VIEW_TRACKER.track_views(name, start, finish, id, payload) unless name.include?("!")
+            COVERBAND_VIEW_TRACKER.track_key(payload) unless name.include?("!")
           end
         end
       rescue Redis::CannotConnectError => error
