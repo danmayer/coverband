@@ -13,11 +13,12 @@ require "time"
 module Coverband
   module Utils
     class HTMLFormatter
-      attr_reader :notice, :base_path
+      attr_reader :notice, :base_path, :tracker
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice, nil)
         @base_path = options.fetch(:base_path, "./")
+        @tracker = options.fetch(:tracker, nil)
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
@@ -33,16 +34,8 @@ module Coverband
         format_settings
       end
 
-      def format_view_tracker!
-        format_view_tracker
-      end
-
-      def format_route_tracker!
-        format_route_tracker
-      end
-
-      def format_translations_tracker!
-        template("translations_tracker").result(binding)
+      def format_abstract_tracker!
+        template("abstract_tracker").result(binding)
       end
 
       def format_source_file!(filename)
@@ -59,14 +52,6 @@ module Coverband
 
       def format_settings
         template("settings").result(binding)
-      end
-
-      def format_view_tracker
-        template("view_tracker").result(binding)
-      end
-
-      def format_route_tracker
-        template("route_tracker").result(binding)
       end
 
       def format(result)

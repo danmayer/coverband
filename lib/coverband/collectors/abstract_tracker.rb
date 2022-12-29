@@ -9,6 +9,9 @@ module Coverband
     # This abstract class makes it easy to track any used/unused with timestamp set of usage
     ###
     class AbstractTracker
+      REPORT_ROUTE = "/"
+      TITLE = "abstract"
+
       attr_accessor :target
       attr_reader :logger, :store, :ignore_patterns
 
@@ -107,6 +110,14 @@ module Coverband
       # This is the basic rails version supported, if there is something more unique over ride in subclass
       def self.supported_version?
         defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 5
+      end
+
+      def route
+        self.class::REPORT_ROUTE
+      end
+
+      def title
+        self.class::TITLE
       end
 
       protected

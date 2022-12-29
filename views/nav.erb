@@ -29,13 +29,13 @@
     <li><a href='<%= base_path %>'>Coverage</a></li>
   <% end %>
   <% if Coverband.configuration.track_views %>
-    <li class='<%= nav_options[:active_link] == 'view_tracker' ? 'active' : '' %>'>
-      <a href='<%= base_path %>view_tracker'>Views Tracker</a>
+    <li class='<%= nav_options[:active_link] == 'views_tracker' ? 'active' : '' %>'>
+      <a href='<%= base_path %>views_tracker'>Views Tracker</a>
     </li>
   <% end %>
   <% if Coverband.configuration.track_routes %>
-    <li class='<%= nav_options[:active_link] == 'route_tracker' ? 'active' : '' %>'>
-      <a href='<%= base_path %>route_tracker'>Route Tracker</a>
+    <li class='<%= nav_options[:active_link] == 'routes_tracker' ? 'active' : '' %>'>
+      <a href='<%= base_path %>routes_tracker'>Route Tracker</a>
     </li>
   <% end %>
     <% if Coverband.configuration.track_translations %>

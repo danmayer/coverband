@@ -21,6 +21,9 @@ module Coverband
     # This class tracks translation usage via I18n::Backend
     ###
     class TranslationTracker < AbstractTracker
+      REPORT_ROUTE = "translations_tracker"
+      TITLE = "Translations"
+
       private
 
       def concrete_target

@@ -9,6 +9,9 @@ module Coverband
     # This class tracks route usage via ActiveSupport::Notifications
     ###
     class RouteTracker < AbstractTracker
+      REPORT_ROUTE = "routes_tracker"
+      TITLE = "Routes"
+
       ###
       # This method is called on every routing call, so we try to reduce method calls
       # and ensure high performance

@@ -17,7 +17,7 @@ class RailsWithoutConfigStackTest < Minitest::Test
     output = `sleep 7 && curl http://localhost:9999/dummy_view/show`
     assert output.match(/rendered view/)
     assert output.match(/I am no dummy view tracker text/)
-    output = `sleep 2 && curl http://localhost:9999/coverage/view_tracker`
+    output = `sleep 2 && curl http://localhost:9999/coverage/views_tracker`
     assert output.match(/Used Views: \(1\)/)
     assert output.match(/dummy_view\/show/)
   end

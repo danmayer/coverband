@@ -15,6 +15,9 @@ module Coverband
     class ViewTracker < AbstractTracker
       attr_reader :roots
 
+      REPORT_ROUTE = "views_tracker"
+      TITLE = "Views"
+
       def initialize(options = {})
         @project_directory = File.expand_path(Coverband.configuration.root)
         @roots = options.fetch(:roots) { Coverband.configuration.all_root_patterns }
