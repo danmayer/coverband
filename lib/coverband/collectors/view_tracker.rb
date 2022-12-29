@@ -26,6 +26,12 @@ module Coverband
         super
       end
 
+      def railtie!
+        ActiveSupport::Notifications.subscribe(/render_(template|partial|collection).action_view/) do |name, start, finish, id, payload|
+          Coverband.configuration.view_tracker.track_key(payload) unless name.include?("!")
+        end
+      end
+
       ###
       # This method is called on every render call, so we try to reduce method calls
       # and ensure high performance

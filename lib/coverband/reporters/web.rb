@@ -39,17 +39,17 @@ module Coverband
         if request.post?
           case request_path_info
           when %r{\/clear_routes_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking_key(Coverband::Collectors::RouteTracker.new)
           when %r{\/clear_routes_tracker}
-            clear_abstract_tracking(Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking(Coverband::Collectors::RouteTracker.new)
           when %r{\/clear_translations_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::TranslationTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking_key(Coverband::Collectors::TranslationTracker.new)
           when %r{\/clear_translations_tracker}
-            clear_abstract_tracking(Coverband::Collectors::TranslationTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking(Coverband::Collectors::TranslationTracker.new)
           when %r{\/clear_views_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking_key(Coverband::Collectors::ViewTracker.new)
           when %r{\/clear_views_tracker}
-            clear_abstract_tracking(Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store))
+            clear_abstract_tracking(Coverband::Collectors::ViewTracker.new)
           when %r{\/clear_file}
             clear_file
           when %r{\/clear}
@@ -103,7 +103,7 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store),
+          tracker: Coverband::Collectors::ViewTracker.new,
           notice: notice,
           base_path: base_path).format_abstract_tracker!
       end
@@ -112,7 +112,7 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store),
+          tracker: Coverband::Collectors::RouteTracker.new,
           notice: notice,
           base_path: base_path).format_abstract_tracker!
       end
@@ -121,13 +121,13 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::TranslationTracker.new(store: Coverband.configuration.store),
+          tracker: Coverband::Collectors::TranslationTracker.new,
           notice: notice,
           base_path: base_path).format_abstract_tracker!
       end
 
       def view_tracker_data
-        Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store).as_json
+        Coverband::Collectors::ViewTracker.new.as_json
       end
 
       def debug_data

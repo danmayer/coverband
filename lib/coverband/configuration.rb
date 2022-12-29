@@ -10,7 +10,8 @@ module Coverband
       :simulate_oneshot_lines_coverage,
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :route_tracker,
-      :track_translations, :translations_tracker
+      :track_translations, :translations_tracker,
+      :trackers
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
@@ -95,6 +96,8 @@ module Coverband
       @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
       @reporting_wiggle = nil
 
+      @trackers = []
+
       # TODO: these are deprecated
       @s3_region = nil
       @s3_bucket = nil
@@ -102,6 +105,31 @@ module Coverband
       @s3_secret_access_key = nil
       @track_gems = false
       @gem_details = false
+    end
+
+    def railtie!
+      if Coverband.configuration.track_routes
+        Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
+        trackers << Coverband.configuration.route_tracker
+      end
+
+      if Coverband.configuration.track_translations
+        Coverband.configuration.translations_tracker = Coverband::Collectors::TranslationTracker.new
+        trackers << Coverband.configuration.translations_tracker
+      end
+
+      if Coverband.configuration.track_views
+        Coverband.configuration.view_tracker = if Coverband.coverband_service?
+          Coverband::Collectors::ViewTrackerService.new
+        else
+          Coverband::Collectors::ViewTracker.new
+        end
+        trackers << Coverband.configuration.view_tracker
+      end
+      trackers.each { |tracker| tracker.railtie! }
+    rescue Redis::CannotConnectError => error
+      Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+      Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
 
     def logger

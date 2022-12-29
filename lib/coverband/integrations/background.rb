@@ -38,9 +38,7 @@ module Coverband
             # if deferred is set also sleep frst to spread load
             sleep(sleep_seconds.to_i) if Coverband.configuration.defer_eager_loading_data?
             Coverband.report_coverage
-            Coverband.configuration.view_tracker&.save_report
-            Coverband.configuration.route_tracker&.save_report
-            Coverband.configuration.translations_tracker&.save_report
+            Coverband.configuration.trackers.each { |tracker| tracker.save_report }
             if Coverband.configuration.verbose
               logger.debug("Coverband: background reporting coverage (#{Coverband.configuration.store.type}). Sleeping #{sleep_seconds}s")
             end

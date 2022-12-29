@@ -24,6 +24,11 @@ module Coverband
       REPORT_ROUTE = "translations_tracker"
       TITLE = "Translations"
 
+      def railtie!
+        # plugin to i18n
+        ::I18n::Backend::Simple.send :include, ::Coverband::Collectors::I18n::KeyRegistry
+      end
+
       private
 
       def concrete_target

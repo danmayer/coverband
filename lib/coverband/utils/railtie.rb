@@ -27,51 +27,7 @@ module Coverband
         Coverband.runtime_coverage!
       end
 
-      begin
-        if Coverband.configuration.track_routes
-          if Gem::Version.new(Rails.version) >= Gem::Version.new("6.0.0") && Gem::Version.new(Rails.version) < Gem::Version.new("7.1.0")
-            require_relative "rails6_ext"
-          end
-
-          Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
-
-          ActiveSupport::Notifications.subscribe("start_processing.action_controller") do |name, start, finish, id, payload|
-            Coverband.configuration.route_tracker.track_key(payload)
-          end
-
-          # NOTE: This event was instrumented in Aug 10th 2022, but didn't make the 7.0.4 release and should be in the next release
-          # https://github.com/rails/rails/pull/43755
-          # Automatic tracking of redirects isn't avaible before Rails 7.1.0 (currently tested against the 7.1.0.alpha)
-          # We could consider back porting or patching a solution that works on previous Rails versions
-          ActiveSupport::Notifications.subscribe("redirect.action_dispatch") do |name, start, finish, id, payload|
-            Coverband.configuration.route_tracker.track_key(payload)
-          end
-        end
-
-        if Coverband.configuration.track_translations
-          Coverband.configuration.translations_tracker = Coverband::Collectors::TranslationTracker.new
-
-          # plugin to i18n
-          I18n::Backend::Simple.send :include, Coverband::Collectors::I18n::KeyRegistry
-        end
-
-        if Coverband.configuration.track_views
-          COVERBAND_VIEW_TRACKER = if Coverband.coverband_service?
-            Coverband::Collectors::ViewTrackerService.new
-          else
-            Coverband::Collectors::ViewTracker.new
-          end
-
-          Coverband.configuration.view_tracker = COVERBAND_VIEW_TRACKER
-
-          ActiveSupport::Notifications.subscribe(/render_(template|partial|collection).action_view/) do |name, start, finish, id, payload|
-            COVERBAND_VIEW_TRACKER.track_key(payload) unless name.include?("!")
-          end
-        end
-      rescue Redis::CannotConnectError => error
-        Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
-        Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
-      end
+      Coverband.configuration.railtie!
     end
 
     config.before_configuration do
