@@ -437,7 +437,7 @@ What is the coverage data in Redis?
 
 A diagram of the code.
 
-![Visualization of this repo](./diagram.svg)
+![Visualization of this repo](https://raw.githubusercontent.com/danmayer/coverband/diagram/diagram.svg)
 
 ## Logo
 
