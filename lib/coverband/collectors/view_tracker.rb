@@ -40,7 +40,7 @@ module Coverband
         if (file = payload[:identifier])
           if newly_seen_key?(file)
             @logged_keys << file
-            @keys_to_record << file if track_key?(file)
+            @keys_to_record << file if track_file?(file)
           end
         end
 

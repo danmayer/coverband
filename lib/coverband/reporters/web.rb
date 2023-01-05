@@ -36,51 +36,49 @@ module Coverband
         return [401, {"www-authenticate" => 'Basic realm=""'}, [""]] unless check_auth
 
         request_path_info = request.path_info == "" ? "/" : request.path_info
-        if request.post?
-          case request_path_info
-          when %r{\/clear_routes_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::RouteTracker.new)
-          when %r{\/clear_routes_tracker}
-            clear_abstract_tracking(Coverband::Collectors::RouteTracker.new)
-          when %r{\/clear_translations_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::TranslationTracker.new)
-          when %r{\/clear_translations_tracker}
-            clear_abstract_tracking(Coverband::Collectors::TranslationTracker.new)
-          when %r{\/clear_views_tracker_key}
-            clear_abstract_tracking_key(Coverband::Collectors::ViewTracker.new)
-          when %r{\/clear_views_tracker}
-            clear_abstract_tracking(Coverband::Collectors::ViewTracker.new)
-          when %r{\/clear_file}
-            clear_file
-          when %r{\/clear}
-            clear
-          else
-            [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+        tracker_route = false
+        Coverband.configuration.trackers.each do |tracker|
+          if request_path_info.match(tracker.class::REPORT_ROUTE)
+            tracker_route = true
+            if request_path_info =~ %r{\/clear_.*_key}
+              return clear_abstract_tracking_key(tracker)
+            elsif request_path_info =~ %r{\/clear_.*}
+              return clear_abstract_tracking(tracker)
+            else
+              return [200, {"Content-Type" => "text/html"}, [display_abstract_tracker(tracker)]]
+            end
           end
-        else
-          case request_path_info
-          when /.*\.(css|js|gif|png)/
-            @static.call(env)
-          when %r{\/settings}
-            [200, {"Content-Type" => "text/html"}, [settings]]
-          when %r{\/view_tracker_data}
-            [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
-          when %r{\/views_tracker}
-            [200, {"Content-Type" => "text/html"}, [view_tracker]]
-          when %r{\/routes_tracker}
-            [200, {"Content-Type" => "text/html"}, [route_tracker]]
-          when %r{\/translations_tracker}
-            [200, {"Content-Type" => "text/html"}, [translations_tracker]]
-          when %r{\/enriched_debug_data}
-            [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
-          when %r{\/debug_data}
-            [200, {"Content-Type" => "text/json"}, [debug_data]]
-          when %r{\/load_file_details}
-            [200, {"Content-Type" => "text/json"}, [load_file_details]]
-          when %r{\/$}
-            [200, {"Content-Type" => "text/html"}, [index]]
+        end
+
+        unless tracker_route
+          if request.post?
+            case request_path_info
+            when %r{\/clear_file}
+              clear_file
+            when %r{\/clear}
+              clear
+            else
+              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            end
           else
-            [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            case request_path_info
+            when /.*\.(css|js|gif|png)/
+              @static.call(env)
+            when %r{\/settings}
+              [200, {"Content-Type" => "text/html"}, [settings]]
+            when %r{\/view_tracker_data}
+              [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
+            when %r{\/enriched_debug_data}
+              [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
+            when %r{\/debug_data}
+              [200, {"Content-Type" => "text/json"}, [debug_data]]
+            when %r{\/load_file_details}
+              [200, {"Content-Type" => "text/json"}, [load_file_details]]
+            when %r{\/$}
+              [200, {"Content-Type" => "text/html"}, [index]]
+            else
+              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            end
           end
         end
       end
@@ -99,29 +97,11 @@ module Coverband
         Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_settings!
       end
 
-      def view_tracker
+      def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::ViewTracker.new,
-          notice: notice,
-          base_path: base_path).format_abstract_tracker!
-      end
-
-      def route_tracker
-        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
-        notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::RouteTracker.new,
-          notice: notice,
-          base_path: base_path).format_abstract_tracker!
-      end
-
-      def translations_tracker
-        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
-        notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
-          tracker: Coverband::Collectors::TranslationTracker.new,
+          tracker: tracker,
           notice: notice,
           base_path: base_path).format_abstract_tracker!
       end
