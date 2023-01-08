@@ -1,6 +1,9 @@
 ### Coverband 5.2.6
 
+__NOTE: the current RCs include below, but this might turn into coverband 6.0__
+
 - add support for translation keys
+- refactor non Coverage.so based trackers
 
 ### Coverband 5.2.5
 
