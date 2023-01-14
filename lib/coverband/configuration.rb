@@ -177,7 +177,10 @@ module Coverband
     # Don't allow the ignore to override things like gem tracking
     ###
     def ignore=(ignored_array)
+      ignored_array.map { |ignore_str| Regexp.new(ignore_str) }
       @ignore = (@ignore + ignored_array).uniq
+    rescue RegexpError
+      logger.error "an invalid regular expression was passed in, ensure string are valid regex patterns #{ignored_array.join(",")}"
     end
 
     def current_root
