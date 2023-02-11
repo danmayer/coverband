@@ -13,6 +13,22 @@ module Coverband
     class Web
       attr_reader :request
 
+      CSP_HEADER = [
+        "default-src 'self' https: http:",
+        "child-src 'self'",
+        "connect-src 'self' https: http: wss: ws:",
+        "font-src 'self' https: http:",
+        "frame-src 'self'",
+        "img-src 'self' https: http: data:",
+        "manifest-src 'self'",
+        "media-src 'self'",
+        "object-src 'none'",
+        "script-src 'self' https: http: 'unsafe-inline'",
+        "style-src 'self' https: http: 'unsafe-inline'",
+        "worker-src 'self'",
+        "base-uri 'self'"
+      ].join("; ").freeze
+
       def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
         @static = Rack::Static.new(self,
@@ -35,7 +51,7 @@ module Coverband
 
         return [401, {"www-authenticate" => 'Basic realm=""'}, [""]] unless check_auth
 
-        request_path_info = request.path_info == "" ? "/" : request.path_info
+        request_path_info = (request.path_info == "") ? "/" : request.path_info
         tracker_route = false
         Coverband.configuration.trackers.each do |tracker|
           if request_path_info.match(tracker.class::REPORT_ROUTE)
@@ -58,26 +74,26 @@ module Coverband
             when %r{\/clear}
               clear
             else
-              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+              [404, coverband_headers, ["404 error!"]]
             end
           else
             case request_path_info
             when /.*\.(css|js|gif|png)/
               @static.call(env)
             when %r{\/settings}
-              [200, {"Content-Type" => "text/html"}, [settings]]
+              [200, coverband_headers, [settings]]
             when %r{\/view_tracker_data}
-              [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
+              [200, coverband_headers(content_type: "text/json"), [view_tracker_data]]
             when %r{\/enriched_debug_data}
-              [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
+              [200, coverband_headers(content_type: "text/json"), [enriched_debug_data]]
             when %r{\/debug_data}
-              [200, {"Content-Type" => "text/json"}, [debug_data]]
+              [200, coverband_headers(content_type: "text/json"), [debug_data]]
             when %r{\/load_file_details}
-              [200, {"Content-Type" => "text/json"}, [load_file_details]]
+              [200, coverband_headers(content_type: "text/json"), [load_file_details]]
             when %r{\/$}
-              [200, {"Content-Type" => "text/html"}, [index]]
+              [200, coverband_headers, [index]]
             else
-              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+              [404, coverband_headers, ["404 error!"]]
             end
           end
         end
@@ -174,6 +190,14 @@ module Coverband
 
       private
 
+      def coverband_headers(content_type: "text/html")
+        web_headers = {
+          "Content-Type" => content_type
+        }
+        web_headers["Content-Security-Policy-Report-Only"] = CSP_HEADER if Coverband.configuration.csp_policy
+        web_headers
+      end
+
       # This method should get the root mounted endpoint
       # for example if the app is mounted like so:
       # mount Coverband::Web, at: '/coverage'
@@ -183,7 +207,7 @@ module Coverband
       # %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : "/"
       # ^^ the above is NOT valid Ruby 2.3/2.4 even though rubocop / standard think it is
       def base_path
-        request.path =~ %r{\/.*\/} ? request.path.match("/.*/")[0] : "/"
+        (request.path =~ %r{\/.*\/}) ? request.path.match("/.*/")[0] : "/"
       end
     end
   end

@@ -11,7 +11,8 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :route_tracker,
       :track_translations, :translations_tracker,
-      :trackers
+      :trackers, :csp_policy
+
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
@@ -82,6 +83,7 @@ module Coverband
       @all_root_paths = nil
       @all_root_patterns = nil
       @password = nil
+      @csp_policy = false
 
       # coverband service settings
       @api_key = nil
@@ -150,7 +152,7 @@ module Coverband
     def background_reporting_sleep_seconds
       @background_reporting_sleep_seconds ||= if service?
         # default to 10m for service
-        Coverband.configuration.coverband_env == "production" ? 600 : 60
+        (Coverband.configuration.coverband_env == "production") ? 600 : 60
       elsif store.is_a?(Coverband::Adapters::HashRedisStore)
         # Default to 5 minutes if using the hash redis store
         300
@@ -258,11 +260,11 @@ module Coverband
     end
 
     def coverband_env
-      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || (defined?(Rails) && Rails.respond_to?(:env) ? Rails.env : "unknown")
+      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || ((defined?(Rails) && Rails.respond_to?(:env)) ? Rails.env : "unknown")
     end
 
     def coverband_timeout
-      @coverband_timeout ||= coverband_env == "development" ? 5 : 2
+      @coverband_timeout ||= (coverband_env == "development") ? 5 : 2
     end
 
     def service_dev_mode
