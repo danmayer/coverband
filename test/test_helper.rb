@@ -33,6 +33,7 @@ require "coverband/utils/source_file"
 require "coverband/utils/lines_classifier"
 require "coverband/utils/results"
 require "coverband/reporters/html_report"
+require "coverband/reporters/json_report"
 require "webmock/minitest"
 
 require_relative "unique_files"
@@ -93,13 +94,13 @@ Mocha::Configuration.prevent(:stubbing_non_existent_method)
 def test(name, &block)
   test_name = "test_#{name.gsub(/\s+/, "_")}".to_sym
   defined = begin
-              instance_method(test_name)
-            rescue
-              false
-            end
+    instance_method(test_name)
+  rescue
+    false
+  end
   raise "#{test_name} is already defined in #{self}" if defined
 
-  if block_given?
+  if block
     define_method(test_name, &block)
   else
     define_method(test_name) do
