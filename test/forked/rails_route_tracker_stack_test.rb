@@ -17,7 +17,7 @@ class RailsRoutesWithoutConfigStackTest < Minitest::Test
     output = `sleep 7 && curl http://localhost:9999/dummy_view/show`
     assert output.match(/rendered view/)
     assert output.match(/I am no dummy view tracker text/)
-    output = `sleep 2 && curl http://localhost:9999/coverage/route_tracker`
+    output = `sleep 2 && curl http://localhost:9999/coverage/routes_tracker`
     assert output.match(/Used Routes: \(1\)/)
     assert output.match(/dummy_view\/show/)
     assert output.match(/GET/)

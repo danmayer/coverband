@@ -11,31 +11,30 @@
 
   <body>
     <div id="wrapper" style="">
-      <%= display_nav(active_link: 'route_tracker') %>
+      <%= display_nav(active_link: tracker.route) %>
       <div id="content">
-        <% tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store) %>
         <h4>
           <% if Coverband.configuration.web_enable_clear %>
-            <%= button("#{base_path}clear_route_tracking", 'reset route tracker', delete: true) %>
+            <%= button("#{base_path}clear_#{tracker.route}", "reset #{tracker.title} tracker", delete: true) %>
           <% end %>
         </h4>
-        <h2>Unused Routes: (<%= tracker.unused_routes.length %>)</h2>
-        <p>These routes have not been rendered since recording started at <%= tracker.tracking_since %></p>
+        <h2>Unused <%= tracker.title %>: (<%= tracker.unused_keys.length %>)</h2>
+        <p>These <%= tracker.title %> have not been rendered since recording started at <%= tracker.tracking_since %></p>
         <ul>
-        <% tracker.unused_routes.each do |route| %>
-          <li class="unused-routes"><%= route %></li>
+        <% tracker.unused_keys.each do |key| %>
+          <li class="unused-keys"><%= key %></li>
         <% end %>
         </ul>
 
-        <h2>Used Routes: (<%= tracker.used_routes.length %>)</h2>
-        <p>These routes have been rendered at least once</p>
+        <h2>Used <%= tracker.title %>: (<%= tracker.used_keys.length %>)</h2>
+        <p>These <%= tracker.title %> have been rendered at least once</p>
         <ul>
-        <% tracker.used_routes.each_pair do |route, time_at| %>
-          <li class="used-routes">
-            <%= route %>
+        <% tracker.used_keys.each_pair do |key, time_at| %>
+          <li class="used-keys">
+            <%= key %>
             <span class="last_seen_at">last activity recorded <%= Time.at(time_at.to_i)%></span>
             <% if Coverband.configuration.web_enable_clear %>
-              <%= button("#{base_path}clear_route_tracking_route?route=#{route}", 'reset tracked route', delete: true) %>
+              <%= button("#{base_path}clear_#{tracker.route}_key?key=#{key}", 'reset tracked key', delete: true) %>
             <% end %>
           </li>
         <% end %>
