@@ -22,7 +22,8 @@ module Coverband
             Coverband.report_coverage
             # to ensure we track mailer views we now need to report views tracking
             # at exit as well for rake tasks and background tasks that can trigger email
-            Coverband.configuration.view_tracker&.report_views_tracked
+            Coverband.configuration.view_tracker&.save_report
+            Coverband.configuration.translations_tracker&.save_report
           end
         end
       end

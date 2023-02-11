@@ -36,51 +36,49 @@ module Coverband
         return [401, {"www-authenticate" => 'Basic realm=""'}, [""]] unless check_auth
 
         request_path_info = request.path_info == "" ? "/" : request.path_info
-        if request.post?
-          case request_path_info
-          when %r{\/clear_route_tracking_route}
-            clear_route_tracking_route
-          when %r{\/clear_route_tracking}
-            clear_route_tracking
-          when %r{\/clear_translation_tracking_key}
-            clear_route_translation_key
-          when %r{\/clear_translation_tracking}
-            clear_translation_tracking
-          when %r{\/clear_view_tracking_file}
-            clear_view_tracking_file
-          when %r{\/clear_view_tracking}
-            clear_view_tracking
-          when %r{\/clear_file}
-            clear_file
-          when %r{\/clear}
-            clear
-          else
-            [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+        tracker_route = false
+        Coverband.configuration.trackers.each do |tracker|
+          if request_path_info.match(tracker.class::REPORT_ROUTE)
+            tracker_route = true
+            if request_path_info =~ %r{\/clear_.*_key}
+              return clear_abstract_tracking_key(tracker)
+            elsif request_path_info =~ %r{\/clear_.*}
+              return clear_abstract_tracking(tracker)
+            else
+              return [200, {"Content-Type" => "text/html"}, [display_abstract_tracker(tracker)]]
+            end
           end
-        else
-          case request_path_info
-          when /.*\.(css|js|gif|png)/
-            @static.call(env)
-          when %r{\/settings}
-            [200, {"Content-Type" => "text/html"}, [settings]]
-          when %r{\/view_tracker_data}
-            [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
-          when %r{\/view_tracker}
-            [200, {"Content-Type" => "text/html"}, [view_tracker]]
-          when %r{\/route_tracker}
-            [200, {"Content-Type" => "text/html"}, [route_tracker]]
-          when %r{\/translations_tracker}
-            [200, {"Content-Type" => "text/html"}, [translations_tracker]]
-          when %r{\/enriched_debug_data}
-            [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
-          when %r{\/debug_data}
-            [200, {"Content-Type" => "text/json"}, [debug_data]]
-          when %r{\/load_file_details}
-            [200, {"Content-Type" => "text/json"}, [load_file_details]]
-          when %r{\/$}
-            [200, {"Content-Type" => "text/html"}, [index]]
+        end
+
+        unless tracker_route
+          if request.post?
+            case request_path_info
+            when %r{\/clear_file}
+              clear_file
+            when %r{\/clear}
+              clear
+            else
+              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            end
           else
-            [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            case request_path_info
+            when /.*\.(css|js|gif|png)/
+              @static.call(env)
+            when %r{\/settings}
+              [200, {"Content-Type" => "text/html"}, [settings]]
+            when %r{\/view_tracker_data}
+              [200, {"Content-Type" => "text/json"}, [view_tracker_data]]
+            when %r{\/enriched_debug_data}
+              [200, {"Content-Type" => "text/json"}, [enriched_debug_data]]
+            when %r{\/debug_data}
+              [200, {"Content-Type" => "text/json"}, [debug_data]]
+            when %r{\/load_file_details}
+              [200, {"Content-Type" => "text/json"}, [load_file_details]]
+            when %r{\/$}
+              [200, {"Content-Type" => "text/html"}, [index]]
+            else
+              [404, {"Content-Type" => "text/html"}, ["404 error!"]]
+            end
           end
         end
       end
@@ -99,32 +97,17 @@ module Coverband
         Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_settings!
       end
 
-      def view_tracker
+      def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         Coverband::Utils::HTMLFormatter.new(nil,
+          tracker: tracker,
           notice: notice,
-          base_path: base_path).format_view_tracker!
-      end
-
-      def route_tracker
-        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
-        notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
-          notice: notice,
-          base_path: base_path).format_route_tracker!
-      end
-
-      def translations_tracker
-        notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
-        notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
-          notice: notice,
-          base_path: base_path).format_translations_tracker!
+          base_path: base_path).format_abstract_tracker!
       end
 
       def view_tracker_data
-        Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store).as_json
+        Coverband::Collectors::ViewTracker.new.as_json
       end
 
       def debug_data
@@ -168,73 +151,25 @@ module Coverband
         [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
 
-      def clear_view_tracking
+      def clear_abstract_tracking(tracker)
         if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store)
           tracker.reset_recordings
-          notice = "view tracking reset"
+          notice = "#{tracker.title} tracking reset"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [302, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}/#{tracker.route}?notice=#{notice}"}, []]
       end
 
-      def clear_view_tracking_file
+      def clear_abstract_tracking_key(tracker)
         if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::ViewTracker.new(store: Coverband.configuration.store)
-          filename = request.params["filename"]
-          tracker.clear_file!(filename)
-          notice = "coverage for file #{filename} cleared"
-        else
-          notice = "web_enable_clear isn't enabled in your configuration"
-        end
-        [302, {"Location" => "#{base_path}/view_tracker?notice=#{notice}"}, []]
-      end
-
-      def clear_route_tracking
-        if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store)
-          tracker.reset_recordings
-          notice = "route tracking reset"
-        else
-          notice = "web_enable_clear isn't enabled in your configuration"
-        end
-        [302, {"Location" => "#{base_path}/route_tracker?notice=#{notice}"}, []]
-      end
-
-      def clear_route_tracking_route
-        if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::RouteTracker.new(store: Coverband.configuration.store)
-          route = request.params["route"]
-          tracker.clear_route!(route)
-          notice = "coverage for route #{route} cleared"
-        else
-          notice = "web_enable_clear isn't enabled in your configuration"
-        end
-        [302, {"Location" => "#{base_path}/route_tracker?notice=#{notice}"}, []]
-      end
-
-      def clear_translation_tracking
-        if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::TranslationTracker.new(store: Coverband.configuration.store)
-          tracker.reset_recordings
-          notice = "translation tracking reset"
-        else
-          notice = "web_enable_clear isn't enabled in your configuration"
-        end
-        [302, {"Location" => "#{base_path}/translations_tracker?notice=#{notice}"}, []]
-      end
-
-      def clear_translation_tracking_key
-        if Coverband.configuration.web_enable_clear
-          tracker = Coverband::Collectors::TranslationTracker.new(store: Coverband.configuration.store)
           key = request.params["key"]
           tracker.clear_key!(key)
-          notice = "coverage for route #{key} cleared"
+          notice = "coverage for #{tracker.title} #{key} cleared"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
-        [302, {"Location" => "#{base_path}/translations_tracker?notice=#{notice}"}, []]
+        [302, {"Location" => "#{base_path}/#{tracker.route}?notice=#{notice}"}, []]
       end
 
       private
