@@ -19,7 +19,7 @@ class ReportJSONTest < Minitest::Test
 
     json = Coverband::Reporters::JSONReport.new(@store).report
     parsed = JSON.parse(json)
-    expected_keys = ["total_files", "lines_of_code", "lines_covered", "lines_missed", "covered_strength", "covered_percent"] 
+    expected_keys = ["total_files", "lines_of_code", "lines_covered", "lines_missed", "covered_strength", "covered_percent"]
     assert expected_keys - parsed.keys == []
   end
 
