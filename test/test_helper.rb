@@ -95,8 +95,8 @@ def test(name, &block)
   test_name = "test_#{name.gsub(/\s+/, "_")}".to_sym
   defined = begin
     instance_method(test_name)
-  rescue
-    false
+            rescue
+              false
   end
   raise "#{test_name} is already defined in #{self}" if defined
 
