@@ -90,6 +90,8 @@ module Coverband
               [200, coverband_headers(content_type: "text/json"), [debug_data]]
             when %r{\/load_file_details}
               [200, coverband_headers(content_type: "text/json"), [load_file_details]]
+            when %r{\/json}
+              [200, coverband_headers(content_type: "text/json"), [json]]
             when %r{\/$}
               [200, coverband_headers, [index]]
             else
@@ -107,6 +109,10 @@ module Coverband
           base_path: base_path,
           notice: notice,
           open_report: false).report
+      end
+
+      def json
+        Coverband::Reporters::JSONReport.new(Coverband.configuration.store).report
       end
 
       def settings

@@ -137,6 +137,7 @@ module Coverband
         require "coverband/utils/lines_classifier"
         require "coverband/utils/results"
         require "coverband/reporters/html_report"
+        require "coverband/reporters/json_report"
         init_web
       end
     end
