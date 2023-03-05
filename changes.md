@@ -5,6 +5,7 @@ __NOTE: the current RCs include below, but this might turn into coverband 6.0__
 - add support for translation keys
 - refactor non Coverage.so based trackers
 - adds CSP report support (thanks @jwg2s)
+- add JSON reporter (thanks @mark-davenport-fountain)
 
 ### Coverband 5.2.5
 
