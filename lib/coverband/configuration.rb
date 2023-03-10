@@ -272,7 +272,7 @@ module Coverband
     end
 
     def service_test_mode
-      @service_dev_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
+      @service_test_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
     end
 
     def process_type
