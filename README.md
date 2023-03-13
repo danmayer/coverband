@@ -18,13 +18,13 @@
   <a href="/CODE_OF_CONDUCT.md">Code of Conduct</a>
 </p>
 
-A gem to measure production code usage, showing a counter for the number of times each line of code that is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread or can be used as Rack middleware, or manually configured to meet any need.
+A gem to measure production code usage, showing a counter for the number of times each line of code is executed. Coverband allows easy configuration to collect and report on production code usage. It reports in the background via a thread, can be used as Rack middleware, or can be manually configured to meet any need.
 
-**Note:** Coverband is not intended for test code coverage, for that we recommended using [SimpleCov](https://github.com/colszowka/simplecov).
+**Note:** Coverband is not intended for test code coverage; for that we recommend using [SimpleCov](https://github.com/colszowka/simplecov).
 
 ## Key Features
 
-The primary goal of Coverband is giving deep insight into your production runtime usage of your application code, while having the least impact on performance possible.
+The primary goal of Coverband is to give you deep insight into the production runtime usage of your application code, while having the least impact on performance possible.
 
 - Low performance overhead
 - Simple setup and configuration
@@ -55,7 +55,7 @@ gem 'coverband'
 
 ### No custom code or middleware required
 
-With older versions of coverband, projects would report to redis using rack or sidekiq middleware. After coverband 4.0, this should no longer be required and could cause performance issues. Reporting to redis is now automatically done within a background thread with no custom code needed.
+With older versions of Coverband, projects would report to redis using rack or sidekiq middleware. After Coverband 4.0, this should no longer be required and could cause performance issues. Reporting to redis is now automatically done within a background thread with no custom code needed.
 
 See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
 
@@ -65,7 +65,7 @@ The Railtie integration means you shouldn't need to do anything else other than 
 
 ## Sinatra
 
-For the best coverage you want this loaded as early as possible. We recommend requiring cover band directly in the `config.ru`. Requiring coverband within an initializer could also work, but you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
+For the best coverage, you want this loaded as early as possible. We recommend requiring cover band directly in the `config.ru`. Requiring Coverband within an initializer could also work, but you may end up missing some boot up coverage. To start collection require Coverband as early as possible.
 
 ```ruby
 require 'coverband'
@@ -79,7 +79,7 @@ run ActionController::Dispatcher.new
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
 
-> The web index as available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage)
+> The web index is available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage).
 
 - View overall coverage information
 
@@ -87,7 +87,7 @@ run ActionController::Dispatcher.new
 
 - View individual file details
 
-- Clear Coverage - disabled by default as it could be considered a dangerous operation in production. Enable with `config.web_enable_clear` or leave off and clear from [rake task](#clear-coverage).
+- Clear Coverage - disabled by default as it could be considered a dangerous operation in production. Enable with `config.web_enable_clear` or leave off and clear from the [rake task](#clear-coverage).
 
   - Clear coverage report
 
@@ -139,7 +139,7 @@ If you want to run on an alternative port:
 COVERBAND_COVERAGE_PORT=8086 bundle exec rake coverband:coverage_server
 ```
 
-This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point coverband at your production redis server and ensure to checkout the production version of your project code locally.
+This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point Coverband at your production redis server and ensure to checkout the production version of your project code locally.
 
 ```
  COVERBAND_REDIS_URL=redis://username:password:redis_production_server:2322 bundle exec rake coverband:coverage_server
@@ -157,7 +157,7 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 
 # Advanced Config
 
-If you need to configure coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
+If you need to configure Coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
 
 - See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
 - By default Coverband will try to store data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
@@ -188,7 +188,7 @@ end
 
 ### Working with environment variables
 
-Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE coverband is required.
+Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE Coverband is required.
 
 For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#note-on-load-order
 
@@ -200,7 +200,7 @@ gem 'other-gem-that-requires-env-variables'
 
 ### Ignoring Files
 
-Sometimes you have files that are known to be valuable perhaps in other environments or something that is just run very infrequently. Opposed to having to mentally filter them out of the report, you can just have them ignored in the Coverband reporting by using `config.ignore` as shown below. Ignore takes a string but can also match with regex rules see how below ignores all rake tasks as an example.
+Sometimes you have files that are known to be valuable, perhaps in other environments or something that is just run very infrequently. Opposed to having to mentally filter them out of the report, you can just have them ignored in the Coverband reporting by using `config.ignore` as shown below. Ignore takes a string but can also match with regex rules see how below ignores all rake tasks as an example.
 
 ```
 config.ignore +=  ['config/application.rb',
@@ -212,7 +212,7 @@ config.ignore +=  ['config/application.rb',
                    'lib/tasks/.*']
 ```
 
-**Ignoring Custom Gem Locations:** Note, if you have your gems in a custom location under your app folder you likely want to add them to `config.ignore`. For example, if you have your gems not in a default ignored location of `app/vendor` but have them in `app/gems` you would need to add `gems/*` to your ignore list.
+**Ignoring Custom Gem Locations:** Note, if you have your gems in a custom location under your app folder you likely want to add them to `config.ignore`. For example, if you have your gems not in the default ignored location of `app/vendor` but in `app/gems`, you would need to add `gems/*` to your ignore list.
 
 ### View Tracking
 
@@ -249,7 +249,7 @@ end
 
 ### Avoiding Cache Stampede
 
-If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is due to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the numbers of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. Note, the default wiggle is set to 30 seconds.
+If you have many servers and they all hit Redis at the same time you can see spikes in your Redis CPU, and memory. This is due to a concept called [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). It is better to spread out the reporting across your servers. A simple way to do this is to add a random wiggle on your background reporting. This configuration option allows a wiggle. The right amount of wiggle depends on the number of servers you have and how willing you are to have delays in your coverage reporting. I would recommend at least 1 second per server. Note, the default wiggle is set to 30 seconds.
 
 Add a wiggle (in seconds) to the background thread to avoid all your servers reporting at the same time:
 
@@ -257,16 +257,16 @@ Add a wiggle (in seconds) to the background thread to avoid all your servers rep
 
 ### Redis Hash Store
 
-Coverband on very high volume sites with many server processes reporting can have a race condition which can cause hit counts to be inaccurate. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has a larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting frequency.
+Coverband on very high volume sites with many server processes reporting can have a race condition which can cause hit counts to be inaccurate. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting frequency.
 
-- Use a dedicated coverband redis instance: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
+- Use a dedicated Coverband redis instance: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
 - Adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
 
 See more discussion [here](https://github.com/danmayer/coverband/issues/384).
 
 ### Clear Coverage
 
-Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, possibly debugging Coverband itself.
+Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, or possibly debugging Coverband itself.
 
 `rake coverband:clear`
 
@@ -302,11 +302,11 @@ rake coverband:coverage      # report runtime coverband code coverage
 
 ### Manually Starting Coverband
 
-Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle coverband on and off in certain environments.
+Coverband starts on require of the the library which is usually done within the Gemfile. This can be disabled by setting the `COVERBAND_DISABLE_AUTO_START` environment variable. This environment variable can be useful to toggle Coverband on and off in certain environments.
 
 **NOTE:** That any value set for `COVERBAND_DISABLE_AUTO_START` is considered true, it does not match the string content but only checks the presence of the ENV variable.
 
-In order to start coverband manually yourself when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
+In order to start Coverband manually when this flag is enabled, call `Coverband.configure` followed by `Coverband.start`.
 
 ```ruby
 Coverband.configure
@@ -315,7 +315,7 @@ Coverband.start
 
 ### Verbose Debug / Development Mode
 
-Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. We respect the log level, and I would recommend log level info generally, but if you are investigating a problem Coverband logs additional data at the `debug` level. This makes it easy to follow in development mode. Be careful to not leave these on in production as they will affect performance.
+Note: To debug issues getting Coverband working. I recommend running in development mode, by turning verbose logging on `config.verbose = true` and passing in the Rails.logger `config.logger = Rails.logger` to the Coverband config. We respect the log level, and I would recommend log level info generally, but if you are investigating a problem Coverband logs additional data at the `debug` level. This makes it easy to follow in development mode. Be careful not to leave these on in production as they will affect performance.
 
 ---
 
@@ -323,7 +323,7 @@ If you are trying to debug locally wondering what code is being run during a req
 
 ### Solving: stack level too deep errors
 
-If you start seeing SystemStackError: stack level too deep errors from background jobs after installing Coverband, this means there is another patch for ResqueWorker that conflicts with Coverband's patch in your application. To fix this, change coverband gem line in your Gemfile to the following:
+If you start seeing SystemStackError: stack level too deep errors from background jobs after installing Coverband, this means there is another patch for ResqueWorker that conflicts with Coverband's patch in your application. To fix this, change Coverband gem line in your Gemfile to the following:
 
 ```
 gem 'coverband', require: ['alternative_coverband_patch', 'coverband']
@@ -335,11 +335,11 @@ If you currently have require: false, remove the 'coverband' string from the req
 gem 'coverband', require: ['alternative_coverband_patch']
 ```
 
-This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. Coverband by default will apply its patch using prepend, but you can change that to method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
+This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. By default, Coverband will apply its patch using prepend, but you can change that to method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
 
 ### Redis Sizing Info
 
-A few folks have asked about what size of Redis is needed to run coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
+A few folks have asked about what size of Redis is needed to run Coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
 
 # Newer Features
 
