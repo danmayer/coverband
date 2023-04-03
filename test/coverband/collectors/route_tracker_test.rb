@@ -20,7 +20,7 @@ class RouterTrackerTest < Minitest::Test
   test "init correctly" do
     Coverband::Collectors::RouteTracker.expects(:supported_version?).returns(true)
     tracker = Coverband::Collectors::RouteTracker.new(store: fake_store, roots: "dir")
-    assert_equal nil, tracker.target.first
+    assert_nil tracker.target.first
     assert !tracker.store.nil?
     assert_equal [], tracker.target
     assert_equal [], tracker.logged_keys
