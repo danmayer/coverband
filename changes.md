@@ -7,7 +7,8 @@ __NOTE: the current RCs include below, but this might turn into coverband 6.0__
 - adds CSP report support (thanks @jwg2s)
 - add JSON reporter (thanks @mark-davenport-fountain)
 - README improvements (thanks @jfvanderwalt)
-- Fix on test mode configuration (thanks @rileyanderson )
+- Fix on test mode configuration (thanks @rileyanderson)
+- Text Improvements (thanks @etagwerker)
 
 ### Coverband 5.2.5
 
