@@ -103,7 +103,7 @@ module Coverband
     Coverband::Collectors::Coverage.instance
   end
 
-  unless ENV["COVERBAND_DISABLE_AUTO_START"]
+  if Coverband.configuration.enabled
     begin
       # Coverband should be setup as early as possible
       # to capture usage of things loaded by initializers or other Rails engines

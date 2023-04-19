@@ -11,7 +11,7 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :route_tracker,
       :track_translations, :translations_tracker,
-      :trackers, :csp_policy
+      :trackers, :csp_policy, :enabled
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
@@ -56,6 +56,7 @@ module Coverband
     end
 
     def reset
+      @enabled = ENV["COVERBAND_DISABLE_AUTO_START"] ? false : true
       @root = Dir.pwd
       @root_paths = []
       @ignore = IGNORE_DEFAULTS.dup
