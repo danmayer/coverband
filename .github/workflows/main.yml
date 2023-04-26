@@ -27,6 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: supercharge/redis-github-action@1.2.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
