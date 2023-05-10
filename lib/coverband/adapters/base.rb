@@ -93,7 +93,7 @@ module Coverband
       end
 
       def file_hash(file)
-        Coverband::Utils::FileHasher.hash(file)
+        Coverband::Utils::FileHasher.hash_file(file)
       end
 
       # TODO: modify to extend report inline?

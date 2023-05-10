@@ -110,7 +110,7 @@ def test(name, &block)
 end
 
 def mock_file_hash(hash: "abcd")
-  Coverband::Utils::FileHasher.expects(:hash).at_least_once.returns(hash)
+  Coverband::Utils::FileHasher.expects(:hash_file).at_least_once.returns(hash)
 end
 
 def example_line

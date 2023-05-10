@@ -5,7 +5,7 @@ module Coverband
     class FileHasher
       @cache = {}
 
-      def self.hash(file, path_converter: AbsoluteFileConverter.instance)
+      def self.hash_file(file, path_converter: AbsoluteFileConverter.instance)
         @cache[file] ||= begin
                            file = path_converter.convert(file)
                            Digest::MD5.file(file).hexdigest if File.exist?(file)
