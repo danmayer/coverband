@@ -183,6 +183,9 @@ Coverband.configure do |config|
   # Does not track line-level usage, only indicates if an entire file
   # is used or not.
   config.track_views = true
+
+  # default false. Experimental support for routes usage tracking.
+  config.track_routes = true
 end
 ```
 
