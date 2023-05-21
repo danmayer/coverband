@@ -142,7 +142,7 @@ COVERBAND_COVERAGE_PORT=8086 bundle exec rake coverband:coverage_server
 This is especially useful for projects that are api only and cannot support the mounted rack app. To get production coverage, point Coverband at your production redis server and ensure to checkout the production version of your project code locally.
 
 ```
- COVERBAND_REDIS_URL=redis://username:password:redis_production_server:2322 bundle exec rake coverband:coverage_server
+ COVERBAND_REDIS_URL=redis://username:password@redis_production_server:2322 bundle exec rake coverband:coverage_server
 ```
 
 # Coverband Demo
