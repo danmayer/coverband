@@ -10,6 +10,7 @@ __NOTE: the current RCs include below, but this might turn into coverband 6.0__
 - Fix on test mode configuration (thanks @rileyanderson)
 - Text Improvements (thanks @etagwerker)
 - readme update on configuration options (thanks @D-system)
+- fix for rack mount of class vs instance (thanks @vs37559)
 
 ### Coverband 5.2.5
 
