@@ -30,6 +30,11 @@ module Coverband
         Coverband.configuration.password == Base64.decode64(auth_header.split[1]).split(":")[1]
       end
 
+      def self.call(env)
+        @app ||= new
+        @app.call(env)
+      end
+
       def call(env)
         @request = Rack::Request.new(env)
 
