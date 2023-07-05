@@ -140,6 +140,11 @@ module Coverband
         require "coverband/reporters/json_report"
         init_web
       end
+
+      def self.call(env)
+        @app ||= new
+        @app.call(env)
+      end
     end
   end
 end
