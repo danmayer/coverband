@@ -47,6 +47,15 @@ namespace :coverband do
   end
 
   ###
+  # clear all coverband trackers data
+  ###
+  desc "reset Coverband trackers data (view, routes, translations, etc), helpful for development, debugging, etc"
+  task :clear_tracker do
+    trackers = Coverband.configuration.trackers
+    trackers.each(&:reset_recordings)
+  end
+
+  ###
   # Updates the data in the coverband store from one format to another
   ###
   desc "upgrade previous Coverband datastore to latest format"
