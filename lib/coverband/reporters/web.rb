@@ -11,7 +11,6 @@ end
 module Coverband
   module Reporters
     class Web
-      CONTENT_TYPE = "text/html".freeze
       attr_reader :request
 
       CSP_HEADER = [
