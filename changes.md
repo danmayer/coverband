@@ -1,3 +1,11 @@
+### Coverband 6.0.0
+
+__NOTE: I ended up having 5.2.6 in various RCs for a long time, mostly because I had some breaking changes that were related to dropping support for old versions of Ruby and Rails__
+
+* The 6.0.0 release is all that was the 6 different RC releases of 5.2.6
+* Added Rails test matrix to github actions to test on all the supported versions
+  - Rails: 6.0.x, 6.1.x, 7.0.x, 7.1.x
+
 ### Coverband 5.2.6
 
 __NOTE: the current RCs include below, but this might turn into coverband 6.0__
