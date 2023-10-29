@@ -35,7 +35,7 @@ module Coverband
 
       def save_tracked_views(views:, reported_time:)
         uri = URI("#{Coverband.configuration.service_url}/api/collector")
-        req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
+        req = Net::HTTP::Post.new(uri, "content-type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
         data = {
           collection_type: "view_tracker_delta",
           collection_data: {

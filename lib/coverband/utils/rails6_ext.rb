@@ -46,9 +46,9 @@ module ActionDispatch
         body = ""
 
         headers = {
-          "Location" => uri.to_s,
-          "Content-Type" => "text/html",
-          "Content-Length" => body.length.to_s
+          "location" => uri.to_s,
+          "content-type" => "text/html",
+          "content-length" => body.length.to_s
         }
 
         ActionDispatch::Response.new(status, headers, body)

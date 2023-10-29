@@ -11,6 +11,7 @@ end
 module Coverband
   module Reporters
     class Web
+      CONTENT_TYPE = "text/html".freeze
       attr_reader :request
 
       CSP_HEADER = [
@@ -66,7 +67,7 @@ module Coverband
             elsif request_path_info =~ %r{\/clear_.*}
               return clear_abstract_tracking(tracker)
             else
-              return [200, {"Content-Type" => "text/html"}, [display_abstract_tracker(tracker)]]
+              return [200, {"content-type" => "text/html"}, [display_abstract_tracker(tracker)]]
             end
           end
         end
@@ -203,9 +204,9 @@ module Coverband
 
       def coverband_headers(content_type: "text/html")
         web_headers = {
-          "Content-Type" => content_type
+          "content-type" => content_type
         }
-        web_headers["Content-Security-Policy-Report-Only"] = CSP_HEADER if Coverband.configuration.csp_policy
+        web_headers["content-security-policy-report-only"] = CSP_HEADER if Coverband.configuration.csp_policy
         web_headers
       end
 

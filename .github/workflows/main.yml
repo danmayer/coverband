@@ -19,6 +19,7 @@ jobs:
         # truffleruby,
         # truffleruby-head,
         # removing jruby again to flaky
+        gemfile: [ Gemfile.rails6.0, Gemfile.rails6.1, Gemfile.rails7.0, Gemfile.rails7.1 ]
         # ruby: [2.3, 2.4, 2.5, 2.6, 2.7, "3.0", "3.1", jruby]
         # need to add support for multiple gemfiles
         ruby: ["2.7", "3.0", "3.1", "3.2"]

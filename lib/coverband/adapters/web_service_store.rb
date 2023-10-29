@@ -51,7 +51,7 @@ module Coverband
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         env_filter = opts.key?(:env_filter) ? opts[:env_filter] : "production"
         uri = URI("#{coverband_url}/api/coverage?type=#{local_type}&env_filter=#{env_filter}")
-        req = Net::HTTP::Get.new(uri, "Content-Type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
+        req = Net::HTTP::Get.new(uri, "content-type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
           http.request(req)
         end

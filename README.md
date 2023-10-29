@@ -407,7 +407,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 
 - run tests:
   - `bundle exec rake`
-  - `BUNDLE_GEMFILE=Gemfile.rails6 bundle exec rake` (Same tests using rails 6 instead of 5)
+  - `BUNDLE_GEMFILE=Gemfile.rails7 bundle exec rake` (Same tests using rails 7 instead of 6)
 - view test coverage: `open coverage/index.html`
 - run the benchmarks before and after your change to see impact
   - `rake benchmarks`

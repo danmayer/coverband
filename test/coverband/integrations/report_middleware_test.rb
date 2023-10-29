@@ -34,7 +34,7 @@ class ReportMiddlewareTest < Minitest::Test
 
   def fake_app
     @fake_app ||= lambda do |env|
-      [200, {"Content-Type" => "text/plain"}, env["PATH_INFO"]]
+      [200, {"content-type" => "text/plain"}, env["PATH_INFO"]]
     end
   end
 

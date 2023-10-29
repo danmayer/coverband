@@ -35,7 +35,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "capybara"
   spec.add_development_dependency "m"
   spec.add_development_dependency "memory_profiler"
-  spec.add_development_dependency "minitest"
+  # breaking change in minitest and mocha
+  spec.add_development_dependency "minitest", "= 5.18.1"
   spec.add_development_dependency "minitest-fork_executor"
   spec.add_development_dependency "minitest-stub-const"
   spec.add_development_dependency "mocha", "~> 1.7.0"
@@ -47,7 +48,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "standardrb"
 
   spec.add_development_dependency "coveralls"
-  spec.add_development_dependency "minitest-profile"
+  # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
+  # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
 
   # TODO: Remove when other production adapters exist
