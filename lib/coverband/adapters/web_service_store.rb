@@ -133,7 +133,7 @@ module Coverband
 
       def send_report_body(coverage_body)
         uri = URI("#{coverband_url}/api/collector")
-        req = ::Net::HTTP::Post.new(uri, "Content-Type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
+        req = ::Net::HTTP::Post.new(uri, "content-type" => "application/json", "Coverband-Token" => Coverband.configuration.api_key)
         req.body = coverage_body
         logger&.info "Coverband: saving (#{uri}) #{req.body}" if Coverband.configuration.verbose
         res = ::Net::HTTP.start(
