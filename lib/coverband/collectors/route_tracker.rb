@@ -76,6 +76,11 @@ module Coverband
 
       def concrete_target
         if defined?(Rails.application)
+          if Rails.application.respond_to?(:reload_routes!) && Rails.application.routes.empty?
+            # NOTE: depending on eager loading etc, routes may not be loaded
+            # so load them if they aren't
+            Rails.application.reload_routes!
+          end
           Rails.application.routes.routes.map do |route|
             {
               controller: route.defaults[:controller],
