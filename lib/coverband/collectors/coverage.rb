@@ -64,7 +64,7 @@ module Coverband
           else
             if @deferred_eager_loading_data && Coverband.configuration.defer_eager_loading_data?
               toggle_eager_loading do
-                @store.save_report(@deferred_eager_loading_data)
+                @store.save_report(@deferred_eager_loading_data) if Coverband.configuration.send_deferred_eager_loading_data?
                 @deferred_eager_loading_data = nil
               end
             end
