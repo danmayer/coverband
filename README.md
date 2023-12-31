@@ -179,11 +179,6 @@ Coverband.configure do |config|
   # default false. button at the top of the web interface which clears all data
   config.web_enable_clear = true
 
-  # default false. Experimental support for tracking view layer tracking.
-  # Does not track line-level usage, only indicates if an entire file
-  # is used or not.
-  config.track_views = true
-
   # default false. Experimental support for routes usage tracking.
   config.track_routes = true
 end
@@ -221,9 +216,9 @@ config.ignore +=  ['config/application.rb',
 
 Coverband allows an optional feature to track all view files that are used by an application.
 
-To opt-in to this feature... enable the feature in your Coverband config.
+This feature is enabled by default. To stop this feature, disable the feature in your Coverband config.
 
-`config.track_views = true`
+`config.track_views = false`
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_view_tracker.png)
 
