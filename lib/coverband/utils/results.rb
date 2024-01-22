@@ -17,7 +17,11 @@ module Coverband
       def file_with_type(source_file, results_type)
         return unless get_results(results_type)
 
-        get_results(results_type).source_files.find { |file| file.filename == source_file.filename }
+        @files_with_type ||= {}
+        @files_with_type[results_type] ||= get_results(results_type).source_files.map do |source_file|
+          [source_file.filename, source_file]
+        end.to_h
+        @files_with_type[results_type][source_file.filename]
       end
 
       def runtime_relevant_coverage(source_file)
@@ -48,7 +52,11 @@ module Coverband
       def file_from_path_with_type(full_path, results_type = :merged)
         return unless get_results(results_type)
 
-        get_results(results_type).source_files.find { |file| file.filename == full_path }
+        @files_from_path_with_type ||= {}
+        @files_from_path_with_type[results_type] ||= get_results(results_type).source_files.map do |source_file|
+          [source_file.filename, source_file]
+        end.to_h
+        @files_from_path_with_type[results_type][full_path]
       end
 
       def method_missing(method, *args)
@@ -70,11 +78,11 @@ module Coverband
       private
 
       def get_eager_file(source_file)
-        eager_loading_coverage.source_files.find { |file| file.filename == source_file.filename }
+        file_with_type(source_file, Coverband::EAGER_TYPE)
       end
 
       def get_runtime_file(source_file)
-        runtime_coverage.source_files.find { |file| file.filename == source_file.filename }
+        file_with_type(source_file, Coverband::RUNTIME_TYPE)
       end
 
       def eager_loading_coverage
@@ -93,11 +101,7 @@ module Coverband
       def get_results(type)
         return nil unless Coverband::ALL_TYPES.include?(type)
 
-        if @results.key?(type)
-          @results[type]
-        else
-          @results[type] = Coverband::Utils::Result.new(report[type])
-        end
+        @results[type] ||= Coverband::Utils::Result.new(report[type])
       end
     end
   end
