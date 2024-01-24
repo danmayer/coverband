@@ -1,3 +1,14 @@
+### Coverband 6.0.2
+
+* thanks makicamel for improved deferred eager loading
+* thanks Drowze for two performance improvements to reporting coverage
+
+
+### Coverband 6.0.1
+
+* [fix on reload routes](https://github.com/danmayer/coverband/commit/f7a81c9499c01a7c027e5f8bc127815bf29a5cb7)
+
+
 ### Coverband 6.0.0
 
 __NOTE: I ended up having 5.2.6 in various RCs for a long time, mostly because I had some breaking changes that were related to dropping support for old versions of Ruby and Rails__
