@@ -16,7 +16,8 @@ module Coverband
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
-      :background_reporting_sleep_seconds, :reporting_wiggle
+      :background_reporting_sleep_seconds, :reporting_wiggle,
+      :send_deferred_eager_loading_data
 
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
@@ -67,6 +68,7 @@ module Coverband
       @background_reporting_enabled = true
       @background_reporting_sleep_seconds = nil
       @defer_eager_loading_data = false
+      @send_deferred_eager_loading_data = true
       @test_env = nil
       @web_enable_clear = false
       @track_views = true
@@ -285,6 +287,10 @@ module Coverband
 
     def defer_eager_loading_data?
       @defer_eager_loading_data
+    end
+
+    def send_deferred_eager_loading_data?
+      @send_deferred_eager_loading_data
     end
 
     def service_disabled_dev_test_env?
