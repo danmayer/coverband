@@ -438,6 +438,7 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **Coverband, [Elastic APM](https://github.com/elastic/apm-agent-ruby) and resque**
   - In an environment that uses the Elastic APM ruby agent, resque jobs will fail with `Transactions may not be nested. Already inside #<ElasticAPM::Transaction>` if the `elastic-apm` gem is loaded _before_ the `coverband` gem
   - Put `coverage` ahead of `elastic-apm` in your Gemfile
+- **Bootsnap**, The methods used by [bootsnap do not support having coverage enabled](https://github.com/Shopify/bootsnap/blob/main/lib/bootsnap/compile_cache/iseq.rb#L87), so you can either have Coverband or bootsnap, but not both.  
 
 ### Debugging Redis Store
 
