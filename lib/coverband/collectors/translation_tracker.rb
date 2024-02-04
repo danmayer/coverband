@@ -36,7 +36,7 @@ module Coverband
           app_translation_keys = []
           app_translation_files = ::I18n.load_path.select { |f| f.match(/config\/locales/) }
           app_translation_files.each do |file|
-            app_translation_keys += flatten_hash(YAML.load_file(file)).keys
+            app_translation_keys += flatten_hash(YAML.load_file(file, aliases: true)).keys
           end
           app_translation_keys.uniq
         else
