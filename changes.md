@@ -135,7 +135,7 @@ __NOTE: the current RCs include below, but this might turn into coverband 6.0__
 - added support to download coverage and view data in JSON format
 - documentation about working with environment variables
 - add cache wiggle to avoid Redis CPU spikes (cache stampede on Redis server)
-- make the nocov consistant on the data download and html view
+- make the nocov consistent on the data download and html view
 - small performance improvements
 
 ### Coverband 4.2.3
