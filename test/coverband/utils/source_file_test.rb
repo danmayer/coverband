@@ -7,10 +7,10 @@ require File.expand_path("../../test_helper", File.dirname(__FILE__))
 # initial version of test pulled into Coverband from Simplecov 12/19/2018
 ####
 describe Coverband::Utils::SourceFile do
-  COVERAGE_FOR_SAMPLE_RB = [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil].freeze
+  coverage_for_sample_rb = [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil].freeze
   describe "a source file initialized with some coverage data" do
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("sample.rb"), COVERAGE_FOR_SAMPLE_RB)
+      Coverband::Utils::SourceFile.new(source_fixture("sample.rb"), coverage_for_sample_rb)
     end
 
     it "has a filename" do
@@ -70,7 +70,7 @@ describe Coverband::Utils::SourceFile do
 
   describe "simulating potential Ruby 1.9 defect -- see Issue #56" do
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("sample.rb"), COVERAGE_FOR_SAMPLE_RB + [nil])
+      Coverband::Utils::SourceFile.new(source_fixture("sample.rb"), coverage_for_sample_rb + [nil])
     end
 
     it "has 16 source lines regardless of extra data in coverage array" do
@@ -88,10 +88,10 @@ describe Coverband::Utils::SourceFile do
   end
 
   describe "a file that is never relevant" do
-    COVERAGE_FOR_NEVER_RB = [nil, nil].freeze
+    coverage_for_never_rb = [nil, nil].freeze
 
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("never.rb"), COVERAGE_FOR_NEVER_RB)
+      Coverband::Utils::SourceFile.new(source_fixture("never.rb"), coverage_for_never_rb)
     end
 
     it "has 0.0 covered_strength" do
@@ -104,10 +104,10 @@ describe Coverband::Utils::SourceFile do
   end
 
   describe "a file where nothing is ever executed mixed with skipping #563" do
-    COVERAGE_FOR_SKIPPED_RB = [nil, nil, nil, nil].freeze
+    coverage_for_skipped_rb = [nil, nil, nil, nil].freeze
 
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("skipped.rb"), COVERAGE_FOR_SKIPPED_RB)
+      Coverband::Utils::SourceFile.new(source_fixture("skipped.rb"), coverage_for_skipped_rb)
     end
 
     it "has 0.0 covered_strength" do
@@ -120,10 +120,10 @@ describe Coverband::Utils::SourceFile do
   end
 
   describe "a file where everything is skipped and missed #563" do
-    COVERAGE_FOR_SKIPPED_RB_2 = [nil, nil, 0, nil].freeze
+    coverage_for_skipped_rb_2 = [nil, nil, 0, nil].freeze
 
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("skipped.rb"), COVERAGE_FOR_SKIPPED_RB_2)
+      Coverband::Utils::SourceFile.new(source_fixture("skipped.rb"), coverage_for_skipped_rb_2)
     end
 
     it "has 0.0 covered_strength" do
@@ -136,10 +136,10 @@ describe Coverband::Utils::SourceFile do
   end
 
   describe "a file where everything is skipped/irrelevamt but executed #563" do
-    COVERAGE_FOR_SKIPPED_AND_EXECUTED_RB = [nil, nil, 1, 1, 0, nil, nil, nil].freeze
+    coverage_for_skkiped_and_executed_rb = [nil, nil, 1, 1, 0, nil, nil, nil].freeze
 
     subject do
-      Coverband::Utils::SourceFile.new(source_fixture("skipped_and_executed.rb"), COVERAGE_FOR_SKIPPED_AND_EXECUTED_RB)
+      Coverband::Utils::SourceFile.new(source_fixture("skipped_and_executed.rb"), coverage_for_skkiped_and_executed_rb)
     end
 
     it "has 0.0 covered_strength" do
