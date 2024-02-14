@@ -172,8 +172,6 @@ ensure
   $stderr = previous_stderr
 end
 
-require "coverband"
-
 Coverband::Configuration.class_eval do
   def test_env
     true

@@ -221,7 +221,7 @@ module Coverband
         max = data_from_redis[FILE_LENGTH_KEY].to_i - 1
         Array.new(max + 1) do |index|
           line_coverage = data_from_redis[index.to_s]
-          line_coverage.nil? ? nil : line_coverage.to_i
+          line_coverage&.to_i
         end
       end
 
