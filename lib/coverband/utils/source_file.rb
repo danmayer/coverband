@@ -74,7 +74,7 @@ module Coverband
           return "skipped" if skipped?
           return "never" if never?
           return "missed" if missed?
-          return "covered" if covered?
+          "covered" if covered?
         end
       end
 

@@ -56,7 +56,7 @@ module Coverband
 
         return [401, {"www-authenticate" => 'Basic realm=""'}, [""]] unless check_auth
 
-        request_path_info = request.path_info == "" ? "/" : request.path_info
+        request_path_info = (request.path_info == "") ? "/" : request.path_info
         tracker_route = false
         Coverband.configuration.trackers.each do |tracker|
           if request_path_info.match(tracker.class::REPORT_ROUTE)
@@ -218,7 +218,7 @@ module Coverband
       # %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : "/"
       # ^^ the above is NOT valid Ruby 2.3/2.4 even though rubocop / standard think it is
       def base_path
-        request.path =~ %r{\/.*\/} ? request.path.match("/.*/")[0] : "/"
+        (request.path =~ %r{\/.*\/}) ? request.path.match("/.*/")[0] : "/"
       end
     end
   end

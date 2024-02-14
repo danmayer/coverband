@@ -34,12 +34,10 @@ module Coverband
           else
             if lock!(local_type)
               Thread.new do
-                begin
-                  result = yield(deferred_time)
-                  set(local_type, JSON.generate(result))
-                ensure
-                  unlock!(local_type)
-                end
+                result = yield(deferred_time)
+                set(local_type, JSON.generate(result))
+              ensure
+                unlock!(local_type)
               end
             end
             JSON.parse(cached_result)
@@ -147,7 +145,7 @@ module Coverband
 
       def save_report(report)
         report_time = Time.now.to_i
-        updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
+        updated_time = (type == Coverband::EAGER_TYPE) ? nil : report_time
         keys = []
         report.each_slice(@save_report_batch_size) do |slice|
           files_data = slice.map { |(file, data)|
@@ -215,7 +213,7 @@ module Coverband
 
         data = coverage_data_from_redis(data_from_redis)
         hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!("data" => data)
-        hash[file][LAST_UPDATED_KEY] = hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "" ? nil : hash[file][LAST_UPDATED_KEY].to_i
+        hash[file][LAST_UPDATED_KEY] = (hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "") ? nil : hash[file][LAST_UPDATED_KEY].to_i
         hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY], FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
       end
 

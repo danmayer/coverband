@@ -103,7 +103,7 @@ namespace :benchmarks do
   NON_NIL_LINES = 18
   def fake_line_numbers
     LINES.times.map do |line|
-      coverage = line < NON_NIL_LINES ? rand(5) : nil
+      coverage = (line < NON_NIL_LINES) ? rand(5) : nil
     end
   end
 

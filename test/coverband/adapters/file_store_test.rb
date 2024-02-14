@@ -16,7 +16,7 @@ class AdaptersFileStoreTest < Minitest::Test
       previous_file_path = "#{@test_file_path}.#{::Process.pid}"
       `rm #{@test_file_path}` if File.exist?(@test_file_path)
       `rm #{previous_file_path}` if File.exist?(previous_file_path)
-      File.open(previous_file_path, "w") { |f| f.write(test_data.to_json) }
+      File.write(previous_file_path, test_data.to_json)
       @store = Coverband::Adapters::FileStore.new(@test_file_path)
     end
 

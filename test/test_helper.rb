@@ -92,11 +92,11 @@ Mocha::Configuration.prevent(:stubbing_method_unnecessarily)
 Mocha::Configuration.prevent(:stubbing_non_existent_method)
 
 def test(name, &block)
-  test_name = "test_#{name.gsub(/\s+/, "_")}".to_sym
+  test_name = :"test_#{name.gsub(/\s+/, "_")}"
   defined = begin
     instance_method(test_name)
-            rescue
-              false
+  rescue
+    false
   end
   raise "#{test_name} is already defined in #{self}" if defined
 

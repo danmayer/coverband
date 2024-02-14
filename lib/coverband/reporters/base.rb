@@ -12,7 +12,7 @@ module Coverband
 
         def report(store, _options = {})
           all_roots = Coverband.configuration.all_root_paths
-          scov_style_report = get_current_scov_data_imp(store, all_roots)
+          get_current_scov_data_imp(store, all_roots)
 
           # These are extremelhy verbose but useful during coverband development, not generally for users
           # Only available by uncommenting this mode is never released
@@ -20,7 +20,6 @@ module Coverband
           #   # msg = "report:\n #{scov_style_report.inspect}"
           #   # Coverband.configuration.logger.debug msg
           # end
-          scov_style_report
         end
 
         ###
@@ -71,7 +70,7 @@ module Coverband
         # > [nil,0,0,1,0,1]
         def merge_arrays(first, second)
           merged = []
-          longest = first.length > second.length ? first : second
+          longest = (first.length > second.length) ? first : second
 
           longest.each_with_index do |_line, index|
             merged[index] = if first[index] || second[index]
