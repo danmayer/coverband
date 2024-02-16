@@ -121,6 +121,7 @@ module Coverband
       end
 
       def settings
+        return "" if Coverband.configuration.hide_settings
         Coverband::Utils::HTMLFormatter.new(nil, base_path: base_path).format_settings!
       end
 
