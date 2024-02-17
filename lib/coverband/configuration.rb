@@ -154,7 +154,7 @@ module Coverband
     def background_reporting_sleep_seconds
       @background_reporting_sleep_seconds ||= if service?
         # default to 10m for service
-        Coverband.configuration.coverband_env == "production" ? 600 : 60
+        (Coverband.configuration.coverband_env == "production") ? 600 : 60
       elsif store.is_a?(Coverband::Adapters::HashRedisStore)
         # Default to 5 minutes if using the hash redis store
         300
@@ -180,7 +180,7 @@ module Coverband
     def store=(store)
       raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
       raise "invalid configuration: only coverband service expects an API Key" if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
-      raise "invalid configuration: coverband service shouldn't have redis url set" if ENV["COVERBAND_REDIS_URL"] && store.class.to_s == "Coverband::Adapters::WebServiceStore"
+      raise "invalid configuration: coverband service shouldn't have redis url set" if ENV["COVERBAND_REDIS_URL"] && store.instance_of?(::Coverband::Adapters::WebServiceStore)
 
       @store = store
     end
@@ -262,11 +262,11 @@ module Coverband
     end
 
     def coverband_env
-      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || (defined?(Rails) && Rails.respond_to?(:env) ? Rails.env : "unknown")
+      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || ((defined?(Rails) && Rails.respond_to?(:env)) ? Rails.env : "unknown")
     end
 
     def coverband_timeout
-      @coverband_timeout ||= coverband_env == "development" ? 5 : 2
+      @coverband_timeout ||= (coverband_env == "development") ? 5 : 2
     end
 
     def service_dev_mode

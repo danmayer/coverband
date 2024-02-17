@@ -100,7 +100,7 @@ module Coverband
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i
-        updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
+        updated_time = (type == Coverband::EAGER_TYPE) ? nil : report_time
         report.each_pair do |key, line_data|
           extended_data = {
             FIRST_UPDATED_KEY => report_time,
@@ -145,11 +145,11 @@ module Coverband
       # TODO: This should only be 2 cases get our dup / not dups aligned
       def array_add(latest, original)
         if Coverband.configuration.use_oneshot_lines_coverage
-          latest.map!.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
+          latest.map!.with_index { |v, i| ((v + original[i] >= 1) ? 1 : 0) if v && original[i] }
         elsif Coverband.configuration.simulate_oneshot_lines_coverage
-          latest.map.with_index { |v, i| (v + original[i] >= 1 ? 1 : 0) if v && original[i] }
+          latest.map.with_index { |v, i| ((v + original[i] >= 1) ? 1 : 0) if v && original[i] }
         else
-          latest.map.with_index { |v, i| v && original[i] ? v + original[i] : nil }
+          latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
         end
       end
     end

@@ -34,7 +34,7 @@ class CastingInviter
 
   def invalid_invitees
     @invalid_invitees ||=
-      invitee_list.map { |item| item unless item.match(EMAIL_REGEX) }.compact
+      invitee_list.reject { |item| item.match(EMAIL_REGEX) }
   end
 
   def invitee_list

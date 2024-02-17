@@ -68,11 +68,7 @@ module Coverband
       end
 
       def respond_to_missing?(method)
-        if get_results(type).respond_to?(method)
-          true
-        else
-          false
-        end
+        get_results(type).respond_to?(method)
       end
 
       private

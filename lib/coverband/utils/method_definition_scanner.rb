@@ -71,7 +71,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
         def scan_node(node, class_name)
           definitions = []
           return definitions unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
-          current_class = node.type == :CLASS ? node.children.first.children.last : class_name
+          current_class = (node.type == :CLASS) ? node.children.first.children.last : class_name
           if node.type == :DEFN
             definitions <<
               MethodDefinition.new(

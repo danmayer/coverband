@@ -53,7 +53,7 @@ class CollectorsCoverageTest < Minitest::Test
   end
 
   test "defaults to a redis store" do
-    assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get("@store").class
+    assert_equal Coverband::Adapters::RedisStore, coverband.instance_variable_get(:@store).class
   end
 
   test "report_coverage raises errors in tests" do

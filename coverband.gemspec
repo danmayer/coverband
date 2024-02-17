@@ -18,7 +18,6 @@ Gem::Specification.new do |spec|
 
   spec.files = `git ls-files`.split("\n").reject { |f| f.start_with?("docs") }
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = %w[lib]
 
   spec.required_ruby_version = ">= 2.3"
@@ -44,7 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
-  spec.add_development_dependency "standard", "= 0.2.5"
+  spec.add_development_dependency "standard", "~> 1.34.0"
   spec.add_development_dependency "standardrb"
 
   spec.add_development_dependency "coveralls"

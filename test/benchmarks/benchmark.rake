@@ -5,7 +5,7 @@ namespace :benchmarks do
   # Enable and start GC before each job run. Disable GC afterwards.
   #
   # Inspired by https://www.omniref.com/ruby/2.2.1/symbols/Benchmark/bm?#annotation=4095926&line=182
-  class GCSuite
+  class GCSuite # standard:disable Lint/ConstantDefinitionInBlock
     def warming(*)
       run_gc
     end
@@ -99,11 +99,11 @@ namespace :benchmarks do
     Coverband::Collectors::Coverage.instance.reset_instance
   end
 
-  LINES = 45
-  NON_NIL_LINES = 18
+  lines = 45
+  non_nil_lines = 18
   def fake_line_numbers
-    LINES.times.map do |line|
-      coverage = line < NON_NIL_LINES ? rand(5) : nil
+    lines.times.map do |line|
+      coverage = (line < non_nil_lines) ? rand(5) : nil
     end
   end
 

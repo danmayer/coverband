@@ -98,12 +98,10 @@ module Coverband
       def retry_failed_reports
         retries = []
         @failed_coverage_reports.any? do
-          begin
-            report_body = @failed_coverage_reports.pop
-            send_report_body(report_body)
-          rescue
-            retries << report_body
-          end
+          report_body = @failed_coverage_reports.pop
+          send_report_body(report_body)
+        rescue
+          retries << report_body
         end
         retries.each do |report_body|
           add_retry_message(report_body)

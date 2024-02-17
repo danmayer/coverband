@@ -15,7 +15,7 @@ def require_unique_file(file = "dog.rb", variables = {})
   FileUtils.mkdir_p(Pathname.new(temp_file).dirname.to_s)
   file_contents = File.read("./test/#{file}")
   file_contents = ERB.new(file_contents).result(OpenStruct.new(variables).instance_eval { binding }) if variables.any?
-  File.open(temp_file, "w") { |w| w.write(file_contents) }
+  File.write(temp_file, file_contents)
   require temp_file
   Coverband::Utils::RelativeFileConverter.convert(File.expand_path(temp_file))
 end
