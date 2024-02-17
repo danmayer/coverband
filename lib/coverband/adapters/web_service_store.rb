@@ -42,7 +42,7 @@ module Coverband
 
       ###
       # Fetch coverband coverage via the API
-      # This would allow one to expore from the service and move back to the open source
+      # This would allow one to explore from the service and move back to the open source
       # without having to reset coverage
       ###
       def coverage(local_type = nil, opts = {})

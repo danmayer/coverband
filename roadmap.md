@@ -53,4 +53,4 @@ Will be the fully modern release that drops maintenance legacy support in favor 
 
 It is important for a project to not only know what problems it is trying to solve, but what things are out of scope. We will start to try to document that here:
 
-* We have in the past tried to add coverage tracking for all gems, this added a lot of complexity and compuation overhead and slowed things down to much. It also was of less value than we had hoped. There are alterntative ways to instrument a shared library to track across multiple applications, and single application gem utilization is easier to handle in a one of basis. It is unlikely we will support that again.
+* We have in the past tried to add coverage tracking for all gems, this added a lot of complexity and computation overhead and slowed things down to much. It also was of less value than we had hoped. There are alternative ways to instrument a shared library to track across multiple applications, and single application gem utilization is easier to handle in a one of basis. It is unlikely we will support that again.

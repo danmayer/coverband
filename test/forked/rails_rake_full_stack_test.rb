@@ -11,7 +11,7 @@ class RailsRakeFullStackTest < Minitest::Test
   end
 
   # test 'rake tasks shows coverage properly within eager_loading' do
-  # this was testing gem data, which we no logner support and I dont know if this makes sense anymre
+  # this was testing gem data, which we no longer support and I dont know if this makes sense anymre
   # end
 
   test "ignored rake tasks don't add coverage" do

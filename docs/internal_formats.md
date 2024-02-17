@@ -1,6 +1,6 @@
 ### Internal Formats
 
-If you are doing development having some documented examples of various internal data formats can be helpfu....
+If you are doing development having some documented examples of various internal data formats can be helpful...
 
 The format we get from TracePoint, Coverage, Internal Representations, and Used by SimpleCov for reporting have traditionally varied a bit. We can document the differences in formats here.
 

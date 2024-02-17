@@ -4,7 +4,7 @@ module Coverband
   module Reporters
     ###
     # This is the base clase for report generation
-    # it helps with filtering, normalization, etc for final reprort generation
+    # it helps with filtering, normalization, etc for final report generation
     ###
     class Base
       class << self

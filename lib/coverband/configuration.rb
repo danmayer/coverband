@@ -93,7 +93,7 @@ module Coverband
       @coverband_timeout = nil
       @service_dev_mode = nil
       @service_test_mode = nil
-      @proces_type = nil
+      @process_type = nil
 
       @redis_url = nil
       @redis_namespace = nil
