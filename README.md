@@ -79,7 +79,7 @@ run ActionController::Dispatcher.new
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
 
-> The web index is available on the [Coverband Demo site](https://coverband-demo.herokuapp.com/coverage?#_Coverage).
+> You can check it out locally by running the [Coverband Demo App](https://github.com/danmayer/coverband_rails_example).
 
 - View overall coverage information
 
