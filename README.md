@@ -463,4 +463,4 @@ The Coverband logo was created by [Dave Woodall](http://davewoodall.com). Thanks
 # License
 
 This is a MIT License project...
-See the file license.txt for copying permission.
+See the file [LICENSE](LICENSE) for copying permission.
