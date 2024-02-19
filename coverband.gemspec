@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "m"
   spec.add_development_dependency "memory_profiler"
   # breaking change in minitest and mocha
-  spec.add_development_dependency "minitest", "= 5.18.1"
+  spec.add_development_dependency "minitest", "= 5.22.2"
   spec.add_development_dependency "minitest-fork_executor"
   spec.add_development_dependency "minitest-stub-const"
   spec.add_development_dependency "mocha", "~> 1.7.0"
