@@ -33,6 +33,41 @@ $(document).ready(function() {
     ]
   });
 
+  // TODO: add support for searching...
+  // hmm should I just use manual paging? or load more...
+  if ($(".file_list.unsorted").length == 1) {
+    var current_rows = 0;
+    var total_rows = 0;
+    var page = 1;
+
+    // write a function to get a page of data and add it to the table
+    function get_page(page) {
+      $.ajax({
+        url: `/coverage/report_json?page=${page}`,
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+          console.log(data);
+          total_rows = data["iTotalRecords"];
+          // NOTE: we request 250 at a time, but we seem to have some files that we have as a list but 0 coverage,
+          // so we don't get back 250 per page... to ensure we we need to account for filtered out and empty files
+          // this 250 at the moment is synced to the 250 in the hash redis store
+          current_rows += 250; //data["aaData"].length;
+          console.log(current_rows);
+          console.log(total_rows);
+          $(".file_list.unsorted").dataTable().fnAddData(data["aaData"]);
+          page += 1;
+          // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
+          if (page < 100 && current_rows < total_rows) {
+            get_page(page);
+          }
+        }
+      });
+    }
+    get_page(page);
+  }
+
+
   // Syntax highlight all files up front - deactivated
   // $('.source_table pre code').each(function(i, e) {hljs.highlightBlock(e, '  ')});
 

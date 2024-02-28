@@ -51,12 +51,22 @@ module Coverband
           end
         end
 
+        protected
+
+        def split_coverage(types, coverage_cache, options = {})
+          if types.is_a?(Array)
+            coverage_for_types(types, options)
+          else
+            super
+          end
+        end
+
         private
 
         # sleep in between to avoid holding other redis commands..
         # with a small random offset so runtime and eager types can be processed "at the same time"
         def deferred_time
-          rand(3.0..4.0)
+          rand(2.0..3.0)
         end
 
         def del(local_type)
@@ -107,7 +117,7 @@ module Coverband
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
 
         @get_coverage_cache = if opts[:get_coverage_cache]
-          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join(".")
+          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace, "v2"].compact.join(".")
           GetCoverageRedisCacheStore.new(redis, key_prefix)
         else
           GetCoverageNullCacheStore
@@ -128,6 +138,7 @@ module Coverband
           file_keys = files_set
           @redis.del(*file_keys) if file_keys.any?
           @redis.del(files_key)
+          @redis.del(files_key(type))
           @get_coverage_cache.clear!(type)
         end
         self.type = old_type
@@ -171,12 +182,19 @@ module Coverband
         @redis.sadd(files_key, keys) if keys.any?
       end
 
-      def coverage(local_type = nil)
+      # TODO: refactor this and the method below and consider removing all the cached results stuff
+      def coverage(local_type = nil, opts = {})
+        page_size = opts[:page_size] || 250
         cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
-          files_set = files_set(local_type)
-
+          files_set = if opts[:page]
+            files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
+          elsif opts[:filename]
+            files_set(local_type).select { |filepath| filepath == opts[:filename] } || {}
+          else
+            files_set(local_type)
+          end
           # use batches with a sleep in between to avoid overloading redis
-          files_set.each_slice(250).flat_map do |key_batch|
+          files_set.each_slice(page_size).flat_map do |key_batch|
             sleep sleep_time
             @redis.pipelined do |pipeline|
               key_batch.each do |key|
@@ -189,6 +207,44 @@ module Coverband
         cached_results.each_with_object({}) do |data_from_redis, hash|
           add_coverage_for_file(data_from_redis, hash)
         end
+      end
+
+      # NOTE: when using paging we need to ensure we have the same set of files per page in runtime and eager
+      def coverage_for_types(types, opts = {})
+        page_size = opts[:page_size] || 250
+
+        local_type = Coverband::RUNTIME_TYPE
+        hash_data = {}
+
+        runtime_file_set = if opts[:page]
+          files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
+        elsif opts[:filename]
+          files_set(local_type).select { |filepath| filepath == opts[:filename] } || {}
+        else
+          files_set(local_type)
+        end
+        hash_data[Coverband::RUNTIME_TYPE] = runtime_file_set.each_slice(page_size).flat_map do |key_batch|
+          @redis.pipelined do |pipeline|
+            key_batch.each do |key|
+              pipeline.hgetall(key)
+            end
+          end
+        end
+
+        matched_file_set = files_set(Coverband::EAGER_TYPE)
+          .select { |filepath| runtime_file_set.include?(filepath) } || {}
+        hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
+          @redis.pipelined do |pipeline|
+            key_batch.each do |key|
+              pipeline.hgetall(key)
+            end
+          end
+        end
+        hash_data
+      end
+
+      def file_count(local_type = nil)
+        files_set(local_type).count { |filename| !Coverband.configuration.ignore.any? { |i| filename.match(i) } }
       end
 
       def raw_store

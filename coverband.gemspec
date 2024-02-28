@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest-fork_executor"
   spec.add_development_dependency "minitest-stub-const"
   spec.add_development_dependency "mocha", "~> 1.7.0"
+  # spec.add_development_dependency "spy"
   spec.add_development_dependency "rack"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"

@@ -13,12 +13,13 @@ require "time"
 module Coverband
   module Utils
     class HTMLFormatter
-      attr_reader :notice, :base_path, :tracker
+      attr_reader :notice, :base_path, :tracker, :page
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice, nil)
         @base_path = options.fetch(:base_path, "./")
         @tracker = options.fetch(:tracker, nil)
+        @page = options.fetch(:page, nil)
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 

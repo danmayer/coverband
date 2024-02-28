@@ -2,23 +2,27 @@
   <% unless options[:skip_nav] %>
     <h2>
       <span class="group_name"><%= title %></span>
-      (<span class="covered_percent"><span class="<%= coverage_css_class(source_files.covered_percent) %>"><%= source_files.covered_percent.round(2) %>%</span></span>
-       covered at
-       <span class="covered_strength">
-         <span class="<%= strength_css_class(source_files.covered_strength) %>">
-           <%= source_files.covered_strength.round(2) %>
-         </span>
-      </span> hits/line)
+      <% unless page %>
+        (<span class="covered_percent"><span class="<%= coverage_css_class(source_files.covered_percent) %>"><%= source_files.covered_percent.round(2) %>%</span></span>
+        covered at
+        <span class="covered_strength">
+          <span class="<%= strength_css_class(source_files.covered_strength) %>">
+            <%= source_files.covered_strength.round(2) %>
+          </span>
+        </span> hits/line)
+      <% end %>
     </h2>
   <% end %>
   <a name="<%= title_id %>"></a>
   <div>
-    <b><%= source_files.length %></b> files in total.
-    <b><%= source_files.lines_of_code %></b> relevant lines.
-    <span class="green"><b><%= source_files.covered_lines %></b> lines covered</span> and
-    <span class="red"><b><%= source_files.missed_lines %></b> lines missed </span>
+    <% unless page %>
+      <b><%= source_files.length %></b> files in total.
+      <b><%= source_files.lines_of_code %></b> relevant lines.
+      <span class="green"><b><%= source_files.covered_lines %></b> lines covered</span> and
+      <span class="red"><b><%= source_files.missed_lines %></b> lines missed </span>
+    <% end %>
   </div>
-  <table class="file_list">
+  <table class="file_list <%= page ? "unsorted" : "sorted" %>">
     <thead>
       <tr>
         <th title="The source file name">File</th>
@@ -33,26 +37,28 @@
       </tr>
     </thead>
     <tbody>
-      <% source_files.each do |source_file| %>
-        <tr>
-          <% source_class = source_file.never_loaded ? 'strong red' : 'strong'%>
-          <td class="<%= source_class %>">
-            <%= link_to_source_file(source_file) %>
-          </td>
-          <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
-          <% runtime_percentage = result.runtime_relevant_coverage(source_file) %>
-          <td class="<%= "#{coverage_css_class(runtime_percentage)}" %> strong">
-            <%= "#{runtime_percentage || '0'} %" %>
-          </td>
-          <td><%= source_file.lines.count %></td>
-          <td><%= source_file.covered_lines.count + source_file.missed_lines.count %></td>
-          <td><%= source_file.covered_lines.count %></td>
-          <td>
-            <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.covered_lines_count || 0 %>
-          </td>
-          <td><%= source_file.missed_lines.count %></td>
-          <td><%= source_file.covered_strength %></td>
-        </tr>
+      <% unless page %>
+        <% source_files.each do |source_file| %>
+          <tr>
+            <% source_class = source_file.never_loaded ? 'strong red' : 'strong'%>
+            <td class="<%= source_class %>">
+              <%= link_to_source_file(source_file) %>
+            </td>
+            <td class="<%= coverage_css_class(source_file.covered_percent) %> strong"><%= source_file.covered_percent.round(2).to_s %> %</td>
+            <% runtime_percentage = result.runtime_relevant_coverage(source_file) %>
+            <td class="<%= "#{coverage_css_class(runtime_percentage)}" %> strong">
+              <%= "#{runtime_percentage || '0'} %" %>
+            </td>
+            <td><%= source_file.lines.count %></td>
+            <td><%= source_file.covered_lines.count + source_file.missed_lines.count %></td>
+            <td><%= source_file.covered_lines.count %></td>
+            <td>
+              <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.covered_lines_count || 0 %>
+            </td>
+            <td><%= source_file.missed_lines.count %></td>
+            <td><%= source_file.covered_strength %></td>
+          </tr>
+        <% end %>
       <% end %>
     </tbody>
   </table>

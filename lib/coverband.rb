@@ -130,6 +130,7 @@ module Coverband
       ###
       def initialize
         require "coverband/reporters/web"
+        require "coverband/reporters/web_pager"
         require "coverband/utils/html_formatter"
         require "coverband/utils/result"
         require "coverband/utils/file_list"
@@ -139,6 +140,21 @@ module Coverband
         require "coverband/reporters/html_report"
         require "coverband/reporters/json_report"
         init_web
+      end
+
+      def self.call(env)
+        @app ||= new
+        @app.call(env)
+      end
+    end
+  end
+
+  module Reporters
+    class WebPager < Web
+      def initialize
+        require "coverband/reporters/web"
+        require "coverband/reporters/web_pager"
+        super
       end
 
       def self.call(env)

@@ -35,7 +35,7 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
-      def coverage(_local_type = nil)
+      def coverage(_local_type = nil, opts = {})
         raise ABSTRACT_KEY
       end
 
@@ -51,9 +51,9 @@ module Coverband
         raise "abstract"
       end
 
-      def get_coverage_report
+      def get_coverage_report(options = {})
         coverage_cache = {}
-        data = Coverband.configuration.store.split_coverage(Coverband::TYPES, coverage_cache)
+        data = Coverband.configuration.store.split_coverage(Coverband::TYPES, coverage_cache, options)
         data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES, coverage_cache))
       end
 
@@ -67,12 +67,12 @@ module Coverband
 
       protected
 
-      def split_coverage(types, coverage_cache)
+      def split_coverage(types, coverage_cache, options = {})
         types.reduce({}) do |data, type|
           if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage
             data.update(type => coverage_cache[type] ||= simulated_runtime_coverage)
           else
-            data.update(type => coverage_cache[type] ||= coverage(type))
+            data.update(type => coverage_cache[type] ||= coverage(type, options))
           end
         end
       end

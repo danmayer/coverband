@@ -10,9 +10,9 @@ module Coverband
       class << self
         DATA_KEY = "data"
 
-        def report(store, _options = {})
+        def report(store, options = {})
           all_roots = Coverband.configuration.all_root_paths
-          get_current_scov_data_imp(store, all_roots)
+          get_current_scov_data_imp(store, all_roots, options)
 
           # These are extremelhy verbose but useful during coverband development, not generally for users
           # Only available by uncommenting this mode is never released
@@ -85,12 +85,13 @@ module Coverband
         # why do we need to merge covered files data?
         # basically because paths on machines or deployed hosts could be different, so
         # two different keys could point to the same filename or `line_key`
+        # this happens when deployment has a dynmaic path or the path change during deployment (hot code reload)
         # TODO: think we are filtering based on ignore while sending to the store
         # and as we also pull it out here
         ###
-        def get_current_scov_data_imp(store, roots)
+        def get_current_scov_data_imp(store, roots, options = {})
           scov_style_report = {}
-          store.get_coverage_report.each_pair do |name, data|
+          store.get_coverage_report(options).each_pair do |name, data|
             data.each_pair do |key, line_data|
               next if Coverband.configuration.ignore.any? { |i| key.match(i) }
               next unless line_data
