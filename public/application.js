@@ -35,6 +35,8 @@ $(document).ready(function() {
 
   // TODO: add support for searching...
   // hmm should I just use manual paging? or load more...
+  // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html
+  // TODO: fix bug where we hardcoded /coverage we need to pull it from the path it is mounted on
   if ($(".file_list.unsorted").length == 1) {
     var current_rows = 0;
     var total_rows = 0;
@@ -43,11 +45,10 @@ $(document).ready(function() {
     // write a function to get a page of data and add it to the table
     function get_page(page) {
       $.ajax({
-        url: `/coverage/report_json?page=${page}`,
+        url: `${$(".file_list").data("coverageurl")}/report_json?page=${page}`,
         type: 'GET',
         dataType: 'json',
         success: function(data) {
-          console.log(data);
           total_rows = data["iTotalRecords"];
           // NOTE: we request 250 at a time, but we seem to have some files that we have as a list but 0 coverage,
           // so we don't get back 250 per page... to ensure we we need to account for filtered out and empty files

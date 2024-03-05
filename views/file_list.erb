@@ -22,7 +22,7 @@
       <span class="red"><b><%= source_files.missed_lines %></b> lines missed </span>
     <% end %>
   </div>
-  <table class="file_list <%= page ? "unsorted" : "sorted" %>">
+  <table class="file_list <%= page ? "unsorted" : "sorted" %>" data-coverageurl="<%= base_path %>">
     <thead>
       <tr>
         <th title="The source file name">File</th>
