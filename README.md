@@ -191,7 +191,7 @@ Do you use figaro, mc-settings, dotenv or something else to inject environment v
 For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#note-on-load-order
 
 ```
-gem 'dotenv-rails', require: 'dotenv/rails-now'
+gem 'dotenv-rails', require: 'dotenv/load'
 gem 'coverband'
 gem 'other-gem-that-requires-env-variables'
 ```
