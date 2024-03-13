@@ -125,7 +125,8 @@ module Coverband
 
       def report_json
         report_options = {
-          as_report: true
+          as_report: true,
+          base_path: base_path
         }
         report_options[:page] = (request.params["page"] || 1).to_i if request.params["page"]
         Coverband::Reporters::JSONReport.new(

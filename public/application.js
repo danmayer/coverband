@@ -71,35 +71,36 @@ $(document).ready(function() {
 
   // Syntax highlight all files up front - deactivated
   // $('.source_table pre code').each(function(i, e) {hljs.highlightBlock(e, '  ')});
+  src_link_click = (trigger_element) => {
+      // Get the source file element that corresponds to the clicked element
+      var source_table = $(".shared_source_table");
+      var loader_url = $(trigger_element).attr("data-loader-url");
+      $(trigger_element).colorbox(jQuery.extend(colorbox_options, { href: loader_url}));
+  
+      // If not highlighted yet, do it!
+      if (!source_table.hasClass("highlighted")) {
+        source_table.find("pre code").each(function(i, e) {
+          hljs.highlightBlock(e, "  ");
+        });
+        source_table.addClass("highlighted");
+      }
+    };
+  window.src_link_click = src_link_click;
 
   // Syntax highlight source files on first toggle of the file view popup
-  $("a.src_link").click(function() {
-    // Get the source file element that corresponds to the clicked element
-    var source_table = $($(this).attr("href"));
-    var loader_url = $(source_table).attr("data-loader-url");
-
-    $(source_table).load(loader_url);
-
-    // If not highlighted yet, do it!
-    if (!source_table.hasClass("highlighted")) {
-      source_table.find("pre code").each(function(i, e) {
-        hljs.highlightBlock(e, "  ");
-      });
-      source_table.addClass("highlighted");
-    }
-  });
+  $("a.src_link").click(src_link_click(this));
 
   var prev_anchor;
   var curr_anchor;
-
-  // Set-up of popup for source file views
-  $("a.src_link").colorbox({
+  var colorbox_options = {
+    open: true,
     transition: "none",
-    inline: true,
+    // inline: true,
     opacity: 1,
     width: "95%",
     height: "95%",
     onLoad: function() {
+      // TODO: move source highlighting here
       prev_anchor = curr_anchor ? curr_anchor : jQuery.url.attr("anchor");
       curr_anchor = this.href.split("#")[1];
       window.location.hash = curr_anchor;
@@ -115,7 +116,16 @@ $(document).ready(function() {
       }
       window.location.hash = curr_anchor;
     }
-  });
+  }
+
+  src_link_colorbox = (trigger_element) => {
+    $(trigger_element).colorbox(colorbox_options);
+  };
+  window.src_link_colorbox = src_link_colorbox;
+
+  // Set-up of popup for source file views
+  // TODO: drop the static source view even for not paged coverband, then delete all this
+  $("a.src_link").colorbox(colorbox_options);
 
   window.onpopstate = function(event) {
     if (location.hash.substring(0, 2) == "#_") {
@@ -123,7 +133,9 @@ $(document).ready(function() {
       curr_anchor = jQuery.url.attr("anchor");
     } else {
       if ($("#colorbox").is(":hidden")) {
-        $('a.src_link[href="' + location.hash + '"]').colorbox({ open: true });
+        console.log("pop");
+        // $('a.src_link[href="' + location.hash + '"]').colorbox({ open: true });
+        $('.shared_source_table').colorbox({ open: true });
       }
     }
   };
@@ -207,7 +219,8 @@ $(document).ready(function() {
     var anchor = jQuery.url.attr("anchor");
     // source file hash
     if (anchor.length == 40) {
-      $("a.src_link[href=#" + anchor + "]").click();
+      console.log("I need to fix deep links to source, the click call wont work anymore");
+      // $("a.src_link[href=#" + anchor + "]").click();
     } else {
       if ($(".group_tabs a." + anchor.replace("_", "")).length > 0) {
         $(".group_tabs a." + anchor.replace("_", "")).click();

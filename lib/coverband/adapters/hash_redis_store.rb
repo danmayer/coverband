@@ -51,16 +51,6 @@ module Coverband
           end
         end
 
-        protected
-
-        def split_coverage(types, coverage_cache, options = {})
-          if types.is_a?(Array)
-            coverage_for_types(types, options)
-          else
-            super
-          end
-        end
-
         private
 
         # sleep in between to avoid holding other redis commands..
@@ -189,7 +179,8 @@ module Coverband
           files_set = if opts[:page]
             files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
           elsif opts[:filename]
-            files_set(local_type).select { |filepath| filepath == opts[:filename] } || {}
+            # TODO: this probably needs to be an exact match of the parsed cache key section
+            files_set(local_type).select{ |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
           else
             files_set(local_type)
           end
@@ -209,7 +200,17 @@ module Coverband
         end
       end
 
+      # TODO: fix this before shipping main line release
+      # def split_coverage(types, coverage_cache, options = {})
+      #   if types.is_a?(Array)
+      #     coverage_for_types(types, options)
+      #   else
+      #     super
+      #   end
+      # end
+
       # NOTE: when using paging we need to ensure we have the same set of files per page in runtime and eager
+      # TODO: This merge of eager and runtime isn't working fix later...
       def coverage_for_types(types, opts = {})
         page_size = opts[:page_size] || 250
 
@@ -219,10 +220,13 @@ module Coverband
         runtime_file_set = if opts[:page]
           files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
         elsif opts[:filename]
-          files_set(local_type).select { |filepath| filepath == opts[:filename] } || {}
+          # TODO: this probably needs to be an exact match of the parsed cache key section
+          # match is a hack that will only kind of work
+          files_set(local_type).select{ |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
         else
           files_set(local_type)
         end
+        
         hash_data[Coverband::RUNTIME_TYPE] = runtime_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|
             key_batch.each do |key|
@@ -231,8 +235,12 @@ module Coverband
           end
         end
 
+        # TODO: debug the set isn't just paths it has other key details including coverage type so below probalby fails
+        # match is a hack that will work a sometimes... fix this but it will prove out if this solves the perf issue
         matched_file_set = files_set(Coverband::EAGER_TYPE)
-          .select { |filepath| runtime_file_set.include?(filepath) } || {}
+          .select { |eager_key, val| runtime_file_set.any?{ |runtime_key|
+          (eager_key.match(/\.\.(.*).rb/) && eager_key.match(/\.\.(.*).rb/)[0]==runtime_key.match(/\.\.(.*).rb/)[0]) }
+          } || {}
         hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|
             key_batch.each do |key|
@@ -240,7 +248,18 @@ module Coverband
             end
           end
         end
+        hash_data[Coverband::RUNTIME_TYPE] = hash_data[Coverband::RUNTIME_TYPE].each_with_object({}) do |data_from_redis, hash|
+          add_coverage_for_file(data_from_redis, hash)
+        end
+        hash_data[Coverband::EAGER_TYPE] = hash_data[Coverband::EAGER_TYPE].each_with_object({}) do |data_from_redis, hash|
+          add_coverage_for_file(data_from_redis, hash)
+        end
         hash_data
+      end
+
+      def short_name(filename)
+        filename.sub(/^#{Coverband.configuration.root}/, ".")
+          .gsub(%r{^\.\/}, "")
       end
 
       def file_count(local_type = nil)
