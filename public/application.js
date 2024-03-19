@@ -57,43 +57,31 @@ $(document).ready(function() {
           // so we don't get back 250 per page... to ensure we we need to account for filtered out and empty files
           // this 250 at the moment is synced to the 250 in the hash redis store
           current_rows += 250; //data["aaData"].length;
-          console.log(current_rows);
-          console.log(total_rows);
           $(".file_list.unsorted").dataTable().fnAddData(data["aaData"]);
           page += 1;
           // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
           if (page < 100 && current_rows < total_rows) {
             get_page(page);
           }
+          // allow rendering to complete before we click the anchor
+          setTimeout(() => {
+            if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
+              console.log("found and click");
+              $(window.auto_click_anchor).click();
+            }
+          }, 20);
         }
       });
     }
   }
 
-
-  // Syntax highlight all files up front - deactivated
-  // $('.source_table pre code').each(function(i, e) {hljs.highlightBlock(e, '  ')});
   src_link_click = (trigger_element) => {
-      // Get the source file element that corresponds to the clicked element
-      var source_table = $(".shared_source_table");
       var loader_url = $(trigger_element).attr("data-loader-url");
+      auto_click_anchor = null;
       $(trigger_element).colorbox(jQuery.extend(colorbox_options, { href: loader_url}));
-  
-      // If not highlighted yet, do it!
-      if (!source_table.hasClass("highlighted")) {
-        source_table.find("pre code").each(function(i, e) {
-          hljs.highlightBlock(e, "  ");
-        });
-        source_table.addClass("highlighted");
-      }
     };
   window.src_link_click = src_link_click;
 
-  // Syntax highlight source files on first toggle of the file view popup
-  $("a.src_link").click(src_link_click(this));
-
-  var prev_anchor;
-  var curr_anchor;
   var colorbox_options = {
     open: true,
     transition: "none",
@@ -102,45 +90,20 @@ $(document).ready(function() {
     width: "95%",
     height: "95%",
     onLoad: function() {
-      // TODO: move source highlighting here
-      prev_anchor = curr_anchor ? curr_anchor : jQuery.url.attr("anchor");
-      curr_anchor = this.href.split("#")[1];
-      window.location.hash = curr_anchor;
+      // If not highlighted yet, do it!
+      var source_table = $(".shared_source_table");
+      if (!source_table.hasClass("highlighted")) {
+        source_table.find("pre code").each(function(i, e) {
+          hljs.highlightBlock(e, "  ");
+        });
+        source_table.addClass("highlighted");
+      }
+      window.location.hash = this.href.split("#")[1];
     },
     onCleanup: function() {
-      if (prev_anchor && prev_anchor != curr_anchor) {
-        $('a[href="#' + prev_anchor + '"]').click();
-        curr_anchor = prev_anchor;
-      } else {
-        $(".group_tabs a:first").click();
-        prev_anchor = curr_anchor;
-        curr_anchor = $(".group_tabs a:first").attr("href");
-      }
-      window.location.hash = curr_anchor;
+      window.location.hash = $(".group_tabs a:first").attr("href");
     }
   }
-
-  src_link_colorbox = (trigger_element) => {
-    $(trigger_element).colorbox(colorbox_options);
-  };
-  window.src_link_colorbox = src_link_colorbox;
-
-  // Set-up of popup for source file views
-  // TODO: drop the static source view even for not paged coverband, then delete all this
-  $("a.src_link").colorbox(colorbox_options);
-
-  window.onpopstate = function(event) {
-    if (location.hash.substring(0, 2) == "#_") {
-      $.colorbox.close();
-      curr_anchor = jQuery.url.attr("anchor");
-    } else {
-      if ($("#colorbox").is(":hidden")) {
-        console.log("pop");
-        // $('a.src_link[href="' + location.hash + '"]').colorbox({ open: true });
-        $('.shared_source_table').colorbox({ open: true });
-      }
-    }
-  };
 
   // Hide src files and file list container after load
   $(".source_files").hide();
@@ -159,15 +122,20 @@ $(document).ready(function() {
       .find(".covered_percent")
       .first()
       .html();
+    if (covered_percent) {
+      covered_percent = "(" + covered_percent + ")";
+    } else {
+      covered_percent = "";
+    }
 
     $(".group_tabs").append(
       '<li><a href="#' +
         container_id +
         '">' +
         group_name +
-        " (" +
+        " " +
         covered_percent +
-        ")</a></li>"
+        "</a></li>"
     );
   });
 
@@ -199,15 +167,26 @@ $(document).ready(function() {
         .addClass("active");
     }
     $(".file_list_container").hide();
-    $(".file_list_container" + $(this).attr("href")).show();
-    window.location.href =
-      window.location.href.split("#")[0] +
-      $(this)
-        .attr("href")
-        .replace("#", "#_");
-
+    $(".file_list_container" + $(this).attr("href")).show(function() {
+      // If we have an anchor to click, click it
+      // allow rendering to complete before we click the anchor
+      setTimeout(() => {
+        if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
+          $(window.auto_click_anchor).click();
+        }
+      }, 20);
+    });
+    // Below the #_ is a hack to show we have processed the hash change
+    if (!window.auto_click_anchor) {
+      window.location.href =
+        window.location.href.split("#")[0] +
+        $(this)
+          .attr("href")
+          .replace("#", "#_");
+    }
+  
     // Force favicon reload - otherwise the location change containing anchor would drop the favicon...
-    // Works only on firefox, but still... - Anyone know a better solution to force favicon on local file?
+    // Works only on firefox, but still... - Anyone know a better solution to force favicon on local relative file path?
     $('link[rel="shortcut icon"]').remove();
     $("head").append(
       '<link rel="shortcut icon" type="image/png" href="' +
@@ -217,18 +196,21 @@ $(document).ready(function() {
     return false;
   });
 
+  // The below function handles turning initial anchors in links to navigate to correct tab
   if (jQuery.url.attr("anchor")) {
     var anchor = jQuery.url.attr("anchor");
-    // source file hash
     if (anchor.length == 40) {
-      console.log("I need to fix deep links to source, the click call wont work anymore");
-      // $("a.src_link[href=#" + anchor + "]").click();
+      // handles deep links to source files
+      window.auto_click_anchor = "a.src_link[href=#" + anchor + "]";
+      $(".group_tabs a:first").click();
     } else {
+      // handles a # anchor that needs to be processed into a #_ completed action
       if ($(".group_tabs a." + anchor.replace("_", "")).length > 0) {
         $(".group_tabs a." + anchor.replace("_", "")).click();
       }
     }
   } else {
+    // No anchor, so click the first navigation tab
     $(".group_tabs a:first").click();
   }
 

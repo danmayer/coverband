@@ -175,7 +175,8 @@ module Coverband
       end
 
       def link_to_source_file(source_file)
-        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}">#{shortened_filename source_file}</a>)
+        data_loader_url = "#{base_path}load_file_details?filename=#{source_file.filename}"
+        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}" data-loader-url="#{data_loader_url}" onclick="src_link_click(this)">#{shortened_filename source_file}</a>)
       end
     end
   end
