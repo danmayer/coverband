@@ -33,16 +33,19 @@ $(document).ready(function() {
     ]
   });
 
-  // TODO: add support for searching...
-  // hmm should I just use manual paging? or load more...
+  // TODO: add support for searching on server side
   // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html
-  // TODO: fix bug where we hardcoded /coverage we need to pull it from the path it is mounted on
   if ($(".file_list.unsorted").length == 1) {
+    $(".dataTables_empty").html("loading...");
     var current_rows = 0;
     var total_rows = 0;
     var page = 1;
+    
+    // load and render page content before we start the loop
+    setTimeout(() => {
+      get_page(page);
+    }, 10);
 
-    // write a function to get a page of data and add it to the table
     function get_page(page) {
       $.ajax({
         url: `${$(".file_list").data("coverageurl")}/report_json?page=${page}`,
@@ -65,7 +68,6 @@ $(document).ready(function() {
         }
       });
     }
-    get_page(page);
   }
 
 
