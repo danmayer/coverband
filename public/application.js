@@ -65,11 +65,12 @@ $(document).ready(function() {
           }
           // allow rendering to complete before we click the anchor
           setTimeout(() => {
+            console.log("auto_click_anchor", window.auto_click_anchor);
             if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
               console.log("found and click");
               $(window.auto_click_anchor).click();
             }
-          }, 20);
+          }, 25);
         }
       });
     }

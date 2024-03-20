@@ -112,11 +112,17 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+        page = (request.params["page"] || 1).to_i
+        options = {
           static: false,
           base_path: base_path,
           notice: notice,
-          open_report: false).report
+          open_report: false
+        }
+        options[:page] = page if Coverband.configuration.paged_reporting == true
+        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+          options
+        ).report
       end
 
       def json
@@ -142,10 +148,16 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
+        page = (request.params["page"] || 1).to_i
+        options = {
           tracker: tracker,
           notice: notice,
-          base_path: base_path).format_abstract_tracker!
+          base_path: base_path
+        }
+        options[:page] = page if Coverband.configuration.paged_reporting == true
+        Coverband::Utils::HTMLFormatter.new(nil,
+          options
+        ).format_abstract_tracker!
       end
 
       def view_tracker_data

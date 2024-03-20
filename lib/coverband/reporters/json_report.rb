@@ -45,7 +45,7 @@ module Coverband
             source_class = data[:never_loaded] ? 'strong red' : 'strong'
             data_loader_url = "#{base_path}load_file_details?filename=#{data[:filename]}"
             # class=\"src_link cboxElement\
-            link = "<a href=\"##{data[:hash]}\" class=\"cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
+            link = "<a href=\"##{data[:hash]}\" class=\"src_link cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
             # Started GET "/config/coverage/load_file_details?filename=/home/danmayer/projects/coverband_rails_example/app/jobs/application_job.rb" for ::1 at 2024-03-05 16:02:33 -0700
             # class="<%= coverage_css_class(source_file.covered_percent) %> strong"
             row_data << [
