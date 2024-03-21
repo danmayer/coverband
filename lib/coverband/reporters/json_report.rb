@@ -30,6 +30,18 @@ module Coverband
 
       private
 
+      def coverage_css_class(covered_percent)
+        if covered_percent.nil?
+          ""
+        elsif covered_percent > 90
+          "green"
+        elsif covered_percent > 80
+          "yellow"
+        else
+          "red"
+        end
+      end
+
       def report_as_json
         result = Coverband::Utils::Results.new(filtered_report_files)
         source_files = result.source_files
@@ -45,13 +57,14 @@ module Coverband
             source_class = data[:never_loaded] ? 'strong red' : 'strong'
             data_loader_url = "#{base_path}load_file_details?filename=#{data[:filename]}"
             # class=\"src_link cboxElement\
-            link = "<a href=\"##{data[:hash]}\" class=\"src_link cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
+            link = "<a href=\"##{data[:hash]}\" class=\"src_link #{source_class} cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
             # Started GET "/config/coverage/load_file_details?filename=/home/danmayer/projects/coverband_rails_example/app/jobs/application_job.rb" for ::1 at 2024-03-05 16:02:33 -0700
             # class="<%= coverage_css_class(source_file.covered_percent) %> strong"
+            runtime_percentage = "<span class=\"#{coverage_css_class(data[:runtime_percentage])}\">#{data[:runtime_percentage]}</span>"
             row_data << [
               link,
               data[:covered_percent].to_s,
-              data[:runtime_percentage].to_s,
+              runtime_percentage,
               data[:lines_of_code].to_s,
               (data[:lines_covered] + data[:lines_missed]).to_s,
               data[:lines_covered].to_s,
