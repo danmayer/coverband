@@ -162,7 +162,7 @@ module Coverband
         return 0.0 if relevant_lines.zero?
 
         # handle edge case where runtime in dev can go over 100%
-        [Float(covered_lines.size * 100.0 / relevant_lines.to_f), 100.0].min
+        [Float(covered_lines.size * 100.0 / relevant_lines.to_f), 100.0].min&.round(2)
       end
 
       def formatted_covered_percent

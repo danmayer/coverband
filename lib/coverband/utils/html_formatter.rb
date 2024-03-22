@@ -13,12 +13,13 @@ require "time"
 module Coverband
   module Utils
     class HTMLFormatter
-      attr_reader :notice, :base_path, :tracker
+      attr_reader :notice, :base_path, :tracker, :page
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice, nil)
         @base_path = options.fetch(:base_path, "./")
         @tracker = options.fetch(:tracker, nil)
+        @page = options.fetch(:page, nil)
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
@@ -174,7 +175,8 @@ module Coverband
       end
 
       def link_to_source_file(source_file)
-        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}">#{shortened_filename source_file}</a>)
+        data_loader_url = "#{base_path}load_file_details?filename=#{source_file.filename}"
+        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}" data-loader-url="#{data_loader_url}" onclick="src_link_click(this)">#{shortened_filename source_file}</a>)
       end
     end
   end

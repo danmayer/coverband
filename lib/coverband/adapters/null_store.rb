@@ -26,7 +26,7 @@ module Coverband
         raise NotImplementedError, "NullStore doesn't support migrations"
       end
 
-      def coverage(_local_type = nil)
+      def coverage(_local_type = nil, opts = {})
         {}
       end
 
