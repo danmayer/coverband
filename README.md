@@ -101,6 +101,22 @@ run ActionController::Dispatcher.new
 
   This triggers coverage collection on the current webserver process. Useful in development but confusing in production environments where many ruby processes are usually running.
 
+#### Interpreting results
+
+The columns in the web UI are as follows:
+
+- **% covered** - Percentage of total relevant lines covered
+- **% runtime** - Percentage of the runtime lines covered where runtime lines are lines that are hit after the application has been eagerly loaded
+- **Lines** - Total lines in the file including lines unreachable or uncover-able. An unreachable line would be an empty line with no code, comments, or `end` statements.
+- **Relevant lines** - Lines that are coverable, i.e. not empty
+- **Lines runtime** - Total lines minus uncoverable lines minus the lines that are only hit during eager loading of application
+- **Lines missed** - Relevant lines not covered
+- **Avg hits/line** - Total of coverage to the file divided by relevant lines.
+
+When viewing an individual file, a line of code such as a class or method definition may appear green because it is eager loaded by the application, but still not be hit at all in runtime by actual users.  
+
+![example of a file with lines not hit at runtime](https://user-images.githubusercontent.com/96786/63541229-aa98a580-c4eb-11e9-8eb8-c004fe1369db.png)
+
 ### Mounting as a Rack App
 
 Coverband comes with a mountable rack app for viewing reports. For Rails this can be done in `config/routes.rb` with:
