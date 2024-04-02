@@ -3,7 +3,7 @@
 module Coverband
   module Adapters
     class MemcachedStore < Base
-      STORAGE_FORMAT_VERSION = 'coverband_3_2'
+      STORAGE_FORMAT_VERSION = "coverband_3_2"
 
       attr_reader :memcached_namespace
 
@@ -14,7 +14,7 @@ module Coverband
         @format_version = STORAGE_FORMAT_VERSION
         @keys = {}
         Coverband::TYPES.each do |type|
-          @keys[type] = [@format_version, @memcached_namespace, type].compact.join('.')
+          @keys[type] = [@format_version, @memcached_namespace, type].compact.join(".")
         end
       end
 
@@ -33,7 +33,7 @@ module Coverband
       end
 
       def size
-        @memcached.read(base_key) ? @memcached.read(base_key).bytesize : 'N/A'
+        @memcached.read(base_key) ? @memcached.read(base_key).bytesize : "N/A"
       end
 
       def migrate!
@@ -49,7 +49,7 @@ module Coverband
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
         data = memcached.read(type_base_key(local_type))
         data = data ? JSON.parse(data) : {}
-        data.delete_if { |file_path, file_data| file_hash(file_path) != file_data['file_hash'] } unless opts[:skip_hash_check]
+        data.delete_if { |file_path, file_data| file_hash(file_path) != file_data["file_hash"] } unless opts[:skip_hash_check]
         data
       end
 
@@ -72,7 +72,7 @@ module Coverband
       end
 
       def base_key
-        @base_key ||= [@format_version, @memcached_namespace, type].compact.join('.')
+        @base_key ||= [@format_version, @memcached_namespace, type].compact.join(".")
       end
 
       def type_base_key(local_type)
