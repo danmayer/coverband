@@ -238,6 +238,14 @@ This feature is enabled by default. To stop this feature, disable the feature in
 
 ![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_view_tracker.png)
 
+### Hiding settings
+
+Coverband provides a view of all of its current settings. Sometimes you might want to hide this view,
+such as when sharing coverband data with a large number of developers of varying trust levels.
+You can disable the settings view like so:
+
+`config.hide_settings = false`
+
 ### Fixing Coverage Only Shows Loading Hits
 
 If all your coverage is being counted as loading or eager_loading coverage, and nothing is showing as runtime Coverage the initialization hook failed for some reason. The most likely reason for this issue is manually calling `eager_load!` on some Plugin/Gem. If you or a plugin is altering the Rails initialization process, you can manually flip Coverband to runtime coverage by calling these two lines, in an `after_initialize` block, in `application.rb`.

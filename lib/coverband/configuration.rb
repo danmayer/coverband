@@ -11,7 +11,7 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :route_tracker,
       :track_translations, :translations_tracker,
-      :trackers, :csp_policy
+      :trackers, :csp_policy, :hide_settings
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
@@ -86,6 +86,7 @@ module Coverband
       @all_root_patterns = nil
       @password = nil
       @csp_policy = false
+      @hide_settings = false
 
       # coverband service settings
       @api_key = nil
