@@ -44,7 +44,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
   spec.add_development_dependency "standard", "~> 1.34.0"
-  spec.add_development_dependency "standardrb"
+  # breaking changes in various rubocop versions
+  spec.add_development_dependency "rubocop", "~> 1.61.0"
 
   spec.add_development_dependency "coveralls"
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
