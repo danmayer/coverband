@@ -119,7 +119,7 @@ module Coverband
           notice: notice,
           open_report: false
         }
-        options[:page] = page if Coverband.configuration.paged_reporting == true
+        options[:page] = page if Coverband.configuration.paged_reporting
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
           options
         ).report
@@ -154,7 +154,7 @@ module Coverband
           notice: notice,
           base_path: base_path
         }
-        options[:page] = page if Coverband.configuration.paged_reporting == true
+        options[:page] = page if Coverband.configuration.paged_reporting
         Coverband::Utils::HTMLFormatter.new(nil,
           options
         ).format_abstract_tracker!

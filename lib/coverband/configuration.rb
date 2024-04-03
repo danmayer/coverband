@@ -11,13 +11,13 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :route_tracker,
       :track_translations, :translations_tracker,
-      :trackers, :csp_policy, :paged_reporting
+      :trackers, :csp_policy
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle,
-      :send_deferred_eager_loading_data
+      :send_deferred_eager_loading_data, :paged_reporting
 
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
@@ -291,6 +291,10 @@ module Coverband
 
     def send_deferred_eager_loading_data?
       @send_deferred_eager_loading_data
+    end
+
+    def paged_reporting
+      !!@paged_reporting
     end
 
     def service_disabled_dev_test_env?

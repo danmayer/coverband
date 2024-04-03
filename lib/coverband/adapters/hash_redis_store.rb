@@ -172,7 +172,7 @@ module Coverband
         @redis.sadd(files_key, keys) if keys.any?
       end
 
-      # TODO: refactor this and the method below and consider removing all the cached results stuff
+      # TODO: refactor this and the coverage_for_types method below and consider removing all the cached results stuff
       def coverage(local_type = nil, opts = {})
         page_size = opts[:page_size] || 250
         cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
@@ -184,7 +184,7 @@ module Coverband
           else
             files_set(local_type)
           end
-          # use batches with a sleep in between to avoid overloading redis
+          # below uses batches with a sleep in between to avoid overloading redis
           files_set.each_slice(page_size).flat_map do |key_batch|
             sleep sleep_time
             @redis.pipelined do |pipeline|
@@ -200,33 +200,25 @@ module Coverband
         end
       end
 
-      # TODO: fix this before shipping main line release
-      # def split_coverage(types, coverage_cache, options = {})
-      #   if types.is_a?(Array)
-      #     coverage_for_types(types, options)
-      #   else
-      #     super
-      #   end
-      # end
+      def split_coverage(types, coverage_cache, options = {})
+        if types.is_a?(Array) && !options[:filename] && options[:page]
+          data = coverage_for_types(types, options)
+          coverage_cache[Coverband::RUNTIME_TYPE] = data[Coverband::RUNTIME_TYPE]
+          coverage_cache[Coverband::EAGER_TYPE] = data[Coverband::EAGER_TYPE]
+          data
+        else
+          super
+        end
+      end
 
-      # NOTE: when using paging we need to ensure we have the same set of files per page in runtime and eager
-      # TODO: This merge of eager and runtime isn't working fix later...
       def coverage_for_types(types, opts = {})
         page_size = opts[:page_size] || 250
 
         local_type = Coverband::RUNTIME_TYPE
         hash_data = {}
 
-        runtime_file_set = if opts[:page]
-          files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
-        elsif opts[:filename]
-          # TODO: this probably needs to be an exact match of the parsed cache key section
-          # match is a hack that will only kind of work
-          files_set(local_type).select{ |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
-        else
-          files_set(local_type)
-        end
-        
+        runtime_file_set = files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || []
+
         hash_data[Coverband::RUNTIME_TYPE] = runtime_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|
             key_batch.each do |key|
@@ -235,12 +227,12 @@ module Coverband
           end
         end
 
-        # TODO: debug the set isn't just paths it has other key details including coverage type so below probalby fails
-        # match is a hack that will work a sometimes... fix this but it will prove out if this solves the perf issue
+        eager_key_pre = key_prefix(Coverband::EAGER_TYPE)
+        runtime_key_pre = key_prefix(Coverband::RUNTIME_TYPE)
         matched_file_set = files_set(Coverband::EAGER_TYPE)
           .select { |eager_key, val| runtime_file_set.any?{ |runtime_key|
-          (eager_key.match(/\.\.(.*).rb/) && eager_key.match(/\.\.(.*).rb/)[0]==runtime_key.match(/\.\.(.*).rb/)[0]) }
-          } || {}
+          (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, "")) }
+          } || []
         hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|
             key_batch.each do |key|

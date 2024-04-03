@@ -44,6 +44,8 @@ module Coverband
         eager_file = get_eager_file(source_file)
         runtime_file = get_runtime_file(source_file)
 
+        return 0.0 unless runtime_file
+
         return runtime_file.covered_lines_count unless eager_file
 
         eager_file.relevant_lines - eager_file.covered_lines_count
