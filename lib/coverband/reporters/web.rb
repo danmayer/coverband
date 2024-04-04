@@ -121,8 +121,7 @@ module Coverband
         }
         options[:page] = page if Coverband.configuration.paged_reporting
         Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
-          options
-        ).report
+          options).report
       end
 
       def json
@@ -156,8 +155,7 @@ module Coverband
         }
         options[:page] = page if Coverband.configuration.paged_reporting
         Coverband::Utils::HTMLFormatter.new(nil,
-          options
-        ).format_abstract_tracker!
+          options).format_abstract_tracker!
       end
 
       def view_tracker_data

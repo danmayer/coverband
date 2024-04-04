@@ -91,8 +91,8 @@ module Coverband
     coverage_instance.eager_loading!
   end
 
-  def self.eager_loading_coverage(&block)
-    coverage_instance.eager_loading(&block)
+  def self.eager_loading_coverage(...)
+    coverage_instance.eager_loading(...)
   end
 
   def self.runtime_coverage!

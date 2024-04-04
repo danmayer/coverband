@@ -180,7 +180,7 @@ module Coverband
             files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
           elsif opts[:filename]
             # TODO: this probably needs to be an exact match of the parsed cache key section
-            files_set(local_type).select{ |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
+            files_set(local_type).select { |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
           else
             files_set(local_type)
           end
@@ -230,8 +230,10 @@ module Coverband
         eager_key_pre = key_prefix(Coverband::EAGER_TYPE)
         runtime_key_pre = key_prefix(Coverband::RUNTIME_TYPE)
         matched_file_set = files_set(Coverband::EAGER_TYPE)
-          .select { |eager_key, val| runtime_file_set.any?{ |runtime_key|
-          (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, "")) }
+          .select { |eager_key, val|
+            runtime_file_set.any? { |runtime_key|
+              (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, ""))
+            }
           } || []
         hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|

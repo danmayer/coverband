@@ -54,7 +54,7 @@ module Coverband
         if as_report
           row_data = []
           data[:files].each_pair do |key, data|
-            source_class = data[:never_loaded] ? 'strong red' : 'strong'
+            source_class = data[:never_loaded] ? "strong red" : "strong"
             data_loader_url = "#{base_path}load_file_details?filename=#{data[:filename]}"
             link = "<a href=\"##{data[:hash]}\" class=\"src_link #{source_class} cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
             runtime_percentage = "<span class=\"#{coverage_css_class(data[:runtime_percentage])}\">#{data[:runtime_percentage]}</span>"
