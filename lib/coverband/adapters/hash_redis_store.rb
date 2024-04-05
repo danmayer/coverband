@@ -172,15 +172,17 @@ module Coverband
         @redis.sadd(files_key, keys) if keys.any?
       end
 
-      # TODO: refactor this and the coverage_for_types method below and consider removing all the cached results stuff
+      # NOTE: This method should be used for full coverage or filename coverage look ups
+      # When paging code should use coverage_for_types and pull eager and runtime together as matched pairs
       def coverage(local_type = nil, opts = {})
         page_size = opts[:page_size] || 250
         cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
           files_set = if opts[:page]
-            files_set(local_type).each_slice(page_size).to_a[opts[:page] - 1] || {}
+            raise "call coverage_for_types with paging"
           elsif opts[:filename]
-            # TODO: this probably needs to be an exact match of the parsed cache key section
-            files_set(local_type).select { |cache_key| cache_key.match(short_name(opts[:filename])) } || {}
+            type_key_prefix = key_prefix(local_type)
+            # NOTE: a better way to extract filename from key would be better
+            files_set(local_type).select { |cache_key| cache_key.sub(type_key_prefix, "").match(short_name(opts[:filename])) } || {}
           else
             files_set(local_type)
           end

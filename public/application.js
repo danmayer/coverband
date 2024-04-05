@@ -30,7 +30,7 @@ $(document).ready(function() {
       null,
       null,
       null
-    ]
+    ],
   });
 
   // TODO: add support for searching on server side
@@ -42,9 +42,10 @@ $(document).ready(function() {
     var page = 1;
     
     // load and render page content before we start the loop
+    // perhaps move this into a datatable ready event
     setTimeout(() => {
       get_page(page);
-    }, 10);
+    }, 1250);
 
     function get_page(page) {
       $.ajax({
@@ -59,18 +60,18 @@ $(document).ready(function() {
           current_rows += 250; //data["aaData"].length;
           $(".file_list.unsorted").dataTable().fnAddData(data["aaData"]);
           page += 1;
-          // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
-          if (page < 100 && current_rows < total_rows) {
-            get_page(page);
-          }
           // allow rendering to complete before we click the anchor
           setTimeout(() => {
-            console.log("auto_click_anchor", window.auto_click_anchor);
             if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
-              console.log("found and click");
               $(window.auto_click_anchor).click();
             }
-          }, 25);
+          }, 50);
+          // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
+          if (page < 100 && current_rows < total_rows) {
+            setTimeout(() => {
+              get_page(page);
+            }, 200);
+          }
         }
       });
     }
@@ -175,7 +176,7 @@ $(document).ready(function() {
         if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
           $(window.auto_click_anchor).click();
         }
-      }, 20);
+      }, 30);
     });
     // Below the #_ is a hack to show we have processed the hash change
     if (!window.auto_click_anchor) {
