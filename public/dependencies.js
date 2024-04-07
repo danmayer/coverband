@@ -103,7 +103,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
                 return this.rel;
             },
             href: function() {
-                // using this.href would give the absolute url, when the href may have been intedned as a selector (e.g. '#container')
+                // using this.href would give the absolute url, when the href may have been intended as a selector (e.g. '#container')
                 return $(this).attr('href');
             },
             title: function() {
