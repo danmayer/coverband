@@ -88,7 +88,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
             xhrError: "This content failed to load.",
             imgError: "This image failed to load.",
 
-            // accessbility
+            // accessibility
             returnFocus: true,
             trapFocus: true,
 
