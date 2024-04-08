@@ -82,12 +82,9 @@ $(document).ready(function() {
       auto_click_anchor = null;
       $(trigger_element).colorbox(jQuery.extend(colorbox_options, { href: loader_url}));
     };
-  window.src_link_click = src_link_click;
 
   var colorbox_options = {
-    open: true,
     transition: "none",
-    // inline: true,
     opacity: 1,
     width: "95%",
     height: "95%",
