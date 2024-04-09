@@ -89,7 +89,7 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_3_3"
+      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_4_0"
 
       JSON_PAYLOAD_EXPIRATION = 5 * 60
 
@@ -107,7 +107,7 @@ module Coverband
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
 
         @get_coverage_cache = if opts[:get_coverage_cache]
-          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace, "v2"].compact.join(".")
+          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join(".")
           GetCoverageRedisCacheStore.new(redis, key_prefix)
         else
           GetCoverageNullCacheStore

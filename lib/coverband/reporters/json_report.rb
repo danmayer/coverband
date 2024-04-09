@@ -57,8 +57,9 @@ module Coverband
             source_class = data[:never_loaded] ? "strong red" : "strong"
             data_loader_url = "#{base_path}load_file_details?filename=#{data[:filename]}"
             link = "<a href=\"##{data[:hash]}\" class=\"src_link #{source_class} cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
-            runtime_percentage = "<span class=\"#{coverage_css_class(data[:runtime_percentage])}\">#{data[:runtime_percentage]}</span>"
-            covered_percent = "<span class=\"#{coverage_css_class(data[:covered_percent])}\">#{data[:covered_percent]}</span>"
+            # Hack to ensure the sorting works on percentage columns, the span is hidden but colors the cell and the text is used for sorting
+            covered_percent = "#{data[:covered_percent]} <span class=\"#{coverage_css_class(data[:covered_percent])}\">&nbsp;</span>"
+            runtime_percentage = "#{data[:runtime_percentage]}<span class=\"#{coverage_css_class(data[:runtime_percentage])}\">&nbsp;</span>"
             row_data << [
               link,
               covered_percent,

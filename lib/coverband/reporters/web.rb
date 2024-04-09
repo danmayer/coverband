@@ -147,15 +147,12 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        page = (request.params["page"] || 1).to_i
         options = {
           tracker: tracker,
           notice: notice,
           base_path: base_path
         }
-        options[:page] = page if Coverband.configuration.paged_reporting
-        Coverband::Utils::HTMLFormatter.new(nil,
-          options).format_abstract_tracker!
+        Coverband::Utils::HTMLFormatter.new(nil, options).format_abstract_tracker!
       end
 
       def view_tracker_data

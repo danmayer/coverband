@@ -16,7 +16,7 @@ $(document).ready(function() {
   });
 
   // Configuration for fancy sortable tables for source file groups
-  $(".file_list").dataTable({
+  var tableOptions = {
     aaSorting: [[1, "asc"]],
     bPaginate: false,
     bJQueryUI: true,
@@ -31,7 +31,9 @@ $(document).ready(function() {
       null,
       null
     ],
-  });
+  }
+
+  $(".file_list").dataTable(tableOptions);
 
   // TODO: add support for searching on server side
   // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html

@@ -117,13 +117,6 @@ module Coverband
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
-      # Returns the html to ajax load a given source_file
-      def formatted_source_file_loader(result, source_file)
-        template("source_file_loader").result(binding)
-      rescue Encoding::CompatibilityError => e
-        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
-      end
-
       # Returns a table containing the given source files
       def formatted_file_list(title, result, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9\-\_]/, "")

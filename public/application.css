@@ -828,6 +828,18 @@ td {
 span.red {
     color: #990000; }
 
+td:has(> span.red) { 
+  color: #990000;
+}
+
+td:has(> span.yellow) { 
+  color: #ddaa00;
+}
+
+td:has(> span.green) { 
+  color: #009900;
+}
+
 .yellow {
   color: #ddaa00; }
 
