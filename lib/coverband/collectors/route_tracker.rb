@@ -27,6 +27,8 @@ module Coverband
       def track_key(payload)
         route = if payload.key?(:location)
           # For redirect.action_dispatch
+          return unless Coverband.configuration.track_redirect_routes
+
           {
             controller: nil,
             action: nil,

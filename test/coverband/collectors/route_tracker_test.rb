@@ -42,6 +42,22 @@ class RouterTrackerTest < Minitest::Test
     assert_equal [route_hash], tracker.logged_keys
   end
 
+  test "track redirect routes when track_redirect_routes is false" do
+    Coverband.configuration.track_redirect_routes = false
+
+    store = fake_store
+    tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
+
+    payload = {
+      request: Payload.new("path", "GET"),
+      status: 302,
+      location: 'https://coverband.dev/'
+    }
+    tracker.track_key(payload)
+    tracker.save_report
+    assert_equal [], tracker.logged_keys
+  end
+
   test "track controller routes in Rails < 6.1" do
     store = fake_store
     route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
