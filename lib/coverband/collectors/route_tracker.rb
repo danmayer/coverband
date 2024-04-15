@@ -44,11 +44,10 @@ module Coverband
             verb: payload[:method]
           }
         end
-        if route
-          if newly_seen_key?(route)
-            @logged_keys << route
-            @keys_to_record << route if track_key?(route)
-          end
+
+        if newly_seen_key?(route)
+          @logged_keys << route
+          @keys_to_record << route if track_key?(route)
         end
       end
 
