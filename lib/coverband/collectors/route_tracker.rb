@@ -25,7 +25,8 @@ module Coverband
       # and ensure high performance
       ###
       def track_key(payload)
-        route = if payload[:request]
+        route = if payload.key?(:location)
+          # For redirect.action_dispatch
           {
             controller: nil,
             action: nil,
@@ -33,6 +34,7 @@ module Coverband
             verb: payload[:request].method
           }
         else
+          # For start_processing.action_controller
           {
             controller: payload[:params]["controller"],
             action: payload[:action],
