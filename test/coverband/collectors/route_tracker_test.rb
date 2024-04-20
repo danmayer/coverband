@@ -35,7 +35,7 @@ class RouterTrackerTest < Minitest::Test
     payload = {
       request: Payload.new("path", "GET"),
       status: 302,
-      location: 'https://coverband.dev/'
+      location: "https://coverband.dev/"
     }
     tracker.track_key(payload)
     tracker.save_report
@@ -51,7 +51,7 @@ class RouterTrackerTest < Minitest::Test
     payload = {
       request: Payload.new("path", "GET"),
       status: 302,
-      location: 'https://coverband.dev/'
+      location: "https://coverband.dev/"
     }
     tracker.track_key(payload)
     tracker.save_report
@@ -82,8 +82,8 @@ class RouterTrackerTest < Minitest::Test
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       params: {
-        "controller"=>"some/controller",
-        "action"=>"index"
+        "controller" => "some/controller",
+        "action" => "index"
       },
       controller: "SomeController",
       action: "index",
