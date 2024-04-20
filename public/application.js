@@ -51,7 +51,6 @@ $(document).ready(function() {
     }, 1200);
 
     function get_page(page) {
-      $(".dataTables_empty").html("loading... current page: " + page);
       $.ajax({
         url: `${$(".file_list").data("coverageurl")}/report_json?page=${page}`,
         type: 'GET',
@@ -59,6 +58,7 @@ $(document).ready(function() {
         success: function(data) {
           total_rows = data["iTotalRecords"];
           all_data = all_data.concat(data["aaData"]);
+          $(".dataTables_empty").html("loading... on " + all_data.length + " of " + total_rows + " files");
           page += 1;
 ;
           // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
