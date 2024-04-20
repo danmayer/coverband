@@ -39,40 +39,41 @@ $(document).ready(function() {
   // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html
   if ($(".file_list.unsorted").length == 1) {
     $(".dataTables_empty").html("loading...");
-    var current_rows = 0;
     var total_rows = 0;
     var page = 1;
+    var all_data = [];
     
     // load and render page content before we start the loop
     // perhaps move this into a datatable ready event
+    $(".dataTables_empty").html("loading...");
     setTimeout(() => {
       get_page(page);
-    }, 1250);
+    }, 1200);
 
     function get_page(page) {
+      $(".dataTables_empty").html("loading... current page: " + page);
       $.ajax({
         url: `${$(".file_list").data("coverageurl")}/report_json?page=${page}`,
         type: 'GET',
         dataType: 'json',
         success: function(data) {
           total_rows = data["iTotalRecords"];
-          // NOTE: we request 250 at a time, but we seem to have some files that we have as a list but 0 coverage,
-          // so we don't get back 250 per page... to ensure we we need to account for filtered out and empty files
-          // this 250 at the moment is synced to the 250 in the hash redis store
-          current_rows += 250; //data["aaData"].length;
-          $(".file_list.unsorted").dataTable().fnAddData(data["aaData"]);
+          all_data = all_data.concat(data["aaData"]);
           page += 1;
-          // allow rendering to complete before we click the anchor
-          setTimeout(() => {
-            if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
-              $(window.auto_click_anchor).click();
-            }
-          }, 50);
+;
           // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
-          if (page < 100 && current_rows < total_rows) {
+          if (page < 50 && all_data.length < total_rows) {
             setTimeout(() => {
               get_page(page);
-            }, 200);
+            }, 10);
+          } else {
+            $(".file_list.unsorted").dataTable().fnAddData(all_data);
+            // allow rendering to complete before we click the anchor
+            setTimeout(() => {
+              if (window.auto_click_anchor && $(window.auto_click_anchor).length > 0) {
+                $(window.auto_click_anchor).click();
+              }
+            }, 50)
           }
         }
       });

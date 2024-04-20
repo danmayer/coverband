@@ -12,16 +12,16 @@ module Coverband
         self.page = options.fetch(:page) { nil }
         self.filename = options.fetch(:filename) { nil }
         self.as_report = options.fetch(:as_report) { false }
-        self.base_path = options.fetch(:base_path) { "./" }
+        self.base_path = options.fetch(:base_path) { './' }
         self.store = store
 
         coverband_reports = Coverband::Reporters::Base.report(store, options)
         # NOTE: paged reports can't find and add in files that has never been loaded
         self.filtered_report_files = if page || filename
-          coverband_reports
-        else
-          self.class.fix_reports(coverband_reports)
-        end
+                                       coverband_reports
+                                     else
+                                       self.class.fix_reports(coverband_reports)
+                                     end
       end
 
       def report
@@ -32,13 +32,13 @@ module Coverband
 
       def coverage_css_class(covered_percent)
         if covered_percent.nil?
-          ""
+          ''
         elsif covered_percent > 90
-          "green"
+          'green'
         elsif covered_percent > 80
-          "yellow"
+          'yellow'
         else
-          "red"
+          'red'
         end
       end
 
@@ -54,7 +54,7 @@ module Coverband
         if as_report
           row_data = []
           data[:files].each_pair do |key, data|
-            source_class = data[:never_loaded] ? "strong red" : "strong"
+            source_class = data[:never_loaded] ? 'strong red' : 'strong'
             data_loader_url = "#{base_path}load_file_details?filename=#{data[:filename]}"
             link = "<a href=\"##{data[:hash]}\" class=\"src_link #{source_class} cboxElement\" title=\"#{key}\" data-loader-url=\"#{data_loader_url}\" onclick=\"src_link_click(this)\">#{key}</a>"
             # Hack to ensure the sorting works on percentage columns, the span is hidden but colors the cell and the text is used for sorting
@@ -72,10 +72,10 @@ module Coverband
               data[:covered_strength].to_s
             ]
           end
-          filesreported = store.file_count(:runtime)
-          data["iTotalRecords"] = filesreported
-          data["iTotalDisplayRecords"] = filesreported
-          data["aaData"] = row_data
+          filesreported = store.cached_file_count
+          data['iTotalRecords'] = filesreported
+          data['iTotalDisplayRecords'] = filesreported
+          data['aaData'] = row_data
           data.delete(:files)
           data = data.as_json
         end

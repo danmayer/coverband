@@ -3,21 +3,21 @@
 module Coverband
   class Configuration
     attr_accessor :root_paths, :root,
-      :verbose,
-      :reporter, :redis_namespace, :redis_ttl,
-      :background_reporting_enabled,
-      :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
-      :simulate_oneshot_lines_coverage,
-      :view_tracker, :defer_eager_loading_data,
-      :track_routes, :route_tracker,
-      :track_translations, :translations_tracker,
-      :trackers, :csp_policy
+                  :verbose,
+                  :reporter, :redis_namespace, :redis_ttl,
+                  :background_reporting_enabled,
+                  :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
+                  :simulate_oneshot_lines_coverage,
+                  :view_tracker, :defer_eager_loading_data,
+                  :track_routes, :route_tracker,
+                  :track_translations, :translations_tracker,
+                  :trackers, :csp_policy
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
-      :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
-      :service_test_mode, :process_type, :track_views, :redis_url,
-      :background_reporting_sleep_seconds, :reporting_wiggle,
-      :send_deferred_eager_loading_data, :paged_reporting
+                :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
+                :service_test_mode, :process_type, :track_views, :redis_url,
+                :background_reporting_sleep_seconds, :reporting_wiggle,
+                :send_deferred_eager_loading_data, :paged_reporting
 
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
@@ -27,21 +27,21 @@ module Coverband
     #
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
-    IGNORE_TASKS = ["coverband:clear",
-                    "coverband:coverage",
-                    "coverband:coverage_server",
-                    "coverband:migrate",
-                    "assets:precompile",
-                    "webpacker:compile",
-                    "db:version",
-                    "db:create",
-                    "db:drop",
-                    "db:seed",
-                    "db:setup",
-                    "db:test:prepare",
-                    "db:structure:dump",
-                    "db:structure:load",
-                    "db:version"]
+    IGNORE_TASKS = ['coverband:clear',
+                    'coverband:coverage',
+                    'coverband:coverage_server',
+                    'coverband:migrate',
+                    'assets:precompile',
+                    'webpacker:compile',
+                    'db:version',
+                    'db:create',
+                    'db:drop',
+                    'db:seed',
+                    'db:setup',
+                    'db:test:prepare',
+                    'db:structure:dump',
+                    'db:structure:load',
+                    'db:version']
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
@@ -62,7 +62,7 @@ module Coverband
       @ignore = IGNORE_DEFAULTS.dup
       @search_paths = TRACKED_DEFAULT_PATHS.dup
       @verbose = false
-      @reporter = "scov"
+      @reporter = 'scov'
       @logger = nil
       @store = nil
       @background_reporting_enabled = true
@@ -79,8 +79,8 @@ module Coverband
       @translations_tracker = nil
       @web_debug = false
       @report_on_exit = true
-      @use_oneshot_lines_coverage = ENV["ONESHOT"] || false
-      @simulate_oneshot_lines_coverage = ENV["SIMULATE_ONESHOT"] || false
+      @use_oneshot_lines_coverage = ENV['ONESHOT'] || false
+      @simulate_oneshot_lines_coverage = ENV['SIMULATE_ONESHOT'] || false
       @current_root = nil
       @all_root_paths = nil
       @all_root_patterns = nil
@@ -124,28 +124,28 @@ module Coverband
 
       if Coverband.configuration.track_views
         Coverband.configuration.view_tracker = if Coverband.coverband_service?
-          Coverband::Collectors::ViewTrackerService.new
-        else
-          Coverband::Collectors::ViewTracker.new
-        end
+                                                 Coverband::Collectors::ViewTrackerService.new
+                                               else
+                                                 Coverband::Collectors::ViewTracker.new
+                                               end
         trackers << Coverband.configuration.view_tracker
       end
       trackers.each { |tracker| tracker.railtie! }
-    rescue Redis::CannotConnectError => error
-      Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
-      Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
+    rescue Redis::CannotConnectError => e
+      Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
+      Coverband.configuration.logger.info 'If this is a setup task like assets:precompile feel free to ignore'
     end
 
     def logger
       @logger ||= if defined?(Rails.logger) && Rails.logger
-        Rails.logger
-      else
-        Logger.new(STDOUT)
-      end
+                    Rails.logger
+                  else
+                    Logger.new(STDOUT)
+                  end
     end
 
     def password
-      @password || ENV["COVERBAND_PASSWORD"]
+      @password || ENV['COVERBAND_PASSWORD']
     end
 
     # The adjustments here either protect the redis or service from being overloaded
@@ -153,14 +153,14 @@ module Coverband
     # if running your own redis increasing this number reduces load on the redis CPU
     def background_reporting_sleep_seconds
       @background_reporting_sleep_seconds ||= if service?
-        # default to 10m for service
-        (Coverband.configuration.coverband_env == "production") ? 600 : 60
-      elsif store.is_a?(Coverband::Adapters::HashRedisStore)
-        # Default to 5 minutes if using the hash redis store
-        300
-      else
-        60
-      end
+                                                # default to 10m for service
+                                                Coverband.configuration.coverband_env == 'production' ? 600 : 60
+                                              elsif store.is_a?(Coverband::Adapters::HashRedisStore)
+                                                # Default to 5 minutes if using the hash redis store
+                                                300
+                                              else
+                                                60
+                                              end
     end
 
     def reporting_wiggle
@@ -169,18 +169,27 @@ module Coverband
 
     def store
       @store ||= if service?
-        raise "invalid configuration: unclear default store coverband expects either api_key or redis_url" if ENV["COVERBAND_REDIS_URL"]
-        require "coverband/adapters/web_service_store"
-        Coverband::Adapters::WebServiceStore.new(service_url)
-      else
-        Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
-      end
+                   if ENV['COVERBAND_REDIS_URL']
+                     raise 'invalid configuration: unclear default store coverband expects either api_key or redis_url'
+                   end
+
+                   require 'coverband/adapters/web_service_store'
+                   Coverband::Adapters::WebServiceStore.new(service_url)
+                 else
+                   Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
+                 end
     end
 
     def store=(store)
-      raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
-      raise "invalid configuration: only coverband service expects an API Key" if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
-      raise "invalid configuration: coverband service shouldn't have redis url set" if ENV["COVERBAND_REDIS_URL"] && store.instance_of?(::Coverband::Adapters::WebServiceStore)
+      raise 'Pass in an instance of Coverband::Adapters' unless store.is_a?(Coverband::Adapters::Base)
+      if api_key && store.class.to_s != 'Coverband::Adapters::WebServiceStore'
+        raise 'invalid configuration: only coverband service expects an API Key'
+      end
+      if ENV['COVERBAND_REDIS_URL'] &&
+         defined?(::Coverband::Adapters::WebServiceStore) &&
+         store.instance_of?(::Coverband::Adapters::WebServiceStore)
+        raise "invalid configuration: coverband service shouldn't have redis url set"
+      end
 
       @store = store
     end
@@ -195,7 +204,7 @@ module Coverband
     # Search Paths
     ###
     def tracked_search_paths
-      "#{Coverband.configuration.current_root}/{#{@search_paths.join(",")}}/**/*.{rb}"
+      "#{Coverband.configuration.current_root}/{#{@search_paths.join(',')}}/**/*.{rb}"
     end
 
     ###
@@ -212,7 +221,7 @@ module Coverband
       ignored_array.map { |ignore_str| Regexp.new(ignore_str) }
       @ignore = (@ignore + ignored_array).uniq
     rescue RegexpError
-      logger.error "an invalid regular expression was passed in, ensure string are valid regex patterns #{ignored_array.join(",")}"
+      logger.error "an invalid regular expression was passed in, ensure string are valid regex patterns #{ignored_array.join(',')}"
     end
 
     def current_root
@@ -235,50 +244,53 @@ module Coverband
     def to_h
       instance_variables
         .each_with_object({}) do |var, hash|
-          hash[var.to_s.delete("@")] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
+          hash[var.to_s.delete('@')] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
         end
     end
 
     def use_oneshot_lines_coverage=(value)
-      raise(StandardError, "One shot line coverage is only available in ruby >= 2.6") unless one_shot_coverage_implemented_in_ruby_version? || !value
+      unless one_shot_coverage_implemented_in_ruby_version? || !value
+        raise(StandardError,
+              'One shot line coverage is only available in ruby >= 2.6')
+      end
 
       @use_oneshot_lines_coverage = value
     end
 
     def one_shot_coverage_implemented_in_ruby_version?
-      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.6.0')
     end
 
     def redis_url
-      @redis_url ||= ENV["COVERBAND_REDIS_URL"] || ENV["REDIS_URL"]
+      @redis_url ||= ENV['COVERBAND_REDIS_URL'] || ENV['REDIS_URL']
     end
 
     def api_key
-      @api_key ||= ENV["COVERBAND_API_KEY"]
+      @api_key ||= ENV['COVERBAND_API_KEY']
     end
 
     def service_url
-      @service_url ||= ENV["COVERBAND_URL"] || "https://coverband.io"
+      @service_url ||= ENV['COVERBAND_URL'] || 'https://coverband.io'
     end
 
     def coverband_env
-      ENV["RACK_ENV"] || ENV["RAILS_ENV"] || ((defined?(Rails) && Rails.respond_to?(:env)) ? Rails.env : "unknown")
+      ENV['RACK_ENV'] || ENV['RAILS_ENV'] || (defined?(Rails) && Rails.respond_to?(:env) ? Rails.env : 'unknown')
     end
 
     def coverband_timeout
-      @coverband_timeout ||= (coverband_env == "development") ? 5 : 2
+      @coverband_timeout ||= coverband_env == 'development' ? 5 : 2
     end
 
     def service_dev_mode
-      @service_dev_mode ||= ENV["COVERBAND_ENABLE_DEV_MODE"] || false
+      @service_dev_mode ||= ENV['COVERBAND_ENABLE_DEV_MODE'] || false
     end
 
     def service_test_mode
-      @service_test_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
+      @service_test_mode ||= ENV['COVERBAND_ENABLE_TEST_MODE'] || false
     end
 
     def process_type
-      @process_type ||= ENV["PROCESS_TYPE"] || "unknown"
+      @process_type ||= ENV['PROCESS_TYPE'] || 'unknown'
     end
 
     def service?
@@ -300,35 +312,35 @@ module Coverband
     def service_disabled_dev_test_env?
       return false unless service?
 
-      (coverband_env == "test" && !Coverband.configuration.service_test_mode) ||
-        (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
+      (coverband_env == 'test' && !Coverband.configuration.service_test_mode) ||
+        (coverband_env == 'development' && !Coverband.configuration.service_dev_mode)
     end
 
     def s3_bucket
-      puts "deprecated, s3 is no longer support"
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_region
-      puts "deprecated, s3 is no longer support"
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_access_key_id
-      puts "deprecated, s3 is no longer support"
+      puts 'deprecated, s3 is no longer support'
     end
 
     def s3_secret_access_key
-      puts "deprecated, s3 is no longer support"
+      puts 'deprecated, s3 is no longer support'
     end
 
     def track_gems=(_value)
-      puts "gem tracking is deprecated, setting this will be ignored"
+      puts 'gem tracking is deprecated, setting this will be ignored'
     end
 
     private
 
     def redis_store_options
-      {ttl: Coverband.configuration.redis_ttl,
-       redis_namespace: Coverband.configuration.redis_namespace}
+      { ttl: Coverband.configuration.redis_ttl,
+        redis_namespace: Coverband.configuration.redis_namespace }
     end
   end
 end
