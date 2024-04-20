@@ -88,7 +88,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
             xhrError: "This content failed to load.",
             imgError: "This image failed to load.",
 
-            // accessbility
+            // accessibility
             returnFocus: true,
             trapFocus: true,
 
@@ -103,7 +103,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
                 return this.rel;
             },
             href: function() {
-                // using this.href would give the absolute url, when the href may have been intedned as a selector (e.g. '#container')
+                // using this.href would give the absolute url, when the href may have been intended as a selector (e.g. '#container')
                 return $(this).attr('href');
             },
             title: function() {
@@ -145,7 +145,7 @@ var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/<
         $prev,
         $close,
         $groupControls,
-        $events = $('<a/>'), // $({}) would be prefered, but there is an issue with jQuery 1.4.2
+        $events = $('<a/>'), // $({}) would be preferred, but there is an issue with jQuery 1.4.2
 
     // Variables for cached values or use across multiple functions
         settings,
