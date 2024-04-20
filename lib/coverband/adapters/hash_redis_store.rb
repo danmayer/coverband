@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require 'securerandom'
+require "securerandom"
 
 module Coverband
   module Adapters
     class HashRedisStore < Base
       class GetCoverageNullCacheStore
-        def self.clear!(*_local_types); end
+        def self.clear!(*_local_types)
+        end
 
         def self.fetch(_local_type)
           yield(0)
@@ -18,7 +19,7 @@ module Coverband
 
         def initialize(redis, key_prefix)
           @redis = redis
-          @key_prefix = [key_prefix, 'get-coverage'].join('.')
+          @key_prefix = [key_prefix, "get-coverage"].join(".")
         end
 
         def fetch(local_type)
@@ -72,7 +73,7 @@ module Coverband
 
         # lock for at most 60 minutes
         def lock!(local_type)
-          @redis.set("#{@key_prefix}.lock.#{local_type}", '1', nx: true, ex: LOCK_LIMIT)
+          @redis.set("#{@key_prefix}.lock.#{local_type}", "1", nx: true, ex: LOCK_LIMIT)
         end
 
         def unlock!(local_type)
@@ -80,15 +81,15 @@ module Coverband
         end
       end
 
-      FILE_KEY = 'file'
-      FILE_LENGTH_KEY = 'file_length'
+      FILE_KEY = "file"
+      FILE_LENGTH_KEY = "file_length"
       META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY, FILE_HASH].freeze
       ###
       # This key isn't related to the coverband version, but to the internal format
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = 'coverband_hash_4_0'
+      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_4_0"
 
       JSON_PAYLOAD_EXPIRATION = 5 * 60
 
@@ -100,24 +101,24 @@ module Coverband
         @save_report_batch_size = opts[:save_report_batch_size] || 100
         @format_version = REDIS_STORAGE_FORMAT_VERSION
         @redis = redis
-        raise 'HashRedisStore requires redis >= 2.6.0' unless supported?
+        raise "HashRedisStore requires redis >= 2.6.0" unless supported?
 
         @ttl = opts[:ttl]
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
 
         @get_coverage_cache = if opts[:get_coverage_cache]
-                                key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join('.')
-                                GetCoverageRedisCacheStore.new(redis, key_prefix)
-                              else
-                                GetCoverageNullCacheStore
-                              end
+          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join(".")
+          GetCoverageRedisCacheStore.new(redis, key_prefix)
+        else
+          GetCoverageNullCacheStore
+        end
       end
 
       def supported?
-        Gem::Version.new(@redis.info['redis_version']) >= Gem::Version.new('2.6.0')
+        Gem::Version.new(@redis.info["redis_version"]) >= Gem::Version.new("2.6.0")
       rescue Redis::CannotConnectError => e
         Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
-        Coverband.configuration.logger.info 'If this is a setup task like assets:precompile feel free to ignore'
+        Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
       end
 
       def clear!
@@ -145,7 +146,7 @@ module Coverband
 
       def save_report(report)
         report_time = Time.now.to_i
-        updated_time = type == Coverband::EAGER_TYPE ? nil : report_time
+        updated_time = (type == Coverband::EAGER_TYPE) ? nil : report_time
         keys = []
         report.each_slice(@save_report_batch_size) do |slice|
           files_data = slice.map do |(file, data)|
@@ -164,8 +165,8 @@ module Coverband
           end
           next unless files_data.any?
 
-          arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join('.')
-          @redis.set(arguments_key, { ttl: @ttl, files_data: files_data }.to_json, ex: JSON_PAYLOAD_EXPIRATION)
+          arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join(".")
+          @redis.set(arguments_key, {ttl: @ttl, files_data: files_data}.to_json, ex: JSON_PAYLOAD_EXPIRATION)
           @redis.evalsha(hash_incr_script, [arguments_key])
         end
         @redis.sadd(files_key, keys) if keys.any?
@@ -177,16 +178,16 @@ module Coverband
         page_size = opts[:page_size] || 250
         cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
           files_set = if opts[:page]
-                        raise 'call coverage_for_types with paging'
-                      elsif opts[:filename]
-                        type_key_prefix = key_prefix(local_type)
-                        # NOTE: a better way to extract filename from key would be better
-                        files_set(local_type).select do |cache_key|
-                          cache_key.sub(type_key_prefix, '').match(short_name(opts[:filename]))
-                        end || {}
-                      else
-                        files_set(local_type)
-                      end
+            raise "call coverage_for_types with paging"
+          elsif opts[:filename]
+            type_key_prefix = key_prefix(local_type)
+            # NOTE: a better way to extract filename from key would be better
+            files_set(local_type).select do |cache_key|
+              cache_key.sub(type_key_prefix, "").match(short_name(opts[:filename]))
+            end || {}
+          else
+            files_set(local_type)
+          end
           # below uses batches with a sleep in between to avoid overloading redis
           files_set.each_slice(page_size).flat_map do |key_batch|
             sleep sleep_time
@@ -233,9 +234,9 @@ module Coverband
         eager_key_pre = key_prefix(Coverband::EAGER_TYPE)
         runtime_key_pre = key_prefix(Coverband::RUNTIME_TYPE)
         matched_file_set = files_set(Coverband::EAGER_TYPE)
-                           .select do |eager_key, _val|
+          .select do |eager_key, _val|
           runtime_file_set.any? do |runtime_key|
-            (eager_key.sub(eager_key_pre, '') == runtime_key.sub(runtime_key_pre, ''))
+            (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, ""))
           end
         end || []
         hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
@@ -255,8 +256,8 @@ module Coverband
       end
 
       def short_name(filename)
-        filename.sub(/^#{Coverband.configuration.root}/, '.')
-                .gsub(%r{^\./}, '')
+        filename.sub(/^#{Coverband.configuration.root}/, ".")
+          .gsub(%r{^\./}, "")
       end
 
       def file_count(local_type = nil)
@@ -272,11 +273,11 @@ module Coverband
       end
 
       def size
-        'not available'
+        "not available"
       end
 
       def size_in_mib
-        'not available'
+        "not available"
       end
 
       private
@@ -290,11 +291,11 @@ module Coverband
         data = coverage_data_from_redis(data_from_redis)
         hash[file] = data_from_redis.select do |meta_data_key, _value|
           META_DATA_KEYS.include?(meta_data_key)
-        end.merge!('data' => data)
+        end.merge!("data" => data)
         hash[file][LAST_UPDATED_KEY] =
-          hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == '' ? nil : hash[file][LAST_UPDATED_KEY].to_i
+          (hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "") ? nil : hash[file][LAST_UPDATED_KEY].to_i
         hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY],
-                          FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
+          FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
       end
 
       def coverage_data_from_redis(data_from_redis)
@@ -330,8 +331,8 @@ module Coverband
 
       def lua_script_content
         File.read(File.join(
-                    File.dirname(__FILE__), '../../../lua/lib/persist-coverage.lua'
-                  ))
+          File.dirname(__FILE__), "../../../lua/lib/persist-coverage.lua"
+        ))
       end
 
       def values_from_redis(local_type, files)
@@ -355,12 +356,12 @@ module Coverband
       end
 
       def key(file, local_type = nil, file_hash:)
-        [key_prefix(local_type), file, file_hash].join('.')
+        [key_prefix(local_type), file, file_hash].join(".")
       end
 
       def key_prefix(local_type = nil)
         local_type ||= type
-        [@format_version, @redis_namespace, local_type].compact.join('.')
+        [@format_version, @redis_namespace, local_type].compact.join(".")
       end
     end
   end
