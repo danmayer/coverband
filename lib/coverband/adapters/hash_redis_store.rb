@@ -56,7 +56,7 @@ module Coverband
         # sleep in between to avoid holding other redis commands..
         # with a small random offset so runtime and eager types can be processed "at the same time"
         def deferred_time
-          rand(3.0..4.0)
+          rand(2.0..3.0)
         end
 
         def del(local_type)
@@ -89,7 +89,7 @@ module Coverband
       # used to store data to redis. It is changed only when breaking changes to our
       # redis format are required.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_3_3"
+      REDIS_STORAGE_FORMAT_VERSION = "coverband_hash_4_0"
 
       JSON_PAYLOAD_EXPIRATION = 5 * 60
 
@@ -116,8 +116,8 @@ module Coverband
 
       def supported?
         Gem::Version.new(@redis.info["redis_version"]) >= Gem::Version.new("2.6.0")
-      rescue Redis::CannotConnectError => error
-        Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+      rescue Redis::CannotConnectError => e
+        Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
         Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
       end
 
@@ -128,6 +128,7 @@ module Coverband
           file_keys = files_set
           @redis.del(*file_keys) if file_keys.any?
           @redis.del(files_key)
+          @redis.del(files_key(type))
           @get_coverage_cache.clear!(type)
         end
         self.type = old_type
@@ -148,7 +149,7 @@ module Coverband
         updated_time = (type == Coverband::EAGER_TYPE) ? nil : report_time
         keys = []
         report.each_slice(@save_report_batch_size) do |slice|
-          files_data = slice.map { |(file, data)|
+          files_data = slice.map do |(file, data)|
             relative_file = @relative_file_converter.convert(file)
             file_hash = file_hash(relative_file)
             key = key(relative_file, file_hash: file_hash)
@@ -161,7 +162,7 @@ module Coverband
               report_time: report_time,
               updated_time: updated_time
             )
-          }
+          end
           next unless files_data.any?
 
           arguments_key = [@redis_namespace, SecureRandom.uuid].compact.join(".")
@@ -171,12 +172,24 @@ module Coverband
         @redis.sadd(files_key, keys) if keys.any?
       end
 
-      def coverage(local_type = nil)
+      # NOTE: This method should be used for full coverage or filename coverage look ups
+      # When paging code should use coverage_for_types and pull eager and runtime together as matched pairs
+      def coverage(local_type = nil, opts = {})
+        page_size = opts[:page_size] || 250
         cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
-          files_set = files_set(local_type)
-
-          # use batches with a sleep in between to avoid overloading redis
-          files_set.each_slice(250).flat_map do |key_batch|
+          files_set = if opts[:page]
+            raise "call coverage_for_types with paging"
+          elsif opts[:filename]
+            type_key_prefix = key_prefix(local_type)
+            # NOTE: a better way to extract filename from key would be better
+            files_set(local_type).select do |cache_key|
+              cache_key.sub(type_key_prefix, "").match(short_name(opts[:filename]))
+            end || {}
+          else
+            files_set(local_type)
+          end
+          # below uses batches with a sleep in between to avoid overloading redis
+          files_set.each_slice(page_size).flat_map do |key_batch|
             sleep sleep_time
             @redis.pipelined do |pipeline|
               key_batch.each do |key|
@@ -189,6 +202,70 @@ module Coverband
         cached_results.each_with_object({}) do |data_from_redis, hash|
           add_coverage_for_file(data_from_redis, hash)
         end
+      end
+
+      def split_coverage(types, coverage_cache, options = {})
+        if types.is_a?(Array) && !options[:filename] && options[:page]
+          data = coverage_for_types(types, options)
+          coverage_cache[Coverband::RUNTIME_TYPE] = data[Coverband::RUNTIME_TYPE]
+          coverage_cache[Coverband::EAGER_TYPE] = data[Coverband::EAGER_TYPE]
+          data
+        else
+          super
+        end
+      end
+
+      def coverage_for_types(_types, opts = {})
+        page_size = opts[:page_size] || 250
+        hash_data = {}
+
+        runtime_file_set = files_set(Coverband::RUNTIME_TYPE)
+        @cached_file_count = runtime_file_set.length
+        runtime_file_set = runtime_file_set.each_slice(page_size).to_a[opts[:page] - 1] || []
+
+        hash_data[Coverband::RUNTIME_TYPE] = runtime_file_set.each_slice(page_size).flat_map do |key_batch|
+          @redis.pipelined do |pipeline|
+            key_batch.each do |key|
+              pipeline.hgetall(key)
+            end
+          end
+        end
+
+        eager_key_pre = key_prefix(Coverband::EAGER_TYPE)
+        runtime_key_pre = key_prefix(Coverband::RUNTIME_TYPE)
+        matched_file_set = files_set(Coverband::EAGER_TYPE)
+          .select do |eager_key, _val|
+          runtime_file_set.any? do |runtime_key|
+            (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, ""))
+          end
+        end || []
+        hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
+          @redis.pipelined do |pipeline|
+            key_batch.each do |key|
+              pipeline.hgetall(key)
+            end
+          end
+        end
+        hash_data[Coverband::RUNTIME_TYPE] = hash_data[Coverband::RUNTIME_TYPE].each_with_object({}) do |data_from_redis, hash|
+          add_coverage_for_file(data_from_redis, hash)
+        end
+        hash_data[Coverband::EAGER_TYPE] = hash_data[Coverband::EAGER_TYPE].each_with_object({}) do |data_from_redis, hash|
+          add_coverage_for_file(data_from_redis, hash)
+        end
+        hash_data
+      end
+
+      def short_name(filename)
+        filename.sub(/^#{Coverband.configuration.root}/, ".")
+          .gsub(%r{^\./}, "")
+      end
+
+      def file_count(local_type = nil)
+        files_set(local_type).count { |filename| !Coverband.configuration.ignore.any? { |i| filename.match(i) } }
+      end
+
+      def cached_file_count
+        @cached_file_count ||= file_count(Coverband::RUNTIME_TYPE)
       end
 
       def raw_store
@@ -212,9 +289,13 @@ module Coverband
         return unless file_hash(file) == data_from_redis[FILE_HASH]
 
         data = coverage_data_from_redis(data_from_redis)
-        hash[file] = data_from_redis.select { |meta_data_key, _value| META_DATA_KEYS.include?(meta_data_key) }.merge!("data" => data)
-        hash[file][LAST_UPDATED_KEY] = (hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "") ? nil : hash[file][LAST_UPDATED_KEY].to_i
-        hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY], FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
+        hash[file] = data_from_redis.select do |meta_data_key, _value|
+          META_DATA_KEYS.include?(meta_data_key)
+        end.merge!("data" => data)
+        hash[file][LAST_UPDATED_KEY] =
+          (hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "") ? nil : hash[file][LAST_UPDATED_KEY].to_i
+        hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY],
+          FIRST_UPDATED_KEY => hash[file][FIRST_UPDATED_KEY].to_i)
       end
 
       def coverage_data_from_redis(data_from_redis)
@@ -226,9 +307,9 @@ module Coverband
       end
 
       def script_input(key:, file:, file_hash:, data:, report_time:, updated_time:)
-        coverage_data = data.each_with_index.each_with_object({}) { |(coverage, index), hash|
+        coverage_data = data.each_with_index.each_with_object({}) do |(coverage, index), hash|
           hash[index] = coverage if coverage
-        }
+        end
         meta = {
           first_updated_at: report_time,
           file: file,

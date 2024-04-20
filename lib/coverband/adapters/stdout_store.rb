@@ -25,7 +25,7 @@ module Coverband
         raise NotImplementedError, "StdoutStore doesn't support migrations"
       end
 
-      def coverage(_local_type = nil)
+      def coverage(_local_type = nil, opts = {})
         {}
       end
 

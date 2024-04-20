@@ -38,7 +38,7 @@ class ReportJSONTest < Minitest::Test
     json = Coverband::Reporters::JSONReport.new(@store).report
     parsed = JSON.parse(json)
 
-    expected_keys = ["never_loaded", "runtime_percentage", "lines_of_code", "lines_covered", "lines_missed", "covered_percent", "covered_strength"]
+    expected_keys = ["filename", "hash", "never_loaded", "runtime_percentage", "lines_of_code", "lines_covered", "lines_runtime", "lines_missed", "covered_percent", "covered_strength"]
 
     assert_equal parsed["files"].length, 2
     parsed["files"].keys.each do |file|

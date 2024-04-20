@@ -687,9 +687,17 @@ a.src_link {
   background: url("./magnify.png") no-repeat left 50%;
   padding-left: 18px; }
 
+a.src_link.strong {
+  font-weight: bold;
+}
+
 .red a.src_link {
     color: #990000;
-   }
+}
+
+a.src_link.red {
+  color: #990000;
+}
 
 tr, td {
   margin: 0;
@@ -816,6 +824,21 @@ td {
 
 .red {
   color: #990000; }
+
+span.red {
+    color: #990000; }
+
+td:has(> span.red) { 
+  color: #990000;
+}
+
+td:has(> span.yellow) { 
+  color: #ddaa00;
+}
+
+td:has(> span.green) { 
+  color: #009900;
+}
 
 .yellow {
   color: #ddaa00; }

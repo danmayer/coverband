@@ -98,6 +98,8 @@ module Coverband
               [200, coverband_headers(content_type: "text/json"), [load_file_details]]
             when %r{\/json}
               [200, coverband_headers(content_type: "text/json"), [json]]
+            when %r{\/report_json}
+              [200, coverband_headers(content_type: "text/json"), [report_json]]
             when %r{\/$}
               [200, coverband_headers, [index]]
             else
@@ -110,15 +112,32 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+        page = (request.params["page"] || 1).to_i
+        options = {
           static: false,
           base_path: base_path,
           notice: notice,
-          open_report: false).report
+          open_report: false
+        }
+        options[:page] = page if Coverband.configuration.paged_reporting
+        Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+          options).report
       end
 
       def json
         Coverband::Reporters::JSONReport.new(Coverband.configuration.store).report
+      end
+
+      def report_json
+        report_options = {
+          as_report: true,
+          base_path: base_path
+        }
+        report_options[:page] = (request.params["page"] || 1).to_i if request.params["page"]
+        Coverband::Reporters::JSONReport.new(
+          Coverband.configuration.store,
+          report_options
+        ).report
       end
 
       def settings
@@ -129,10 +148,12 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        Coverband::Utils::HTMLFormatter.new(nil,
+        options = {
           tracker: tracker,
           notice: notice,
-          base_path: base_path).format_abstract_tracker!
+          base_path: base_path
+        }
+        Coverband::Utils::HTMLFormatter.new(nil, options).format_abstract_tracker!
       end
 
       def view_tracker_data

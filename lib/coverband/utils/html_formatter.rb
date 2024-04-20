@@ -13,12 +13,13 @@ require "time"
 module Coverband
   module Utils
     class HTMLFormatter
-      attr_reader :notice, :base_path, :tracker
+      attr_reader :notice, :base_path, :tracker, :page
 
       def initialize(report, options = {})
         @notice = options.fetch(:notice, nil)
         @base_path = options.fetch(:base_path, "./")
         @tracker = options.fetch(:tracker, nil)
+        @page = options.fetch(:page, nil)
         @coverage_result = Coverband::Utils::Results.new(report) if report
       end
 
@@ -116,13 +117,6 @@ module Coverband
         puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
       end
 
-      # Returns the html to ajax load a given source_file
-      def formatted_source_file_loader(result, source_file)
-        template("source_file_loader").result(binding)
-      rescue Encoding::CompatibilityError => e
-        puts "Encoding error file:#{source_file.filename} Coverband/ERB error #{e.message}."
-      end
-
       # Returns a table containing the given source files
       def formatted_file_list(title, result, source_files, options = {})
         title_id = title.gsub(/^[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9\-\_]/, "")
@@ -174,7 +168,8 @@ module Coverband
       end
 
       def link_to_source_file(source_file)
-        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}">#{shortened_filename source_file}</a>)
+        data_loader_url = "#{base_path}load_file_details?filename=#{source_file.filename}"
+        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}" data-loader-url="#{data_loader_url}" onclick="src_link_click(this)">#{shortened_filename source_file}</a>)
       end
     end
   end

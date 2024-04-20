@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module Coverband
+  ###
+  # Configuration parsing and options for the coverband gem.
+  ###
   class Configuration
     attr_accessor :root_paths, :root,
       :verbose,
@@ -17,7 +20,7 @@ module Coverband
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle,
-      :send_deferred_eager_loading_data
+      :send_deferred_eager_loading_data, :paged_reporting
 
     attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
 
@@ -132,8 +135,8 @@ module Coverband
         trackers << Coverband.configuration.view_tracker
       end
       trackers.each { |tracker| tracker.railtie! }
-    rescue Redis::CannotConnectError => error
-      Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
+    rescue Redis::CannotConnectError => e
+      Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
 
@@ -170,7 +173,10 @@ module Coverband
 
     def store
       @store ||= if service?
-        raise "invalid configuration: unclear default store coverband expects either api_key or redis_url" if ENV["COVERBAND_REDIS_URL"]
+        if ENV["COVERBAND_REDIS_URL"]
+          raise "invalid configuration: unclear default store coverband expects either api_key or redis_url"
+        end
+
         require "coverband/adapters/web_service_store"
         Coverband::Adapters::WebServiceStore.new(service_url)
       else
@@ -180,8 +186,14 @@ module Coverband
 
     def store=(store)
       raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
-      raise "invalid configuration: only coverband service expects an API Key" if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
-      raise "invalid configuration: coverband service shouldn't have redis url set" if ENV["COVERBAND_REDIS_URL"] && store.instance_of?(::Coverband::Adapters::WebServiceStore)
+      if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
+        raise "invalid configuration: only coverband service expects an API Key"
+      end
+      if ENV["COVERBAND_REDIS_URL"] &&
+          defined?(::Coverband::Adapters::WebServiceStore) &&
+          store.instance_of?(::Coverband::Adapters::WebServiceStore)
+        raise "invalid configuration: coverband service shouldn't have redis url set"
+      end
 
       @store = store
     end
@@ -241,7 +253,10 @@ module Coverband
     end
 
     def use_oneshot_lines_coverage=(value)
-      raise(StandardError, "One shot line coverage is only available in ruby >= 2.6") unless one_shot_coverage_implemented_in_ruby_version? || !value
+      unless one_shot_coverage_implemented_in_ruby_version? || !value
+        raise(StandardError,
+          "One shot line coverage is only available in ruby >= 2.6")
+      end
 
       @use_oneshot_lines_coverage = value
     end
@@ -294,6 +309,10 @@ module Coverband
       @send_deferred_eager_loading_data
     end
 
+    def paged_reporting
+      !!@paged_reporting
+    end
+
     def service_disabled_dev_test_env?
       return false unless service?
 
@@ -318,7 +337,7 @@ module Coverband
     end
 
     def track_gems=(_value)
-      puts "gem tracking is deprecated, setting this will be ignored"
+      puts "gem tracking is deprecated, setting this will be ignored & eventually removed"
     end
 
     private
