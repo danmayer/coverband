@@ -12,7 +12,7 @@ module Coverband
       :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
       :simulate_oneshot_lines_coverage,
       :view_tracker, :defer_eager_loading_data,
-      :track_routes, :route_tracker,
+      :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
       :trackers, :csp_policy, :hide_settings
 
@@ -77,6 +77,7 @@ module Coverband
       @track_views = true
       @view_tracker = nil
       @track_routes = false
+      @track_redirect_routes = true
       @route_tracker = nil
       @track_translations = false
       @translations_tracker = nil
