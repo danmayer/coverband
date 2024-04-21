@@ -21,6 +21,9 @@ for _, file_data in ipairs(files_data) do
   redis.call('HSETNX', hash_key, 'first_updated_at', first_updated_at)
   for line, coverage in pairs(file_data.coverage) do
     redis.call("HINCRBY", hash_key, line, coverage)
+    if coverage > 0 then
+      redis.call("HSET", hash_key, line .. "_last_posted", ARGV[1])
+    end
   end
   if ttl and ttl ~= cjson.null then
     redis.call("EXPIRE", hash_key, ttl)
