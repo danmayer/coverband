@@ -45,6 +45,7 @@
             runtime:
             <%= result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.line_coverage(index) || 0 %>
             all: <%= line.coverage %>
+            last posted: <%= timeago(result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.line_coverage_posted(index), "-") %>
           </span><% end %>
           <% if line.skipped? %><span class="hits">skipped</span><% end %>
           <code class="ruby"><%= CGI.escapeHTML(line.src.chomp) %></code>

@@ -57,7 +57,8 @@ class HashRedisStoreTest < Minitest::Test
         "first_updated_at" => yesterday.to_i,
         "last_updated_at" => yesterday.to_i,
         "file_hash" => "abcd",
-        "data" => [0, 1, 2]
+        "data" => [0, 1, 2],
+        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
       },
       @store.coverage["./dog.rb"]
     )
@@ -65,15 +66,12 @@ class HashRedisStoreTest < Minitest::Test
     @store.save_report(
       "app_path/dog.rb" => [1, 1, 0]
     )
-    assert_equal(
-      {
-        "first_updated_at" => yesterday.to_i,
-        "last_updated_at" => today.to_i,
-        "file_hash" => "abcd",
-        "data" => [1, 2, 2]
-      },
-      @store.coverage["./dog.rb"]
-    )
+
+    assert_equal("abcd", @store.coverage["./dog.rb"]["file_hash"])
+    assert_equal(today.to_i, @store.coverage["./dog.rb"]["last_updated_at"])
+    assert_equal(yesterday.to_i, @store.coverage["./dog.rb"]["first_updated_at"])
+    assert_equal([1, 2, 2], @store.coverage["./dog.rb"]["data"])
+    assert_equal([Time.at(today.to_i), Time.at(today.to_i), Time.at(yesterday.to_i)], @store.coverage["./dog.rb"]["timedata"])
   end
 
   def test_ttl_set
@@ -109,7 +107,8 @@ class HashRedisStoreTest < Minitest::Test
         "first_updated_at" => current_time.to_i,
         "last_updated_at" => current_time.to_i,
         "file_hash" => "abcd",
-        "data" => [0, nil, 1, 2]
+        "data" => [0, nil, 1, 2],
+        "timedata" => [nil, nil, Time.at(current_time.to_i), Time.at(current_time.to_i)]
       }, @store.coverage["./dog.rb"]
     )
     assert_equal [1, 2, 0, 1, 5], @store.coverage["./cat.rb"]["data"]
@@ -213,7 +212,8 @@ class HashRedisStoreTest < Minitest::Test
         "first_updated_at" => yesterday.to_i,
         "last_updated_at" => yesterday.to_i,
         "file_hash" => "abcd",
-        "data" => [0, 1, 2]
+        "data" => [0, 1, 2],
+        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
       },
       @store.coverage["./dog.rb"]
     )
@@ -225,7 +225,8 @@ class HashRedisStoreTest < Minitest::Test
         "first_updated_at" => yesterday.to_i,
         "last_updated_at" => yesterday.to_i,
         "file_hash" => "abcd",
-        "data" => [0, 1, 2]
+        "data" => [0, 1, 2],
+        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
       },
       @store.coverage["./dog.rb"]
     )
@@ -235,7 +236,8 @@ class HashRedisStoreTest < Minitest::Test
         "first_updated_at" => yesterday.to_i,
         "last_updated_at" => yesterday.to_i,
         "file_hash" => "abcd",
-        "data" => [0, 2, 4]
+        "data" => [0, 2, 4],
+        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
       },
       @store.coverage["./dog.rb"]
     )

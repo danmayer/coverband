@@ -155,11 +155,11 @@ module Coverband
         Digest::SHA1.hexdigest(source_file.filename)
       end
 
-      def timeago(time)
-        if time
+      def timeago(time, err_msg = "Not Available")
+        if time.respond_to?(:iso8601)
           "<abbr class=\"timeago\" title=\"#{time.iso8601}\">#{time.iso8601}</abbr>"
         else
-          "Not Available"
+          err_msg
         end
       end
 
