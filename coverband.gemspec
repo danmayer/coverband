@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "memory_profiler"
   # breaking change in minitest and mocha...
   # note: we are also adding 'spy' as mocha doesn't want us to spy on redis calls...
+  spec.add_development_dependency "spy"
   # ^^^ probably need a large test cleanup refactor
   spec.add_development_dependency "minitest", "= 5.18.1"
   spec.add_development_dependency "minitest-fork_executor"

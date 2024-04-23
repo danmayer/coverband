@@ -242,4 +242,52 @@ class HashRedisStoreTest < Minitest::Test
       @store.coverage["./dog.rb"]
     )
   end
+
+  def test_split_coverage
+    @store = Coverband::Adapters::HashRedisStore.new(
+      @redis,
+      redis_namespace: "coverband_test",
+      relative_file_converter: MockRelativeFileConverter
+    )
+
+    mock_file_hash
+    yesterday = DateTime.now.prev_day.to_time
+    mock_time(yesterday)
+
+    @store.type = :eager_loading
+    data = {
+      "app_path/dog.rb" => [0, nil, 1]
+    }
+    @store.save_report(data)
+
+    @store.type = :runtime
+    @store.save_report(
+      "app_path/dog.rb" => [0, 1, 2]
+    )
+    redis_pipelined = Spy.on(@redis, :pipelined).and_call_through
+    assert_equal(
+      {
+        runtime: {
+          "./dog.rb" => {
+            "first_updated_at" => yesterday.to_i,
+            "last_updated_at" => yesterday.to_i,
+            "file_hash" => "abcd",
+            "data" => [0, 1, 2],
+            "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
+          }
+        },
+        eager_loading: {
+          "./dog.rb" => {
+            "first_updated_at" => yesterday.to_i,
+            "last_updated_at" => nil,
+            "file_hash" => "abcd",
+            "data" => [0, nil, 1],
+            "timedata" => [nil, nil, Time.at(yesterday.to_i)]
+          }
+        }
+      },
+      @store.split_coverage([Coverband::RUNTIME_TYPE, Coverband::EAGER_TYPE], {}, {page: 1})
+    )
+    assert_equal 2, redis_pipelined.calls.count
+  end
 end

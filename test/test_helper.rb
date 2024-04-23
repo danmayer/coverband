@@ -35,6 +35,7 @@ require "coverband/utils/results"
 require "coverband/reporters/html_report"
 require "coverband/reporters/json_report"
 require "webmock/minitest"
+require "spy/integration"
 
 require_relative "unique_files"
 $VERBOSE = original_verbosity

@@ -231,14 +231,14 @@ module Coverband
           end
         end
 
+        # NOTE: This is kind of hacky, we find all the matching eager loading data
+        # for current page of runtime data.
         eager_key_pre = key_prefix(Coverband::EAGER_TYPE)
         runtime_key_pre = key_prefix(Coverband::RUNTIME_TYPE)
-        matched_file_set = files_set(Coverband::EAGER_TYPE)
-          .select do |eager_key, _val|
-          runtime_file_set.any? do |runtime_key|
-            (eager_key.sub(eager_key_pre, "") == runtime_key.sub(runtime_key_pre, ""))
-          end
-        end || []
+        matched_file_set = runtime_file_set.map do |runtime_key|
+          runtime_key.sub(runtime_key_pre, eager_key_pre)
+        end
+
         hash_data[Coverband::EAGER_TYPE] = matched_file_set.each_slice(page_size).flat_map do |key_batch|
           @redis.pipelined do |pipeline|
             key_batch.each do |key|
@@ -246,6 +246,7 @@ module Coverband
             end
           end
         end
+
         hash_data[Coverband::RUNTIME_TYPE] = hash_data[Coverband::RUNTIME_TYPE].each_with_object({}) do |data_from_redis, hash|
           add_coverage_for_file(data_from_redis, hash)
         end

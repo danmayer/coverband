@@ -1,3 +1,7 @@
+### Coverband 6.1.1
+
+* Performance fix making paged report loading 10X faster
+
 ### Coverband 6.1.0
 
 This release has a number of smaller fixes and improvements. It includes a sizable refactoring around the UI which should simplify improvements going forward. This release is mostly targetting large projects with 6K+ ruby files, use the new `config.paged_reporting = true` option with the HashRedisStore to enable paged reporting for large projects. The HashRedisStore now also includes the last time a line in a file was executed.
