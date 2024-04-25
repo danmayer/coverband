@@ -60,7 +60,7 @@ module Coverband
     end
 
     def reset
-      @root = Dir.pwd
+      @root = ENV["COVERBAND_ROOT"] || Dir.pwd
       @root_paths = []
       @ignore = IGNORE_DEFAULTS.dup
       @search_paths = TRACKED_DEFAULT_PATHS.dup
