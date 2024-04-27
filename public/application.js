@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
   // remove the url params like notice=message so they don't stick around
   window.history.replaceState(
     "object or string",
@@ -9,7 +9,7 @@ $(document).ready(function() {
     .delay(3000)
     .fadeOut("slow");
 
-  $(".del").click(function() {
+  $(".del").click(function () {
     if (!confirm("Do you want to delete")) {
       return false;
     }
@@ -42,7 +42,7 @@ $(document).ready(function() {
     var total_rows = 0;
     var page = 1;
     var all_data = [];
-    
+
     // load and render page content before we start the loop
     // perhaps move this into a datatable ready event
     $(".dataTables_empty").html("loading...");
@@ -55,14 +55,14 @@ $(document).ready(function() {
         url: `${$(".file_list").data("coverageurl")}/report_json?page=${page}`,
         type: 'GET',
         dataType: 'json',
-        success: function(data) {
+        success: function (data) {
           total_rows = data["iTotalRecords"];
           all_data = all_data.concat(data["aaData"]);
           $(".dataTables_empty").html("loading... on " + all_data.length + " of " + total_rows + " files");
           page += 1;
-;
-          // the page less than 100 is to stop infinite loop in case of folks never clearing out old coverage reports
-          if (page < 50 && all_data.length < total_rows) {
+
+          // the page less than 50 is to stop infinite loop in case of folks never clearing out old coverage reports
+          if (page < 50 && all_data.length <= total_rows && data["aaData"].length > 0) {
             setTimeout(() => {
               get_page(page);
             }, 10);
@@ -81,28 +81,28 @@ $(document).ready(function() {
   }
 
   src_link_click = (trigger_element) => {
-      var loader_url = $(trigger_element).attr("data-loader-url");
-      auto_click_anchor = null;
-      $(trigger_element).colorbox(jQuery.extend(colorbox_options, { href: loader_url}));
-    };
+    var loader_url = $(trigger_element).attr("data-loader-url");
+    auto_click_anchor = null;
+    $(trigger_element).colorbox(jQuery.extend(colorbox_options, { href: loader_url }));
+  };
 
   var colorbox_options = {
     transition: "none",
     opacity: 1,
     width: "95%",
     height: "95%",
-    onLoad: function() {
+    onLoad: function () {
       // If not highlighted yet, do it!
       var source_table = $(".shared_source_table");
       if (!source_table.hasClass("highlighted")) {
-        source_table.find("pre code").each(function(i, e) {
+        source_table.find("pre code").each(function (i, e) {
           hljs.highlightBlock(e, "  ");
         });
         source_table.addClass("highlighted");
       }
       window.location.hash = this.href.split("#")[1];
     },
-    onCleanup: function() {
+    onCleanup: function () {
       window.location.hash = $(".group_tabs a:first").attr("href");
     }
   }
@@ -112,7 +112,7 @@ $(document).ready(function() {
   $(".file_list_container").hide();
 
   // Add tabs based upon existing file_list_containers
-  $(".file_list_container h2").each(function() {
+  $(".file_list_container h2").each(function () {
     var container_id = $(this)
       .parent()
       .attr("id");
@@ -132,16 +132,16 @@ $(document).ready(function() {
 
     $(".group_tabs").append(
       '<li><a href="#' +
-        container_id +
-        '">' +
-        group_name +
-        " " +
-        covered_percent +
-        "</a></li>"
+      container_id +
+      '">' +
+      group_name +
+      " " +
+      covered_percent +
+      "</a></li>"
     );
   });
 
-  $(".group_tabs a").each(function() {
+  $(".group_tabs a").each(function () {
     $(this).addClass(
       $(this)
         .attr("href")
@@ -150,12 +150,12 @@ $(document).ready(function() {
   });
 
   // Make sure tabs don't get ugly focus borders when active
-  $(".group_tabs a").live("focus", function() {
+  $(".group_tabs a").live("focus", function () {
     $(this).blur();
   });
 
   var favicon_path = $('link[rel="shortcut icon"]').attr("href");
-  $(".group_tabs a").live("click", function() {
+  $(".group_tabs a").live("click", function () {
     if (
       !$(this)
         .parent()
@@ -169,7 +169,7 @@ $(document).ready(function() {
         .addClass("active");
     }
     $(".file_list_container").hide();
-    $(".file_list_container" + $(this).attr("href")).show(function() {
+    $(".file_list_container" + $(this).attr("href")).show(function () {
       // If we have an anchor to click, click it
       // allow rendering to complete before we click the anchor
       setTimeout(() => {
@@ -186,14 +186,14 @@ $(document).ready(function() {
           .attr("href")
           .replace("#", "#_");
     }
-  
+
     // Force favicon reload - otherwise the location change containing anchor would drop the favicon...
     // Works only on firefox, but still... - Anyone know a better solution to force favicon on local relative file path?
     $('link[rel="shortcut icon"]').remove();
     $("head").append(
       '<link rel="shortcut icon" type="image/png" href="' +
-        favicon_path +
-        '" />'
+      favicon_path +
+      '" />'
     );
     return false;
   });
