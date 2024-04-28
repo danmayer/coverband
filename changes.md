@@ -1,3 +1,7 @@
+### Coverband 6.1.2
+
+* Fix for paging that would pull empty pages after getting all the data.
+
 ### Coverband 6.1.1
 
 * Performance fix making paged report loading 10X faster
