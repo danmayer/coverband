@@ -89,8 +89,11 @@ TEST_COVERAGE_FILE = "/tmp/fake_file.json"
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-Mocha::Configuration.prevent(:stubbing_method_unnecessarily)
-Mocha::Configuration.prevent(:stubbing_non_existent_method)
+Mocha.configure do |c|
+  c.stubbing_method_unnecessarily = :prevent
+  c.stubbing_method_on_non_mock_object = :allow
+  c.stubbing_method_on_nil = :prevent
+end
 
 def test(name, &block)
   test_name = :"test_#{name.gsub(/\s+/, "_")}"

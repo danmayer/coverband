@@ -38,10 +38,10 @@ Gem::Specification.new do |spec|
   # note: we are also adding 'spy' as mocha doesn't want us to spy on redis calls...
   spec.add_development_dependency "spy"
   # ^^^ probably need a large test cleanup refactor
-  spec.add_development_dependency "minitest", "= 5.18.1"
+  spec.add_development_dependency "minitest"
   spec.add_development_dependency "minitest-fork_executor"
   spec.add_development_dependency "minitest-stub-const"
-  spec.add_development_dependency "mocha", "~> 1.7.0"
+  spec.add_development_dependency "mocha"
   spec.add_development_dependency "rack"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"
