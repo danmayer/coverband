@@ -7,11 +7,21 @@ module Coverband
     ###
     class ConsoleReport < Base
       def self.report(store, options = {})
-        scov_style_report = super(store, options)
-        scov_style_report[:merged].each_pair do |file, usage|
+        coverband_reports = Coverband::Reporters::Base.report(store, options)
+        fix_reports(coverband_reports)
+        result = Coverband::Utils::Results.new(coverband_reports)
+        source_files = result.source_files
+
+        Coverband.configuration.logger.info "total_files: #{source_files.length}"
+        Coverband.configuration.logger.info "lines_of_code: #{source_files.lines_of_code}"
+        Coverband.configuration.logger.info "lines_covered: #{source_files.covered_lines}"
+        Coverband.configuration.logger.info "lines_missed: #{source_files.missed_lines}"
+        Coverband.configuration.logger.info "covered_percent: #{source_files.covered_percent}"
+
+        coverband_reports[:merged].each_pair do |file, usage|
           Coverband.configuration.logger.info "#{file}: #{usage["data"]}"
         end
-        scov_style_report
+        coverband_reports
       end
     end
   end

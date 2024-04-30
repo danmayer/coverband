@@ -14,6 +14,12 @@ namespace :coverband do
 
   desc "report runtime Coverband code coverage"
   task :coverage do
+    require "coverband/utils/html_formatter"
+    require "coverband/utils/result"
+    require "coverband/utils/file_list"
+    require "coverband/utils/source_file"
+    require "coverband/utils/lines_classifier"
+    require "coverband/utils/results"
     Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
   end
 
