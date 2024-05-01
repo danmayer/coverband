@@ -73,6 +73,19 @@ module Coverband
         get_results(type).respond_to?(method)
       end
 
+      # Note: small set of hacks for static html simplecov report (groups, created_at, & command_name)
+      def groups
+        @groups ||= {}
+      end
+
+      def created_at
+        @created_at ||= Time.now
+      end
+
+      def command_name
+        @command_name ||= "Coverband"
+      end
+
       private
 
       def get_eager_file(source_file)
