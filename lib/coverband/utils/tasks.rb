@@ -55,7 +55,6 @@ namespace :coverband do
     require "coverband/utils/source_file"
     require "coverband/utils/lines_classifier"
     require "coverband/utils/results"
-    require "coverband/reporters/html_report"
 
     require "simplecov"
     require "simplecov-html"
