@@ -4,7 +4,7 @@ require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 class AdaptersBaseTest < Minitest::Test
   def test_abstract_methods
-    abstract_methods = %w[clear! clear_file! migrate! size save_coverage coverage]
+    abstract_methods = %w[clear! clear_file! size save_coverage coverage]
     abstract_methods.each do |method|
       assert_raises RuntimeError do
         Coverband::Adapters::Base.new.send(method.to_sym)

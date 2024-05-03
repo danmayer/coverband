@@ -36,10 +36,6 @@ module Coverband
         @memcached.read(base_key) ? @memcached.read(base_key).bytesize : "N/A"
       end
 
-      def migrate!
-        raise NotImplementedError, "MemcachedStore doesn't support migrations"
-      end
-
       def type=(type)
         super
         reset_base_key

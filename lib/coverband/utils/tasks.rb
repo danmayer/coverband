@@ -107,12 +107,4 @@ namespace :coverband do
     trackers = Coverband.configuration.trackers
     trackers.each(&:reset_recordings)
   end
-
-  ###
-  # Updates the data in the coverband store from one format to another
-  ###
-  desc "upgrade previous Coverband datastore to latest format"
-  task :migrate do
-    Coverband.configuration.store.migrate!
-  end
 end

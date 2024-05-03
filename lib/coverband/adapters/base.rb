@@ -23,10 +23,6 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
-      def migrate!
-        raise ABSTRACT_KEY
-      end
-
       def size
         raise ABSTRACT_KEY
       end

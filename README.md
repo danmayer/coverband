@@ -312,14 +312,6 @@ Now that Coverband uses MD5 hashes there should be no reason to manually clear c
 
 This can also be done through the web if `config.web_enable_clear` is enabled.
 
-### Coverage Data Migration
-
-Between the release of 4.0 and 4.1 our data format changed. This resets all your coverage data. If you want to restore your previous coverage data, feel free to migrate.
-
-`rake coverband:migrate`
-
-- We will be working to support migrations going forward, when possible
-
 ### Adding Rake Tasks outside of Rails
 
 Rails apps should automatically include the tasks via the Railtie.

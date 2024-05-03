@@ -33,7 +33,6 @@ module Coverband
     IGNORE_TASKS = ["coverband:clear",
                     "coverband:coverage",
                     "coverband:coverage_server",
-                    "coverband:migrate",
                     "assets:precompile",
                     "webpacker:compile",
                     "db:version",

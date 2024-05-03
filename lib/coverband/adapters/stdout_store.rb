@@ -21,10 +21,6 @@ module Coverband
         0
       end
 
-      def migrate!
-        raise NotImplementedError, "StdoutStore doesn't support migrations"
-      end
-
       def coverage(_local_type = nil, opts = {})
         {}
       end

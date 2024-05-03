@@ -48,10 +48,6 @@ module Coverband
         File.size?(path).to_i
       end
 
-      def migrate!
-        raise NotImplementedError, "FileStore doesn't support migrations"
-      end
-
       def coverage(_local_type = nil, opts = {})
         if merge_mode
           data = {}

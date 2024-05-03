@@ -45,28 +45,6 @@ module Coverband
         @redis.get(base_key) ? @redis.get(base_key).bytesize : "N/A"
       end
 
-      ###
-      # Current implementation moves from coverband3_1 to coverband_3_2
-      # In the future this can be made more general and support a more specific
-      # version format.
-      ###
-      def migrate!
-        reset_base_key
-        @format_version = "coverband3_1"
-        previous_data = coverage
-        if previous_data.empty?
-          puts "no previous data to migrate found"
-          exit 0
-        end
-        relative_path_report = previous_data.each_with_object({}) { |(key, vals), fixed_report|
-          fixed_report[Utils::RelativeFileConverter.convert(key)] = vals
-        }
-        clear!
-        reset_base_key
-        @format_version = REDIS_STORAGE_FORMAT_VERSION
-        save_coverage(merge_reports(coverage, relative_path_report, skip_expansion: true))
-      end
-
       def type=(type)
         super
         reset_base_key
