@@ -75,7 +75,6 @@ class ReportsBaseTest < Minitest::Test
     roots = ['/base/[0-9]*/', '/base/78/app/']
 
     Coverband.configuration.stubs(:all_root_paths).returns(roots)
-    lines_hit = [1, 3, 6]
     store.stubs(:merged_coverage).returns(coverage)
     File.expects(:exist?).at_least_once
       .with('/base/[0-9]*/app/controllers/dashboard_controller.rb')

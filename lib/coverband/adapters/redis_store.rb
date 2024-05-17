@@ -72,6 +72,15 @@ module Coverband
         @redis
       end
 
+      def file_count
+        data = redis.get type_base_key(Coverband::RUNTIME_TYPE)
+        JSON.parse(data).keys.length
+      end
+
+      def cached_file_count
+        @cached_file_count ||= file_count
+      end
+
       private
 
       attr_reader :redis

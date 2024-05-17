@@ -45,4 +45,15 @@ class ReportJSONTest < Minitest::Test
       assert_equal parsed["files"][file].keys, expected_keys
     end
   end
+
+  test "supports merging" do
+    @store.send(:save_report, basic_coverage)
+    first_report = JSON.parse(Coverband::Reporters::JSONReport.new(@store, for_merged_report: true).report)
+
+    @store.send(:save_report, increased_basic_coverage)
+    second_report = JSON.parse(Coverband::Reporters::JSONReport.new(@store, for_merged_report: true).report)
+    data = Coverband::Reporters::JSONReport.new(@store).merge_reports(first_report, second_report)
+    assert_equal data[Coverband::RUNTIME_TYPE.to_s]["app_path/dog.rb"]["data"], [0, 4, 10]
+    assert_equal data[Coverband::MERGED_TYPE.to_s]["app_path/dog.rb"]["data"], [0, 4, 10]
+  end
 end
