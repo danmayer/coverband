@@ -33,8 +33,12 @@ namespace :coverband do
     require "coverband/utils/results"
     require "coverband/reporters/json_report"
 
-    report = Coverband::Reporters::JSONReport.new(Coverband.configuration.store).report
-    File.write("coverage/coverage.json", report)
+    report = Coverband::Reporters::JSONReport.new(Coverband.configuration.store, {
+      for_merged_report: !!ENV["FOR_MERGED_REPORT"],
+      line_coverage: true
+    }).report
+    `mkdir -p coverage`
+    File.write("coverage/coverage.json.#{Time.now.to_f}", report)
   end
 
   ###
@@ -66,6 +70,39 @@ namespace :coverband do
     Coverband::Reporters::Base.fix_reports(coverband_reports)
     result = Coverband::Utils::Results.new(coverband_reports)
     SimpleCov::Formatter::HTMLFormatter.new.format(result)
+  end
+
+  ####
+  # This task can aggregate multiple coverage files into a single coverage report
+  # * `FOR_MERGED_REPORT=true bundle exec rake coverband:coverage_json` to generate the JSON files
+  # * collect all the files over time in some system or as artifacts in CI, then run...
+  # * `bundle exec rake coverband:aggregate_coverage` to merge the files
+  # * the output will include a timestamp of when it was output...
+  ####
+  task :aggregate_coverage do |task, args|
+    require "coverband/utils/result"
+    require "coverband/utils/file_list"
+    require "coverband/utils/source_file"
+    require "coverband/utils/lines_classifier"
+    require "coverband/utils/results"
+    require "coverband/reporters/json_report"
+
+    directory = "./coverage"
+    pattern = "coverage.json*"
+
+    # Use Dir.glob to find files matching the pattern in the specified directory
+    files = Dir.glob(File.join(directory, pattern))
+
+    report = {}
+    files.each do |file|
+      data = JSON.parse(File.read(file))
+      report = if report.empty?
+        data
+      else
+        Coverband::Reporters::JSONReport.new(Coverband.configuration.store).merge_reports(report, data)
+      end
+    end
+    File.write("coverage/coverage_merged.json.#{Time.now.to_f}", report.to_json)
   end
 
   desc "Run a simple rack app to report Coverband code coverage"

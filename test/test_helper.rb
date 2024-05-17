@@ -125,6 +125,10 @@ def basic_coverage
   {"app_path/dog.rb" => example_line}
 end
 
+def increased_basic_coverage
+  {"app_path/dog.rb" => [0, 2, 6]}
+end
+
 def basic_coverage_full_path
   {basic_coverage_file_full_path => example_line}
 end

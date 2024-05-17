@@ -5,13 +5,16 @@
 module Coverband
   module Reporters
     class JSONReport < Base
-      attr_accessor :filtered_report_files, :options, :page, :as_report, :store, :filename, :base_path
+      attr_accessor :filtered_report_files, :options, :page, :as_report, :store, :filename, :base_path, :line_coverage,
+        :for_merged_report
 
       def initialize(store, options = {})
         self.options = options
         self.page = options.fetch(:page) { nil }
         self.filename = options.fetch(:filename) { nil }
         self.as_report = options.fetch(:as_report) { false }
+        self.line_coverage = options.fetch(:line_coverage) { false }
+        self.for_merged_report = options.fetch(:for_merged_report) { false }
         self.base_path = options.fetch(:base_path) { "./" }
         self.store = store
 
@@ -26,6 +29,33 @@ module Coverband
 
       def report
         report_as_json
+      end
+
+      def merge_reports(first_report, second_report, options = {})
+        merged_data = {}
+        merged_data[Coverband::RUNTIME_TYPE.to_s] = Coverband::Adapters::Base.new.send(
+          :merge_reports,
+          first_report[Coverband::RUNTIME_TYPE.to_s],
+          second_report[Coverband::RUNTIME_TYPE.to_s],
+          {skip_expansion: true}
+        )
+        if first_report[Coverband::EAGER_TYPE.to_s] && second_report[Coverband::EAGER_TYPE.to_s]
+          merged_data[Coverband::EAGER_TYPE.to_s] = Coverband::Adapters::Base.new.send(
+            :merge_reports,
+            first_report[Coverband::EAGER_TYPE.to_s],
+            second_report[Coverband::EAGER_TYPE.to_s],
+            {skip_expansion: true}
+          )
+        end
+        if first_report[Coverband::MERGED_TYPE.to_s] && second_report[Coverband::MERGED_TYPE.to_s]
+          merged_data[Coverband::MERGED_TYPE.to_s] = Coverband::Adapters::Base.new.send(
+            :merge_reports,
+            first_report[Coverband::MERGED_TYPE.to_s],
+            second_report[Coverband::MERGED_TYPE.to_s],
+            {skip_expansion: true}
+          )
+        end
+        merged_data
       end
 
       private
@@ -43,6 +73,8 @@ module Coverband
       end
 
       def report_as_json
+        return filtered_report_files.to_json if for_merged_report
+
         result = Coverband::Utils::Results.new(filtered_report_files)
         source_files = result.source_files
 
@@ -97,7 +129,7 @@ module Coverband
       def coverage_files(result, source_files)
         source_files.each_with_object({}) do |source_file, hash|
           runtime_coverage = result.file_with_type(source_file, Coverband::RUNTIME_TYPE)&.covered_lines_count || 0
-          hash[source_file.short_name] = {
+          data = {
             filename: source_file.filename,
             hash: Digest::SHA1.hexdigest(source_file.filename),
             never_loaded: source_file.never_loaded,
@@ -109,6 +141,8 @@ module Coverband
             covered_percent: source_file.covered_percent,
             covered_strength: source_file.covered_strength
           }
+          data[:coverage] = source_file.coverage if line_coverage
+          hash[source_file.short_name] = data
         end
       end
     end

@@ -1,4 +1,4 @@
-# frozen_string_literal: ntrue
+# frozen_string_literal: true
 
 require "coverband/utils/method_definition_scanner"
 
