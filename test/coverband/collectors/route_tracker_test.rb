@@ -174,7 +174,7 @@ class RouterTrackerTest < Minitest::Test
       method: "GET"
     }
     store.raw_store.expects(:del).with(tracker_key)
-    store.raw_store.expects(:del).with("RouteTracker_tracker_time")
+    store.raw_store.expects(:del).with("#{tracker_key}_time")
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     tracker.track_key(payload)
     tracker.reset_recordings

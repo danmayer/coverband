@@ -157,7 +157,11 @@ module Coverband
       end
 
       def class_key
-        @class_key ||= self.class.name.split("::").last
+        @class_key ||= if Coverband.configuration.redis_namespace
+          "#{Coverband.configuration.redis_namespace}_#{self.class.name.split("::").last}"
+        else
+          self.class.name.split("::").last
+        end
       end
     end
   end

@@ -4,7 +4,7 @@ require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 class ViewTrackerTest < Minitest::Test
   def tracker_key
-    "ViewTracker_tracker"
+    "coverband_test_ViewTracker_tracker"
   end
 
   def setup
@@ -98,7 +98,7 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     store.raw_store.expects(:del).with(tracker_key)
-    store.raw_store.expects(:del).with("ViewTracker_tracker_time")
+    store.raw_store.expects(:del).with("#{tracker_key}_time")
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(identifier: "file")
     tracker.reset_recordings
