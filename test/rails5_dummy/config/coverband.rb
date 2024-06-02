@@ -12,5 +12,4 @@ Coverband.configure do |config|
   config.background_reporting_enabled = true
   config.track_routes = true
   config.use_oneshot_lines_coverage = true if ENV["ONESHOT"]
-  config.simulate_oneshot_lines_coverage = true if ENV["SIMULATE_ONESHOT"]
 end

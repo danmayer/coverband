@@ -79,14 +79,6 @@ unless ENV["COVERBAND_HASH_REDIS_STORE"]
       assert_equal example_line, @store.coverage["app_path/dog.rb"]["data"]
     end
 
-    def test_coverage_with_simulate_oneshot_lines_coverage
-      Coverband.configuration.stubs(:simulate_oneshot_lines_coverage).returns(true)
-      mock_file_hash
-      expected = basic_coverage
-      @store.save_report(expected)
-      assert_equal example_line, @store.get_coverage_report[:runtime]["app_path/dog.rb"]["data"]
-    end
-
     def test_coverage_when_null
       assert_nil @store.coverage["app_path/dog.rb"]
     end

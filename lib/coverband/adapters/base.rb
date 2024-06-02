@@ -65,21 +65,8 @@ module Coverband
 
       def split_coverage(types, coverage_cache, options = {})
         types.reduce({}) do |data, type|
-          if type == Coverband::RUNTIME_TYPE && Coverband.configuration.simulate_oneshot_lines_coverage
-            data.update(type => coverage_cache[type] ||= simulated_runtime_coverage)
-          else
-            data.update(type => coverage_cache[type] ||= coverage(type, options))
-          end
+          data.update(type => coverage_cache[type] ||= coverage(type, options))
         end
-      end
-
-      def simulated_runtime_coverage
-        runtime_data = coverage(Coverband::RUNTIME_TYPE)
-        eager_data = coverage(Coverband::EAGER_TYPE)
-        eager_data.values do |vals|
-          vals["data"].map! { |line_coverage| line_coverage ? (0 - line_coverage) : line_coverage }
-        end
-        merge_reports(runtime_data, eager_data, skip_expansion: true)
       end
 
       def merged_coverage(types, coverage_cache)
@@ -138,14 +125,12 @@ module Coverband
         }
       end
 
-      # TODO: This should only be 2 cases get our dup / not dups aligned
+      # TODO: This should have cases reduced
       def array_add(latest, original)
         if latest.empty? && original.empty?
           []
         elsif Coverband.configuration.use_oneshot_lines_coverage
           latest.map!.with_index { |v, i| ((v + original[i] >= 1) ? 1 : 0) if v && original[i] }
-        elsif Coverband.configuration.simulate_oneshot_lines_coverage
-          latest.map.with_index { |v, i| ((v + original[i] >= 1) ? 1 : 0) if v && original[i] }
         else
           latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
         end

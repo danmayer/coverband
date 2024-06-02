@@ -26,9 +26,6 @@ class AdaptersBaseTest < Minitest::Test
     assert_equal [8, 11, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
     Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
     assert_equal [1, 1, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
-    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(false)
-    Coverband.configuration.stubs(:simulate_oneshot_lines_coverage).returns(true)
-    assert_equal [1, 1, nil, nil], Coverband::Adapters::Base.new.send(:array_add, latest, original)
   end
 
   describe "Coverband::Adapters::Base using file" do

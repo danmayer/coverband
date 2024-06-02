@@ -61,7 +61,6 @@ namespace :benchmarks do
       config.logger = $stdout
       config.store = benchmark_redis_store
       config.use_oneshot_lines_coverage = true if ENV["ONESHOT"]
-      config.simulate_oneshot_lines_coverage = true if ENV["SIMULATE_ONESHOT"]
     end
   end
 

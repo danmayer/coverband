@@ -40,7 +40,7 @@ require "spy/integration"
 require_relative "unique_files"
 $VERBOSE = original_verbosity
 
-unless ENV["ONESHOT"] || ENV["SIMULATE_ONESHOT"] || $SKIP_SIMPLECOV
+unless ENV["ONESHOT"] || $SKIP_SIMPLECOV
   SimpleCov.formatter = Coveralls::SimpleCov::Formatter
   SimpleCov.start do
     add_filter "test/forked"
