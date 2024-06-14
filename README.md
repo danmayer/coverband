@@ -244,7 +244,7 @@ Coverband provides a view of all of its current settings. Sometimes you might wa
 such as when sharing coverband data with a large number of developers of varying trust levels.
 You can disable the settings view like so:
 
-`config.hide_settings = false`
+`config.hide_settings = true`
 
 ### Fixing Coverage Only Shows Loading Hits
 
