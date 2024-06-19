@@ -192,57 +192,6 @@ class HashRedisStoreTest < Minitest::Test
     assert_nil @store.get_coverage_report[:merged]["./dog.rb"]
   end
 
-  def test_get_coverage_cache
-    @store = Coverband::Adapters::HashRedisStore.new(
-      @redis,
-      redis_namespace: "coverband_test",
-      relative_file_converter: MockRelativeFileConverter,
-      get_coverage_cache: true
-    )
-    @store.get_coverage_cache.stubs(:deferred_time).returns(0)
-    @store.get_coverage_cache.clear!
-    mock_file_hash
-    yesterday = DateTime.now.prev_day.to_time
-    mock_time(yesterday)
-    @store.save_report(
-      "app_path/dog.rb" => [0, 1, 2]
-    )
-    assert_equal(
-      {
-        "first_updated_at" => yesterday.to_i,
-        "last_updated_at" => yesterday.to_i,
-        "file_hash" => "abcd",
-        "data" => [0, 1, 2],
-        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
-      },
-      @store.coverage["./dog.rb"]
-    )
-    @store.save_report(
-      "app_path/dog.rb" => [0, 1, 2]
-    )
-    assert_equal(
-      {
-        "first_updated_at" => yesterday.to_i,
-        "last_updated_at" => yesterday.to_i,
-        "file_hash" => "abcd",
-        "data" => [0, 1, 2],
-        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
-      },
-      @store.coverage["./dog.rb"]
-    )
-    sleep 0.1 # wait caching thread finish
-    assert_equal(
-      {
-        "first_updated_at" => yesterday.to_i,
-        "last_updated_at" => yesterday.to_i,
-        "file_hash" => "abcd",
-        "data" => [0, 2, 4],
-        "timedata" => [nil, Time.at(yesterday.to_i), Time.at(yesterday.to_i)]
-      },
-      @store.coverage["./dog.rb"]
-    )
-  end
-
   def test_split_coverage
     @store = Coverband::Adapters::HashRedisStore.new(
       @redis,

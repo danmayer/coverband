@@ -299,11 +299,6 @@ Coverband on very high volume sites with many server processes reporting can hav
 
 See more discussion [here](https://github.com/danmayer/coverband/issues/384).
 
-Please note that with the Redis Hash Store, everytime you load the full report, Coverband will execute `HGETALL` queries in your Redis server twice for every file in the project (once for runtime coverage and once for eager loading coverage). This shouldn't have a big impact in small to medium projects, but can be quite a hassle if your project has a few thousand files.
-To help reduce the extra redis load when getting the coverage report, you can enable `get_coverage_cache` (but note that when doing that, you will always get a previous version of the report, while a cache is re-populated with a newer version).
-
-- Use Hash Redis Store with _get coverage cache_: `config.store = Coverband::Adapters::HashRedisStore.new(redis, get_coverage_cache: true)`
-
 ### Clear Coverage
 
 Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, or possibly debugging Coverband itself.

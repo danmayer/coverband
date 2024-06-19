@@ -5,82 +5,6 @@ require "securerandom"
 module Coverband
   module Adapters
     class HashRedisStore < Base
-      class GetCoverageNullCacheStore
-        def self.clear!(*_local_types)
-        end
-
-        def self.fetch(_local_type)
-          yield(0)
-        end
-      end
-
-      class GetCoverageRedisCacheStore
-        LOCK_LIMIT = 60 * 30 # 30 minutes
-
-        def initialize(redis, key_prefix)
-          @redis = redis
-          @key_prefix = [key_prefix, "get-coverage"].join(".")
-        end
-
-        def fetch(local_type)
-          cached_result = get(local_type)
-
-          # if no cache available, block the call and populate the cache
-          # if cache is available, return it and start re-populating it (with a lock)
-          if cached_result.nil?
-            value = yield(0)
-            result = set(local_type, JSON.generate(value))
-            value
-          else
-            if lock!(local_type)
-              Thread.new do
-                result = yield(deferred_time)
-                set(local_type, JSON.generate(result))
-              ensure
-                unlock!(local_type)
-              end
-            end
-            JSON.parse(cached_result)
-          end
-        end
-
-        def clear!(local_types = Coverband::TYPES)
-          Array(local_types).each do |local_type|
-            del(local_type)
-            unlock!(local_type)
-          end
-        end
-
-        private
-
-        # sleep in between to avoid holding other redis commands..
-        # with a small random offset so runtime and eager types can be processed "at the same time"
-        def deferred_time
-          rand(2.0..3.0)
-        end
-
-        def del(local_type)
-          @redis.del("#{@key_prefix}.cache.#{local_type}")
-        end
-
-        def get(local_type)
-          @redis.get("#{@key_prefix}.cache.#{local_type}")
-        end
-
-        def set(local_type, value)
-          @redis.set("#{@key_prefix}.cache.#{local_type}", value)
-        end
-
-        # lock for at most 60 minutes
-        def lock!(local_type)
-          @redis.set("#{@key_prefix}.lock.#{local_type}", "1", nx: true, ex: LOCK_LIMIT)
-        end
-
-        def unlock!(local_type)
-          @redis.del("#{@key_prefix}.lock.#{local_type}")
-        end
-      end
-
       FILE_KEY = "file"
       FILE_LENGTH_KEY = "file_length"
       META_DATA_KEYS = [DATA_KEY, FIRST_UPDATED_KEY, LAST_UPDATED_KEY, FILE_HASH].freeze
@@ -93,7 +17,7 @@ module Coverband
 
       JSON_PAYLOAD_EXPIRATION = 5 * 60
 
-      attr_reader :redis_namespace, :get_coverage_cache
+      attr_reader :redis_namespace
 
       def initialize(redis, opts = {})
         super()
@@ -105,13 +29,6 @@ module Coverband
 
         @ttl = opts[:ttl]
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
-
-        @get_coverage_cache = if opts[:get_coverage_cache]
-          key_prefix = [REDIS_STORAGE_FORMAT_VERSION, @redis_namespace].compact.join(".")
-          GetCoverageRedisCacheStore.new(redis, key_prefix)
-        else
-          GetCoverageNullCacheStore
-        end
       end
 
       def supported?
@@ -129,7 +46,6 @@ module Coverband
           @redis.del(*file_keys) if file_keys.any?
           @redis.del(files_key)
           @redis.del(files_key(type))
-          @get_coverage_cache.clear!(type)
         end
         self.type = old_type
       end
@@ -139,7 +55,6 @@ module Coverband
         relative_path_file = @relative_file_converter.convert(file)
         Coverband::TYPES.each do |type|
           @redis.del(key(relative_path_file, type, file_hash: file_hash))
-          @get_coverage_cache.clear!(type)
         end
         @redis.srem(files_key, relative_path_file)
       end
@@ -176,30 +91,29 @@ module Coverband
       # When paging code should use coverage_for_types and pull eager and runtime together as matched pairs
       def coverage(local_type = nil, opts = {})
         page_size = opts[:page_size] || 250
-        cached_results = @get_coverage_cache.fetch(local_type || type) do |sleep_time|
-          files_set = if opts[:page]
-            raise "call coverage_for_types with paging"
-          elsif opts[:filename]
-            type_key_prefix = key_prefix(local_type)
-            # NOTE: a better way to extract filename from key would be better
-            files_set(local_type).select do |cache_key|
-              cache_key.sub(type_key_prefix, "").match(short_name(opts[:filename]))
-            end || {}
-          else
-            files_set(local_type)
-          end
-          # below uses batches with a sleep in between to avoid overloading redis
-          files_set.each_slice(page_size).flat_map do |key_batch|
-            sleep sleep_time
-            @redis.pipelined do |pipeline|
-              key_batch.each do |key|
-                pipeline.hgetall(key)
-              end
+        files_set = if opts[:page]
+          raise "call coverage_for_types with paging"
+        elsif opts[:filename]
+          type_key_prefix = key_prefix(local_type)
+          # NOTE: a better way to extract filename from key would be better
+          files_set(local_type).select do |cache_key|
+            cache_key.sub(type_key_prefix, "").match(short_name(opts[:filename]))
+          end || {}
+        else
+          files_set(local_type)
+        end
+
+        # below uses batches with a sleep in between to avoid overloading redis
+        files_set = files_set.each_slice(page_size).flat_map do |key_batch|
+          sleep(0.01 * rand(1..10))
+          @redis.pipelined do |pipeline|
+            key_batch.each do |key|
+              pipeline.hgetall(key)
             end
           end
         end
 
-        cached_results.each_with_object({}) do |data_from_redis, hash|
+        files_set.each_with_object({}) do |data_from_redis, hash|
           add_coverage_for_file(data_from_redis, hash)
         end
       end
