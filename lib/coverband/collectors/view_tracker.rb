@@ -85,6 +85,7 @@ module Coverband
         unused_views = all_keys - recently_used_views
         # since layouts don't include format we count them used if they match with ANY formats
         unused_views.reject { |view| view.match(/\/layouts\//) && recently_used_views.any? { |used_view| view.include?(used_view) } }
+        unused_views.reject { |view| @ignore_patterns.any? { |pattern| view.include?(pattern) } }
       end
 
       def clear_key!(filename)

@@ -9,6 +9,7 @@ class ViewTrackerTest < Minitest::Test
 
   def setup
     super
+    Coverband.configuration.ignore += ["app/views/anything/ignore_me.html.erb"]
     fake_store.raw_store.del(tracker_key)
   end
 
@@ -92,6 +93,18 @@ class ViewTrackerTest < Minitest::Test
     tracker.track_key(identifier: file_path)
     tracker.save_report
     assert_equal ["not_used"], tracker.unused_keys
+  end
+
+  test "report hides partials marked in ignore config" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/app/views/anything/ignore_me.html.erb"
+    target = [file_path, "not_used"]
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir", target: target)
+    tracker.track_key(identifier: file_path)
+    tracker.save_report
+    assert_equal ["not_used"], tracker.unused_keys
+    assert_equal [], tracker.used_keys.keys
   end
 
   test "reset store" do
