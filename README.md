@@ -204,10 +204,10 @@ end
 
 Do you use figaro, mc-settings, dotenv or something else to inject environment variables into your app? If so ensure you have that done BEFORE Coverband is required.
 
-For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#note-on-load-order
+For example if you use dotenv, you need to do this, see https://github.com/bkeepers/dotenv#load-order
 
 ```
-gem 'dotenv-rails', require: 'dotenv/load'
+gem 'dotenv', require: 'dotenv/load'
 gem 'coverband'
 gem 'other-gem-that-requires-env-variables'
 ```
