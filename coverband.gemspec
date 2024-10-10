@@ -54,6 +54,7 @@ Gem::Specification.new do |spec|
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
+  spec.add_development_dependency "dalli" # Default memcached adapter
 
   # TODO: Remove when other production adapters exist
   # because the default configuration of redis store, we really do require
