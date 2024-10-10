@@ -51,7 +51,7 @@ module Coverband
     elsif File.exist?(configuration_file)
       load configuration_file
     else
-      configuration.logger.debug("using default configuration")
+      configuration.logger.debug("using default configuration") if Coverband.configuration.verbose
     end
     @@configured = true
     coverage_instance.reset_instance
