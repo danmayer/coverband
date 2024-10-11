@@ -30,6 +30,8 @@ module Coverband
         logger.debug("Coverband: Starting background reporting") if Coverband.configuration.verbose
         sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i
         @thread = Thread.new {
+          Thread.current.name = "Coverband Background Reporter"
+
           loop do
             if Coverband.configuration.reporting_wiggle
               sleep_seconds = Coverband.configuration.background_reporting_sleep_seconds.to_i + rand(Coverband.configuration.reporting_wiggle.to_i)
