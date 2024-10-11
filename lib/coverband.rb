@@ -117,6 +117,7 @@ module Coverband
         start
       end
       require "coverband/integrations/resque" if defined? ::Resque
+      require "coverband/integrations/sidekiq_swarm" if defined? ::Sidekiq::Enterprise::Swarm
     rescue Redis::CannotConnectError => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
