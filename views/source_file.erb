@@ -27,7 +27,7 @@
       <b><%= source_file.lines_of_code %></b> relevant lines.
       <b><%= result.runtime_relavent_lines(source_file) %></b> runtime relevant lines.
       <span class="green"><b><%= source_file.covered_lines.count %></b> lines covered</span> and
-      <span class="red"><b><%= source_file.missed_lines.count %></b> lines missed.</span>
+      <span class="<%= missed_lines_css_class(source_file.missed_lines.count) %>"><b><%= source_file.missed_lines.count %></b> lines missed.</span>
     </div>
     <div>
       Coverage first seen: <%= source_file.first_updated_at %>, last activity recorded:

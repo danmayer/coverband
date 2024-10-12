@@ -150,6 +150,14 @@ module Coverband
         end
       end
 
+      def missed_lines_css_class(count)
+        if count == 0
+          "green"
+        else
+          "red"
+        end
+      end
+
       # Return a (kind of) unique id for the source file given. Uses SHA1 on path for the id
       def id(source_file)
         Digest::SHA1.hexdigest(source_file.filename)
