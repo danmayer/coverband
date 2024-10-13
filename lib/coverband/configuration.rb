@@ -10,7 +10,7 @@ module Coverband
       :reporter, :redis_namespace, :redis_ttl,
       :background_reporting_enabled,
       :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
-      :simulate_oneshot_lines_coverage,
+      :use_oneshot_lines_coverage, :simulate_oneshot_lines_coverage,
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
@@ -22,7 +22,7 @@ module Coverband
       :background_reporting_sleep_seconds, :reporting_wiggle,
       :send_deferred_eager_loading_data, :paged_reporting
 
-    attr_reader :track_gems, :ignore, :use_oneshot_lines_coverage
+    attr_reader :track_gems, :ignore
 
     #####
     # TODO: This is is brittle and not a great solution to avoid deploy time
@@ -250,19 +250,6 @@ module Coverband
         .each_with_object({}) do |var, hash|
           hash[var.to_s.delete("@")] = instance_variable_get(var) unless SKIPPED_SETTINGS.include?(var.to_s)
         end
-    end
-
-    def use_oneshot_lines_coverage=(value)
-      unless one_shot_coverage_implemented_in_ruby_version? || !value
-        raise(StandardError,
-          "One shot line coverage is only available in ruby >= 2.6")
-      end
-
-      @use_oneshot_lines_coverage = value
-    end
-
-    def one_shot_coverage_implemented_in_ruby_version?
-      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
     end
 
     def redis_url

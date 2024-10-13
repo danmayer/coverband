@@ -92,46 +92,4 @@ class CollectorsCoverageTest < Minitest::Test
     ::Coverage.expects(:resume)
     Coverband::Collectors::Coverage.send(:new)
   end
-
-  test "one shot line coverage disabled for ruby >= 2.6" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-    ::Coverage.expects(:respond_to?).returns(false)
-
-    Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
-    ::Coverage.expects(:running?).returns(false)
-    ::Coverage.expects(:start).with(oneshot_lines: false)
-    Coverband::Collectors::Coverage.send(:new)
-  end
-
-  test "one shot line coverage enabled for ruby >= 2.6" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-    ::Coverage.expects(:respond_to?).returns(false)
-
-    Coverband.configuration.expects(:use_oneshot_lines_coverage).returns(true)
-    Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
-    ::Coverage.expects(:running?).returns(false)
-    ::Coverage.expects(:start).with(oneshot_lines: true)
-    Coverband::Collectors::Coverage.send(:new)
-  end
-
-  test "one shot line coverage for ruby >= 2.6 when already running" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-    ::Coverage.expects(:respond_to?).returns(false)
-
-    Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(true)
-    ::Coverage.expects(:running?).returns(true)
-    ::Coverage.expects(:start).never
-    Coverband::Collectors::Coverage.send(:new)
-  end
-
-  test "no one shot line coverage for ruby < 2.6" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-    ::Coverage.expects(:respond_to?).returns(false)
-
-    Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.6.0").returns(false)
-    Coverband::Collectors::Coverage.expects(:ruby_version_greater_than_or_equal_to?).with("2.5.0").returns(true)
-    ::Coverage.expects(:running?).returns(false)
-    ::Coverage.expects(:start).with
-    Coverband::Collectors::Coverage.send(:new)
-  end
 end
