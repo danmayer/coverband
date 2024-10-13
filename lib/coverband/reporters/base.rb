@@ -37,7 +37,7 @@ module Coverband
 
             # apply coverband filters
             report_files.each_pair do |file, data|
-              next if Coverband.configuration.ignore.any? { |i| file.match(i) }
+              next if Coverband.configuration.ignore.any? { |i| file.match?(i) }
 
               filtered_report_files[report_name][file] = data
             end
@@ -93,7 +93,7 @@ module Coverband
           scov_style_report = {}
           store.get_coverage_report(options).each_pair do |name, data|
             data.each_pair do |key, line_data|
-              next if Coverband.configuration.ignore.any? { |i| key.match(i) }
+              next if Coverband.configuration.ignore.any? { |i| key.match?(i) }
               next unless line_data
 
               scov_style_report[name] = {} unless scov_style_report.key?(name)

@@ -127,7 +127,8 @@ module Coverband
       end
 
       def track_key?(key, options = {})
-        @ignore_patterns.none? { |pattern| key.to_s.include?(pattern) }
+        key = key.to_s
+        @ignore_patterns.none? { |pattern| key.match?(pattern) }
       end
 
       private

@@ -18,7 +18,7 @@ class BaseTest < Minitest::Test
 
   test "ignore works with equal" do
     Coverband::Collectors::Coverage.instance.reset_instance
-    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "db/schema.rb", "config/environments"]
+    expected = ["vendor/", ".erb$", ".slim$", "/tmp", "internal:prelude", "db/schema.rb", "config/environments"].map { |str| Regexp.new(str) }
     assert_equal expected, Coverband.configuration.ignore
   end
 
@@ -34,7 +34,7 @@ class BaseTest < Minitest::Test
       "internal:prelude",
       "db/schema.rb",
       "config/environments",
-      "config/initializers"]
+      "config/initializers"].map { |str| Regexp.new(str) }
     assert_equal expected, Coverband.configuration.ignore
   end
 
@@ -44,7 +44,7 @@ class BaseTest < Minitest::Test
       config.ignore = ["*invalidRegex*"]
     end
     Coverband::Collectors::Coverage.instance.reset_instance
-    expected = Coverband::Configuration::IGNORE_DEFAULTS << "config/environments"
+    expected = (Coverband::Configuration::IGNORE_DEFAULTS << "config/environments").map { |str| Regexp.new(str) }
     assert_equal expected, Coverband.configuration.ignore
   end
 

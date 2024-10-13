@@ -61,7 +61,7 @@ module Coverband
     def reset
       @root = Dir.pwd
       @root_paths = []
-      @ignore = IGNORE_DEFAULTS.dup
+      @ignore = IGNORE_DEFAULTS.map { |ignore_str| Regexp.new(ignore_str) }
       @search_paths = TRACKED_DEFAULT_PATHS.dup
       @verbose = false
       @reporter = "scov"
@@ -222,8 +222,8 @@ module Coverband
     # Don't allow the ignore to override things like gem tracking
     ###
     def ignore=(ignored_array)
-      ignored_array.map { |ignore_str| Regexp.new(ignore_str) }
-      @ignore = (@ignore + ignored_array).uniq
+      ignored_array = ignored_array.map { |ignore_str| Regexp.new(ignore_str) }
+      @ignore |= ignored_array
     rescue RegexpError
       logger.error "an invalid regular expression was passed in, ensure string are valid regex patterns #{ignored_array.join(",")}"
     end
