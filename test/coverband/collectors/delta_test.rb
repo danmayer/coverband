@@ -92,35 +92,33 @@ class CollectorsDeltaTest < Minitest::Test
     assert_equal({"car.rb" => [nil, 0, 2, 0]}, results)
   end
 
-  if Coverband.configuration.one_shot_coverage_implemented_in_ruby_version?
-    test "oneshot coverage calls clear" do
-      Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
-      current_coverage = {
-        "car.rb" => [1, 5]
-      }
+  test "oneshot coverage calls clear" do
+    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+    current_coverage = {
+      "car.rb" => [1, 5]
+    }
 
-      ::Coverage.expects(:result).with(clear: true, stop: false).returns(current_coverage)
-      Coverband::Collectors::Delta::RubyCoverage.results
-    end
+    ::Coverage.expects(:result).with(clear: true, stop: false).returns(current_coverage)
+    Coverband::Collectors::Delta::RubyCoverage.results
+  end
 
-    test "one shot lines results" do
-      Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
-      current_coverage = {}
-      results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
-      assert_equal(current_coverage, results)
+  test "one shot lines results" do
+    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+    current_coverage = {}
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+    assert_equal(current_coverage, results)
 
-      current_coverage = {
-        "dealership.rb" => {
-          oneshot_lines: [2, 3]
-        }
+    current_coverage = {
+      "dealership.rb" => {
+        oneshot_lines: [2, 3]
       }
-      Coverband::Collectors::Delta.class_variable_set(:@@project_directory, "dealership.rb")
-      ::Coverage.expects(:line_stub).with("dealership.rb").returns([nil, 0, 0, nil])
-      results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
-      expected = {
-        "dealership.rb" => [nil, 1, 1, nil]
-      }
-      assert_equal(expected, results)
-    end
+    }
+    Coverband::Collectors::Delta.class_variable_set(:@@project_directory, "dealership.rb")
+    ::Coverage.expects(:line_stub).with("dealership.rb").returns([nil, 0, 0, nil])
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+    expected = {
+      "dealership.rb" => [nil, 1, 1, nil]
+    }
+    assert_equal(expected, results)
   end
 end
