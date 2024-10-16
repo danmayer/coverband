@@ -191,7 +191,9 @@ module Coverband
       end
 
       def lines_strength
-        lines.map(&:coverage).compact.reduce(:+)
+        lines.sum do |line|
+          line.coverage || 0
+        end
       end
 
       def relevant_lines
@@ -256,8 +258,7 @@ module Coverband
       # was at the start of the file name
       # I had previously patched this in my local Rails app
       def short_name
-        filename.sub(/^#{Coverband.configuration.root}/, ".")
-          .gsub(%r{^\.\/}, "")
+        filename.delete_prefix("#{Coverband.configuration.root}/")
       end
 
       def relative_path
