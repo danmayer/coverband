@@ -1,3 +1,19 @@
+### Coverband 6.1.3
+
+* memory optimizations thx @fatkodima
+* drop support for Ruby less than 2.7 thx @fatkodima
+* improved 0 missed styles thx @fatkodima
+* improved sidekiq swarm support thx @fatkodima
+* default include memcached adapter thx @colemanja91
+* improved long filename web admin views thx @fatkodima
+* reduce logging noise thx @jamiecobbett
+* improved readme thx @hotoolong
+* fix for ignoring views @thijsnado 
+* improved documentation @jjb
+* add back static output summary @bessey
+
+other cleanup, small fixes, and updated mostly basic maintence, by me.
+
 ### Coverband 6.1.2
 
 * Fix for paging that would pull empty pages after getting all the data.
