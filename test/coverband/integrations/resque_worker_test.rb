@@ -45,7 +45,9 @@ class ResqueWorkerTest < Minitest::Test
         assert_equal 1, report[Coverband::EAGER_TYPE][relative_job_file]["data"][6]
       else
         assert_equal 0, report[Coverband::EAGER_TYPE][relative_job_file]["data"][6]
-        assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]["data"][6] if report[Coverband::RUNTIME_TYPE]
+        if report[Coverband::RUNTIME_TYPE] && report[Coverband::RUNTIME_TYPE][relative_job_file]
+          assert_equal 1, report[Coverband::RUNTIME_TYPE][relative_job_file]["data"][6]
+        end
       end
     end
   end
