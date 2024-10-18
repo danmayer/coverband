@@ -88,22 +88,22 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
-    target = [file_path, "not_used"]
+    target = [file_path, "not_used.html.erb"]
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir", target: target)
     tracker.track_key(identifier: file_path)
     tracker.save_report
-    assert_equal ["not_used"], tracker.unused_keys
+    assert_equal ["not_used.html.erb"], tracker.unused_keys
   end
 
   test "report hides partials marked in ignore config" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/app/views/anything/ignore_me.html.erb"
-    target = [file_path, "not_used"]
+    target = [file_path, "not_used.html.erb"]
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir", target: target)
     tracker.track_key(identifier: file_path)
     tracker.save_report
-    assert_equal ["not_used"], tracker.unused_keys
+    assert_equal ["not_used.html.erb"], tracker.unused_keys
     assert_equal [], tracker.used_keys.keys
   end
 
