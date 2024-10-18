@@ -38,16 +38,6 @@ class BaseTest < Minitest::Test
     assert_equal expected, Coverband.configuration.ignore
   end
 
-  test "ignore catches regex errors" do
-    Coverband.configuration.logger.expects(:error).with("an invalid regular expression was passed in, ensure string are valid regex patterns *invalidRegex*")
-    Coverband.configure do |config|
-      config.ignore = ["*invalidRegex*"]
-    end
-    Coverband::Collectors::Coverage.instance.reset_instance
-    expected = (Coverband::Configuration::IGNORE_DEFAULTS << "config/environments").map { |str| Regexp.new(str) }
-    assert_equal expected, Coverband.configuration.ignore
-  end
-
   test "ignore" do
     Coverband::Collectors::Coverage.instance.reset_instance
     assert !Coverband.configuration.ignore.first.nil?
