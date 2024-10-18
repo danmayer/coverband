@@ -48,7 +48,7 @@ module Coverband
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
     # heroku asset compilation
-    IGNORE_DEFAULTS = %w[vendor/ .erb$ .slim$ /tmp internal:prelude db/schema.rb]
+    IGNORE_DEFAULTS = %w[vendor/ /tmp internal:prelude db/schema.rb] + Collectors::ViewTracker::VIEWS_PATTERNS
 
     # Add in missing files which were never loaded
     # we need to know what all paths to check for unloaded files

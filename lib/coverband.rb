@@ -5,7 +5,6 @@ require "json"
 require "redis"
 require "coverband/version"
 require "coverband/at_exit"
-require "coverband/configuration"
 require "coverband/utils/relative_file_converter"
 require "coverband/utils/absolute_file_converter"
 require "coverband/adapters/base"
@@ -27,6 +26,7 @@ require "coverband/reporters/console_report"
 require "coverband/integrations/background"
 require "coverband/integrations/background_middleware"
 require "coverband/integrations/rack_server_check"
+require "coverband/configuration"
 
 Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore if ENV["COVERBAND_HASH_REDIS_STORE"]
 

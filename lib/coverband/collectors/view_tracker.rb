@@ -17,6 +17,7 @@ module Coverband
 
       REPORT_ROUTE = "views_tracker"
       TITLE = "Views"
+      VIEWS_PATTERNS = %w[.erb$ .haml$ .slim$]
 
       def initialize(options = {})
         @project_directory = File.expand_path(Coverband.configuration.root)
@@ -24,6 +25,8 @@ module Coverband
         @roots = @roots.split(",") if @roots.is_a?(String)
 
         super
+
+        @ignore_patterns -= VIEWS_PATTERNS.map { |ignore_str| Regexp.new(ignore_str) }
       end
 
       def railtie!
@@ -84,7 +87,7 @@ module Coverband
         recently_used_views = used_keys.keys
         unused_views = all_keys - recently_used_views
         # since layouts don't include format we count them used if they match with ANY formats
-        unused_views.reject { |view| view.include?("/layouts/") && recently_used_views.any? { |used_view| view.include?(used_view) } }
+        unused_views = unused_views.reject { |view| view.include?("/layouts/") && recently_used_views.any? { |used_view| view.include?(used_view) } }
         unused_views.reject { |view| @ignore_patterns.any? { |pattern| view.match?(pattern) } }
       end
 
