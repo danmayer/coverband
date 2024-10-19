@@ -224,8 +224,6 @@ module Coverband
     def ignore=(ignored_array)
       ignored_array = ignored_array.map { |ignore_str| Regexp.new(ignore_str) }
       @ignore |= ignored_array
-    rescue RegexpError
-      logger.error "an invalid regular expression was passed in, ensure string are valid regex patterns #{ignored_array.join(",")}"
     end
 
     def current_root
