@@ -1,3 +1,8 @@
+### Coverband 6.1.4
+
+* fix on ignoring to many view files thx @fatkodima
+* improve docs on clear
+
 ### Coverband 6.1.3
 
 * memory optimizations thx @fatkodima
