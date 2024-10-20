@@ -129,10 +129,16 @@ namespace :coverband do
   end
 
   ###
-  # clear data helpful for development or after configuration issues
+  # clear all coverband data
+  ###
+  desc "reset Coverband coverage and trackers data, helpful for development, debugging, etc"
+  task clear: [:clear_coverage, :clear_tracker]
+
+  ###
+  # clear coverband coverage data
   ###
   desc "reset Coverband coverage data, helpful for development, debugging, etc"
-  task :clear do
+  task :clear_coverage do
     Coverband.configuration.store.clear!
   end
 

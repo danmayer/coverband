@@ -305,12 +305,10 @@ Now that Coverband uses MD5 hashes there should be no reason to manually clear c
 
 `rake coverband:clear`
 
-This can also be done through the web if `config.web_enable_clear` is enabled.
+This will clear both the coverage and trackers data. It can also be done through the web if `config.web_enable_clear` is enabled.
 
-**NOTE**: The previous task does not clear the trackers data (views, routes, translations, etc).
-To clear trackers data, run
-
-`rake coverband:clear_tracker`
+To clear only coverage data, run `rake coverband:clear_coverage`.
+To clear only trackers data, run `rake coverband:clear_tracker`.
 
 ### Adding Rake Tasks outside of Rails
 
