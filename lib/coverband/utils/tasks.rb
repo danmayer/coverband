@@ -141,6 +141,9 @@ namespace :coverband do
   ###
   desc "reset Coverband trackers data (view, routes, translations, etc), helpful for development, debugging, etc"
   task :clear_tracker do
+    # Load rails-related trackers, if the gem is used in a rails app.
+    Coverband.configuration.railtie! if defined?(Rails::Railtie)
+
     trackers = Coverband.configuration.trackers
     trackers.each(&:reset_recordings)
   end
