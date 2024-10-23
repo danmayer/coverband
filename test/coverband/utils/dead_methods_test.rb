@@ -36,6 +36,18 @@ if defined?(RubyVM::AbstractSyntaxTree)
           assert_equal(6, dead_method.last_line_number)
         end
 
+        def test_all_dead_methods_on_runtime
+          @coverband.eager_loading!
+          require_unique_file
+          @coverband.report_coverage
+          @coverband.runtime!
+          dead_methods = DeadMethods.scan_all
+          dead_method = dead_methods.find { |method| method.class_name == :Dog }
+          assert(dead_method)
+          assert_equal(4, dead_method.first_line_number)
+          assert_equal(6, dead_method.last_line_number)
+        end
+
         def test_output_all
           require_unique_file
           @coverband.report_coverage
