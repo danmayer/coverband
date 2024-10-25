@@ -37,7 +37,11 @@ module Coverband
       end
 
       def self.scan_all
-        coverage = Coverband.configuration.store.coverage
+        # If the file was loaded during eager loading and then its code is never executed
+        # during runtime, then it will not have any runtime coverage. When reporting
+        # dead methods, we need to look at all the files discovered during the eager loading
+        # and runtime phases.
+        coverage = Coverband.configuration.store.get_coverage_report[Coverband::MERGED_TYPE]
         coverage.flat_map do |file_path, coverage|
           scan(file_path: file_path, coverage: coverage["data"])
         end
