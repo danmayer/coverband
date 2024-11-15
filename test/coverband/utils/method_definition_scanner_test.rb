@@ -40,7 +40,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
         def test_scan
           method_definitions = MethodDefinitionScanner.scan("./test/dog.rb")
           assert(method_definitions)
-          assert_equal(1, method_definitions.length)
+          assert_equal(3, method_definitions.length)
           method_definition = method_definitions.first # assert_equal(4, method.first_line)
           assert_equal(4, method_definition.first_line_number)
           assert_equal(6, method_definition.last_line_number)

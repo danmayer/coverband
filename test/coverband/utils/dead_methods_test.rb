@@ -16,7 +16,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
 
         def test_dog_dead_methods
           file_path = require_unique_file
-          coverage = [nil, nil, 1, 1, 0, nil, nil]
+          coverage = [nil, nil, 1, 1, 0, nil, nil, 1, nil, 1, nil, nil]
           dead_methods =
             DeadMethods.scan(file_path: file_path, coverage: coverage)
           assert_equal(1, dead_methods.length)
@@ -56,7 +56,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
 
         def test_dog_methods_not_dead
           file = require_unique_file
-          coverage = [nil, nil, 1, 1, 1, nil, nil]
+          coverage = [nil, nil, 1, 1, 1, nil, nil, 1, nil, 1, nil, nil]
           assert_empty(DeadMethods.scan(file_path: file, coverage: coverage))
         end
       end
