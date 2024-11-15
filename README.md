@@ -399,14 +399,14 @@ Outputs:
 
 # Prerequisites
 
-- Coverband 3.0.X+ requires Ruby 2.3+
+- Ruby 3.1+
 - Coverband currently requires Redis for production usage
 
 ### Ruby and Rails Version Support
 
 We will match Heroku & Ruby's support lifetime, supporting the last 3 major Ruby releases. For details see [supported runtimes](https://devcenter.heroku.com/articles/ruby-support#supported-runtimes).
 
-For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. This means at the moment we primarily target Rails 6.x, 5.x, and will try to keep current functionality working for Rails 4.x but may release new features that do not work on that target.
+For Rails, we will follow the policy of the [Rails team maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html). We officially support the last two major release versions, while providing minimal support (major bugs / security fixes) for an additional version. At the moment we primarily target Rails 7.0+.
 
 ### JRuby Support
 
