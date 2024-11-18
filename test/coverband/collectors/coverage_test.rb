@@ -23,7 +23,7 @@ class CollectorsCoverageTest < Minitest::Test
     file = require_unique_file
     coverband.report_coverage
     coverage = Coverband.configuration.store.coverage
-    assert_equal(coverage[file]["data"], [nil, nil, 1, 1, 0, nil, nil])
+    assert_equal(coverage[file]["data"], [nil, nil, 1, 1, 0, nil, nil, 1, nil, 1, nil, nil])
   end
 
   test "Dog method and class coverage" do
@@ -31,7 +31,7 @@ class CollectorsCoverageTest < Minitest::Test
     Dog.new.bark
     coverband.report_coverage
     coverage = Coverband.configuration.store.coverage
-    assert_equal(coverage["./test/dog.rb"]["data"], [nil, nil, 1, 1, 1, nil, nil])
+    assert_equal(coverage["./test/dog.rb"]["data"], [nil, nil, 1, 1, 1, nil, nil, 1, nil, 1, nil, nil])
   end
 
   test "Dog eager load coverage" do
@@ -45,7 +45,7 @@ class CollectorsCoverageTest < Minitest::Test
     coverband.eager_loading!
     coverage = Coverband.configuration.store.coverage[file]
     refute_nil coverage, "Eager load coverage is present"
-    assert_equal(coverage["data"], [nil, nil, 1, 1, 0, nil, nil])
+    assert_equal(coverage["data"], [nil, nil, 1, 1, 0, nil, nil, 1, nil, 1, nil, nil])
   end
 
   test "gets coverage instance" do

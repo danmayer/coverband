@@ -32,11 +32,23 @@ if defined?(RubyVM::AbstractSyntaxTree)
           private
 
           def first_line_number
-            @method_definition.first_line_number + 1
+            if multiline?
+              @method_definition.first_line_number + 1
+            else
+              @method_definition.first_line_number
+            end
           end
 
           def last_line_number
-            @method_definition.last_line_number - 1
+            if multiline?
+              @method_definition.last_line_number - 1
+            else
+              @method_definition.last_line_number
+            end
+          end
+
+          def multiline?
+            @method_definition.last_line_number - @method_definition.first_line_number > 1
           end
         end
 
