@@ -33,7 +33,7 @@ class RailsFullStackTest < Minitest::Test
 
     visit "/coverage/routes_tracker"
     assert_content("Used Routes: (1)")
-    assert_content("Unused Routes: (5)")
+    assert_content("Unused Routes: (4)")
 
     visit "/dummy_view/show_haml"
     assert_content("I am haml text")
