@@ -98,9 +98,9 @@ namespace :benchmarks do
     Coverband::Collectors::Coverage.instance.reset_instance
   end
 
-  lines = 45
-  non_nil_lines = 18
   def fake_line_numbers
+    lines = 45
+    non_nil_lines = 18
     lines.times.map do |line|
       coverage = (line < non_nil_lines) ? rand(5) : nil
     end
@@ -155,6 +155,7 @@ namespace :benchmarks do
 
   def measure_memory
     require "memory_profiler"
+    require "stringio"
     report = fake_report
     store = benchmark_redis_store
     store.clear!
@@ -249,6 +250,7 @@ namespace :benchmarks do
 
   desc "checks memory of collector"
   task memory_check: [:setup] do
+    require "stringio"
     require "objspace"
     puts "memory load check"
     puts(ObjectSpace.memsize_of_all / 2**20)
@@ -316,7 +318,7 @@ namespace :benchmarks do
   desc "runs memory leak check via Rails tests"
   task memory_rails: [:setup] do
     puts "runs memory rails test to ensure we dont leak"
-    puts `COVERBAND_MEMORY_TEST=true bundle exec test/forked/rails_full_stack_test.rb`
+    puts `COVERBAND_MEMORY_TEST=true bundle exec ruby -I test test/forked/rails_full_stack_test.rb`
   end
 
   desc "runs memory leak checks"

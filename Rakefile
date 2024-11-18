@@ -8,7 +8,7 @@ RuboCop::RakeTask.new
 
 task default: %i[test]
 
-task "test:all": %i[rubocop test forked_tests benchmarks:memory benchmarks]
+task "test:all": %i[test forked_tests benchmarks:memory benchmarks]
 
 task :test
 require "rake/testtask"
