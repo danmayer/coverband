@@ -35,4 +35,5 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - run: bundle exec standardrb
       - run: bundle exec rake
+      - run: bundle exec rake forked_tests
       - run: "RUBYOPT='--enable=frozen-string-literal --debug=frozen-string-literal' bundle exec rake"
