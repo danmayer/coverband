@@ -24,4 +24,4 @@ temp_results
 .env
 log/
 test/unique_files
-test/rails5_dummy/tmp
+test/rails7_dummy/tmp

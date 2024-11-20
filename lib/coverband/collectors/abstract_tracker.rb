@@ -109,7 +109,7 @@ module Coverband
 
       # This is the basic rails version supported, if there is something more unique over ride in subclass
       def self.supported_version?
-        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 5
+        defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 7
       end
 
       def route

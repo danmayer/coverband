@@ -24,7 +24,7 @@ module Coverband
       end
 
       def self.supported_version?
-        defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 4
+        defined?(Rails::VERSION) && Rails::VERSION::STRING.split(".").first.to_i >= 7
       end
 
       private

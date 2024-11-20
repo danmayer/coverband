@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 # Specify your gem's dependencies in coverband.gemspec
 gemspec
-gem "rails", "~>7"
+gem "rails" # latest
 gem "haml"
 gem "slim"
 gem "webrick"

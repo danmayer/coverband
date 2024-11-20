@@ -78,16 +78,12 @@ class CollectorsCoverageTest < Minitest::Test
   end
 
   test "using coverage state idle with ruby >= 3.1.0" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.1.0")
-
     ::Coverage.expects(:state).returns(:idle)
     ::Coverage.expects(:start).with(oneshot_lines: false)
     Coverband::Collectors::Coverage.send(:new)
   end
 
   test "using coverage state suspended with ruby >= 3.1.0" do
-    return unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.1.0")
-
     ::Coverage.expects(:state).returns(:suspended).at_least_once
     ::Coverage.expects(:resume)
     Coverband::Collectors::Coverage.send(:new)

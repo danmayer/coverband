@@ -2,4 +2,4 @@ require: standard
 
 inherit_gem:
   standard:
-    - config/ruby-2.7.yml
+    - config/ruby-3.1.yml
