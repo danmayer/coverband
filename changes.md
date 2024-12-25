@@ -42,7 +42,7 @@ This release has a number of smaller fixes and improvements. It includes a sizab
 * This release addresses large projects and adds in paged reporting
   * to ensure even on projects with 10K+ files it can load on heroku under the 30s timeout
   * only supports HashRedis store
-  * faster UI for web UI in general which should be noticable on non paged reports
+  * faster UI for web UI in general which should be noticeable on non paged reports
   * reduce redis calls
 
 ### Coverband 6.0.2
