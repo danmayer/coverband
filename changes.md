@@ -17,7 +17,7 @@
 * improved documentation @jjb
 * add back static output summary @bessey
 
-other cleanup, small fixes, and updated mostly basic maintence, by me.
+other cleanup, small fixes, and updated mostly basic maintenance, by me.
 
 ### Coverband 6.1.2
 
