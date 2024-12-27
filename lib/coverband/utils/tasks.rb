@@ -12,7 +12,7 @@ namespace :coverband do
     FileUtils.cp(config_template, "./config/coverband.rb")
   end
 
-  desc "console formated report of Coverband code coverage"
+  desc "console formatted report of Coverband code coverage"
   task :coverage do
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"
@@ -23,7 +23,7 @@ namespace :coverband do
     Coverband::Reporters::ConsoleReport.report(Coverband.configuration.store)
   end
 
-  desc "JSON formated report of Coverband code coverage"
+  desc "JSON formatted report of Coverband code coverage"
   task :coverage_json do
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"
@@ -51,7 +51,7 @@ namespace :coverband do
   # gem "simplecov-html", require: false
   # the file is written to coverage/index.html
   ###
-  desc "static HTML formated report of Coverband code coverage"
+  desc "static HTML formatted report of Coverband code coverage"
   task :coverage_html do
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"

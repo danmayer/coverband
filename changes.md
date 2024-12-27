@@ -17,7 +17,7 @@
 * improved documentation @jjb
 * add back static output summary @bessey
 
-other cleanup, small fixes, and updated mostly basic maintence, by me.
+other cleanup, small fixes, and updated mostly basic maintenance, by me.
 
 ### Coverband 6.1.2
 
@@ -29,7 +29,7 @@ other cleanup, small fixes, and updated mostly basic maintence, by me.
 
 ### Coverband 6.1.0
 
-This release has a number of smaller fixes and improvements. It includes a sizable refactoring around the UI which should simplify improvements going forward. This release is mostly targetting large projects with 6K+ ruby files, use the new `config.paged_reporting = true` option with the HashRedisStore to enable paged reporting for large projects. The HashRedisStore now also includes the last time a line in a file was executed.
+This release has a number of smaller fixes and improvements. It includes a sizable refactoring around the UI which should simplify improvements going forward. This release is mostly targeting large projects with 6K+ ruby files, use the new `config.paged_reporting = true` option with the HashRedisStore to enable paged reporting for large projects. The HashRedisStore now also includes the last time a line in a file was executed.
 
 * Thanks to @FeLvi-zzz for the last time accessed support for the Hash Redis Store
 * Thanks to @alpaca-tc for the improvements on the route tracker
@@ -42,7 +42,7 @@ This release has a number of smaller fixes and improvements. It includes a sizab
 * This release addresses large projects and adds in paged reporting
   * to ensure even on projects with 10K+ files it can load on heroku under the 30s timeout
   * only supports HashRedis store
-  * faster UI for web UI in general which should be noticable on non paged reports
+  * faster UI for web UI in general which should be noticeable on non paged reports
   * reduce redis calls
 
 ### Coverband 6.0.2

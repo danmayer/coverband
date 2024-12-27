@@ -85,7 +85,7 @@ module Coverband
         # why do we need to merge covered files data?
         # basically because paths on machines or deployed hosts could be different, so
         # two different keys could point to the same filename or `line_key`
-        # this happens when deployment has a dynmaic path or the path change during deployment (hot code reload)
+        # this happens when deployment has a dynamic path or the path change during deployment (hot code reload)
         # TODO: think we are filtering based on ignore while sending to the store
         # and as we also pull it out here
         ###
