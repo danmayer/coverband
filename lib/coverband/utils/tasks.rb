@@ -113,7 +113,16 @@ namespace :coverband do
     if Coverband.configuration.store.is_a?(Coverband::Adapters::FileStore)
       Coverband.configuration.store.merge_mode = true
     end
-    Rack::Server.start app: Coverband::Reporters::Web.new,
+
+    begin
+      require 'rackup/server'
+      server_class = Rackup::Server
+    rescue LoadError
+      require 'rack/server'
+      server_class = Rack::Server
+    end
+
+    server_class.start app: Coverband::Reporters::Web.new,
       Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
   end
 
