@@ -115,10 +115,10 @@ namespace :coverband do
     end
 
     begin
-      require 'rackup/server'
+      require "rackup/server"
       server_class = Rackup::Server
     rescue LoadError
-      require 'rack/server'
+      require "rack/server"
       server_class = Rack::Server
     end
 
