@@ -116,6 +116,39 @@ The columns in the web UI are as follows:
 When viewing an individual file, a line of code such as a class or method definition may appear green because it is eager loaded by the application, but still not be hit at all in runtime by actual users.  
 
 ![example of a file with lines not hit at runtime](https://user-images.githubusercontent.com/96786/63541229-aa98a580-c4eb-11e9-8eb8-c004fe1369db.png)
+#### Coverage first seen and Last activity recorded
+In the context of Coverband, a file is considered relevant for monitoring if it is located within certain specified project paths. Specifically, Coverband monitors all *.rb files located in the following paths:
+
+- app/
+
+- lib/
+
+- config/
+
+This applies as long as these files are not included in the list of exclusions defined in "config.ignore".
+
+#### Coverage first seen
+This attribute shows the exact date and time when Coverband first detected the file. This detection happens when:
+
+- The file is loaded by Ruby (e.g., during application startup in Rails via autoload or require).
+
+- The file becomes relevant for monitoring, even if no lines within it have been executed yet.
+
+- By default, Coverband resets a file’s coverage data and updates its “Coverage first seen” timestamp whenever the file changes, ensuring the coverage reflects the file’s new state.
+
+#### Last activity recorded
+This attribute shows the most recent time when any line in the file was executed at runtime. It specifically reflects runtime execution and does not include the file’s load time.
+
+- When any line in the file is executed at runtime (e.g., a method is called, a route is triggered, or a conditional is evaluated), Coverband updates the “Last activity recorded” timestamp.
+
+- This only occurs when the file’s lines are actually executed. If a file is loaded but none of its lines are executed, the “Last activity recorded” timestamp will not be updated.
+
+- It helps determine if a file is actively being used in the application. If a file has no recent activity, it may be a candidate for review or removal.
+
+#### Example
+- If a file has a “Coverage first seen” timestamp but no “Last activity recorded”, this indicates that the file is being loaded but no runtime activity is occurring (e.g., it contains unused methods or classes).
+
+- If both attributes are populated and the “Last activity recorded” timestamp is recent, the file is actively used in the application.
 
 ### Mounting as a Rack App
 
