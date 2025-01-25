@@ -25,6 +25,7 @@ require "coverband/reporters/base"
 require "coverband/reporters/console_report"
 require "coverband/integrations/background"
 require "coverband/integrations/background_middleware"
+require "coverband/integrations/background_for_multi_process"
 require "coverband/integrations/rack_server_check"
 require "coverband/configuration"
 
