@@ -37,10 +37,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - run: bundle exec rake
-      - run: bundle exec rake forked_tests
-      - run: bundle exec rake benchmarks
-      - run: bundle exec rake benchmarks:memory
+      - run: bundle exec rake test:all
       - run: "RUBYOPT='--enable=frozen-string-literal --debug=frozen-string-literal' bundle exec rake"
   starndardrb:
     runs-on: ubuntu-latest
