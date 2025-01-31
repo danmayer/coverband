@@ -37,9 +37,17 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - run: bundle exec standardrb --format github
       - run: bundle exec rake
       - run: bundle exec rake forked_tests
       - run: bundle exec rake benchmarks
       - run: bundle exec rake benchmarks:memory
       - run: "RUBYOPT='--enable=frozen-string-literal --debug=frozen-string-literal' bundle exec rake"
+  starndardrb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - run: bundle exec standardrb --format github
