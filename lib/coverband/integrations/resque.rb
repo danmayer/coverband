@@ -10,6 +10,10 @@ Resque.before_first_fork do
   Coverband.configuration.background_reporting_enabled = false
   Coverband::Background.stop
   Coverband.report_coverage
+
+  Coverband.configuration.store = Coverband::Adapters::FileStore.new(Coverband.configuration.filepath_pattern_for_multi_process)
+  Coverband::Collectors::Coverage.instance.reset_instance
+  Coverband::BackgroundForMultiProcess.start
 end
 
 module Coverband
