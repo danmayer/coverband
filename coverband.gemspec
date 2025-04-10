@@ -62,4 +62,5 @@ Gem::Specification.new do |spec|
   # quality adapter, I think this is more honest about requirements and reduces confusion
   # without this there was a race condition on calling coverband configure before redis was loaded
   spec.add_runtime_dependency "redis", ">= 3.0"
+  spec.add_runtime_dependency "base64"
 end
