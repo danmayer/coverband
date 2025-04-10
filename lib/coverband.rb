@@ -100,6 +100,32 @@ module Coverband
     coverage_instance.runtime!
   end
 
+  # Track a key with the specified tracker.
+  # @param tracker_type [Symbol] The type of tracker to use (e.g., :view_tracker, :translations_tracker, :routes_tracker)
+  # @param key [String] The key to track
+  # @return [Boolean] True if tracking was successful, false otherwise
+  # @raise [ArgumentError] If the tracker_type is not supported
+  def self.track_key(tracker_type, key)
+    return false unless key
+    
+    supported_trackers = [:view_tracker, :translations_tracker, :routes_tracker]
+    
+    unless supported_trackers.include?(tracker_type)
+      raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{supported_trackers.join(', ')}"
+    end
+    
+    begin
+      tracker = configuration.send(tracker_type)
+      return false unless tracker && tracker.respond_to?(:track_key)
+
+      tracker.track_key(key)
+      true
+    rescue => e
+      configuration.logger.error "Coverband: Failed to track key '#{key}' with tracker '#{tracker_type}'. Error: #{e.message}"
+      false
+    end
+  end
+
   private_class_method def self.coverage_instance
     Coverband::Collectors::Coverage.instance
   end
