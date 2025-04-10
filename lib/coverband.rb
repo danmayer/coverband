@@ -107,16 +107,16 @@ module Coverband
   # @raise [ArgumentError] If the tracker_type is not supported
   def self.track_key(tracker_type, key)
     return false unless key
-    
+
     supported_trackers = [:view_tracker, :translations_tracker, :routes_tracker]
-    
+
     unless supported_trackers.include?(tracker_type)
-      raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{supported_trackers.join(', ')}"
+      raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{supported_trackers.join(", ")}"
     end
-    
+
     begin
       tracker = configuration.send(tracker_type)
-      return false unless tracker && tracker.respond_to?(:track_key)
+      return false unless tracker&.respond_to?(:track_key)
 
       tracker.track_key(key)
       true
