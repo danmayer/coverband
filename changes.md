@@ -1,3 +1,17 @@
+### Coverband 6.1.5
+
+* add testing for ruby-head
+* drop support for older Ruby and Rails version as matching our policy
+* remove ostruct as it is no longer in ruby-head
+* fix issue requiring base64 to be added to folks gem files
+* added support for track_key method allowing for code to specifically mark things tracked
+* improvements to CI thanks ydah
+* Update README to include functionality details for "Coverage first seen" and "Last activity recorded" thanks juanarevalo
+* fixes for Rack 3 - thanks Aaron Pfeifer
+* Do not mark single-line and empty methods as dead - fatkodima
+* fix on clear_trackers rake task
+* Consider eager loaded code too when detecting dead methods - fatkodima
+
 ### Coverband 6.1.4
 
 * fix on ignoring to many view files thx @fatkodima
