@@ -3,7 +3,6 @@
 require "securerandom"
 require "fileutils"
 require "erb"
-require "ostruct"
 
 UNIQUE_FILES_DIR = "./test/unique_files"
 
@@ -14,7 +13,12 @@ def require_unique_file(file = "dog.rb", variables = {})
   temp_file = "#{dir}/#{file_name}"
   FileUtils.mkdir_p(Pathname.new(temp_file).dirname.to_s)
   file_contents = File.read("./test/#{file}")
-  file_contents = ERB.new(file_contents).result(OpenStruct.new(variables).instance_eval { binding }) if variables.any?
+  if variables.any?
+    # Create a binding with the variables defined
+    b = binding
+    variables.each { |key, value| b.local_variable_set(key, value) }
+    file_contents = ERB.new(file_contents).result(b)
+  end
   File.write(temp_file, file_contents)
   require temp_file
   Coverband::Utils::RelativeFileConverter.convert(File.expand_path(temp_file))

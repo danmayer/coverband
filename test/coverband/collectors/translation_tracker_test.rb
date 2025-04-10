@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require File.expand_path("../../test_helper", File.dirname(__FILE__))
-require "ostruct"
 
 class TranslationTrackerTest < Minitest::Test
   # NOTE: using struct vs open struct as open struct has a special keyword method that overshadows the method value on Ruby 2.x

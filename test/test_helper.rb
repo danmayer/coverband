@@ -17,7 +17,6 @@ end
 require "minitest/autorun"
 require "minitest/stub_const"
 require "mocha/minitest"
-require "ostruct"
 require "json"
 require "redis"
 require "resque"
