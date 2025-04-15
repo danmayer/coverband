@@ -205,9 +205,7 @@ module Coverband
 
         data = coverage_data_from_redis(data_from_redis)
         timedata = coverage_time_data_from_redis(data_from_redis)
-        hash[file] = data_from_redis.select do |meta_data_key, _value|
-          META_DATA_KEYS.include?(meta_data_key)
-        end.merge!("data" => data, "timedata" => timedata)
+        hash[file] = data_from_redis.slice(*META_DATA_KEYS).merge!("data" => data, "timedata" => timedata)
         hash[file][LAST_UPDATED_KEY] =
           (hash[file][LAST_UPDATED_KEY].nil? || hash[file][LAST_UPDATED_KEY] == "") ? nil : hash[file][LAST_UPDATED_KEY].to_i
         hash[file].merge!(LAST_UPDATED_KEY => hash[file][LAST_UPDATED_KEY],

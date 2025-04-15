@@ -102,7 +102,7 @@ namespace :benchmarks do
     lines = 45
     non_nil_lines = 18
     lines.times.map do |line|
-      coverage = (line < non_nil_lines) ? rand(5) : nil
+      (line < non_nil_lines) ? rand(5) : nil
     end
   end
 
@@ -146,7 +146,7 @@ namespace :benchmarks do
       x.report("store_reports_all") { store.save_report(report) }
     end
     keys_subset = report.keys.first(100)
-    report_subset = report.select { |key, _value| keys_subset.include?(key) }
+    report_subset = report.slice(*keys_subset)
     Benchmark.ips do |x|
       x.config(time: 20, warmup: 5)
       x.report("store_reports_subset") { store.save_report(report_subset) }
@@ -183,7 +183,7 @@ namespace :benchmarks do
 
   def measure_memory_report_coverage
     require "memory_profiler"
-    report = fake_report
+    fake_report
     store = benchmark_redis_store
     store.clear!
     mock_files(store)
@@ -258,37 +258,29 @@ namespace :benchmarks do
     # about 2mb
     puts(ObjectSpace.memsize_of(data) / 2**20)
 
-    json_data = JSON.parse(data)
+    JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
     # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
-
-    json_data = nil
     GC.start
-    json_data = JSON.parse(data)
+    JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
     # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
-
-    json_data = nil
     GC.start
-    json_data = JSON.parse(data)
+    JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
     # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
-
-    json_data = nil
     GC.start
-    json_data = JSON.parse(data)
+    JSON.parse(data)
     # this seems to just show the value of the pointer
     # puts(ObjectSpace.memsize_of(json_data) / 2**20)
     # implies json takes 10-12 mb
     puts(ObjectSpace.memsize_of_all / 2**20)
-
-    json_data = nil
     GC.start
     puts(ObjectSpace.memsize_of_all / 2**20)
 
