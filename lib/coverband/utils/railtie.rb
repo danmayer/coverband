@@ -7,7 +7,7 @@ module Coverband
       super
     end
   end
-  Rails::Engine.prepend(RailsEagerLoad)
+  Rails::Engine.prepend(RailsEagerLoad) if defined? ::Rails::Engine
 
   class Railtie < Rails::Railtie
     initializer "coverband.configure" do |app|
