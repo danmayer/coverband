@@ -1,3 +1,8 @@
+### Coverband 6.1.6
+
+* Check for Rails::Engine - Stephen Wetzel
+* Support views located in components directory, as well as sub-directories like packs/app/views - Derek Kniffin
+
 ### Coverband 6.1.5
 
 * add testing for ruby-head
