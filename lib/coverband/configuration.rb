@@ -148,6 +148,11 @@ module Coverband
       end
     end
 
+    # Alias for backward compatibility - track_key uses :routes_tracker symbol
+    def routes_tracker
+      route_tracker
+    end
+
     def password
       @password || ENV["COVERBAND_PASSWORD"]
     end
