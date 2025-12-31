@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   }
 
   spec.add_development_dependency "benchmark-ips"
+  spec.add_development_dependency "benchmark" # Ruby 4.0+ requires explicit dependency
   spec.add_development_dependency "capybara"
   spec.add_development_dependency "m"
   spec.add_development_dependency "memory_profiler"
