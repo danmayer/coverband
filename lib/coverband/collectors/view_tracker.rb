@@ -64,23 +64,14 @@ module Coverband
         views = redis_store.hgetall(tracker_key)
         normalized_views = {}
         views.each_pair do |view, time|
-          roots.each do |root|
-            view = view.gsub(root, "")
-          end
-          normalized_views[view] = time
+          normalized_view = normalize_path(view)
+          normalized_views[normalized_view] = time
         end
         normalized_views
       end
 
       def all_keys
-        all_views = []
-        target.each do |view|
-          roots.each do |root|
-            view = view.gsub(root, "")
-          end
-          all_views << view
-        end
-        all_views.uniq
+        target.map { |view| normalize_path(view) }.uniq
       end
 
       def unused_keys(used_views = nil)
@@ -104,6 +95,23 @@ module Coverband
       def track_file?(file, options = {})
         (file.start_with?(@project_directory) || options[:layout]) &&
           @ignore_patterns.none? { |pattern| file.match?(pattern) }
+      end
+
+      def normalize_path(view)
+        normalized = view.dup
+        original_length = normalized.length
+
+        roots.each do |root|
+          normalized = normalized.gsub(root, "")
+        end
+
+        # Only remove leading slash if we actually modified the path by removing a root
+        # This ensures consistent relative paths after root removal
+        if normalized.length < original_length
+          normalized.sub(/^\//, "")
+        else
+          normalized
+        end
       end
 
       def concrete_target
