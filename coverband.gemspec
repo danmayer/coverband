@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   }
 
   spec.add_development_dependency "benchmark-ips"
+  spec.add_development_dependency "benchmark" # Ruby 4.0+ requires explicit dependency
   spec.add_development_dependency "capybara"
   spec.add_development_dependency "m"
   spec.add_development_dependency "memory_profiler"
@@ -38,7 +39,7 @@ Gem::Specification.new do |spec|
   # note: we are also adding 'spy' as mocha doesn't want us to spy on redis calls...
   spec.add_development_dependency "spy"
   # ^^^ probably need a large test cleanup refactor
-  spec.add_development_dependency "minitest"
+  spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "minitest-fork_executor"
   spec.add_development_dependency "minitest-stub-const"
   spec.add_development_dependency "mocha"

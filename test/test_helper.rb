@@ -88,8 +88,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 Mocha.configure do |c|
   c.stubbing_method_unnecessarily = :prevent
-  c.stubbing_method_on_non_mock_object = :allow
-  c.stubbing_method_on_nil = :prevent
+  c.stubbing_non_public_method = :allow
 end
 
 def test(name, &block)
