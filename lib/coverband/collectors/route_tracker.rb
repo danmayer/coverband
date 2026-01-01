@@ -13,7 +13,7 @@ module Coverband
       TITLE = "Routes"
 
       def initialize(options = {})
-        if Rails&.respond_to?(:version) && Gem::Version.new(Rails.version) < Gem::Version.new("7.1.0")
+        if defined?(Rails) && Rails.respond_to?(:version) && Gem::Version.new(Rails.version) < Gem::Version.new("7.1.0")
           require_relative "../utils/rails6_ext"
         end
 
