@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: supercharge/redis-github-action@1.8.1
+      - uses: supercharge/redis-github-action@v2
         with:
           redis-version: ${{ matrix.redis-version }}
       - uses: ruby/setup-ruby@v1
