@@ -126,6 +126,22 @@ namespace :coverband do
       Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
   end
 
+  desc "Start MCP server with stdio transport for AI assistant integration"
+  task :mcp do
+    if Rake::Task.task_defined?("environment")
+      Rake.application["environment"].invoke
+    end
+
+    begin
+      require "coverband/mcp"
+    rescue LoadError
+      abort "The 'mcp' gem is required for MCP server support. Add `gem 'mcp'` to your Gemfile."
+    end
+
+    server = Coverband::MCP::Server.new
+    server.run_stdio
+  end
+
   # experimental dead method detection using RubyVM::AbstractSyntaxTree
   # combined with the coverband coverage.
   if defined?(RubyVM::AbstractSyntaxTree)

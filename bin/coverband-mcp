@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "coverband/mcp"
+
+# Ensure Coverband is configured
+Coverband.configure unless Coverband.configured?
+
+# Start the MCP server with stdio transport
+server = Coverband::MCP::Server.new
+server.run_stdio
