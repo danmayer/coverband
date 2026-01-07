@@ -406,6 +406,129 @@ A few folks have asked about what size of Redis is needed to run Coverband. I ha
 
 # Newer Features
 
+### MCP Server for AI Assistants
+
+Coverband includes an optional MCP (Model Context Protocol) server that allows AI assistants like Claude to query your production coverage data directly. This enables AI-powered code analysis, dead code detection, and coverage insights.
+
+#### Installation
+
+Add the MCP gem to your Gemfile:
+
+```ruby
+gem 'mcp'
+```
+
+#### Available Tools
+
+The MCP server provides the following tools:
+
+| Tool | Description |
+|------|-------------|
+| `get_coverage_summary` | Get overall coverage statistics |
+| `get_file_coverage` | Get detailed coverage for a specific file |
+| `get_uncovered_files` | List files with no coverage data |
+| `get_dead_methods` | Find methods that are never called |
+| `get_view_tracker_data` | Get view/template usage data |
+| `get_route_tracker_data` | Get route usage statistics |
+| `get_translation_tracker_data` | Get translation key usage data |
+
+#### Running the MCP Server
+
+**Standalone (stdio transport):**
+
+```bash
+bundle exec coverband-mcp
+```
+
+**With a rake task:**
+
+```bash
+bundle exec rake coverband:mcp
+```
+
+**HTTP mode (for remote access):**
+
+```bash
+COVERBAND_MCP_HTTP=true COVERBAND_MCP_PORT=9023 bundle exec rake coverband:mcp
+```
+
+#### Configuring Claude Desktop
+
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+**Option 1: Stdio transport (recommended for local development)**
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "bundle",
+      "args": ["exec", "coverband-mcp"],
+      "cwd": "/path/to/your/rails/app"
+    }
+  }
+}
+```
+
+**Option 2: HTTP transport (for remote access or shared servers)**
+
+First, start the MCP server in HTTP mode:
+
+```bash
+COVERBAND_MCP_HTTP=true bundle exec rake coverband:mcp
+```
+
+Then configure Claude Desktop to connect via `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://localhost:9023"]
+    }
+  }
+}
+```
+
+#### Configuring Claude Code
+
+Add a `.mcp.json` file to your project root:
+
+**Option 1: Stdio transport (recommended)**
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "bundle",
+      "args": ["exec", "coverband-mcp"]
+    }
+  }
+}
+```
+
+**Option 2: HTTP transport**
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://localhost:9023"]
+    }
+  }
+}
+```
+
+#### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `COVERBAND_MCP_HTTP` | Enable HTTP transport instead of stdio | `false` |
+| `COVERBAND_MCP_PORT` | Port for HTTP server | `9023` |
+| `COVERBAND_REDIS_URL` | Redis URL for coverage data | `localhost:6379` |
+
 ### Dead Method Scanning (ruby 2.6+)
 
 Rake task that outputs dead methods based on current coverage data:
