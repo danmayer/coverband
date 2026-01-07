@@ -126,7 +126,7 @@ namespace :coverband do
       Port: ENV.fetch("COVERBAND_COVERAGE_PORT", 9022).to_i
   end
 
-  desc "Start MCP server with stdio transport for AI assistant integration"
+  desc "Start MCP server for AI assistant integration (set COVERBAND_MCP_HTTP=true for HTTP mode)"
   task :mcp do
     if Rake::Task.task_defined?("environment")
       Rake.application["environment"].invoke
@@ -139,7 +139,22 @@ namespace :coverband do
     end
 
     server = Coverband::MCP::Server.new
-    server.run_stdio
+
+    if ENV["COVERBAND_MCP_HTTP"]
+      # HTTP mode with Streamable HTTP transport (SSE)
+      begin
+        require "rackup"
+      rescue LoadError
+        abort "The 'rackup' gem is required for HTTP mode. Add `gem 'rackup'` to your Gemfile."
+      end
+
+      port = ENV.fetch("COVERBAND_MCP_PORT", 9023).to_i
+      host = ENV.fetch("COVERBAND_MCP_HOST", "localhost")
+      server.run_http(port: port, host: host)
+    else
+      # Default stdio mode
+      server.run_stdio
+    end
   end
 
   # experimental dead method detection using RubyVM::AbstractSyntaxTree

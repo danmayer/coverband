@@ -13,6 +13,8 @@ module Coverband
     class Server
       attr_reader :mcp_server
 
+      DEFAULT_HTTP_PORT = 9023
+
       def initialize
         # Ensure Coverband is configured
         Coverband.configure unless Coverband.configured?
@@ -31,11 +33,61 @@ module Coverband
         transport.open
       end
 
+      def run_http(port: DEFAULT_HTTP_PORT, host: "localhost")
+        require "rack"
+        require "rackup"
+
+        transport = ::MCP::Server::Transports::StreamableHTTPTransport.new(@mcp_server)
+        @mcp_server.transport = transport
+
+        app = create_rack_app(transport)
+
+        puts <<~MESSAGE
+          === Coverband MCP Server (HTTP) ===
+
+          Server running at http://#{host}:#{port}
+
+          Available tools:
+            - get_coverage_summary
+            - get_file_coverage
+            - get_uncovered_files
+            - get_dead_methods
+            - get_view_tracker_data
+            - get_route_tracker_data
+            - get_translation_tracker_data
+
+          For Claude Desktop, configure with:
+            {
+              "mcpServers": {
+                "coverband": {
+                  "command": "npx",
+                  "args": ["mcp-remote", "http://#{host}:#{port}"]
+                }
+              }
+            }
+
+          Press Ctrl+C to stop the server
+        MESSAGE
+
+        Rackup::Handler.get("puma").run(app, Port: port, Host: host, Silent: true)
+      end
+
       def handle_json(json_request)
         @mcp_server.handle_json(json_request)
       end
 
       private
+
+      def create_rack_app(transport)
+        Rack::Builder.new do
+          use Rack::CommonLogger
+
+          run lambda { |env|
+            request = Rack::Request.new(env)
+            transport.handle_request(request)
+          }
+        end
+      end
 
       def tools
         [
