@@ -443,18 +443,20 @@ bundle exec coverband-mcp
 **With a rake task:**
 
 ```bash
-bundle exec rake coverband:mcp_server
+bundle exec rake coverband:mcp
 ```
 
 **HTTP mode (for remote access):**
 
 ```bash
-COVERBAND_MCP_HTTP=true COVERBAND_MCP_PORT=9023 bundle exec rake coverband:mcp_server
+COVERBAND_MCP_HTTP=true COVERBAND_MCP_PORT=9023 bundle exec rake coverband:mcp
 ```
 
 #### Configuring Claude Desktop
 
 Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+**Option 1: Stdio transport (recommended for local development)**
 
 ```json
 {
@@ -463,6 +465,57 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
       "command": "bundle",
       "args": ["exec", "coverband-mcp"],
       "cwd": "/path/to/your/rails/app"
+    }
+  }
+}
+```
+
+**Option 2: HTTP transport (for remote access or shared servers)**
+
+First, start the MCP server in HTTP mode:
+
+```bash
+COVERBAND_MCP_HTTP=true bundle exec rake coverband:mcp
+```
+
+Then configure Claude Desktop to connect via `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://localhost:9023"]
+    }
+  }
+}
+```
+
+#### Configuring Claude Code
+
+Add a `.mcp.json` file to your project root:
+
+**Option 1: Stdio transport (recommended)**
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "bundle",
+      "args": ["exec", "coverband-mcp"]
+    }
+  }
+}
+```
+
+**Option 2: HTTP transport**
+
+```json
+{
+  "mcpServers": {
+    "coverband": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://localhost:9023"]
     }
   }
 }
