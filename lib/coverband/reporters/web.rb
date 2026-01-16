@@ -125,7 +125,10 @@ module Coverband
       end
 
       def json
-        Coverband::Reporters::JSONReport.new(Coverband.configuration.store).report
+        Coverband::Reporters::JSONReport.new(
+          Coverband.configuration.store,
+          line_coverage: request.params["line_coverage"] == "true"
+        ).report
       end
 
       def report_json
