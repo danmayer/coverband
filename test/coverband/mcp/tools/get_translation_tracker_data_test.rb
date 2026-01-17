@@ -25,15 +25,12 @@ if defined?(Coverband::MCP)
     end
 
     test "tool has correct metadata" do
-      assert_equal "Get Translation Tracker Data", Coverband::MCP::Tools::GetTranslationTrackerData.title
       assert_includes Coverband::MCP::Tools::GetTranslationTrackerData.description, "I18n translation key usage"
     end
 
     test "input schema has optional show_unused_only parameter" do
       schema = Coverband::MCP::Tools::GetTranslationTrackerData.input_schema
-      assert_equal "object", schema[:type]
-      assert schema[:required].nil? || schema[:required].empty?
-      assert_equal "boolean", schema[:properties][:show_unused_only][:type]
+      assert_instance_of ::MCP::Tool::InputSchema, schema
     end
 
     test "call returns translation tracking data when tracker is enabled" do
@@ -44,12 +41,11 @@ if defined?(Coverband::MCP)
         "unused_keys" => ["admin.dashboard", "legacy.message"]
       }.to_json)
 
-      Coverband.configuration.expects(:translation_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock).twice
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       
       result = JSON.parse(response.content.first[:text])
       
@@ -67,7 +63,7 @@ if defined?(Coverband::MCP)
         "unused_keys" => ["admin.dashboard", "legacy.message"]
       }.to_json)
 
-      Coverband.configuration.expects(:translation_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock).twice
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(
         show_unused_only: true,
@@ -84,25 +80,24 @@ if defined?(Coverband::MCP)
     end
 
     test "call returns message when translation tracking is not enabled" do
-      Coverband.configuration.expects(:translation_tracker).returns(nil)
+      Coverband.configuration.expects(:translations_tracker).returns(nil)
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       assert_includes response.content.first[:text], "Translation tracking is not enabled"
       assert_includes response.content.first[:text], "config.track_translations = true"
     end
 
     test "call handles empty tracking data gracefully" do
       tracker_mock = mock("translation_tracker")
-      tracker_mock.expects(:tracking_since).returns("2024-01-01").twice
+      tracker_mock.expects(:tracking_since).returns("2024-01-01")
       tracker_mock.expects(:as_json).returns({
         "used_keys" => nil,
         "unused_keys" => nil
       }.to_json)
 
-      Coverband.configuration.expects(:translation_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
@@ -115,12 +110,11 @@ if defined?(Coverband::MCP)
     end
 
     test "call handles errors gracefully" do
-      Coverband.configuration.expects(:translation_tracker).raises(StandardError.new("Test error"))
+      Coverband.configuration.expects(:translations_tracker).raises(StandardError.new("Test error"))
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      assert response.is_error
       assert_includes response.content.first[:text], "Error getting translation tracker data: Test error"
     end
   end

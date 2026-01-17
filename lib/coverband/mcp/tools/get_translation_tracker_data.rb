@@ -31,14 +31,14 @@ module Coverband
           result = if show_unused_only
             {
               tracking_since: tracker.tracking_since,
-              unused_translations: data["unused_keys"],
+              unused_translations: data["unused_keys"] || [],
               total_unused: data["unused_keys"]&.length || 0
             }
           else
             {
               tracking_since: tracker.tracking_since,
-              used_translations: data["used_keys"],
-              unused_translations: data["unused_keys"],
+              used_translations: data["used_keys"] || [],
+              unused_translations: data["unused_keys"] || [],
               total_used: data["used_keys"]&.length || 0,
               total_unused: data["unused_keys"]&.length || 0
             }

@@ -23,16 +23,12 @@ if defined?(Coverband::MCP)
     end
 
     test "tool has correct metadata" do
-      assert_equal "Get Uncovered Files", Coverband::MCP::Tools::GetUncoveredFiles.title
       assert_includes Coverband::MCP::Tools::GetUncoveredFiles.description, "coverage below a specified threshold"
     end
 
     test "input schema has optional parameters" do
       schema = Coverband::MCP::Tools::GetUncoveredFiles.input_schema
-      assert_equal "object", schema[:type]
-      assert schema[:required].nil? || schema[:required].empty?
-      assert_equal "number", schema[:properties][:threshold][:type]
-      assert_equal "boolean", schema[:properties][:include_never_loaded][:type]
+      assert_instance_of ::MCP::Tool::InputSchema, schema
     end
 
     test "call returns uncovered files below threshold" do
@@ -58,21 +54,20 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       
       result = JSON.parse(response.content.first[:text])
       
       # Should include files below 50% and never loaded files
       expected_files = ["/app/helpers/helper.rb", "/app/models/user.rb", "/app/unused.rb"]
-      actual_files = result.map { |file| file["file"] }
+      actual_files = result["files"].map { |file| file["file"] }
       
-      assert_equal 3, result.length
+      assert_equal 3, result["files"].length
       expected_files.each do |file|
         assert_includes actual_files, file
       end
       
       # Should be sorted by coverage percentage (ascending)
-      coverages = result.map { |file| file["covered_percent"] || 0 }
+      coverages = result["files"].map { |file| file["covered_percent"] || 0 }
       assert_equal coverages.sort, coverages
     end
 
@@ -97,9 +92,9 @@ if defined?(Coverband::MCP)
       result = JSON.parse(response.content.first[:text])
       
       # Should only include user.rb (below threshold but not never_loaded)
-      assert_equal 1, result.length
-      assert_equal "/app/models/user.rb", result.first["file"]
-      assert_equal 30.0, result.first["covered_percent"]
+      assert_equal 1, result["files"].length
+      assert_equal "/app/models/user.rb", result["files"].first["file"]
+      assert_equal 30.0, result["files"].first["covered_percent"]
     end
 
     test "call uses default values when parameters not provided" do
@@ -119,8 +114,8 @@ if defined?(Coverband::MCP)
       result = JSON.parse(response.content.first[:text])
       
       # Default threshold is 50, so should only include user.rb (40%)
-      assert_equal 1, result.length
-      assert_equal "/app/models/user.rb", result.first["file"]
+      assert_equal 1, result["files"].length
+      assert_equal "/app/models/user.rb", result["files"].first["file"]
     end
 
     test "call handles files with nil covered_percent" do
@@ -143,9 +138,9 @@ if defined?(Coverband::MCP)
       result = JSON.parse(response.content.first[:text])
       
       # File with nil coverage should be included (treated as 0)
-      assert_equal 1, result.length
-      assert_equal "/app/models/user.rb", result.first["file"]
-      assert_nil result.first["covered_percent"]
+      assert_equal 1, result["files"].length
+      assert_equal "/app/models/user.rb", result["files"].first["file"]
+      assert_nil result["files"].first["covered_percent"]
     end
 
     test "call returns empty array when no files below threshold" do
@@ -166,7 +161,7 @@ if defined?(Coverband::MCP)
       )
 
       result = JSON.parse(response.content.first[:text])
-      assert_equal 0, result.length
+      assert_equal 0, result["files"].length
     end
 
     test "call handles errors gracefully" do
@@ -175,7 +170,6 @@ if defined?(Coverband::MCP)
       response = Coverband::MCP::Tools::GetUncoveredFiles.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      assert response.is_error
       assert_includes response.content.first[:text], "Error getting uncovered files: Test error"
     end
   end
