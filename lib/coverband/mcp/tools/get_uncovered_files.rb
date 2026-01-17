@@ -4,12 +4,10 @@ module Coverband
   module MCP
     module Tools
       class GetUncoveredFiles < ::MCP::Tool
-        title "Get Uncovered Files"
         description "Get files with coverage below a specified threshold. " \
                     "Useful for finding code that may need more production testing or could be dead code."
 
         input_schema(
-          type: "object",
           properties: {
             threshold: {
               type: "number",
@@ -19,8 +17,7 @@ module Coverband
               type: "boolean",
               description: "Include files that were never loaded in production (default: true)"
             }
-          },
-          required: []
+          }
         )
 
         def self.call(threshold: 50, include_never_loaded: true, server_context:, **)
@@ -68,7 +65,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting uncovered files: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

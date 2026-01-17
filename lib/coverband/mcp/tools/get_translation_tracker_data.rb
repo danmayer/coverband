@@ -4,19 +4,16 @@ module Coverband
   module MCP
     module Tools
       class GetTranslationTrackerData < ::MCP::Tool
-        title "Get Translation Tracker Data"
-        description "Get i18n translation key usage tracking data. Shows which translation keys " \
-                    "have been used in production and which have never been accessed."
+        description "Get I18n translation key usage tracking data. Shows which translation " \
+                    "keys have been used in production and which have never been accessed."
 
         input_schema(
-          type: "object",
           properties: {
             show_unused_only: {
               type: "boolean",
               description: "Only return unused translation keys (default: false)"
             }
-          },
-          required: []
+          }
         )
 
         def self.call(show_unused_only: false, server_context:, **)
@@ -55,7 +52,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting translation tracker data: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

@@ -4,19 +4,16 @@ module Coverband
   module MCP
     module Tools
       class GetDeadMethods < ::MCP::Tool
-        title "Get Dead Methods"
         description "Analyze code coverage to find methods that have never been executed in production. " \
                     "Requires Ruby 2.6+ with RubyVM::AbstractSyntaxTree support."
 
         input_schema(
-          type: "object",
           properties: {
             file_pattern: {
               type: "string",
               description: "Optional glob pattern to filter files (e.g., 'app/models/**/*.rb')"
             }
-          },
-          required: []
+          }
         )
 
         def self.call(file_pattern: nil, server_context:, **)
@@ -64,7 +61,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error analyzing dead methods: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

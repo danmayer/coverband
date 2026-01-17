@@ -4,19 +4,16 @@ module Coverband
   module MCP
     module Tools
       class GetViewTrackerData < ::MCP::Tool
-        title "Get View Tracker Data"
-        description "Get view file usage tracking data. Shows which view templates (ERB, Haml, Slim) " \
-                    "have been rendered in production and which have never been used."
+        description "Get Rails view template usage tracking data. Shows which view templates " \
+                    "have been rendered in production and which have never been accessed."
 
         input_schema(
-          type: "object",
           properties: {
             show_unused_only: {
               type: "boolean",
               description: "Only return unused views (default: false)"
             }
-          },
-          required: []
+          }
         )
 
         def self.call(show_unused_only: false, server_context:, **)
@@ -55,7 +52,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting view tracker data: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

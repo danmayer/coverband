@@ -4,19 +4,16 @@ module Coverband
   module MCP
     module Tools
       class GetRouteTrackerData < ::MCP::Tool
-        title "Get Route Tracker Data"
         description "Get Rails route usage tracking data. Shows which routes have been hit " \
                     "in production and which have never been accessed."
 
         input_schema(
-          type: "object",
           properties: {
             show_unused_only: {
               type: "boolean",
               description: "Only return unused routes (default: false)"
             }
-          },
-          required: []
+          }
         )
 
         def self.call(show_unused_only: false, server_context:, **)
@@ -55,7 +52,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting route tracker data: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

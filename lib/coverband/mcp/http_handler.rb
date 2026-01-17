@@ -48,6 +48,9 @@ module Coverband
         json_request = JSON.parse(body)
         response = mcp_server.handle_json(json_request)
 
+        # response might already be a JSON string, so check before converting
+        response_body = response.is_a?(String) ? response : response.to_json
+
         [
           200,
           {
@@ -56,7 +59,7 @@ module Coverband
             "access-control-allow-methods" => "POST, OPTIONS",
             "access-control-allow-headers" => "Content-Type"
           },
-          [response.to_json]
+          [response_body]
         ]
       rescue JSON::ParserError => e
         error_response(400, "Invalid JSON: #{e.message}")

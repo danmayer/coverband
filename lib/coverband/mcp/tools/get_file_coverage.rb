@@ -4,12 +4,10 @@ module Coverband
   module MCP
     module Tools
       class GetFileCoverage < ::MCP::Tool
-        title "Get File Coverage"
         description "Get detailed line-by-line coverage data for a specific file. " \
                     "Returns coverage percentage, lines covered/missed, and per-line hit counts."
 
         input_schema(
-          type: "object",
           properties: {
             filename: {
               type: "string",
@@ -66,7 +64,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting file coverage: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end

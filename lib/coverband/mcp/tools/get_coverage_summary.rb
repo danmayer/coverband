@@ -4,14 +4,11 @@ module Coverband
   module MCP
     module Tools
       class GetCoverageSummary < ::MCP::Tool
-        title "Get Coverage Summary"
         description "Get overall production code coverage statistics including total files, " \
                     "lines of code, lines covered, and coverage percentage."
 
         input_schema(
-          type: "object",
-          properties: {},
-          required: []
+          properties: {}
         )
 
         def self.call(server_context:, **)
@@ -36,7 +33,7 @@ module Coverband
           ::MCP::Tool::Response.new([{
             type: "text",
             text: "Error getting coverage summary: #{e.message}"
-          }], is_error: true)
+          }])
         end
       end
     end
