@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "coverband/mcp"
+
+# Ensure Coverband is configured
+Coverband.configure unless Coverband.configured?
+
+# Security check and warning
+unless Coverband.configuration.mcp_enabled?
+  puts "❌ ERROR: MCP is not enabled for security reasons."
+  puts "To enable MCP access, configure Coverband with:"
+  puts
+  puts "Coverband.configure do |config|"
+  puts "  config.mcp_enabled = true"
+  puts "  config.mcp_password = 'your-secure-password'  # Recommended"
+  puts "  config.mcp_allowed_environments = %w[development staging production]  # As needed"
+  puts "end"
+  puts
+  puts "Or set environment variables:"
+  puts "  COVERBAND_MCP_PASSWORD=your-secure-password"
+  puts
+  puts "Current environment: #{(defined?(Rails) && Rails.respond_to?(:env) && Rails.env) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"}"
+  exit 1
+end
+
+# Display security status
+puts "🔐 SECURITY STATUS:"
+if Coverband.configuration.mcp_password
+  puts "  ✅ Authentication: Enabled (password protected)"
+else
+  puts "  ⚠️  Authentication: DISABLED - Consider setting mcp_password for production use"
+end
+env = (defined?(Rails) && Rails.respond_to?(:env) && Rails.env) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+puts "  📍 Environment: #{env}"
+puts "  🌍 Allowed environments: #{Coverband.configuration.mcp_allowed_environments.join(", ")}"
+puts
+
+# Start the MCP server with stdio transport
+server = Coverband::MCP::Server.new
+server.run_stdio

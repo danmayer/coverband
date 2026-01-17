@@ -20,7 +20,7 @@ module Coverband
       # Returns all files that are applicable to this result (sans filters!)
       # as instances of Coverband::SourceFile. Aliased as :source_files
       attr_reader :files
-      alias source_files files
+      alias_method :source_files, :files
       # Explicitly set the Time this result has been created
       attr_writer :created_at
 

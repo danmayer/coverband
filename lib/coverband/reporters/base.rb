@@ -55,13 +55,11 @@ module Coverband
             fixed_report[name] = {}
             report.each_pair do |key, vals|
               filename = Coverband::Utils::AbsoluteFileConverter.convert(key)
-              fixed_report[name][filename] = if fixed_report[name].key?(filename) && fixed_report[name][filename][DATA_KEY] && vals[DATA_KEY]
+              if fixed_report[name].key?(filename) && fixed_report[name][filename][DATA_KEY] && vals[DATA_KEY]
                 merged_data = merge_arrays(fixed_report[name][filename][DATA_KEY], vals[DATA_KEY])
                 vals[DATA_KEY] = merged_data
-                vals
-              else
-                vals
               end
+              fixed_report[name][filename] = vals
             end
           end
         end

@@ -23,7 +23,7 @@ module Coverband
       WHITESPACE_OR_COMMENT_LINE = Regexp.union(WHITESPACE_LINE, COMMENT_LINE)
 
       def self.no_cov_line
-        /^(\s*)#(\s*)(\:nocov\:)/o
+        /^(\s*)#(\s*)(:nocov:)/o
       end
 
       def self.no_cov_line?(line)

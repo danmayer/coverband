@@ -51,8 +51,8 @@ module Coverband
       yield(configuration)
     elsif File.exist?(configuration_file)
       load configuration_file
-    else
-      configuration.logger.debug("using default configuration") if Coverband.configuration.verbose
+    elsif Coverband.configuration.verbose
+      configuration.logger.debug("using default configuration")
     end
     @@configured = true
     coverage_instance.reset_instance
