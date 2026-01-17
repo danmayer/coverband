@@ -40,6 +40,11 @@ module Coverband
       post "/clear"
       assert_equal 302, last_response.status
     end
+
+    test "json endpoint accepts line_coverage parameter" do
+      get "/json?line_coverage=true"
+      assert last_response.ok?
+    end
   end
 end
 
