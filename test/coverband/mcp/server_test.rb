@@ -14,6 +14,7 @@ if defined?(Coverband::MCP)
       super
       Coverband.configure do |config|
         config.store = Coverband::Adapters::RedisStore.new(Redis.new(db: 2))
+        config.mcp_enabled = true  # Enable MCP for testing
       end
       @server = Coverband::MCP::Server.new
     end
@@ -50,6 +51,11 @@ if defined?(Coverband::MCP)
     test "server configures Coverband if not already configured" do
       # Reset configuration
       Coverband.instance_variable_set(:@configuration, nil)
+
+      # Enable MCP for the new configuration
+      Coverband.configure do |config|
+        config.mcp_enabled = true
+      end
 
       # Creating server should auto-configure
       Coverband::MCP::Server.new

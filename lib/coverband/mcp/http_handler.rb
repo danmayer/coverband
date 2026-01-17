@@ -44,6 +44,20 @@ module Coverband
       end
 
       def handle_mcp_request(request)
+        # Check authentication if MCP password is configured
+        unless authenticate_mcp_request(request)
+          return [401, {
+            "Content-Type" => "application/json",
+            "Access-Control-Allow-Origin" => "*",
+            "Access-Control-Allow-Methods" => "POST, OPTIONS",
+            "Access-Control-Allow-Headers" => "Content-Type, Authorization",
+            "WWW-Authenticate" => 'Bearer realm="Coverband MCP"'
+          }, [JSON.generate({
+            "error" => "Authentication required",
+            "message" => "MCP access requires authentication. Provide Bearer token via Authorization header."
+          })]]
+        end
+
         body = request.body.read
         json_request = JSON.parse(body)
         response = mcp_server.handle_json(json_request)
@@ -65,6 +79,23 @@ module Coverband
         error_response(400, "Invalid JSON: #{e.message}")
       rescue => e
         error_response(500, "Server error: #{e.message}")
+      end
+
+      def authenticate_mcp_request(request)
+        # If no MCP password is configured, allow access
+        mcp_password = Coverband.configuration.mcp_password
+        return true unless mcp_password
+
+        # Extract Bearer token from Authorization header
+        auth_header = request.get_header("HTTP_AUTHORIZATION")
+        return false unless auth_header
+
+        # Parse Bearer token
+        token = auth_header[/Bearer (.+)/, 1]
+        return false unless token
+
+        # Compare with configured MCP password
+        token == mcp_password
       end
 
       def mcp_server

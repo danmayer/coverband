@@ -19,6 +19,11 @@ module Coverband
         # Ensure Coverband is configured
         Coverband.configure unless Coverband.configured?
 
+        # Security check: Ensure MCP is enabled and environment is allowed
+        unless Coverband.configuration.mcp_enabled?
+          raise SecurityError, "MCP is not enabled. Set config.mcp_enabled = true and ensure the current environment is in mcp_allowed_environments."
+        end
+
         @mcp_server = ::MCP::Server.new(
           name: "coverband",
           version: Coverband::VERSION,
@@ -44,6 +49,12 @@ module Coverband
 
         puts <<~MESSAGE
           === Coverband MCP Server (HTTP) ===
+
+          🔒 SECURITY NOTICE:
+          This server exposes production coverage data.
+          Ensure proper network security (firewall, VPN, etc.)
+          Environment: #{(defined?(Rails) && Rails.respond_to?(:env) && Rails.env) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"}
+          Authentication: #{Coverband.configuration.mcp_password ? "✓ Enabled" : "⚠️  DISABLED"}
 
           Server running at http://#{host}:#{port}
 

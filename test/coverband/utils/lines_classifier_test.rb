@@ -64,7 +64,7 @@ describe Coverband::Utils::LinesClassifier do
 
         it "doesn't mistake interpolation as a comment" do
           classified_lines = subject.classify [
-            'puts "#{var}"'
+            "puts \"\#{var}\""
           ]
 
           assert_equal 1, classified_lines.length

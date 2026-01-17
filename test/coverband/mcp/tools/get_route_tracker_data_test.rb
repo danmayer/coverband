@@ -15,6 +15,7 @@ if defined?(Coverband::MCP)
       Coverband.configure do |config|
         config.store = Coverband::Adapters::RedisStore.new(Redis.new(db: 2))
         config.track_routes = true
+        config.mcp_enabled = true  # Enable MCP for testing
       end
     end
 
