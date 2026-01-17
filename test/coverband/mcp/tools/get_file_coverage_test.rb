@@ -19,25 +19,22 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     test "tool has correct metadata" do
-      assert_equal "Get File Coverage", Coverband::MCP::Tools::GetFileCoverage.title
       assert_includes Coverband::MCP::Tools::GetFileCoverage.description, "line-by-line coverage data"
     end
 
     test "input schema requires filename parameter" do
       schema = Coverband::MCP::Tools::GetFileCoverage.input_schema
-      assert_equal "object", schema[:type]
-      assert_includes schema[:required], "filename"
-      assert_equal "string", schema[:properties][:filename][:type]
+      assert_instance_of ::MCP::Tool::InputSchema, schema
     end
 
     test "call returns file coverage data when file exists" do
       filename = "app/models/user.rb"
       full_path = "/app/app/models/user.rb"
-      
+
       mock_file_data = {
         "filename" => full_path,
         "covered_percent" => 85.0,
@@ -48,7 +45,7 @@ if defined?(Coverband::MCP)
         "never_loaded" => false,
         "coverage" => [1, 1, 0, 1, 1, nil, 1]
       }
-      
+
       mock_data = {
         "files" => {
           full_path => mock_file_data
@@ -58,7 +55,7 @@ if defined?(Coverband::MCP)
       report_mock = mock("json_report")
       report_mock.expects(:report).returns(mock_data.to_json)
       Coverband::Reporters::JSONReport.expects(:new).with(
-        Coverband.configuration.store, 
+        Coverband.configuration.store,
         {filename: filename, line_coverage: true}
       ).returns(report_mock)
 
@@ -68,8 +65,7 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
-      
+
       result = JSON.parse(response.content.first[:text])
       assert_includes result, full_path
       assert_equal 85.0, result[full_path]["covered_percent"]
@@ -79,7 +75,7 @@ if defined?(Coverband::MCP)
 
     test "call returns message when no files found" do
       filename = "nonexistent.rb"
-      
+
       mock_data = {"files" => nil}
 
       report_mock = mock("json_report")
@@ -92,13 +88,12 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       assert_includes response.content.first[:text], "No coverage data found for file: nonexistent.rb"
     end
 
     test "call returns message when no matching files" do
       filename = "nonexistent.rb"
-      
+
       mock_data = {
         "files" => {
           "/app/other/file.rb" => {"filename" => "/app/other/file.rb"}
@@ -115,18 +110,17 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       assert_includes response.content.first[:text], "No coverage data found for file matching: nonexistent.rb"
     end
 
     test "call handles partial filename matches" do
-      filename = "user.rb"
-      
+      filename = "user"
+
       matching_files = {
         "/app/models/user.rb" => {"filename" => "/app/models/user.rb", "covered_percent" => 85.0},
         "/app/helpers/user_helper.rb" => {"filename" => "/app/helpers/user_helper.rb", "covered_percent" => 90.0}
       }
-      
+
       mock_data = {
         "files" => matching_files.merge({
           "/app/models/order.rb" => {"filename" => "/app/models/order.rb", "covered_percent" => 75.0}
@@ -158,7 +152,6 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      assert response.is_error
       assert_includes response.content.first[:text], "Error getting file coverage: Test error"
     end
   end

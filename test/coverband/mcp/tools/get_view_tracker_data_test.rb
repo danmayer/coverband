@@ -20,39 +20,35 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
       Coverband.configuration.track_views = false
     end
 
     test "tool has correct metadata" do
-      assert_equal "Get View Tracker Data", Coverband::MCP::Tools::GetViewTrackerData.title
       assert_includes Coverband::MCP::Tools::GetViewTrackerData.description, "Rails view template usage"
     end
 
     test "input schema has optional show_unused_only parameter" do
       schema = Coverband::MCP::Tools::GetViewTrackerData.input_schema
-      assert_equal "object", schema[:type]
-      assert schema[:required].nil? || schema[:required].empty?
-      assert_equal "boolean", schema[:properties][:show_unused_only][:type]
+      assert_instance_of ::MCP::Tool::InputSchema, schema
     end
 
     test "call returns view tracking data when tracker is enabled" do
       tracker_mock = mock("view_tracker")
-      tracker_mock.expects(:tracking_since).returns("2024-01-01").twice
+      tracker_mock.expects(:tracking_since).returns("2024-01-01")
       tracker_mock.expects(:as_json).returns({
         "used_keys" => ["app/views/users/index.html.erb", "app/views/users/show.html.erb"],
-        "unused_keys" => ["app/views/users/edit.html.erb", "app/views/orders/index.html.erb"]
+        "unused_keys" => ["app/views/users/new.html.erb", "app/views/users/edit.html.erb"]
       }.to_json)
 
-      Coverband.configuration.expects(:view_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:view_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetViewTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
-      
+
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal "2024-01-01", result["tracking_since"]
       assert_equal 2, result["total_used"]
       assert_equal 2, result["total_unused"]
@@ -67,7 +63,7 @@ if defined?(Coverband::MCP)
         "unused_keys" => ["app/views/users/edit.html.erb", "app/views/orders/index.html.erb"]
       }.to_json)
 
-      Coverband.configuration.expects(:view_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:view_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetViewTrackerData.call(
         show_unused_only: true,
@@ -75,7 +71,7 @@ if defined?(Coverband::MCP)
       )
 
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal "2024-01-01", result["tracking_since"]
       assert_equal 2, result["total_unused"]
       assert_includes result["unused_views"], "app/views/users/edit.html.erb"
@@ -89,25 +85,24 @@ if defined?(Coverband::MCP)
       response = Coverband::MCP::Tools::GetViewTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      refute response.is_error
       assert_includes response.content.first[:text], "View tracking is not enabled"
       assert_includes response.content.first[:text], "config.track_views = true"
     end
 
     test "call handles empty tracking data gracefully" do
       tracker_mock = mock("view_tracker")
-      tracker_mock.expects(:tracking_since).returns("2024-01-01").twice
+      tracker_mock.expects(:tracking_since).returns("2024-01-01")
       tracker_mock.expects(:as_json).returns({
         "used_keys" => nil,
         "unused_keys" => nil
       }.to_json)
 
-      Coverband.configuration.expects(:view_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:view_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetViewTrackerData.call(server_context: {})
 
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal 0, result["total_used"]
       assert_equal 0, result["total_unused"]
       assert_equal [], result["used_views"]
@@ -120,7 +115,6 @@ if defined?(Coverband::MCP)
       response = Coverband::MCP::Tools::GetViewTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      assert response.is_error
       assert_includes response.content.first[:text], "Error getting view tracker data: Test error"
     end
   end

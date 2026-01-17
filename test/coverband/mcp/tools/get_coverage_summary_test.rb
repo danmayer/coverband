@@ -19,7 +19,7 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     test "tool has correct metadata" do
@@ -52,7 +52,7 @@ if defined?(Coverband::MCP)
       assert_instance_of ::MCP::Tool::Response, response
       assert_equal 1, response.content.length
       assert_equal "text", response.content.first[:type]
-      
+
       result = JSON.parse(response.content.first[:text])
       assert_equal 50, result["total_files"]
       assert_equal 1000, result["lines_of_code"]

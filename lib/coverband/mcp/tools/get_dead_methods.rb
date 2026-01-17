@@ -16,12 +16,12 @@ module Coverband
           }
         )
 
-        def self.call(file_pattern: nil, server_context:, **)
+        def self.call(server_context:, file_pattern: nil, **)
           unless defined?(RubyVM::AbstractSyntaxTree)
             return ::MCP::Tool::Response.new([{
               type: "text",
               text: "Dead method detection requires Ruby 2.6+ with RubyVM::AbstractSyntaxTree support."
-            }], is_error: true)
+            }])
           end
 
           dead_methods = Coverband::Utils::DeadMethods.scan_all

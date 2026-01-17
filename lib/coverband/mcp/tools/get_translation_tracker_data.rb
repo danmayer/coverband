@@ -16,7 +16,7 @@ module Coverband
           }
         )
 
-        def self.call(show_unused_only: false, server_context:, **)
+        def self.call(server_context:, show_unused_only: false, **)
           tracker = Coverband.configuration.translations_tracker
 
           unless tracker

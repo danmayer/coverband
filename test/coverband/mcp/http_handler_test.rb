@@ -22,7 +22,7 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     def app
@@ -40,12 +40,12 @@ if defined?(Coverband::MCP)
       # Mock the server to return a simple response
       server_mock = mock("server")
       server_mock.expects(:handle_json).returns({"result" => "success"})
-      
+
       handler = Coverband::MCP::HttpHandler.new
       handler.expects(:mcp_server).returns(server_mock)
-      
+
       @app = handler
-      
+
       json_request = {
         "jsonrpc" => "2.0",
         "method" => "tools/list",
@@ -56,7 +56,7 @@ if defined?(Coverband::MCP)
 
       assert_equal 200, last_response.status
       assert_equal "application/json", last_response.content_type
-      
+
       # Check CORS headers
       assert_equal "*", last_response.headers["Access-Control-Allow-Origin"]
       assert_equal "POST, OPTIONS", last_response.headers["Access-Control-Allow-Methods"]
@@ -65,7 +65,7 @@ if defined?(Coverband::MCP)
 
     test "returns 404 for non-MCP requests when no wrapped app" do
       get "/other-path"
-      
+
       assert_equal 404, last_response.status
       assert_equal "text/plain", last_response.content_type
       assert_equal "Not Found", last_response.body
@@ -73,25 +73,25 @@ if defined?(Coverband::MCP)
 
     test "delegates non-MCP requests to wrapped app" do
       @app = app_with_wrapped_handler
-      
+
       get "/other-path"
-      
+
       assert_equal 200, last_response.status
       assert_equal "wrapped app response", last_response.body
     end
 
     test "only responds to POST requests for MCP endpoint" do
       get "/mcp"
-      
+
       assert_equal 404, last_response.status
     end
 
     test "handles invalid JSON gracefully" do
       post "/mcp", "invalid json", {"CONTENT_TYPE" => "application/json"}
-      
+
       assert_equal 400, last_response.status
       assert_equal "application/json", last_response.content_type
-      
+
       response = JSON.parse(last_response.body)
       assert_includes response["error"], "Invalid JSON"
     end
@@ -100,28 +100,28 @@ if defined?(Coverband::MCP)
       # Mock server to raise an error
       server_mock = mock("server")
       server_mock.expects(:handle_json).raises(StandardError.new("Test error"))
-      
+
       handler = Coverband::MCP::HttpHandler.new
       handler.expects(:mcp_server).returns(server_mock)
-      
+
       @app = handler
-      
+
       json_request = {"test" => "request"}.to_json
       post "/mcp", json_request, {"CONTENT_TYPE" => "application/json"}
-      
+
       assert_equal 500, last_response.status
-      
+
       response = JSON.parse(last_response.body)
       assert_includes response["error"], "Server error: Test error"
     end
 
     test "mcp_server is lazily initialized" do
       handler = Coverband::MCP::HttpHandler.new
-      
+
       # First call creates the server
       server1 = handler.send(:mcp_server)
       assert_instance_of Coverband::MCP::Server, server1
-      
+
       # Second call returns the same instance
       server2 = handler.send(:mcp_server)
       assert_same server1, server2
@@ -129,22 +129,22 @@ if defined?(Coverband::MCP)
 
     test "mcp_request? correctly identifies MCP requests" do
       handler = Coverband::MCP::HttpHandler.new
-      
+
       # POST request to /mcp path
       env = Rack::MockRequest.env_for("/mcp", method: "POST")
       request = Rack::Request.new(env)
       assert handler.send(:mcp_request?, request)
-      
+
       # POST request to /some-path/mcp (ends with /mcp)
       env = Rack::MockRequest.env_for("/some-path/mcp", method: "POST")
       request = Rack::Request.new(env)
       assert handler.send(:mcp_request?, request)
-      
+
       # GET request to /mcp
       env = Rack::MockRequest.env_for("/mcp", method: "GET")
       request = Rack::Request.new(env)
       refute handler.send(:mcp_request?, request)
-      
+
       # POST request to /other-path
       env = Rack::MockRequest.env_for("/other-path", method: "POST")
       request = Rack::Request.new(env)

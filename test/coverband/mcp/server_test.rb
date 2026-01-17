@@ -20,7 +20,7 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     test "server initializes with correct attributes" do
@@ -41,7 +41,7 @@ if defined?(Coverband::MCP)
         "get_route_tracker_data",
         "get_translation_tracker_data"
       ]
-      
+
       expected_tools.each do |tool_name|
         assert_includes tool_names, tool_name, "Expected tool #{tool_name} to be registered"
       end
@@ -50,19 +50,19 @@ if defined?(Coverband::MCP)
     test "server configures Coverband if not already configured" do
       # Reset configuration
       Coverband.instance_variable_set(:@configuration, nil)
-      
+
       # Creating server should auto-configure
-      server = Coverband::MCP::Server.new
-      
+      Coverband::MCP::Server.new
+
       assert Coverband.configured?, "Coverband should be auto-configured"
     end
 
     test "run_stdio creates and opens stdio transport" do
       transport_mock = mock("stdio_transport")
       transport_mock.expects(:open).once
-      
+
       ::MCP::Server::Transports::StdioTransport.expects(:new).with(@server.mcp_server).returns(transport_mock)
-      
+
       @server.run_stdio
     end
 
@@ -73,7 +73,7 @@ if defined?(Coverband::MCP)
 
       # Just stub the method on the server itself to avoid version dependencies
       @server.expects(:puts).at_least_once # For the info output
-      
+
       # Mock Rack handler differently to avoid version issues
       require "rack"
       if defined?(Rackup) && Rackup.respond_to?(:server)
@@ -89,9 +89,9 @@ if defined?(Coverband::MCP)
     test "handle_json delegates to mcp_server" do
       json_request = {"method" => "test"}
       expected_response = {"result" => "success"}
-      
+
       @server.mcp_server.expects(:handle_json).with(json_request).returns(expected_response)
-      
+
       result = @server.handle_json(json_request)
       assert_equal expected_response, result
     end
@@ -99,15 +99,15 @@ if defined?(Coverband::MCP)
     test "create_rack_app returns functioning rack application" do
       transport = mock("transport")
       app = @server.send(:create_rack_app, transport)
-      
+
       assert_respond_to app, :call
-      
+
       # Test request handling - just verify the transport is called
       env = {"REQUEST_METHOD" => "POST", "PATH_INFO" => "/"}
       transport.expects(:handle_request).with(kind_of(Rack::Request)).returns([200, {}, ["response"]])
-      
+
       response = app.call(env)
-      
+
       # Just check status and that we got a response (middleware may wrap body)
       assert_equal 200, response[0]
     end

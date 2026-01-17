@@ -20,7 +20,7 @@ module Coverband
           }
         )
 
-        def self.call(threshold: 50, include_never_loaded: true, server_context:, **)
+        def self.call(server_context:, threshold: 50, include_never_loaded: true, **)
           store = Coverband.configuration.store
           report = Coverband::Reporters::JSONReport.new(store, line_coverage: false)
           data = JSON.parse(report.report)

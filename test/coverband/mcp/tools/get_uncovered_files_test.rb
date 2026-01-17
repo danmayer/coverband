@@ -19,7 +19,7 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     test "tool has correct metadata" do
@@ -38,13 +38,13 @@ if defined?(Coverband::MCP)
         "/app/helpers/helper.rb" => {"covered_percent" => 20.0, "never_loaded" => false},
         "/app/unused.rb" => {"covered_percent" => 0, "never_loaded" => true}
       }
-      
+
       mock_data = {"files" => mock_files}
 
       report_mock = mock("json_report")
       report_mock.expects(:report).returns(mock_data.to_json)
       Coverband::Reporters::JSONReport.expects(:new).with(
-        Coverband.configuration.store, 
+        Coverband.configuration.store,
         line_coverage: false
       ).returns(report_mock)
 
@@ -54,18 +54,18 @@ if defined?(Coverband::MCP)
       )
 
       assert_instance_of ::MCP::Tool::Response, response
-      
+
       result = JSON.parse(response.content.first[:text])
-      
+
       # Should include files below 50% and never loaded files
       expected_files = ["/app/helpers/helper.rb", "/app/models/user.rb", "/app/unused.rb"]
       actual_files = result["files"].map { |file| file["file"] }
-      
+
       assert_equal 3, result["files"].length
       expected_files.each do |file|
         assert_includes actual_files, file
       end
-      
+
       # Should be sorted by coverage percentage (ascending)
       coverages = result["files"].map { |file| file["covered_percent"] || 0 }
       assert_equal coverages.sort, coverages
@@ -76,7 +76,7 @@ if defined?(Coverband::MCP)
         "/app/models/user.rb" => {"covered_percent" => 30.0, "never_loaded" => false},
         "/app/unused.rb" => {"covered_percent" => 0, "never_loaded" => true}
       }
-      
+
       mock_data = {"files" => mock_files}
 
       report_mock = mock("json_report")
@@ -90,7 +90,7 @@ if defined?(Coverband::MCP)
       )
 
       result = JSON.parse(response.content.first[:text])
-      
+
       # Should only include user.rb (below threshold but not never_loaded)
       assert_equal 1, result["files"].length
       assert_equal "/app/models/user.rb", result["files"].first["file"]
@@ -102,7 +102,7 @@ if defined?(Coverband::MCP)
         "/app/models/user.rb" => {"covered_percent" => 40.0, "never_loaded" => false},
         "/app/models/order.rb" => {"covered_percent" => 60.0, "never_loaded" => false}
       }
-      
+
       mock_data = {"files" => mock_files}
 
       report_mock = mock("json_report")
@@ -112,7 +112,7 @@ if defined?(Coverband::MCP)
       response = Coverband::MCP::Tools::GetUncoveredFiles.call(server_context: {})
 
       result = JSON.parse(response.content.first[:text])
-      
+
       # Default threshold is 50, so should only include user.rb (40%)
       assert_equal 1, result["files"].length
       assert_equal "/app/models/user.rb", result["files"].first["file"]
@@ -123,7 +123,7 @@ if defined?(Coverband::MCP)
         "/app/models/user.rb" => {"covered_percent" => nil, "never_loaded" => false},
         "/app/models/order.rb" => {"covered_percent" => 60.0, "never_loaded" => false}
       }
-      
+
       mock_data = {"files" => mock_files}
 
       report_mock = mock("json_report")
@@ -136,7 +136,7 @@ if defined?(Coverband::MCP)
       )
 
       result = JSON.parse(response.content.first[:text])
-      
+
       # File with nil coverage should be included (treated as 0)
       assert_equal 1, result["files"].length
       assert_equal "/app/models/user.rb", result["files"].first["file"]
@@ -148,7 +148,7 @@ if defined?(Coverband::MCP)
         "/app/models/user.rb" => {"covered_percent" => 80.0, "never_loaded" => false},
         "/app/models/order.rb" => {"covered_percent" => 90.0, "never_loaded" => false}
       }
-      
+
       mock_data = {"files" => mock_files}
 
       report_mock = mock("json_report")

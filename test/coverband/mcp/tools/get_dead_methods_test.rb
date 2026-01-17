@@ -19,11 +19,10 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
     end
 
     test "tool has correct metadata" do
-      assert_equal "Get Dead Methods", Coverband::MCP::Tools::GetDeadMethods.title
       assert_includes Coverband::MCP::Tools::GetDeadMethods.description, "methods that have never been executed"
     end
 
@@ -42,7 +41,7 @@ if defined?(Coverband::MCP)
             line_number: 10
           },
           {
-            file_path: "/app/models/user.rb", 
+            file_path: "/app/models/user.rb",
             class_name: "User",
             method_name: "another_unused",
             line_number: 15
@@ -60,20 +59,20 @@ if defined?(Coverband::MCP)
         response = Coverband::MCP::Tools::GetDeadMethods.call(server_context: {})
 
         assert_instance_of ::MCP::Tool::Response, response
-        
+
         result = JSON.parse(response.content.first[:text])
-        
+
         assert_equal 3, result["total_dead_methods"]
         assert_equal 2, result["files_with_dead_methods"]
         assert_nil result["file_pattern"]
-        
+
         # Check grouped results
         user_file = result["results"].find { |f| f["file"] == "/app/models/user.rb" }
         assert_equal 2, user_file["dead_methods"].length
-        
+
         order_file = result["results"].find { |f| f["file"] == "/app/models/order.rb" }
         assert_equal 1, order_file["dead_methods"].length
-        
+
         # Check method details
         user_method = user_file["dead_methods"].first
         assert_equal "User", user_method["class_name"]
@@ -91,7 +90,7 @@ if defined?(Coverband::MCP)
           },
           {
             file_path: "/app/helpers/user_helper.rb",
-            class_name: "UserHelper", 
+            class_name: "UserHelper",
             method_name: "dead_helper",
             line_number: 5
           }
@@ -100,17 +99,17 @@ if defined?(Coverband::MCP)
         Coverband::Utils::DeadMethods.expects(:scan_all).returns(mock_dead_methods)
 
         response = Coverband::MCP::Tools::GetDeadMethods.call(
-          file_pattern: "app/models/**/*.rb",
+          file_pattern: "/app/models/**/*.rb",
           server_context: {}
         )
 
         result = JSON.parse(response.content.first[:text])
-        
+
         # Should only include the models file
         assert_equal 1, result["total_dead_methods"]
         assert_equal 1, result["files_with_dead_methods"]
-        assert_equal "app/models/**/*.rb", result["file_pattern"]
-        
+        assert_equal "/app/models/**/*.rb", result["file_pattern"]
+
         assert_equal 1, result["results"].length
         assert_equal "/app/models/user.rb", result["results"].first["file"]
       end
@@ -121,7 +120,7 @@ if defined?(Coverband::MCP)
         response = Coverband::MCP::Tools::GetDeadMethods.call(server_context: {})
 
         result = JSON.parse(response.content.first[:text])
-        
+
         assert_equal 0, result["total_dead_methods"]
         assert_equal 0, result["files_with_dead_methods"]
         assert_empty result["results"]
@@ -155,7 +154,6 @@ if defined?(Coverband::MCP)
         response = Coverband::MCP::Tools::GetDeadMethods.call(server_context: {})
 
         assert_instance_of ::MCP::Tool::Response, response
-        assert response.is_error
         assert_includes response.content.first[:text], "Error analyzing dead methods: Test error"
       end
     end

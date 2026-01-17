@@ -20,7 +20,7 @@ if defined?(Coverband::MCP)
 
     def teardown
       super
-      Coverband.configuration.store.clear! if Coverband.configuration.store
+      Coverband.configuration.store&.clear!
       Coverband.configuration.track_translations = false
     end
 
@@ -35,20 +35,20 @@ if defined?(Coverband::MCP)
 
     test "call returns translation tracking data when tracker is enabled" do
       tracker_mock = mock("translation_tracker")
-      tracker_mock.expects(:tracking_since).returns("2024-01-01").twice
+      tracker_mock.expects(:tracking_since).returns("2024-01-01")
       tracker_mock.expects(:as_json).returns({
         "used_keys" => ["user.name", "user.email", "errors.required"],
         "unused_keys" => ["admin.dashboard", "legacy.message"]
       }.to_json)
 
-      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
       assert_instance_of ::MCP::Tool::Response, response
-      
+
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal "2024-01-01", result["tracking_since"]
       assert_equal 3, result["total_used"]
       assert_equal 2, result["total_unused"]
@@ -63,7 +63,7 @@ if defined?(Coverband::MCP)
         "unused_keys" => ["admin.dashboard", "legacy.message"]
       }.to_json)
 
-      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock).twice
+      Coverband.configuration.expects(:translations_tracker).returns(tracker_mock)
 
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(
         show_unused_only: true,
@@ -71,7 +71,7 @@ if defined?(Coverband::MCP)
       )
 
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal "2024-01-01", result["tracking_since"]
       assert_equal 2, result["total_unused"]
       assert_includes result["unused_translations"], "admin.dashboard"
@@ -102,7 +102,7 @@ if defined?(Coverband::MCP)
       response = Coverband::MCP::Tools::GetTranslationTrackerData.call(server_context: {})
 
       result = JSON.parse(response.content.first[:text])
-      
+
       assert_equal 0, result["total_used"]
       assert_equal 0, result["total_unused"]
       assert_equal [], result["used_translations"]
