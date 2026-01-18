@@ -62,9 +62,9 @@ module Coverband
         Coverband.configuration.trackers.each do |tracker|
           if request_path_info.match(tracker.class::REPORT_ROUTE)
             tracker_route = true
-            if request_path_info =~ %r{\/clear_.*_key}
+            if request_path_info =~ %r{/clear_.*_key}
               return clear_abstract_tracking_key(tracker)
-            elsif request_path_info =~ %r{\/clear_.*}
+            elsif request_path_info =~ %r{/clear_.*}
               return clear_abstract_tracking(tracker)
             else
               return [200, {"content-type" => "text/html"}, [display_abstract_tracker(tracker)]]
@@ -75,9 +75,9 @@ module Coverband
         unless tracker_route
           if request.post?
             case request_path_info
-            when %r{\/clear_file}
+            when %r{/clear_file}
               clear_file
-            when %r{\/clear}
+            when %r{/clear}
               clear
             else
               [404, coverband_headers, ["404 error!"]]
@@ -86,21 +86,21 @@ module Coverband
             case request_path_info
             when /.*\.(css|js|gif|png)/
               @static.call(env)
-            when %r{\/settings}
+            when %r{/settings}
               [200, coverband_headers, [settings]]
-            when %r{\/view_tracker_data}
+            when %r{/view_tracker_data}
               [200, coverband_headers(content_type: "text/json"), [view_tracker_data]]
-            when %r{\/enriched_debug_data}
+            when %r{/enriched_debug_data}
               [200, coverband_headers(content_type: "text/json"), [enriched_debug_data]]
-            when %r{\/debug_data}
+            when %r{/debug_data}
               [200, coverband_headers(content_type: "text/json"), [debug_data]]
-            when %r{\/load_file_details}
+            when %r{/load_file_details}
               [200, coverband_headers(content_type: "text/json"), [load_file_details]]
-            when %r{\/json}
+            when %r{/json}
               [200, coverband_headers(content_type: "text/json"), [json]]
-            when %r{\/report_json}
+            when %r{/report_json}
               [200, coverband_headers(content_type: "text/json"), [report_json]]
-            when %r{\/$}
+            when %r{/$}
               [200, coverband_headers, [index]]
             else
               [404, coverband_headers, ["404 error!"]]
@@ -125,7 +125,10 @@ module Coverband
       end
 
       def json
-        Coverband::Reporters::JSONReport.new(Coverband.configuration.store).report
+        Coverband::Reporters::JSONReport.new(
+          Coverband.configuration.store,
+          line_coverage: request.params["line_coverage"] == "true"
+        ).report
       end
 
       def report_json
@@ -241,7 +244,7 @@ module Coverband
       # %r{\/.*\/}.match?(request.path) ? request.path.match("\/.*\/")[0] : "/"
       # ^^ the above is NOT valid Ruby 2.3/2.4 even though rubocop / standard think it is
       def base_path
-        (request.path =~ %r{\/.*\/}) ? request.path.match("/.*/")[0] : "/"
+        (request.path =~ %r{/.*/}) ? request.path.match("/.*/")[0] : "/"
       end
     end
   end

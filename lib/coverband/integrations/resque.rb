@@ -29,8 +29,8 @@ if defined?(Coverband::COVERBAND_ALTERNATE_PATCH)
     ensure
       Coverband.report_coverage
     end
-    alias perform_without_coverband perform
-    alias perform perform_with_coverband
+    alias_method :perform_without_coverband, :perform
+    alias_method :perform, :perform_with_coverband
   end
 else
   Resque::Job.prepend(Coverband::ResqueWorker)

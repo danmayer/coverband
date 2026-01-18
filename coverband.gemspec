@@ -56,6 +56,7 @@ Gem::Specification.new do |spec|
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "dalli" # Default memcached adapter
+  spec.add_development_dependency "mcp" # For MCP server support testing
 
   # TODO: Remove when other production adapters exist
   # because the default configuration of redis store, we really do require

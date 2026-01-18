@@ -29,9 +29,9 @@ module Coverband
         attr_reader :coverage_posted
 
         # Lets grab some fancy aliases, shall we?
-        alias source src
-        alias line line_number
-        alias number line_number
+        alias_method :source, :src
+        alias_method :line, :line_number
+        alias_method :number, :line_number
 
         def initialize(src, line_number, coverage, coverage_posted = nil)
           raise ArgumentError, "Only String accepted for source" unless src.is_a?(String)
@@ -132,14 +132,14 @@ module Coverband
         # suppress reading unused source code.
         @src ||= File.open(filename, "rb", &:readlines)
       end
-      alias source src
+      alias_method :source, :src
 
       # Returns all source lines for this file as instances of SimpleCov::SourceFile::Line,
       # and thus including coverage data. Aliased as :source_lines
       def lines
         @lines ||= build_lines
       end
-      alias source_lines lines
+      alias_method :source_lines, :lines
 
       def build_lines
         coverage_exceeding_source_warn if coverage.size > src.size

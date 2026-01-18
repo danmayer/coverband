@@ -14,13 +14,14 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
-      :trackers, :csp_policy, :hide_settings
+      :trackers, :csp_policy, :hide_settings,
+      :mcp_enabled
 
     attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
       :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle,
-      :send_deferred_eager_loading_data, :paged_reporting
+      :send_deferred_eager_loading_data, :paged_reporting, :mcp_allowed_environments, :mcp_password
 
     attr_reader :track_gems, :ignore
 
@@ -31,19 +32,19 @@ module Coverband
     # * Perhaps detect heroku deployment ENV var opposed to tasks?
     #####
     IGNORE_TASKS = ["coverband:clear",
-                    "coverband:coverage",
-                    "coverband:coverage_server",
-                    "assets:precompile",
-                    "webpacker:compile",
-                    "db:version",
-                    "db:create",
-                    "db:drop",
-                    "db:seed",
-                    "db:setup",
-                    "db:test:prepare",
-                    "db:structure:dump",
-                    "db:structure:load",
-                    "db:version"]
+      "coverband:coverage",
+      "coverband:coverage_server",
+      "assets:precompile",
+      "webpacker:compile",
+      "db:version",
+      "db:create",
+      "db:drop",
+      "db:seed",
+      "db:setup",
+      "db:test:prepare",
+      "db:structure:dump",
+      "db:structure:load",
+      "db:version"]
 
     # Heroku when building assets runs code from a dynamic directory
     # /tmp was added to avoid coverage from /tmp/build directories during
@@ -90,6 +91,11 @@ module Coverband
       @password = nil
       @csp_policy = false
       @hide_settings = false
+
+      # MCP (Model Context Protocol) security settings
+      @mcp_enabled = false
+      @mcp_password = nil
+      @mcp_allowed_environments = %w[development test]
 
       # coverband service settings
       @api_key = nil
@@ -144,7 +150,7 @@ module Coverband
       @logger ||= if defined?(Rails.logger) && Rails.logger
         Rails.logger
       else
-        Logger.new(STDOUT)
+        Logger.new($stdout)
       end
     end
 
@@ -155,6 +161,27 @@ module Coverband
 
     def password
       @password || ENV["COVERBAND_PASSWORD"]
+    end
+
+    def mcp_enabled?
+      # MCP is disabled by default and explicitly controlled
+      return false unless @mcp_enabled
+
+      # Check if current environment is allowed
+      current_env = (defined?(Rails) && Rails.respond_to?(:env) && Rails.env) ||
+        ENV["RAILS_ENV"] ||
+        ENV["RACK_ENV"] ||
+        "development"
+
+      mcp_allowed_environments.include?(current_env.to_s)
+    end
+
+    def mcp_password
+      @mcp_password || ENV["COVERBAND_MCP_PASSWORD"]
+    end
+
+    def mcp_allowed_environments
+      @mcp_allowed_environments || %w[development test]
     end
 
     # The adjustments here either protect the redis or service from being overloaded
@@ -247,7 +274,7 @@ module Coverband
       @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
-    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store @api_key @password]
+    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store @api_key @password @mcp_password]
     def to_h
       instance_variables
         .each_with_object({}) do |var, hash|
