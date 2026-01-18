@@ -212,7 +212,14 @@ module Coverband
         require "coverband/adapters/web_service_store"
         Coverband::Adapters::WebServiceStore.new(service_url)
       else
-        Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
+        begin
+          Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
+        rescue Redis::CannotConnectError => error
+          logger.info "Redis is not available (#{error}), defaulting to NullStore"
+          logger.info "If this is intended, please explicitly configure your store: config.store = Coverband::Adapters::FileStore.new('log/coverage')"
+          require "coverband/adapters/null_store"
+          Coverband::Adapters::NullStore.new
+        end
       end
     end
 
