@@ -1,3 +1,21 @@
+### Coverband 6.1.7
+
+* add back a running demo site
+  * source: https://github.com/danmayer/coverband_rails_example
+  * demo site: https://coverband-rails-example.onrender.com/demo
+* Feature: Added MCP (Model Context Protocol) server support for AI assistants
+  * Allows AI agents (like Claude) to securely query coverage data, find dead code, and analyze usage
+  * Includes HTTP and Stdio transports
+  * See `docs/mcp_security.md` and README for setup instructions
+* Feature: Added `Coverband::MCP::HttpHandler` for mounting MCP server in Rack apps
+* Improvement: Added `routes_tracker` alias for `route_tracker` in configuration
+* Improvement: Better error handling when Redis is not available (defaults to NullStore with a warning)
+* Improvement: Updates to `lib/coverband/utils/lines_classifier.rb` to better handle `:nocov:` markers
+* Docs: Added `agents.md` for AI contributor guidelines
+* Docs: Added `docs/mcp_security.md`
+* Fix: Logging to `$stdout` instead of `STDOUT` to avoid warnings
+* Fix: Added GitHub Issue templates and Dependabot config
+
 ### Coverband 6.1.6
 
 * Check for Rails::Engine - Stephen Wetzel
