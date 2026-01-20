@@ -119,7 +119,7 @@ module Coverband
 
       # Returns a table containing the given source files
       def formatted_file_list(title, result, source_files, options = {})
-        title_id = title.gsub(/^[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9\-\_]/, "")
+        title_id = title.gsub(/^[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9\-_]/, "")
         # Silence a warning by using the following variable to assign to `_`:
         # "warning: possibly useless use of a variable in void context"
         # The variable is used by ERB via binding.
