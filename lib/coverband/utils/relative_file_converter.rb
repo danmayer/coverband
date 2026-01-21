@@ -27,6 +27,15 @@ module Coverband
             relative_file = file.gsub(/^#{root}/, ".")
             break relative_file if relative_file.start_with?(".")
           end
+
+          if relative_file == file && File.exist?(file)
+            real_file = File.realpath(file)
+            @roots.each do |root|
+              relative_file = real_file.gsub(/^#{root}/, ".")
+              break relative_file if relative_file.start_with?(".")
+            end
+          end
+
           relative_file
         end
       end
@@ -34,7 +43,12 @@ module Coverband
       private
 
       def normalize(paths)
-        paths.map { |root| File.expand_path(root) }
+        paths.flat_map do |root|
+          [
+            File.expand_path(root),
+            (File.realpath(root) if File.exist?(root))
+          ].compact
+        end.uniq
       end
     end
   end

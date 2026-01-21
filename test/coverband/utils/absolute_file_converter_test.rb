@@ -15,6 +15,41 @@ module Coverband
         assert_equal("#{FileUtils.pwd}/Rakefile", converter.convert("./Rakefile"))
       end
 
+      def test_symlinked_root
+        Dir.mktmpdir do |dir|
+          real_dir = File.join(dir, 'real')
+          sym_dir = File.join(dir, 'sym')
+          Dir.mkdir(real_dir)
+          FileUtils.touch(File.join(real_dir, 'file.rb'))
+          FileUtils.ln_s(real_dir, sym_dir)
+
+          # Root configured as symlink
+          converter = AbsoluteFileConverter.new([sym_dir])
+          # Absolute path using real path
+          # We want it to be converted to relative ./file.rb then back to absolute using symlink root
+          file_path = File.join(real_dir, 'file.rb')
+
+          # Since convert prefers the first root where file exists
+          # and roots will contain [sym_dir, real_dir]
+          # It should probably return sym_dir/file.rb because sym_dir is first?
+
+          assert_equal File.join(sym_dir, 'file.rb'), converter.convert(file_path)
+
+          # Root configured as real path
+          converter = AbsoluteFileConverter.new([real_dir])
+          # Absolute path using symlink path
+          file_path = File.join(sym_dir, 'file.rb')
+
+          # Root is real_dir. file_path is sym_dir.
+          # If we don't handle this, it returns sym_dir/file.rb (no conversion).
+          # But we want it to map to real_dir?
+          # Actually AbsoluteFileConverter is fine returning the input if it's absolute and valid.
+          # But if we want canonicalization...
+
+          assert_equal File.join(real_dir, 'file.rb'), converter.convert(file_path)
+        end
+      end
+
       test "relative_path_to_full leave filename from a key with a local path" do
         converter = AbsoluteFileConverter.new(["/app/", "/full/remote_app/path/"])
         assert_equal "/full/remote_app/path/is/a/path.rb", converter.convert("/full/remote_app/path/is/a/path.rb")
