@@ -5,7 +5,12 @@ module Coverband
     class AbsoluteFileConverter
       def initialize(roots)
         @cache = {}
-        @roots = roots.map { |root| "#{File.expand_path(root)}/" }
+        @roots = roots.flat_map { |root|
+          [
+            "#{File.expand_path(root)}/",
+            ("#{File.realpath(root)}/" if File.exist?(root))
+          ].compact
+        }.uniq
       end
 
       def self.instance
@@ -29,6 +34,16 @@ module Coverband
             # once we have a relative path break out of the loop
             break if relative_filename.start_with? "./"
           end
+
+          if relative_filename == local_filename && File.exist?(local_filename)
+            real_filename = File.realpath(local_filename)
+            @roots.each do |root|
+              relative_filename = real_filename.sub(/^#{root}/, "./")
+              # once we have a relative path break out of the loop
+              break if relative_filename.start_with? "./"
+            end
+          end
+
           # the filename for our reports is expected to be a full path.
           # roots.last should be roots << current_root}/
           # a fully expanded path of config.root
