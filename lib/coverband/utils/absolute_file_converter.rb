@@ -5,12 +5,7 @@ module Coverband
     class AbsoluteFileConverter
       def initialize(roots)
         @cache = {}
-        @roots = roots.flat_map { |root|
-          [
-            "#{File.expand_path(root)}/",
-            ("#{File.realpath(root)}/" if File.exist?(root))
-          ].compact
-        }.uniq.map { |root| [root, /^#{root}/] }
+        @roots = convert_roots(roots)
       end
 
       def self.instance
@@ -30,17 +25,21 @@ module Coverband
           relative_filename = relative_path
           local_filename = relative_filename
           @roots.each do |root, root_regexp|
-            relative_filename = relative_filename.sub(root_regexp, "./")
-            # once we have a relative path break out of the loop
-            break if relative_filename.start_with? "./"
+            if relative_filename.match?(root_regexp)
+              relative_filename = relative_filename.sub(root_regexp, "./")
+              # once we have a relative path break out of the loop
+              break
+            end
           end
 
           if relative_filename == local_filename && File.exist?(local_filename)
             real_filename = File.realpath(local_filename)
             @roots.each do |root, root_regexp|
-              relative_filename = real_filename.sub(root_regexp, "./")
-              # once we have a relative path break out of the loop
-              break if relative_filename.start_with? "./"
+              if real_filename.match?(root_regexp)
+                relative_filename = real_filename.sub(root_regexp, "./")
+                # once we have a relative path break out of the loop
+                break
+              end
             end
           end
 
@@ -56,6 +55,22 @@ module Coverband
           }&.first
           local_root ? relative_filename.gsub("./", local_root) : local_filename
         end
+      end
+
+      private
+
+      def convert_roots(roots)
+        roots.flat_map { |root|
+          items = []
+          expanded = "#{File.expand_path(root)}/"
+          items << [expanded, /^#{expanded}/]
+
+          if File.exist?(root)
+            real = "#{File.realpath(root)}/"
+            items << [real, /^#{Regexp.escape(real)}/]
+          end
+          items
+        }.uniq
       end
     end
   end

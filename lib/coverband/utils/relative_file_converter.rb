@@ -17,22 +17,27 @@ module Coverband
 
       def initialize(roots)
         @cache = {}
-        @roots = normalize(roots).map { |root| /^#{root}/ }
+        @roots = convert_roots(roots)
       end
 
       def convert(file)
         @cache[file] ||= begin
           relative_file = file
           @roots.each do |root|
-            relative_file = file.gsub(root, ".")
-            break relative_file if relative_file.start_with?(".")
+            if root.match?(file)
+              relative_file = file.sub(root, "./")
+              break
+            end
           end
 
-          if relative_file == file && File.exist?(file)
+          if relative_file == file && !file.start_with?(".") && File.exist?(file)
             real_file = File.realpath(file)
             @roots.each do |root|
-              relative_file = real_file.gsub(root, ".")
-              break relative_file if relative_file.start_with?(".")
+              if root.match?(real_file)
+                new_relative_file = real_file.sub(root, "./")
+                relative_file = (new_relative_file == file ? file : new_relative_file)
+                break
+              end
             end
           end
 
@@ -42,13 +47,20 @@ module Coverband
 
       private
 
-      def normalize(paths)
-        paths.flat_map do |root|
-          [
-            File.expand_path(root),
-            (File.realpath(root) if File.exist?(root))
-          ].compact
-        end.uniq
+      def convert_roots(roots)
+        roots.flat_map { |root|
+          items = []
+          expanded = File.expand_path(root)
+          expanded += "/" unless expanded.end_with?("/")
+          items << /^#{Regexp.escape(expanded)}/
+
+          if File.exist?(root)
+            real = File.realpath(root)
+            real += "/" unless real.end_with?("/")
+            items << /^#{Regexp.escape(real)}/
+          end
+          items
+        }.uniq
       end
     end
   end
