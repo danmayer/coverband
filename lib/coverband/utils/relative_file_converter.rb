@@ -17,21 +17,21 @@ module Coverband
 
       def initialize(roots)
         @cache = {}
-        @roots = normalize(roots)
+        @roots = normalize(roots).map { |root| /^#{root}/ }
       end
 
       def convert(file)
         @cache[file] ||= begin
           relative_file = file
           @roots.each do |root|
-            relative_file = file.gsub(/^#{root}/, ".")
+            relative_file = file.gsub(root, ".")
             break relative_file if relative_file.start_with?(".")
           end
 
           if relative_file == file && File.exist?(file)
             real_file = File.realpath(file)
             @roots.each do |root|
-              relative_file = real_file.gsub(/^#{root}/, ".")
+              relative_file = real_file.gsub(root, ".")
               break relative_file if relative_file.start_with?(".")
             end
           end
