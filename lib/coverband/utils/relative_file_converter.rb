@@ -35,7 +35,7 @@ module Coverband
             @roots.each do |root|
               if root.match?(real_file)
                 new_relative_file = real_file.sub(root, "./")
-                relative_file = (new_relative_file == file ? file : new_relative_file)
+                relative_file = ((new_relative_file == file) ? file : new_relative_file)
                 break
               end
             end
