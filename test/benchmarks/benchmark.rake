@@ -183,6 +183,7 @@ namespace :benchmarks do
 
   def measure_memory_report_coverage
     require "memory_profiler"
+    require "stringio"
     fake_report
     store = benchmark_redis_store
     store.clear!
@@ -204,6 +205,8 @@ namespace :benchmarks do
         # we clear this as this one variable is expected to retain memory and is a false positive
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
+        # Clear the RelativeFileConverter cache to avoid retaining strings
+        Coverband::Utils::RelativeFileConverter.reset
       end
     }.pretty_print
     data = $stdout.string
@@ -223,6 +226,7 @@ namespace :benchmarks do
   ###
   def measure_configure_memory
     require "memory_profiler"
+    require "stringio"
     # warmup
     3.times { Coverband.configure }
 
