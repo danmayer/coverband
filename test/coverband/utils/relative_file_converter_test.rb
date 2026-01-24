@@ -34,6 +34,32 @@ module Coverband
         converter = RelativeFileConverter.new(["/bar/tmp/", "/foo/bar/"])
         assert_equal("./foo/bar/josie.rb", converter.convert("./foo/bar/josie.rb"))
       end
+
+      def test_symlinked_root
+        Dir.mktmpdir do |dir|
+          real_dir = File.join(dir, "real")
+          sym_dir = File.join(dir, "sym")
+          Dir.mkdir(real_dir)
+          FileUtils.touch(File.join(real_dir, "file.rb"))
+          FileUtils.ln_s(real_dir, sym_dir)
+
+          # Root configured as symlink
+          converter = RelativeFileConverter.new([sym_dir])
+          # File reported as real path
+          file_path = File.join(real_dir, "file.rb")
+
+          # Should convert to relative path
+          assert_equal "./file.rb", converter.convert(file_path)
+
+          # Root configured as real path
+          converter = RelativeFileConverter.new([real_dir])
+          # File reported as symlink path
+          file_path = File.join(sym_dir, "file.rb")
+
+          # Should convert to relative path
+          assert_equal "./file.rb", converter.convert(file_path)
+        end
+      end
     end
   end
 end

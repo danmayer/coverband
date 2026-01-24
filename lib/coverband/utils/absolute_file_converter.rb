@@ -5,7 +5,7 @@ module Coverband
     class AbsoluteFileConverter
       def initialize(roots)
         @cache = {}
-        @roots = roots.map { |root| "#{File.expand_path(root)}/" }
+        @roots = convert_roots(roots)
       end
 
       def self.instance
@@ -24,11 +24,25 @@ module Coverband
         @cache[relative_path] ||= begin
           relative_filename = relative_path
           local_filename = relative_filename
-          @roots.each do |root|
-            relative_filename = relative_filename.sub(/^#{root}/, "./")
-            # once we have a relative path break out of the loop
-            break if relative_filename.start_with? "./"
+          @roots.each do |root, root_regexp|
+            if relative_filename.match?(root_regexp)
+              relative_filename = relative_filename.sub(root_regexp, "./")
+              # once we have a relative path break out of the loop
+              break
+            end
           end
+
+          if relative_filename == local_filename && File.exist?(local_filename)
+            real_filename = File.realpath(local_filename)
+            @roots.each do |root, root_regexp|
+              if real_filename.match?(root_regexp)
+                relative_filename = real_filename.sub(root_regexp, "./")
+                # once we have a relative path break out of the loop
+                break
+              end
+            end
+          end
+
           # the filename for our reports is expected to be a full path.
           # roots.last should be roots << current_root}/
           # a fully expanded path of config.root
@@ -36,11 +50,27 @@ module Coverband
           # above only works for app files
           # we need to rethink some of this logic
           # gems aren't at project root and can have multiple locations
-          local_root = @roots.find { |root|
+          local_root = @roots.find { |root, _root_regexp|
             File.exist?(relative_filename.gsub("./", root))
-          }
+          }&.first
           local_root ? relative_filename.gsub("./", local_root) : local_filename
         end
+      end
+
+      private
+
+      def convert_roots(roots)
+        roots.flat_map { |root|
+          items = []
+          expanded = "#{File.expand_path(root)}/"
+          items << [expanded, /^#{expanded}/]
+
+          if File.exist?(root)
+            real = "#{File.realpath(root)}/"
+            items << [real, /^#{Regexp.escape(real)}/]
+          end
+          items
+        }.uniq
       end
     end
   end
