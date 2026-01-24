@@ -8,3 +8,4 @@ gem "rails" # latest
 gem "haml"
 gem "slim"
 gem "webrick"
+gem "cgi"
