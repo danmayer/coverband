@@ -29,6 +29,7 @@ module Coverband
 
         @ttl = opts[:ttl]
         @relative_file_converter = opts[:relative_file_converter] || Utils::RelativeFileConverter
+        @short_name_regex = /^#{Coverband.configuration.root}/
       end
 
       def supported?
@@ -171,7 +172,7 @@ module Coverband
       end
 
       def short_name(filename)
-        filename.sub(/^#{Coverband.configuration.root}/, ".")
+        filename.sub(@short_name_regex, ".")
           .gsub(%r{^\./}, "")
       end
 
