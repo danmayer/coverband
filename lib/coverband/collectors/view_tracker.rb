@@ -78,7 +78,13 @@ module Coverband
         recently_used_views = used_keys.keys
         unused_views = all_keys - recently_used_views
         # since layouts don't include format we count them used if they match with ANY formats
-        unused_views = unused_views.reject { |view| view.include?("/layouts/") && recently_used_views.any? { |used_view| view.include?(used_view) } }
+        potential_layout_references = recently_used_views.reject { |v| v.end_with?(".erb", ".haml", ".slim") }
+
+        if potential_layout_references.any?
+          layout_matcher = Regexp.union(potential_layout_references)
+          unused_views = unused_views.reject { |view| view.include?("/layouts/") && view.match?(layout_matcher) }
+        end
+
         unused_views.reject { |view| @ignore_patterns.any? { |pattern| view.match?(pattern) } }
       end
 
