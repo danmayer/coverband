@@ -12,7 +12,6 @@ require_relative "line"
 module Coverband
   module Utils
     class SourceFile
-
       # The full path to this source file (e.g. /User/colszowka/projects/simplecov/lib/simplecov/source_file.rb)
       attr_reader :filename
       # The array of coverage data received from the Coverage.result
