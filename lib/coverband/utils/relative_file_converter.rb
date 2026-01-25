@@ -17,28 +17,17 @@ module Coverband
 
       def initialize(roots)
         @cache = {}
-        @roots = convert_roots(roots)
+        @roots_regexp = Regexp.union(convert_roots(roots))
       end
 
       def convert(file)
         @cache[file] ||= begin
-          relative_file = file
-          @roots.each do |root|
-            if root.match?(file)
-              relative_file = file.sub(root, "./")
-              break
-            end
-          end
+          relative_file = file.sub(@roots_regexp, "./")
 
           if relative_file == file && !file.start_with?(".") && File.exist?(file)
             real_file = File.realpath(file)
-            @roots.each do |root|
-              if root.match?(real_file)
-                new_relative_file = real_file.sub(root, "./")
-                relative_file = ((new_relative_file == file) ? file : new_relative_file)
-                break
-              end
-            end
+            new_relative_file = real_file.sub(@roots_regexp, "./")
+            relative_file = ((new_relative_file == real_file) ? file : new_relative_file)
           end
 
           relative_file
