@@ -33,7 +33,7 @@ class TranslationTrackerTest < Minitest::Test
   test "track standard translation keys" do
     store = fake_store
     translation_key = "en.views.pagination.truncate"
-    store.raw_store.expects(:hset).with(tracker_key, translation_key, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {translation_key => anything})
     tracker = Coverband::Collectors::TranslationTracker.new(store: store, roots: "dir")
 
     tracker.track_key(translation_key.to_sym)

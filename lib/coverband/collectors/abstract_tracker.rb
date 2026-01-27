@@ -97,8 +97,8 @@ module Coverband
         redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
         @one_time_timestamp = true
         reported_time = Time.now.to_i
-        @keys_to_record.to_a.each do |key|
-          redis_store.hset(tracker_key, key.to_s, reported_time)
+        if @keys_to_record.any?
+          redis_store.hset(tracker_key, @keys_to_record.each_with_object({}) { |key, h| h[key.to_s] = reported_time })
         end
         @keys_to_record.clear
       rescue => e
