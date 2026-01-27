@@ -28,7 +28,7 @@ class RouterTrackerTest < Minitest::Test
   test "track redirect routes" do
     store = fake_store
     route_hash = {controller: nil, action: nil, url_path: "path", verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
 
     payload = {
@@ -60,7 +60,7 @@ class RouterTrackerTest < Minitest::Test
   test "track controller routes in Rails < 6.1" do
     store = fake_store
     route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       params: {"controller" => "some/controller"},
@@ -77,7 +77,7 @@ class RouterTrackerTest < Minitest::Test
   test "track controller routes in Rails >= 6.1" do
     store = fake_store
     route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, route_hash.to_s, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       params: {

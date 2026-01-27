@@ -26,7 +26,7 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
-    store.raw_store.expects(:hset).with(tracker_key, file_path, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {file_path => anything})
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(identifier: file_path)
     tracker.save_report
@@ -67,7 +67,7 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/layout"
-    store.raw_store.expects(:hset).with(tracker_key, file_path, anything)
+    store.raw_store.expects(:hset).with(tracker_key, {file_path => anything})
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(layout: file_path)
     tracker.save_report
