@@ -54,8 +54,8 @@ module Coverband
           # on the critical performance path, and any refactoring I come up with
           # would slow down the performance.
           ###
-          next unless @@ignore_patterns.none? { |pattern| file.match(pattern) } &&
-            file.start_with?(@@project_directory)
+          next unless file.start_with?(@@project_directory) &&
+            @@ignore_patterns.none? { |pattern| file.match(pattern) }
 
           # This handles Coverage branch support, setup by default in
           # simplecov 0.18.x
@@ -84,8 +84,8 @@ module Coverband
           # on the critical performance path, and any refactoring I come up with
           # would slow down the performance.
           ###
-          next unless @@ignore_patterns.none? { |pattern| file.match(pattern) } &&
-            file.start_with?(@@project_directory)
+          next unless file.start_with?(@@project_directory) &&
+            @@ignore_patterns.none? { |pattern| file.match(pattern) }
 
           @@stubs[file] ||= ::Coverage.line_stub(file)
           transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) { |line_number, line_counts|
