@@ -80,12 +80,15 @@ module Coverband
         # since layouts don't include format we count them used if they match with ANY formats
         potential_layout_references = recently_used_views.reject { |v| v.end_with?(".erb", ".haml", ".slim") }
 
-        if potential_layout_references.any?
-          layout_matcher = Regexp.union(potential_layout_references)
-          unused_views = unused_views.reject { |view| view.include?("/layouts/") && view.match?(layout_matcher) }
+        layout_matcher = if potential_layout_references.any?
+          Regexp.union(potential_layout_references)
         end
 
-        unused_views.reject { |view| @ignore_patterns.any? { |pattern| view.match?(pattern) } }
+        unused_views.reject! do |view|
+          (layout_matcher && view.include?("/layouts/") && view.match?(layout_matcher)) ||
+            @ignore_patterns.any? { |pattern| view.match?(pattern) }
+        end
+        unused_views
       end
 
       def clear_key!(filename)
