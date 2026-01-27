@@ -61,7 +61,7 @@ module Coverband
       end
 
       def unused_keys(used_keys = nil)
-        recently_used_keys = (used_keys || self.used_keys)
+        recently_used_keys = used_keys || self.used_keys
         all_keys.reject { |k| recently_used_keys.key?(k.to_s) }
       end
 
