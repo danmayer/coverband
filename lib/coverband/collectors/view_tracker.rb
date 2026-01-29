@@ -112,6 +112,7 @@ module Coverband
 
         roots.each do |root|
           normalized = normalized.gsub(root, "")
+          break if normalized.length < original_length
         end
 
         # Only remove leading slash if we actually modified the path by removing a root
