@@ -7,7 +7,7 @@
 # Representation of a source file including it's coverage data, source code,
 # source lines and featuring helpers to interpret that data.
 ####
-require_relative "line"
+require_relative "source_file/line"
 
 module Coverband
   module Utils
@@ -65,7 +65,7 @@ module Coverband
       end
       alias_method :source, :src
 
-      # Returns all source lines for this file as instances of SimpleCov::SourceFile::Line,
+      # Returns all source lines for this file as instances of Coverband::Utils::SourceFile::Line,
       # and thus including coverage data. Aliased as :source_lines
       def lines
         @lines ||= build_lines
@@ -76,7 +76,7 @@ module Coverband
         coverage_exceeding_source_warn if coverage.size > src.size
 
         lines = src.map.with_index(1) { |src, i|
-          Coverband::Utils::Line.new(
+          Coverband::Utils::SourceFile::Line.new(
             src,
             i,
             never_loaded ? 0 : coverage[i - 1],
@@ -92,7 +92,7 @@ module Coverband
         warn "Warning: coverage data from Coverage [#{coverage.size}] exceeds line count in #{filename} [#{src.size}]"
       end
 
-      # Access SimpleCov::SourceFile::Line source lines by line number
+      # Access Coverband::Utils::SourceFile::Line source lines by line number
       def line(number)
         lines[number - 1]
       end
@@ -131,7 +131,7 @@ module Coverband
         @runtime_relavant_lines || (lines.size - never_lines.size - skipped_lines.size)
       end
 
-      # Returns all covered lines as SimpleCov::SourceFile::Line
+      # Returns all covered lines as Coverband::Utils::SourceFile::Line
       def covered_lines
         @covered_lines ||= lines.select(&:covered?)
       end
@@ -149,18 +149,18 @@ module Coverband
       end
 
       # Returns all lines that should have been, but were not covered
-      # as instances of SimpleCov::SourceFile::Line
+      # as instances of Coverband::Utils::SourceFile::Line
       def missed_lines
         @missed_lines ||= lines.select(&:missed?)
       end
 
       # Returns all lines that are not relevant for coverage as
-      # SimpleCov::SourceFile::Line instances
+      # Coverband::Utils::SourceFile::Line instances
       def never_lines
         @never_lines ||= lines.select(&:never?)
       end
 
-      # Returns all lines that were skipped as SimpleCov::SourceFile::Line instances
+      # Returns all lines that were skipped as Coverband::Utils::SourceFile::Line instances
       def skipped_lines
         @skipped_lines ||= lines.select(&:skipped?)
       end

@@ -33,9 +33,9 @@ describe Coverband::Utils::SourceFile do
       assert_equal 16, subject.lines.count
     end
 
-    it "has all source lines of type Coverband::Utils::Line" do
+    it "has all source lines of type Coverband::Utils::SourceFile::Line" do
       subject.lines.each do |line|
-        assert line.is_a?(Coverband::Utils::Line)
+        assert line.is_a?(Coverband::Utils::SourceFile::Line)
       end
     end
 
