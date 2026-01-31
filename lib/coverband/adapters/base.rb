@@ -125,14 +125,16 @@ module Coverband
         }
       end
 
-      # TODO: This should have cases reduced
       def array_add(latest, original)
-        if latest.empty? && original.empty?
-          []
-        elsif Coverband.configuration.use_oneshot_lines_coverage
-          latest.map!.with_index { |v, i| ((v + original[i] >= 1) ? 1 : 0) if v && original[i] }
-        else
-          latest.map.with_index { |v, i| (v && original[i]) ? v + original[i] : nil }
+        use_oneshot = Coverband.configuration.use_oneshot_lines_coverage
+        latest.map.with_index do |v, i|
+          next unless v && original[i]
+
+          if use_oneshot
+            (v + original[i] >= 1) ? 1 : 0
+          else
+            v + original[i]
+          end
         end
       end
     end
