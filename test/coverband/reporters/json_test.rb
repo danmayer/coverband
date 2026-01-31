@@ -9,7 +9,7 @@ class ReportJSONTest < Minitest::Test
     Coverband.configure do |config|
       config.store = @store
       config.root = fixtures_root
-      config.ignore = ["notsomething.rb", "lib/*"]
+      config.ignore = ["notsomething.rb", /\/lib\//]
     end
     mock_file_hash
   end
@@ -29,7 +29,7 @@ class ReportJSONTest < Minitest::Test
     json = Coverband::Reporters::JSONReport.new(@store).report
     parsed = JSON.parse(json)
     expected_files = ["app/controllers/sample_controller.rb", "app/models/user.rb"]
-    assert_equal parsed["files"].keys, expected_files
+    assert_equal parsed["files"].keys.sort, expected_files.sort
   end
 
   test "includes metrics for files" do
