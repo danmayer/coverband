@@ -73,9 +73,12 @@ module Coverband
         template("data").result(binding)
       end
 
+      TEMPLATE_CACHE = {}
+      private_constant :TEMPLATE_CACHE
+
       # Returns the an erb instance for the template of given name
       def template(name)
-        ERB.new(File.read(File.join(File.dirname(__FILE__), "../../../views/", "#{name}.erb")))
+        TEMPLATE_CACHE[name] ||= ERB.new(File.read(File.join(File.dirname(__FILE__), "../../../views/", "#{name}.erb")))
       end
 
       def output_path
