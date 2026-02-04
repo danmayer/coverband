@@ -64,7 +64,7 @@ describe "result" do
   describe "add_not_loaded_files" do
     let(:tracked_files) { "./test_files/*.rb" }
     let(:file_path) { "/abs/path/to/file.rb" }
-    let(:result_hash) { { "some/other/file.rb" => {} } }
+    let(:result_hash) { {"some/other/file.rb" => {}} }
 
     it "adds files to the result and mutates the original result" do
       Dir.stubs(:[]).with(tracked_files).returns([file_path])
