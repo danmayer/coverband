@@ -60,4 +60,23 @@ describe "result" do
       end
     end
   end
+
+  describe "add_not_loaded_files" do
+    let(:tracked_files) { "./test_files/*.rb" }
+    let(:file_path) { "/abs/path/to/file.rb" }
+    let(:result_hash) { {"some/other/file.rb" => {}} }
+
+    it "adds files to the result and mutates the original result" do
+      Dir.stubs(:[]).with(tracked_files).returns([file_path])
+
+      new_result = Coverband::Utils::Result.add_not_loaded_files(result_hash, tracked_files)
+
+      assert new_result.key?(file_path)
+      assert_equal true, new_result[file_path]["never_loaded"]
+
+      # Verify mutation (optimization)
+      assert_same result_hash, new_result
+      assert result_hash.key?(file_path)
+    end
+  end
 end

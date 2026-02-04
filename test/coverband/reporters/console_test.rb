@@ -19,6 +19,7 @@ class HTMLReportTest < Minitest::Test
     Coverband::Utils::RelativeFileConverter.expects(:convert).with("app_path/dog.rb").returns("./dog.rb")
     @store.send(:save_report, basic_coverage)
 
+    Dir.stubs(:[]).returns([])
     report = Coverband::Reporters::ConsoleReport.report(@store)[:merged]
     expected = {"./dog.rb" => [0, 1, 2]}
     assert_equal(expected.keys, report.keys)
