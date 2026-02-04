@@ -129,22 +129,22 @@ module Coverband
         use_oneshot = Coverband.configuration.use_oneshot_lines_coverage
         if latest.frozen?
           latest.map.with_index do |v, i|
-            next unless v && original[i]
-
-            if use_oneshot
-              (v + original[i] >= 1) ? 1 : 0
-            else
-              v + original[i]
+            if v && original[i]
+              if use_oneshot
+                (v + original[i] >= 1) ? 1 : 0
+              else
+                v + original[i]
+              end
             end
           end
         else
-          latest.map!.with_index do |v, i|
-            next unless v && original[i]
-
-            if use_oneshot
-              (v + original[i] >= 1) ? 1 : 0
-            else
-              v + original[i]
+          latest.each_with_index do |v, i|
+            latest[i] = if v && original[i]
+              if use_oneshot
+                (v + original[i] >= 1) ? 1 : 0
+              else
+                v + original[i]
+              end
             end
           end
           latest
