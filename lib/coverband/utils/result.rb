@@ -51,8 +51,6 @@ module Coverband
       # the line-by-line coverage to zero (if relevant) or nil (comments / whitespace etc).
       def self.add_not_loaded_files(result, tracked_files)
         if tracked_files
-          # TODO: Can we get rid of this dup it wastes memory
-          result = result.dup
           Dir[tracked_files].each do |file|
             absolute = File.expand_path(file)
             result[absolute] ||= {
