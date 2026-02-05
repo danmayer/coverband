@@ -78,7 +78,7 @@ module Coverband
 
       # Returns the an erb instance for the template of given name
       def template(name)
-        TEMPLATE_CACHE[name] ||= ERB.new(File.read(File.join(File.dirname(__FILE__), "../../../views/", "#{name}.erb")))
+        TEMPLATE_CACHE[name] ||= ERB.new(File.read(File.expand_path("../../../views/#{name}.erb", __dir__)))
       end
 
       def output_path
