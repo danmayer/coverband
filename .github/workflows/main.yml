@@ -28,11 +28,18 @@ jobs:
           - gemfile: 'rails_8.0'
             ruby: '3.1'
     runs-on: ${{ matrix.os }}-latest
+    services:
+      redis:
+        image: redis:${{ matrix.redis-version }}
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v6
-      - uses: supercharge/redis-github-action@v2
-        with:
-          redis-version: ${{ matrix.redis-version }}
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}

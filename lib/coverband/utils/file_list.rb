@@ -74,7 +74,10 @@ module Coverband
       end
 
       def first_seen_at
-        map(&:first_updated_at).reject { |el| el.is_a?(String) }.min
+        filter_map { |f|
+          val = f.first_updated_at
+          val unless val.is_a?(String)
+        }.min
       end
     end
   end
