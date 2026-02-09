@@ -66,10 +66,9 @@ module Coverband
         # We set here vs initialize to avoid setting on the primary process vs child processes
         @pid ||= ::Process.pid
 
-        # TODO: do we need dup
         # TODO: we don't need upstream timestamps, server will track first_seen
         Thread.new do
-          data = expand_report(report.dup)
+          data = expand_report(report)
           full_package = {
             collection_type: "coverage_delta",
             collection_data: {

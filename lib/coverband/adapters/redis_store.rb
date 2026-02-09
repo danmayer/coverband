@@ -63,8 +63,7 @@ module Coverband
       # the Coverband 2 had the same issue,
       # and the tradeoff has always been acceptable
       def save_report(report)
-        data = report.dup
-        data = merge_reports(data, coverage(nil, skip_hash_check: true))
+        data = merge_reports(report, coverage(nil, skip_hash_check: true))
         save_coverage(data)
       end
 
