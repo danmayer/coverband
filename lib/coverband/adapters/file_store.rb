@@ -65,8 +65,7 @@ module Coverband
       end
 
       def save_report(report)
-        data = report.dup
-        data = merge_reports(data, coverage)
+        data = merge_reports(report, coverage)
         File.write(path, JSON.dump(data))
       end
 
