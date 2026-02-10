@@ -74,10 +74,13 @@ module Coverband
       end
 
       def first_seen_at
-        filter_map { |f|
+        min = nil
+        each do |f|
           val = f.first_updated_at
-          val unless val.is_a?(String)
-        }.min
+          next if val.is_a?(String)
+          min = val if min.nil? || val < min
+        end
+        min
       end
     end
   end
