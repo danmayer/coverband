@@ -104,7 +104,7 @@ module Coverband
         return 0.0 if relevant_lines.zero?
 
         # handle edge case where runtime in dev can go over 100%
-        [Float(covered_lines.size * 100.0 / relevant_lines.to_f), 100.0].min&.round(2)
+        [Float(covered_lines_count * 100.0 / relevant_lines.to_f), 100.0].min&.round(2)
       end
 
       def formatted_covered_percent
@@ -128,7 +128,8 @@ module Coverband
       end
 
       def relevant_lines
-        @runtime_relavant_lines || (lines.size - never_lines.size - skipped_lines.size)
+        return @runtime_relavant_lines if @runtime_relavant_lines
+        lines_of_code
       end
 
       # Returns all covered lines as Coverband::Utils::SourceFile::Line
@@ -137,7 +138,8 @@ module Coverband
       end
 
       def covered_lines_count
-        covered_lines&.count
+        return @covered_lines.size if defined?(@covered_lines) && @covered_lines
+        lines.count(&:covered?)
       end
 
       def line_coverage(index)
@@ -154,10 +156,20 @@ module Coverband
         @missed_lines ||= lines.select(&:missed?)
       end
 
+      def missed_lines_count
+        return @missed_lines.size if defined?(@missed_lines) && @missed_lines
+        lines.count(&:missed?)
+      end
+
       # Returns all lines that are not relevant for coverage as
       # Coverband::Utils::SourceFile::Line instances
       def never_lines
         @never_lines ||= lines.select(&:never?)
+      end
+
+      def never_lines_count
+        return @never_lines.size if defined?(@never_lines) && @never_lines
+        lines.count(&:never?)
       end
 
       # Returns all lines that were skipped as Coverband::Utils::SourceFile::Line instances
@@ -165,9 +177,18 @@ module Coverband
         @skipped_lines ||= lines.select(&:skipped?)
       end
 
+      def skipped_lines_count
+        return @skipped_lines.size if defined?(@skipped_lines) && @skipped_lines
+        lines.count(&:skipped?)
+      end
+
       # Returns the number of relevant lines (covered + missed)
       def lines_of_code
-        covered_lines.size + missed_lines.size
+        @lines_of_code ||= if @covered_lines && @missed_lines
+          @covered_lines.size + @missed_lines.size
+        else
+          lines.count { |l| l.covered? || l.missed? }
+        end
       end
 
       # Will go through all source files and mark lines that are wrapped within # :nocov: comment blocks
