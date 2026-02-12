@@ -14,28 +14,28 @@ module Coverband
       def covered_lines
         return 0.0 if empty?
 
-        sum { |f| f.covered_lines.count }
+        @covered_lines ||= sum(&:covered_lines_count)
       end
 
       # Returns the count of lines that have been missed
       def missed_lines
         return 0.0 if empty?
 
-        sum { |f| f.missed_lines.count }
+        @missed_lines ||= sum(&:missed_lines_count)
       end
 
       # Returns the count of lines that are not relevant for coverage
       def never_lines
         return 0.0 if empty?
 
-        sum { |f| f.never_lines.count }
+        @never_lines ||= sum(&:never_lines_count)
       end
 
       # Returns the count of skipped lines
       def skipped_lines
         return 0.0 if empty?
 
-        sum { |f| f.skipped_lines.count }
+        @skipped_lines ||= sum(&:skipped_lines_count)
       end
 
       # Computes the coverage based upon lines covered and lines missed for each file
@@ -48,7 +48,7 @@ module Coverband
       def lines_of_code
         return 0.0 if empty?
 
-        sum(&:lines_of_code)
+        @lines_of_code ||= sum(&:lines_of_code)
       end
 
       # Computes the coverage based upon lines covered and lines missed
