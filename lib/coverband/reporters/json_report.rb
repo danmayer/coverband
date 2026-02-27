@@ -72,6 +72,11 @@ module Coverband
         end
       end
 
+      def format_timestamp(timestamp)
+        return nil if timestamp.nil? || timestamp == Coverband::Utils::SourceFile::NOT_AVAILABLE
+        timestamp.is_a?(Time) ? timestamp.iso8601 : timestamp.to_s
+      end
+
       def report_as_json
         return filtered_report_files.to_json if for_merged_report
 
@@ -133,6 +138,8 @@ module Coverband
             filename: source_file.filename,
             hash: Digest::SHA1.hexdigest(source_file.filename),
             never_loaded: source_file.never_loaded,
+            first_updated_at: format_timestamp(source_file.first_updated_at),
+            last_updated_at: format_timestamp(source_file.last_updated_at),
             runtime_percentage: result.runtime_relevant_coverage(source_file),
             lines_of_code: source_file.lines.count,
             lines_covered: source_file.covered_lines.count,

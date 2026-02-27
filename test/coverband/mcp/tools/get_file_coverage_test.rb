@@ -44,6 +44,8 @@ if defined?(Coverband::MCP)
         "lines_missed" => 15,
         "runtime_percentage" => 90.0,
         "never_loaded" => false,
+        "first_updated_at" => "2024-01-15T10:30:00Z",
+        "last_updated_at" => "2024-02-20T14:22:00Z",
         "coverage" => [1, 1, 0, 1, 1, nil, 1]
       }
 
@@ -72,6 +74,48 @@ if defined?(Coverband::MCP)
       assert_equal 85.0, result[full_path]["covered_percent"]
       assert_equal 100, result[full_path]["lines_of_code"]
       assert_equal [1, 1, 0, 1, 1, nil, 1], result[full_path]["coverage"]
+      assert_equal "2024-01-15T10:30:00Z", result[full_path]["first_updated_at"]
+      assert_equal "2024-02-20T14:22:00Z", result[full_path]["last_updated_at"]
+    end
+
+    test "call returns nil timestamps when not available" do
+      filename = "app/models/user.rb"
+      full_path = "/app/app/models/user.rb"
+
+      mock_file_data = {
+        "filename" => full_path,
+        "covered_percent" => 85.0,
+        "lines_of_code" => 100,
+        "lines_covered" => 85,
+        "lines_missed" => 15,
+        "runtime_percentage" => 90.0,
+        "never_loaded" => false,
+        "first_updated_at" => nil,
+        "last_updated_at" => nil,
+        "coverage" => [1, 1, 0, 1, 1, nil, 1]
+      }
+
+      mock_data = {
+        "files" => {
+          full_path => mock_file_data
+        }
+      }
+
+      report_mock = mock("json_report")
+      report_mock.expects(:report).returns(mock_data.to_json)
+      Coverband::Reporters::JSONReport.expects(:new).with(
+        Coverband.configuration.store,
+        {filename: filename, line_coverage: true}
+      ).returns(report_mock)
+
+      response = Coverband::MCP::Tools::GetFileCoverage.call(
+        filename: filename,
+        server_context: {}
+      )
+
+      result = JSON.parse(response.content.first[:text])
+      assert_nil result[full_path]["first_updated_at"]
+      assert_nil result[full_path]["last_updated_at"]
     end
 
     test "call returns message when no files found" do
