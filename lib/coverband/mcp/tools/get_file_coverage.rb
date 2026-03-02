@@ -52,6 +52,8 @@ module Coverband
               lines_missed: file_data["lines_missed"],
               runtime_percentage: file_data["runtime_percentage"],
               never_loaded: file_data["never_loaded"],
+              first_updated_at: file_data["first_updated_at"],
+              last_updated_at: file_data["last_updated_at"],
               coverage: file_data["coverage"]
             }
           end
