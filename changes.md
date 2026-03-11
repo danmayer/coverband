@@ -1,3 +1,17 @@
+### 6.1.8
+
+* Feature: Added temporal data to GetFileCoverage tool for MCP by @fabienpiette (#626)
+* Optimization: Significant performance improvements to `FileList` avoiding array allocations and reducing redundant iterations (#619, #620, #622, #623)
+* Optimization: Optimize `HTMLFormatter` with template caching (#616, #618)
+* Optimization: Optimize memory usage by removing redundant `dup` calls across `Coverband::Utils::Result` (#617, #621)
+* Optimization: Optimize `array_add` logic with in-place modification avoiding overhead in newer Ruby (#615)
+* Optimization: Optimize `ViewTracker` unused keys and path normalization (#608, #609, #613)
+* Optimization: Optimize `AbstractTracker` to use bulk Redis hset and direct Hash lookups (#610, #612)
+* Optimization: Cache Regexp in `short_name` and optimize `RelativeFileConverter` with `Regexp.union` (#606, #607)
+* Optimization: Optimize delta collector ignore check order (#611)
+* Refactoring: Extract Line class to `Coverband::Utils::SourceFile::Line` (#605, #614)
+* Fix: Improve symlink handling in file converters (#603)
+
 ### Coverband 6.1.7
 
 * add back a running demo site
