@@ -420,10 +420,13 @@ On a shared redis, these policies might be a problem: ....
 
 QUESTION: are either of the above true? 😅 https://github.com/danmayer/coverband/issues/595
 
-### Performance Checklist
-* enabled oneshot
-* enable Redis Hash Store
-
+### Ruby Overhead Reduction Checklist
+* Enabled oneshot
+* Enable Redis Hash Store
+* Only enable coverband on some server instances. This will mean requests that are routed to the servers running coverband are a bit slower, but will gather the coverage information.
+  This is likely only a good idea if your load balancing algorithm is something like Least Outstanding Requests, and _not_ round robin or random.
+  Do not attempt to enabled on all servers but then only report on a subset of requests,
+  this still needs coverband to load the module for code tracking, which in itself has a performance impact.
 
 # Newer Features
 
