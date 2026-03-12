@@ -1,9 +1,9 @@
-<img src="https://raw.github.com/danmayer/coverband/master/docs/assets/logo/heads.svg?sanitize=true" width='300'>
+<img src="https://raw.github.com/danmayer/coverband/main/docs/assets/logo/heads.svg?sanitize=true" width='300'>
 
 # Coverband
 
 [![GithubCI](https://github.com/danmayer/coverband/workflows/CI/badge.svg)](https://github.com/danmayer/coverband/actions)
-[![Coverage Status](https://coveralls.io/repos/github/danmayer/coverband/badge.svg?branch=master)](https://coveralls.io/github/danmayer/coverband?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/danmayer/coverband/badge.svg?branch=main)](https://coveralls.io/github/danmayer/coverband?branch=main)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1e6682f9540d75f26da7/maintainability)](https://codeclimate.com/github/danmayer/coverband/maintainability)
 [![Discord Shield](https://img.shields.io/discord/609509533999562753)](https://discord.gg/KAH38EV)
 
@@ -57,7 +57,7 @@ gem 'coverband'
 
 With older versions of Coverband, projects would report to redis using rack or sidekiq middleware. After Coverband 4.0, this should no longer be required and could cause performance issues. Reporting to redis is now automatically done within a background thread with no custom code needed.
 
-See [changelog](https://github.com/danmayer/coverband/blob/master/changes.md).
+See [changelog](https://github.com/danmayer/coverband/blob/main/changes.md).
 
 ## Rails
 
@@ -77,7 +77,7 @@ run ActionController::Dispatcher.new
 
 ## Coverband Web UI
 
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_web_ui.png)
+![image](https://raw.github.com/danmayer/coverband/main/docs/coverband_web_ui.png)
 
 > You can check it out locally by running the [Coverband Demo App](https://github.com/danmayer/coverband_rails_example).
 
@@ -208,7 +208,7 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 
 If you need to configure Coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
 
-- See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/master/lib/coverband/configuration.rb) for all options
+- See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/main/lib/coverband/configuration.rb) for all options
 - By default Coverband will try to store data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
 
 Below is an example config file for a Rails 5 app:
@@ -269,7 +269,7 @@ This feature is enabled by default. To stop this feature, disable the feature in
 
 `config.track_views = false`
 
-![image](https://raw.github.com/danmayer/coverband/master/docs/coverband_view_tracker.png)
+![image](https://raw.github.com/danmayer/coverband/main/docs/coverband_view_tracker.png)
 
 ### Hiding settings
 
@@ -564,7 +564,7 @@ For Rails, we will follow the policy of the [Rails team maintenance policy](http
 
 ### JRuby Support
 
-Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby master](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
+Coverband is compatible with JRuby. If you want to run on JRuby note that I haven't benchmarked and I believe the perf impact on older versions of JRuby could be significant. Improved Coverage support is in [JRuby main](https://github.com/jruby/jruby/pull/6180), and will be in the next release.
 
 - older versions of JRuby need tracing enabled to work (and this could cause bad performance)
   - run Jruby with the `--debug` option
