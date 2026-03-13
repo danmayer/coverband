@@ -331,7 +331,15 @@ config.send_deferred_eager_loading_data = ENV.fetch('ENABLE_EAGER_LOADING_COVERA
    1. is defer_eager_loading_data = true necessary in order to use send_deferred_eager_loading_data?
    2. (maybe sort of same question as above) is defer_eager_loading_data = true + config.send_deferred_eager_loading_data=true a valid combo? what does it do, defer sending until after loading?
 
+### Oneshot mode
 
+Enabling [oneshot mode](https://docs.ruby-lang.org/en/master/Coverage.html#module-coverage-oneshot-lines-coverage)
+reduces the ruby CPU overhead. The tradeoff is that you no longer get frequency data,
+you only will know if the line was or was not executed.
+
+```ruby
+config.use_oneshot_lines_coverage = true
+```
 
 ### Redis Hash Store
 
