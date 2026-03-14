@@ -312,6 +312,10 @@ Add a wiggle (in seconds) to the background thread to avoid all your servers rep
 
 `config.reporting_wiggle = 30`
 
+-> QUESTION: my uneducated guess is is the 30 second wiggle is quite good - will some people benefit from a bigger wiggle? how big? what's the drawback, delayed data?
+             i wonder if the above docs were added when the wiggle feature was added, and in reality 30 seconds is going to be great for almost everyone. maybe these docs can be moved to comments on configuration.rb
+             also, maybe background reporting should get its own section, where wiggle and background_reporting_sleep_seconds are both covered, and background_reporting_sleep_seconds should be removed from the Redis Hash Store section
+
 Another way to avoid cache stampede is to omit some reporting on starting servers. Coverband stores the results of eager_loading to Redis at server startup. The eager_loading results are the same for all servers, so there is no need to save all results. By configuring the eager_loading results of some servers to be stored in Redis, we can reduce the load on Redis during deployment.
 
 ```ruby
@@ -323,11 +327,25 @@ config.send_deferred_eager_loading_data = rand(100) < 5
 config.send_deferred_eager_loading_data = ENV.fetch('ENABLE_EAGER_LOADING_COVERAGE', false)
 ```
 
+-> QUESTION:
+   1. is defer_eager_loading_data = true necessary in order to use send_deferred_eager_loading_data?
+   2. (maybe sort of same question as above) is defer_eager_loading_data = true + config.send_deferred_eager_loading_data=true a valid combo? what does it do, defer sending until after loading?
+
+### Oneshot mode
+
+Enabling [oneshot mode](https://docs.ruby-lang.org/en/master/Coverage.html#module-coverage-oneshot-lines-coverage)
+reduces the ruby CPU overhead. The tradeoff is that you no longer get frequency data,
+you only will know if the line was or was not executed.
+
+```ruby
+config.use_oneshot_lines_coverage = true
+```
+
 ### Redis Hash Store
 
 Coverband on very high volume sites with many server processes reporting can have a race condition which can cause hit counts to be inaccurate. To resolve the race condition and reduce Ruby memory overhead we have introduced a new Redis storage option. This moves the some of the work from the Ruby processes to Redis. It is worth noting because of this, it has larger demands on the Redis server. So adjust your Redis instance accordingly. To help reduce the extra redis load you can also change the background reporting frequency.
 
-- Use a dedicated Coverband redis instance: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
+- To use Redis Hash Store: `config.store = Coverband::Adapters::HashRedisStore.new(Redis.new(url: redis_url))`
 - Adjust from default 30s reporting `config.background_reporting_sleep_seconds = 120`
 
 See more discussion [here](https://github.com/danmayer/coverband/issues/384).
@@ -400,9 +418,23 @@ gem 'coverband', require: ['alternative_coverband_patch']
 
 This conflict happens when a ruby method is patched twice, once using module prepend, and once using method aliasing. See this ruby issue for details. The fix is to apply all patches the same way. By default, Coverband will apply its patch using prepend, but you can change that to method aliasing by adding require: ['alternative_coverband_patch'] to the gem line as shown above.
 
-### Redis Sizing Info
+### Redis Sizing & Configuration Info
 
 A few folks have asked about what size of Redis is needed to run Coverband. I have some of our largest services with hundreds of servers on cache.m3.medium with plenty of room to spare. I run most apps on the smallest AWS Redis instances available and bump up only if needed or if I am forced to be on a shared Redis instance, which I try to avoid. On Heroku, I have used it with most of the 3rd party and also been fine on the smallest Redis instances, if you have hundreds of dynos you would likely need to scale up. Also note there is a tradeoff one can make, `Coverband::Adapters::HashRedisStore` will use LUA on Redis and increase the Redis load, while being nicer to your app servers and avoid potential lost data during race conditions. While the `Coverband::Adapters::RedisStore` uses in app memory and merging and has lower load on Redis.
+
+A good choice for maxmemory-policy for a dedicated coverband redis is `allkeys-lfu`.
+
+On a shared redis, these policies might be a problem: ....
+
+QUESTION: are either of the above true? 😅 https://github.com/danmayer/coverband/issues/595
+
+### Ruby Overhead Reduction Checklist
+* Enabled oneshot
+* Enable Redis Hash Store
+* Only enable coverband on some server instances. This will mean requests that are routed to the servers running coverband are a bit slower, but will gather the coverage information.
+  This is likely only a good idea if your load balancing algorithm is something like Least Outstanding Requests, and _not_ round robin or random.
+  Do not attempt to enabled on all servers but then only report on a subset of requests,
+  this still needs coverband to load the module for code tracking, which in itself has a performance impact.
 
 # Newer Features
 
