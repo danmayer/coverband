@@ -48,6 +48,26 @@ if defined?(RubyVM::AbstractSyntaxTree)
           assert_equal(6, dead_method.last_line_number)
         end
 
+        def test_scan_all_skips_missing_files
+          missing_file = "./test/fixtures/missing_file.rb"
+          existing_file = "./test/dog.rb"
+          coverage_report = {
+            Coverband::MERGED_TYPE => {
+              missing_file => { "data" => [] },
+              existing_file => { "data" => [] }
+            }
+          }
+          dead_method = Object.new
+
+          Coverband.configuration.stubs(:store).returns(
+            stub(get_coverage_report: coverage_report)
+          )
+          DeadMethods.expects(:scan).with(file_path: existing_file, coverage: []).returns([dead_method])
+          DeadMethods.expects(:scan).with(file_path: missing_file, coverage: []).never
+
+          assert_equal [dead_method], DeadMethods.scan_all
+        end
+
         def test_output_all
           require_unique_file
           @coverband.report_coverage

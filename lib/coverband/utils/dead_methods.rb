@@ -43,7 +43,11 @@ module Coverband
         # and runtime phases.
         coverage = Coverband.configuration.store.get_coverage_report[Coverband::MERGED_TYPE]
         coverage.flat_map do |file_path, coverage|
+          next [] unless File.exist?(file_path)
+
           scan(file_path: file_path, coverage: coverage["data"])
+        rescue Errno::ENOENT
+          []
         end
       end
 
