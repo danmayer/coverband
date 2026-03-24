@@ -10,6 +10,16 @@ end
 
 if defined?(Coverband::MCP)
   class GetDeadMethodsTest < Minitest::Test
+    def build_dead_method(file_path:, class_name:, method_name:, line_number:)
+      Coverband::Utils::MethodDefinitionScanner::MethodDefinition.new(
+        first_line_number: line_number,
+        last_line_number: line_number,
+        name: method_name,
+        class_name: class_name,
+        file_path: file_path
+      )
+    end
+
     def setup
       super
       Coverband.configure do |config|
@@ -35,24 +45,24 @@ if defined?(Coverband::MCP)
     if defined?(RubyVM::AbstractSyntaxTree)
       test "call returns dead methods when AST support available" do
         mock_dead_methods = [
-          {
+          build_dead_method(
             file_path: "/app/models/user.rb",
             class_name: "User",
             method_name: "unused_method",
             line_number: 10
-          },
-          {
+          ),
+          build_dead_method(
             file_path: "/app/models/user.rb",
             class_name: "User",
             method_name: "another_unused",
             line_number: 15
-          },
-          {
+          ),
+          build_dead_method(
             file_path: "/app/models/order.rb",
             class_name: "Order",
             method_name: "dead_method",
             line_number: 20
-          }
+          )
         ]
 
         Coverband::Utils::DeadMethods.expects(:scan_all).returns(mock_dead_methods)
@@ -83,18 +93,18 @@ if defined?(Coverband::MCP)
 
       test "call filters by file_pattern when provided" do
         mock_dead_methods = [
-          {
+          build_dead_method(
             file_path: "/app/models/user.rb",
             class_name: "User",
             method_name: "unused_method",
             line_number: 10
-          },
-          {
+          ),
+          build_dead_method(
             file_path: "/app/helpers/user_helper.rb",
             class_name: "UserHelper",
             method_name: "dead_helper",
             line_number: 5
-          }
+          )
         ]
 
         Coverband::Utils::DeadMethods.expects(:scan_all).returns(mock_dead_methods)
