@@ -81,6 +81,8 @@ run ActionController::Dispatcher.new
 
 > You can check it out locally by running the [Coverband Demo App](https://github.com/danmayer/coverband_rails_example).
 
+- View a shared demo at [https://coverband-rails-example.onrender.com/](https://coverband-rails-example.onrender.com/)
+
 - View overall coverage information
 
 - Drill into individual file coverage
