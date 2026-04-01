@@ -45,6 +45,16 @@ module Coverband
       get "/json?line_coverage=true"
       assert last_response.ok?
     end
+
+    test "renders static files" do
+      get "/application.js"
+      assert last_response.ok?
+    end
+
+    test "renders 404 if static file doesn't exist" do
+      get "/unknown.js"
+      assert last_response.not_found?
+    end
   end
 end
 
