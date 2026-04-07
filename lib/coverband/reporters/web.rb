@@ -32,9 +32,9 @@ module Coverband
 
       def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
-        @static = Rack::Static.new(self,
-          root: File.expand_path("public", full_path),
-          urls: [/.*\.css/, /.*\.js/, /.*\.gif/, /.*\.png/])
+        @file_server = Rack::Files.new(
+          File.expand_path("public", full_path)
+        )
       end
 
       def check_auth
@@ -85,7 +85,7 @@ module Coverband
           else
             case request_path_info
             when /.*\.(css|js|gif|png)/
-              @static.call(env)
+              @file_server.get(env)
             when %r{/settings}
               [200, coverband_headers, [settings]]
             when %r{/view_tracker_data}

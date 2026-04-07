@@ -53,8 +53,8 @@ if defined?(RubyVM::AbstractSyntaxTree)
           existing_file = "./test/dog.rb"
           coverage_report = {
             Coverband::MERGED_TYPE => {
-              missing_file => { "data" => [] },
-              existing_file => { "data" => [] }
+              missing_file => {"data" => []},
+              existing_file => {"data" => []}
             }
           }
           dead_method = Object.new
