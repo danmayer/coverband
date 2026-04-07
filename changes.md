@@ -1,3 +1,10 @@
+### 6.2.0
+
+* Fix: Correct `Rack::Static` URL handling in the web reporter by using an empty string URL prefix; thanks @alpaca-tc (#635)
+* Fix: Skip missing files during dead method scans to avoid errors in dynamic or removed-file environments; thanks @doug-hall (#632)
+* Fix: Improve MCP dead method formatting for clearer tool output; thanks @doug-hall (#633)
+* Docs: README updates (including `master` → `main` wording updates); thanks @jjb (#627)
+
 ### 6.1.8
 
 * Feature: Added temporal data to GetFileCoverage tool for MCP by @fabienpiette (#626)
