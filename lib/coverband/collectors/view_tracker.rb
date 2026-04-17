@@ -126,7 +126,7 @@ module Coverband
 
       def concrete_target
         if defined?(Rails.application)
-          Dir.glob("#{@project_directory}/{,packs,engines/*}/app/{views,components}/**/*.html.{erb,haml,slim}")
+          Dir.glob("#{@project_directory}/{,packs/*,engines/*}/app/{views,components}/**/*.html.{erb,haml,slim}")
         else
           []
         end
