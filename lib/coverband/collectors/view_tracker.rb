@@ -33,6 +33,13 @@ module Coverband
         ActiveSupport::Notifications.subscribe(/render_(template|partial|collection).action_view/) do |name, start, finish, id, payload|
           Coverband.configuration.view_tracker.track_key(payload) unless name.include?("!")
         end
+
+        # ViewComponent >= 4.6.0 emits render.view_component with a view_identifier key
+        # containing the template path. Requires config.view_component.instrumentation_enabled = true
+        # in the host app.
+        ActiveSupport::Notifications.subscribe("render.view_component") do |name, start, finish, id, payload|
+          Coverband.configuration.view_tracker.track_key(identifier: payload[:view_identifier]) unless name.include?("!")
+        end
       end
 
       ###
