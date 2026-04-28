@@ -32,7 +32,9 @@ module Coverband
 
       def init_web
         full_path = Gem::Specification.find_by_name("coverband").full_gem_path
-        @file_server = Rack::Files.new(
+        # Rack::Files was introduced in Rack 2.0; Rack 1.x uses Rack::File
+        rack_file_server = defined?(Rack::Files) ? Rack::Files : Rack::File
+        @file_server = rack_file_server.new(
           File.expand_path("public", full_path)
         )
       end
