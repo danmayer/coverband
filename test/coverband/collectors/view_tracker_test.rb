@@ -141,6 +141,20 @@ class ViewTrackerTest < Minitest::Test
     assert_equal [], tracker.logged_keys
   end
 
+  test "no-op tracker operations with non-redis stores" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = Coverband::Adapters::NullStore.new
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
+
+    tracker.track_key(identifier: "file")
+    tracker.save_report
+
+    assert_equal({}, tracker.used_keys)
+    assert_equal "N/A", tracker.tracking_since
+    assert_nil tracker.reset_recordings
+    assert_nil tracker.clear_key!("file")
+  end
+
   protected
 
   def fake_store

@@ -53,6 +53,8 @@ module Coverband
       end
 
       def used_keys
+        return {} unless redis_store
+
         redis_store.hgetall(tracker_key)
       end
 
@@ -74,6 +76,8 @@ module Coverband
       end
 
       def tracking_since
+        return "N/A" unless redis_store
+
         if (tracking_time = redis_store.get(tracker_time_key))
           Time.at(tracking_time.to_i).iso8601
         else
@@ -82,18 +86,24 @@ module Coverband
       end
 
       def reset_recordings
+        return unless redis_store
+
         redis_store.del(tracker_key)
         redis_store.del(tracker_time_key)
       end
 
       def clear_key!(key)
         return unless key
+        return unless redis_store
+
         puts "#{tracker_key} key #{key}"
         redis_store.hdel(tracker_key, key)
         @logged_keys.delete(key)
       end
 
       def save_report
+        return unless redis_store
+
         redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
         @one_time_timestamp = true
         reported_time = Time.now.to_i
@@ -138,10 +148,16 @@ module Coverband
       end
 
       def redis_store
-        store.raw_store
+        @redis_store ||= begin
+          store.raw_store
+        rescue NotImplementedError
+          nil
+        end
       end
 
       def tracker_time_key_exists?
+        return false unless redis_store
+
         if defined?(redis_store.exists?)
           redis_store.exists?(tracker_time_key)
         else
