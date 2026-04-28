@@ -2,7 +2,7 @@
 
 module Coverband
   module MCP
-    # Rack middleware that adds MCP HTTP endpoint support.
+    # Rack middleware that adds MCP HTTP endpoint support using StreamableHTTPTransport.
     # Can be used to wrap the existing Coverband::Reporters::Web app
     # or mounted standalone.
     #
@@ -10,7 +10,7 @@ module Coverband
     #   map "/coverage" do
     #     run Coverband::MCP::HttpHandler.new(Coverband::Reporters::Web.new)
     #   end
-    #   # MCP endpoint available at POST /coverage/mcp
+    #   # MCP endpoint available at /coverage/mcp with full Streamable HTTP transport support
     #
     # Usage standalone:
     #   map "/mcp" do
@@ -23,6 +23,7 @@ module Coverband
       def initialize(app = nil)
         @app = app
         @server = nil
+        @transport = nil
       end
 
       def call(env)
@@ -40,17 +41,22 @@ module Coverband
       private
 
       def mcp_request?(request)
-        request.post? && request.path_info.end_with?(MCP_PATH)
+        # Accept GET, POST, DELETE, OPTIONS for StreamableHTTPTransport protocol
+        %w[GET POST DELETE OPTIONS].include?(request.request_method) &&
+          request.path_info.end_with?(MCP_PATH)
       end
 
       def handle_mcp_request(request)
+        # Handle CORS preflight
+        return cors_preflight_response if request.request_method == "OPTIONS"
+
         # Check authentication if MCP password is configured
         unless authenticate_mcp_request(request)
           return [401, {
             "Content-Type" => "application/json",
             "Access-Control-Allow-Origin" => "*",
-            "Access-Control-Allow-Methods" => "POST, OPTIONS",
-            "Access-Control-Allow-Headers" => "Content-Type, Authorization",
+            "Access-Control-Allow-Methods" => "GET, POST, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers" => "Content-Type, Authorization, Accept, Mcp-Session-Id",
             "WWW-Authenticate" => 'Bearer realm="Coverband MCP"'
           }, [JSON.generate({
             "error" => "Authentication required",
@@ -58,27 +64,19 @@ module Coverband
           })]]
         end
 
-        body = request.body.read
-        json_request = JSON.parse(body)
-        response = mcp_server.handle_json(json_request)
-
-        # response might already be a JSON string, so check before converting
-        response_body = response.is_a?(String) ? response : response.to_json
-
-        [
-          200,
-          {
-            "content-type" => "application/json",
-            "access-control-allow-origin" => "*",
-            "access-control-allow-methods" => "POST, OPTIONS",
-            "access-control-allow-headers" => "Content-Type"
-          },
-          [response_body]
-        ]
-      rescue JSON::ParserError => e
-        error_response(400, "Invalid JSON: #{e.message}")
+        # Delegate to StreamableHTTPTransport which handles the full MCP HTTP protocol
+        # (GET for SSE streams, POST for requests/responses, DELETE for cleanup, etc.)
+        transport.handle_request(request)
       rescue => e
         error_response(500, "Server error: #{e.message}")
+      end
+
+      def cors_preflight_response
+        [204, {
+          "Access-Control-Allow-Origin" => "*",
+          "Access-Control-Allow-Methods" => "GET, POST, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers" => "Content-Type, Authorization, Accept, Mcp-Session-Id"
+        }, []]
       end
 
       def authenticate_mcp_request(request)
@@ -98,8 +96,11 @@ module Coverband
         token == mcp_password
       end
 
-      def mcp_server
-        @server ||= Server.new
+      def transport
+        @transport ||= begin
+          server = ::Coverband::MCP::Server.new
+          ::MCP::Server::Transports::StreamableHTTPTransport.new(server.mcp_server)
+        end
       end
 
       def error_response(status, message)

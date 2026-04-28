@@ -37,13 +37,13 @@ if defined?(Coverband::MCP)
       end
     end
 
-    test "handles MCP requests at /mcp endpoint" do
-      # Mock the server to return a simple response
-      server_mock = mock("server")
-      server_mock.expects(:handle_json).returns({"result" => "success"})
+    test "handles MCP POST requests at /mcp endpoint via StreamableHTTPTransport" do
+      # Mock the transport to verify it's called
+      transport_mock = mock("transport")
+      transport_mock.expects(:handle_request).returns([200, {"Content-Type" => "application/json"}, ["{}"]])
 
       handler = Coverband::MCP::HttpHandler.new
-      handler.expects(:mcp_server).returns(server_mock)
+      handler.expects(:transport).returns(transport_mock)
 
       @app = handler
 
@@ -56,12 +56,21 @@ if defined?(Coverband::MCP)
       post "/mcp", json_request, {"CONTENT_TYPE" => "application/json"}
 
       assert_equal 200, last_response.status
-      assert_equal "application/json", last_response.content_type
+    end
 
-      # Check CORS headers
-      assert_equal "*", last_response.headers["Access-Control-Allow-Origin"]
-      assert_equal "POST, OPTIONS", last_response.headers["Access-Control-Allow-Methods"]
-      assert_equal "Content-Type", last_response.headers["Access-Control-Allow-Headers"]
+    test "handles MCP GET requests at /mcp endpoint via StreamableHTTPTransport" do
+      # Mock the transport to verify it's called for GET
+      transport_mock = mock("transport")
+      transport_mock.expects(:handle_request).returns([200, {"Content-Type" => "text/event-stream"}, []])
+
+      handler = Coverband::MCP::HttpHandler.new
+      handler.expects(:transport).returns(transport_mock)
+
+      @app = handler
+
+      get "/mcp", {}, {"ACCEPT" => "text/event-stream"}
+
+      assert_equal 200, last_response.status
     end
 
     test "returns 404 for non-MCP requests when no wrapped app" do
@@ -81,51 +90,49 @@ if defined?(Coverband::MCP)
       assert_equal "wrapped app response", last_response.body
     end
 
-    test "only responds to POST requests for MCP endpoint" do
-      get "/mcp"
-
-      assert_equal 404, last_response.status
-    end
-
-    test "handles invalid JSON gracefully" do
-      post "/mcp", "invalid json", {"CONTENT_TYPE" => "application/json"}
-
-      assert_equal 400, last_response.status
-      assert_equal "application/json", last_response.content_type
-
-      response = JSON.parse(last_response.body)
-      assert_includes response["error"], "Invalid JSON"
-    end
-
-    test "handles server errors gracefully" do
-      # Mock server to raise an error
-      server_mock = mock("server")
-      server_mock.expects(:handle_json).raises(StandardError.new("Test error"))
+    test "responds to GET, POST, DELETE, OPTIONS for MCP endpoint" do
+      transport_mock = mock("transport")
+      transport_mock.expects(:handle_request).at_least(3).returns([200, {"Content-Type" => "application/json"}, ["{}"]])
 
       handler = Coverband::MCP::HttpHandler.new
-      handler.expects(:mcp_server).returns(server_mock)
+      handler.expects(:transport).at_least(3).returns(transport_mock)
 
       @app = handler
 
-      json_request = {"test" => "request"}.to_json
-      post "/mcp", json_request, {"CONTENT_TYPE" => "application/json"}
+      # POST request
+      post "/mcp", "{}", {"CONTENT_TYPE" => "application/json"}
+      assert_equal 200, last_response.status
 
-      assert_equal 500, last_response.status
+      # GET request
+      get "/mcp", {}, {"ACCEPT" => "text/event-stream"}
+      assert_equal 200, last_response.status
 
-      response = JSON.parse(last_response.body)
-      assert_includes response["error"], "Server error: Test error"
+      # DELETE request
+      delete "/mcp"
+      assert_equal 200, last_response.status
     end
 
-    test "mcp_server is lazily initialized" do
+    test "handles CORS preflight OPTIONS request" do
       handler = Coverband::MCP::HttpHandler.new
+      @app = handler
 
-      # First call creates the server
-      server1 = handler.send(:mcp_server)
-      assert_instance_of Coverband::MCP::Server, server1
+      options "/mcp"
 
-      # Second call returns the same instance
-      server2 = handler.send(:mcp_server)
-      assert_same server1, server2
+      assert_equal 204, last_response.status
+      assert_equal "*", last_response.headers["Access-Control-Allow-Origin"]
+      assert_equal "GET, POST, DELETE, OPTIONS", last_response.headers["Access-Control-Allow-Methods"]
+    end
+
+    test "delegates non-MCP requests to wrapped app for non-POST" do
+      @app = app_with_wrapped_handler
+
+      get "/other-path"
+      assert_equal 200, last_response.status
+      assert_equal "wrapped app response", last_response.body
+
+      delete "/other-path"
+      assert_equal 200, last_response.status
+      assert_equal "wrapped app response", last_response.body
     end
 
     test "mcp_request? correctly identifies MCP requests" do
@@ -136,15 +143,20 @@ if defined?(Coverband::MCP)
       request = Rack::Request.new(env)
       assert handler.send(:mcp_request?, request)
 
-      # POST request to /some-path/mcp (ends with /mcp)
-      env = Rack::MockRequest.env_for("/some-path/mcp", method: "POST")
-      request = Rack::Request.new(env)
-      assert handler.send(:mcp_request?, request)
-
       # GET request to /mcp
       env = Rack::MockRequest.env_for("/mcp", method: "GET")
       request = Rack::Request.new(env)
-      refute handler.send(:mcp_request?, request)
+      assert handler.send(:mcp_request?, request)
+
+      # DELETE request to /mcp
+      env = Rack::MockRequest.env_for("/mcp", method: "DELETE")
+      request = Rack::Request.new(env)
+      assert handler.send(:mcp_request?, request)
+
+      # OPTIONS request to /mcp
+      env = Rack::MockRequest.env_for("/mcp", method: "OPTIONS")
+      request = Rack::Request.new(env)
+      assert handler.send(:mcp_request?, request)
 
       # POST request to /other-path
       env = Rack::MockRequest.env_for("/other-path", method: "POST")

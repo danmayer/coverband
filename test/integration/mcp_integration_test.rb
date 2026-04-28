@@ -84,9 +84,9 @@ if defined?(Coverband::MCP)
     test "HTTP handler integrates with MCP server" do
       handler = Coverband::MCP::HttpHandler.new
 
-      # Verify handler can create and use MCP server
-      server = handler.send(:mcp_server)
-      assert_instance_of Coverband::MCP::Server, server
+      # Verify handler can create and use transport with MCP server
+      transport = handler.send(:transport)
+      assert_instance_of ::MCP::Server::Transports::StreamableHTTPTransport, transport
 
       # Verify handler responds to rack interface
       assert_respond_to handler, :call
