@@ -271,6 +271,20 @@ This feature is enabled by default. To stop this feature, disable the feature in
 
 `config.track_views = false`
 
+#### ViewComponent Support
+
+Coverband can also track [ViewComponent](https://viewcomponent.org/) renders. This requires:
+
+- ViewComponent **>= 4.6.0**
+- Instrumentation enabled in your app config:
+
+```ruby
+# config/application.rb (or environment-specific config)
+config.view_component.instrumentation_enabled = true
+```
+
+When enabled, Coverband subscribes to the `render.view_component` notification and tracks which component templates are rendered, just like standard Rails views.
+
 ![image](https://raw.github.com/danmayer/coverband/main/docs/coverband_view_tracker.png)
 
 ### Hiding settings

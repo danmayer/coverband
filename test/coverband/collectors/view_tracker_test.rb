@@ -107,6 +107,19 @@ class ViewTrackerTest < Minitest::Test
     assert_equal [], tracker.used_keys.keys
   end
 
+  test "track view_component renders via railtie" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/app/components/example_component.html.erb"
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
+    Coverband.configuration.expects(:view_tracker).returns(tracker).at_least_once
+    tracker.railtie!
+
+    ActiveSupport::Notifications.instrument("render.view_component", view_identifier: file_path)
+
+    assert_includes tracker.logged_keys, file_path
+  end
+
   test "reset store" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
