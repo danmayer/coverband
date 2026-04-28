@@ -128,8 +128,26 @@ namespace :coverband do
 
   desc "Start MCP server for AI assistant integration (set COVERBAND_MCP_HTTP=true for HTTP mode)"
   task :mcp do
+    # In stdio mode, we must suppress all non-JSON-RPC output to stdout to comply with
+    # the MCP stdio transport spec. Otherwise, Rails logger and gem output will pollute
+    # the JSON-RPC stream and break clients like Claude Desktop.
+    # See https://github.com/danmayer/coverband/issues/625
+    use_stdio_mode = !ENV["COVERBAND_MCP_HTTP"]
+
+    original_stdout = nil
+    if use_stdio_mode
+      # Save original stdout and redirect stdout to stderr temporarily
+      original_stdout = $stdout
+      $stdout = $stderr
+    end
+
     if Rake::Task.task_defined?("environment")
       Rake.application["environment"].invoke
+    end
+
+    if use_stdio_mode
+      # Restore stdout for JSON-RPC communication over stdio
+      $stdout = original_stdout
     end
 
     begin
