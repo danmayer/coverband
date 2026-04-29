@@ -45,6 +45,28 @@ Coverband stores coverage data in Redis. The Redis endpoint is looked for in thi
 
 The redis store can also be explicitly defined within the `config/coverband.rb`. See [advanced config](#advanced-config).
 
+### Redis with TLS
+
+For Redis servers that require TLS (such as AWS serverless ElastiCache), use the `rediss://` URL scheme instead of `redis://`. The Redis gem automatically enables TLS when it detects this scheme:
+
+```bash
+# Example with AWS serverless ElastiCache
+REDIS_URL=rediss://my-elasticache.abcdef.cache.amazonaws.com:6379
+```
+
+Or in `config/coverband.rb`:
+
+```ruby
+config.store = Coverband::Adapters::RedisStore.new(
+  Redis.new(url: "rediss://my-elasticache-endpoint:6379")
+)
+```
+
+The `rediss://` scheme works with:
+- AWS ElastiCache (serverless or provisioned with required TLS)
+- Any self-hosted Redis with TLS enabled
+- Other managed Redis services that require TLS
+
 ## Gem Installation
 
 Add this line to your application's `Gemfile`, remember to `bundle install` after updating:
