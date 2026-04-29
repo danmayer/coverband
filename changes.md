@@ -1,3 +1,13 @@
+### 6.2.1
+
+* Fix: Search now includes full filenames hidden by truncation in the web UI; users can search for complete file paths even when displaying truncated versions (#569)
+* Feature: Added support for TLS Redis connections via `rediss://` URL scheme for use with serverless ElastiCache and other TLS-required Redis services (#580)
+* Fix: MCP HTTP handler now properly uses `StreamableHTTPTransport` for full HTTP protocol support including GET, DELETE, and OPTIONS methods (#604)
+* Fix: Suppressed Rails logger stdout pollution in stdio MCP mode to ensure clean JSON-RPC stream for Claude Desktop and other AI clients (#625)
+* Fix: Tracker persistence now gracefully handles non-Redis stores (FileStore, NullStore) without raising errors at process exit (#637)
+* Fix: Resolved Rack 1.6 compatibility issue in web reporter by detecting `Rack::Files` vs `Rack::File` class (#639)
+* Docs: Added TLS Redis setup documentation to README for serverless ElastiCache configurations
+
 ### 6.2.0
 
 * Fix: Correct `Rack::Static` URL handling in the web reporter by using an empty string URL prefix; thanks @alpaca-tc (#635)
