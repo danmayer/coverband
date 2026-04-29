@@ -7,6 +7,7 @@
 # Coverband.configure do |config|
 ####
 # set a redis URL and set it with with some reasonable timeouts
+# For TLS connections (e.g. AWS serverless ElastiCache), use rediss:// scheme
 ####
 # redis_url = ENV["COVERBAND_REDIS"] || ENV["REDIS_URL"] || "redis://localhost:6379"
 # config.store = Coverband::Adapters::RedisStore.new(
@@ -18,6 +19,9 @@
 #     reconnect_delay_max: ENV.fetch("REDIS_RECONNECT_DELAY_MAX", 2.5)
 #   )
 # )
+#
+# Example with TLS (rediss:// scheme automatically enables TLS):
+# redis_url = "rediss://my-elasticache.abcdef.cache.amazonaws.com:6379"
 
 # Allow folks to reset the coverband data via the web UI
 # config.web_enable_clear = true

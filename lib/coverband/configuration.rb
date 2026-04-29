@@ -213,6 +213,9 @@ module Coverband
         Coverband::Adapters::WebServiceStore.new(service_url)
       else
         begin
+          # Redis gem automatically enables TLS when the scheme is 'rediss://'
+          # For serverless ElastiCache or other TLS-required Redis instances, use:
+          #   REDIS_URL=rediss://your-endpoint:6379
           Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
         rescue Redis::CannotConnectError => error
           logger.info "Redis is not available (#{error}), defaulting to NullStore"

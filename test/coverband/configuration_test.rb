@@ -112,4 +112,16 @@ class BaseTest < Minitest::Test
       config.redis_url = "redis://localhost:3333"
     end
   end
+
+  test "redis_url with rediss:// scheme for TLS support" do
+    Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.configuration.reset
+    # Verify that rediss:// URLs (TLS) can be configured
+    # The Redis gem will automatically enable TLS when it sees the rediss:// scheme
+    Coverband.configure do |config|
+      config.redis_url = "rediss://my-elasticache.example.com:6379"
+    end
+
+    assert_equal "rediss://my-elasticache.example.com:6379", Coverband.configuration.redis_url
+  end
 end
