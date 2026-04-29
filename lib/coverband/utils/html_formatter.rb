@@ -180,7 +180,10 @@ module Coverband
 
       def link_to_source_file(source_file)
         data_loader_url = "#{base_path}load_file_details?filename=#{source_file.filename}"
-        %(<a href="##{id source_file}" class="src_link" title="#{shortened_filename source_file}" data-loader-url="#{data_loader_url}" onclick="src_link_click(this)">#{truncate(shortened_filename(source_file))}</a>)
+        full_filename = shortened_filename(source_file)
+        truncated_filename = truncate(full_filename)
+        # Include full filename in a hidden span so DataTables search can find it even when truncated
+        %(<a href="##{id source_file}" class="src_link" title="#{full_filename}" data-loader-url="#{data_loader_url}" onclick="src_link_click(this)">#{truncated_filename}<span style="display:none;">#{full_filename}</span></a>)
       end
 
       def truncate(text, length: 50)
