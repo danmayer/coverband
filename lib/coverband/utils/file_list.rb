@@ -11,6 +11,7 @@ module Coverband
   module Utils
     class FileList < Array
       # Returns the count of lines that have coverage
+      # Using sum avoids intermediate array allocation compared to map.inject
       def covered_lines
         return 0.0 if empty?
 
