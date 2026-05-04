@@ -92,6 +92,23 @@ class CollectorsDeltaTest < Minitest::Test
     assert_equal({"car.rb" => [nil, 0, 2, 0]}, results)
   end
 
+  test "Coverage with oneshot_lines payload works when coverband oneshot mode is disabled" do
+    current_coverage = {
+      "car.rb" => {oneshot_lines: [2, 3]}
+    }
+    ::Coverage.expects(:line_stub).with("car.rb").returns([nil, 0, 0, 0, nil])
+    ::Coverage.expects(:peek_result).returns(current_coverage)
+    results = Coverband::Collectors::Delta.results
+    assert_equal({"car.rb" => [nil, 1, 1, 0, nil]}, results)
+
+    current_coverage = {
+      "car.rb" => {oneshot_lines: [2, 3, 4]}
+    }
+    ::Coverage.expects(:peek_result).returns(current_coverage)
+    results = Coverband::Collectors::Delta.results
+    assert_equal({"car.rb" => [nil, 0, 0, 1, nil]}, results)
+  end
+
   test "oneshot coverage calls clear" do
     Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
     current_coverage = {

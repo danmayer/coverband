@@ -59,10 +59,12 @@ module Coverband
 
           # This handles Coverage branch support, setup by default in
           # simplecov 0.18.x
-          arr_line_counts = line_counts.is_a?(Hash) ? line_counts[:lines] : line_counts
+          arr_line_counts = extract_line_counts(file, line_counts)
+          next unless arr_line_counts
+
           new_results[file] = if @@previous_coverage && @@previous_coverage[file]
-            prev_line_counts = @@previous_coverage[file].is_a?(Hash) ? @@previous_coverage[file][:lines] : @@previous_coverage[file]
-            array_diff(arr_line_counts, prev_line_counts)
+            prev_line_counts = extract_line_counts(file, @@previous_coverage[file])
+            prev_line_counts ? array_diff(arr_line_counts, prev_line_counts) : arr_line_counts
           else
             arr_line_counts
           end
@@ -87,11 +89,23 @@ module Coverband
           next unless file.start_with?(@@project_directory) &&
             @@ignore_patterns.none? { |pattern| file.match(pattern) }
 
-          @@stubs[file] ||= ::Coverage.line_stub(file)
-          transformed_line_counts = coverage[:oneshot_lines].each_with_object(@@stubs[file].dup) { |line_number, line_counts|
-            line_counts[line_number - 1] = 1
-          }
+          transformed_line_counts = oneshot_lines_to_line_counts(file, coverage[:oneshot_lines])
           new_results[file] = transformed_line_counts
+        end
+      end
+
+      def extract_line_counts(file, coverage_data)
+        return coverage_data unless coverage_data.is_a?(Hash)
+
+        coverage_data[:lines] || oneshot_lines_to_line_counts(file, coverage_data[:oneshot_lines])
+      end
+
+      def oneshot_lines_to_line_counts(file, oneshot_lines)
+        return nil unless oneshot_lines
+
+        @@stubs[file] ||= ::Coverage.line_stub(file)
+        oneshot_lines.each_with_object(@@stubs[file].dup) do |line_number, line_counts|
+          line_counts[line_number - 1] = 1
         end
       end
     end
