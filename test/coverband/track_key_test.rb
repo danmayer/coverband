@@ -51,6 +51,15 @@ class TrackKeyTest < Minitest::Test
     assert Coverband.track_key(:routes_tracker, "index#show")
   end
 
+  test "track_key with query_burst_tracker" do
+    mock_query_burst_tracker = mock
+    payload = {key: "controller:users#index", queries: 42, sql_time_ms: 155.2}
+    mock_query_burst_tracker.expects(:track_key).with(payload).returns(true)
+    Coverband.configuration.expects(:query_burst_tracker).returns(mock_query_burst_tracker)
+
+    assert Coverband.track_key(:query_burst_tracker, payload)
+  end
+
   test "track_key logs error when tracking fails" do
     mock_logger = mock
     mock_logger.expects(:error).with(regexp_matches(/Failed to track key/))
