@@ -153,10 +153,13 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
+        used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
           notice: notice,
-          base_path: base_path
+          base_path: base_path,
+          used_keys_sort: used_keys_sort,
+          sorted_used_keys: sorted_tracker_used_keys(tracker, used_keys_sort)
         }
         Coverband::Utils::HTMLFormatter.new(nil, options).format_abstract_tracker!
       end
@@ -228,6 +231,27 @@ module Coverband
       end
 
       private
+
+      def tracker_used_keys_sort_mode(tracker)
+        requested_sort = request.params["used_sort"]
+        return requested_sort if %w[alpha last_active].include?(requested_sort)
+
+        views_tracker?(tracker) ? "last_active" : "alpha"
+      end
+
+      def sorted_tracker_used_keys(tracker, used_keys_sort)
+        used_keys = tracker.used_keys
+        sorted_pairs = if used_keys_sort == "last_active"
+          used_keys.sort_by { |_key, time_at| -time_at.to_i }
+        else
+          used_keys.sort_by { |key, _time_at| key.to_s }
+        end
+        sorted_pairs.to_h
+      end
+
+      def views_tracker?(tracker)
+        tracker.route == Coverband::Collectors::ViewTracker::REPORT_ROUTE
+      end
 
       def coverband_headers(content_type: "text/html")
         web_headers = {

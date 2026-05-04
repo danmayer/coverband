@@ -10,6 +10,39 @@ module Coverband
   class WebTest < Minitest::Test
     include Rack::Test::Methods
 
+    class FakeViewsTracker
+      REPORT_ROUTE = "views_tracker"
+      TITLE = "Views"
+
+      attr_reader :used_keys
+
+      def initialize(used_keys:)
+        @used_keys = used_keys
+      end
+
+      def route
+        REPORT_ROUTE
+      end
+
+      def title
+        TITLE
+      end
+
+      def unused_keys
+        []
+      end
+
+      def tracking_since
+        "N/A"
+      end
+
+      def clear_key!(_key)
+      end
+
+      def reset_recordings
+      end
+    end
+
     def app
       Coverband::Reporters::Web.new
     end
@@ -54,6 +87,40 @@ module Coverband
     test "renders 404 if static file doesn't exist" do
       get "/unknown.js"
       assert last_response.not_found?
+    end
+
+    test "views tracker defaults to sorting used keys by last activity" do
+      tracker = FakeViewsTracker.new(
+        used_keys: {
+          "app/views/a_first.html.erb" => "100",
+          "app/views/z_latest.html.erb" => "200"
+        }
+      )
+
+      Coverband.configuration.trackers = [tracker]
+      get "/views_tracker"
+
+      assert last_response.ok?
+      first_index = last_response.body.index("app/views/a_first.html.erb")
+      latest_index = last_response.body.index("app/views/z_latest.html.erb")
+      assert latest_index < first_index
+    end
+
+    test "views tracker supports alpha sort toggle" do
+      tracker = FakeViewsTracker.new(
+        used_keys: {
+          "app/views/z_latest.html.erb" => "200",
+          "app/views/a_first.html.erb" => "100"
+        }
+      )
+
+      Coverband.configuration.trackers = [tracker]
+      get "/views_tracker?used_sort=alpha"
+
+      assert last_response.ok?
+      first_index = last_response.body.index("app/views/a_first.html.erb")
+      latest_index = last_response.body.index("app/views/z_latest.html.erb")
+      assert first_index < latest_index
     end
   end
 end
