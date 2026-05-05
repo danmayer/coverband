@@ -309,6 +309,55 @@ When enabled, Coverband subscribes to the `render.view_component` notification a
 
 ![image](https://raw.github.com/danmayer/coverband/main/docs/coverband_view_tracker.png)
 
+### Query Burst Tracking
+
+Coverband includes an optional Query Burst Tracker to monitor SQL activity per request and per background job in production. It helps identify potential N+1 query issues and bursty database behavior.
+
+Enable it in your Coverband configuration:
+
+```ruby
+Coverband.configure do |config|
+  config.track_query_bursts = true
+
+  # Thresholds used to flag heavy requests/jobs
+  config.query_burst_query_count_threshold = 30
+  config.query_burst_sql_time_threshold_ms = 100.0
+end
+```
+
+When enabled, Coverband records stats by execution context (for example controller/action and ActiveJob class) and exposes them in the Query Burst Tracker tab in the web UI.
+
+#### Threshold Settings
+
+- `query_burst_query_count_threshold`:
+  - Max SQL query count allowed for a single tracked execution (one request or one job run).
+  - If query count is greater than or equal to this value, it is counted as a threshold hit.
+- `query_burst_sql_time_threshold_ms`:
+  - Max total SQL time (in milliseconds) allowed for a single tracked execution.
+  - If SQL time is greater than or equal to this value, it is counted as a threshold hit.
+
+Threshold logic is OR-based: Coverband records a threshold hit if either threshold is exceeded.
+
+#### What You See in the UI
+
+For each tracked key, the Query Burst Tracker reports:
+
+- Requests: Number of tracked executions
+- Total SQL Calls: Sum of all SQL calls across executions
+- Total SQL ms: Sum of SQL time across executions
+- Max SQL Calls: Highest query count seen in one execution
+- Max SQL ms: Highest SQL time seen in one execution
+- Threshold Hits: Number of executions that exceeded either threshold
+
+#### How To Tune Thresholds
+
+- Start with defaults (`30` queries, `100.0` ms SQL time).
+- Lower thresholds to detect smaller regressions sooner.
+- Raise thresholds if you see too much noise from expected heavy endpoints/jobs.
+- Tune by endpoint/job behavior: latency-sensitive paths often need stricter limits than batch work.
+
+Tip: use this tracker in production-like traffic, where query patterns are most realistic.
+
 ### Hiding settings
 
 Coverband provides a view of all of its current settings. Sometimes you might want to hide this view,
