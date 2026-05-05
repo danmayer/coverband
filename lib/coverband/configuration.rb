@@ -14,6 +14,8 @@ module Coverband
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
+      :track_query_bursts, :query_burst_tracker,
+      :query_burst_query_count_threshold, :query_burst_sql_time_threshold_ms,
       :trackers, :csp_policy, :hide_settings,
       :mcp_enabled
 
@@ -81,6 +83,10 @@ module Coverband
       @route_tracker = nil
       @track_translations = false
       @translations_tracker = nil
+      @track_query_bursts = false
+      @query_burst_tracker = nil
+      @query_burst_query_count_threshold = 30
+      @query_burst_sql_time_threshold_ms = 100.0
       @web_debug = false
       @report_on_exit = true
       @use_oneshot_lines_coverage = ENV["ONESHOT"] || false
@@ -139,6 +145,11 @@ module Coverband
           Coverband::Collectors::ViewTracker.new
         end
         trackers << Coverband.configuration.view_tracker
+      end
+
+      if Coverband.configuration.track_query_bursts
+        Coverband.configuration.query_burst_tracker = Coverband::Collectors::QueryBurstTracker.new
+        trackers << Coverband.configuration.query_burst_tracker
       end
       trackers.each { |tracker| tracker.railtie! }
     rescue Redis::CannotConnectError => e

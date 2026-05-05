@@ -38,6 +38,11 @@
       <a href='<%= base_path %>routes_tracker'>Route Tracker</a>
     </li>
   <% end %>
+  <% if Coverband.configuration.track_query_bursts %>
+    <li class='<%= nav_options[:active_link] == 'query_bursts_tracker' ? 'active' : '' %>'>
+      <a href='<%= base_path %>query_bursts_tracker'>Query Burst Tracker</a>
+    </li>
+  <% end %>
     <% if Coverband.configuration.track_translations %>
     <li class='<%= nav_options[:active_link] == 'translations_tracker' ? 'active' : '' %>'>
       <a href='<%= base_path %>translations_tracker'>Translations Tracker</a>

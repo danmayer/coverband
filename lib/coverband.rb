@@ -21,6 +21,7 @@ require "coverband/collectors/view_tracker"
 require "coverband/collectors/view_tracker_service"
 require "coverband/collectors/route_tracker"
 require "coverband/collectors/translation_tracker"
+require "coverband/collectors/query_burst_tracker"
 require "coverband/reporters/base"
 require "coverband/reporters/console_report"
 require "coverband/integrations/background"
@@ -101,14 +102,14 @@ module Coverband
   end
 
   # Track a key with the specified tracker.
-  # @param tracker_type [Symbol] The type of tracker to use (e.g., :view_tracker, :translations_tracker, :routes_tracker)
+  # @param tracker_type [Symbol] The type of tracker to use (e.g., :view_tracker, :translations_tracker, :routes_tracker, :query_burst_tracker)
   # @param key [String] The key to track
   # @return [Boolean] True if tracking was successful, false otherwise
   # @raise [ArgumentError] If the tracker_type is not supported
   def self.track_key(tracker_type, key)
     return false unless key
 
-    supported_trackers = [:view_tracker, :translations_tracker, :routes_tracker]
+    supported_trackers = [:view_tracker, :translations_tracker, :routes_tracker, :query_burst_tracker]
 
     unless supported_trackers.include?(tracker_type)
       raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{supported_trackers.join(", ")}"
