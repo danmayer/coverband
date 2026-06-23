@@ -38,7 +38,7 @@ class RailsRoutesWithoutConfigStackTest < Minitest::Test
   def shutdown_server
     if File.exist?("/tmp/testrack.pid")
       pid = `cat /tmp/testrack.pid`&.strip&.to_i
-      Process.kill("HUP", pid)
+      Process.kill("TERM", pid)
       sleep 1
     end
   end

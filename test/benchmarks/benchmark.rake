@@ -205,10 +205,15 @@ namespace :benchmarks do
         # we clear this as this one variable is expected to retain memory and is a false positive
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
-        # Clear the RelativeFileConverter cache to avoid retaining strings
-        Coverband::Utils::RelativeFileConverter.reset
+        # NOTE: Do NOT call RelativeFileConverter.reset inside this block.
+        # Doing so creates new instances on each iteration, each with a new Regexp.union object.
+        # In Ruby 4.1+, these Regexp objects are retained by an internal Regexp cache and
+        # show up as leaked memory. The cache from warmup is reused here with zero new allocations.
       end
     }.pretty_print
+    # Reset file converter caches after profiling so subsequent tests start clean
+    Coverband::Utils::RelativeFileConverter.reset
+    Coverband::Utils::AbsoluteFileConverter.reset
     data = $stdout.string
     $stdout = previous_out
     unless data.match?("Total retained:  0 bytes")
