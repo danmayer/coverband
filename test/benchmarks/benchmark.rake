@@ -216,7 +216,10 @@ namespace :benchmarks do
     Coverband::Utils::AbsoluteFileConverter.reset
     data = $stdout.string
     $stdout = previous_out
-    unless data.match?("Total retained:  0 bytes")
+    # Check only that coverband itself retains no objects.
+    # External gems (json, redis-client) may retain strings via internal
+    # deduplication caches in newer Ruby versions — that is not a coverband leak.
+    if data.match(/retained objects by gem(.*)retained objects by file/m)&.[](0)&.match?(/coverband/)
       puts data
       raise "leaking memory!!!"
     end
