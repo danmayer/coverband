@@ -876,3 +876,8 @@ td:has(> span.green) {
 #dcs-chips { margin-top: 6px; display: none; }
 .dcs-chip { display: inline-block; background: #e8e8e8; border: 1px solid #ccc; border-radius: 10px; padding: 1px 6px; margin: 2px; font-family: monospace; }
 .dcs-chip-x { border: none; background: transparent; cursor: pointer; font-weight: bold; margin-left: 4px; }
+.dcs-seg { position: relative; }
+.dcs-actions { display: none; white-space: nowrap; }
+.dcs-seg:hover > .dcs-actions { display: inline; }
+.dcs-actions button { border: none; background: #ddd; border-radius: 3px; cursor: pointer; font-size: 0.85em; padding: 0 3px; margin-left: 2px; line-height: 1.2; }
+.dcs-actions button:hover { background: #bbb; }

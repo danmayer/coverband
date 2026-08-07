@@ -344,6 +344,38 @@ $(document).ready(function () {
       updateBadges();
     };
 
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    window.deadCodeDecorate = function (oSettings) {
+      $(oSettings.nTable).find("tbody td a.src_link").not(".dcs-done").each(function () {
+        var link = $(this);
+        var fullPath = link.attr("title");
+        if (!fullPath) return;
+        var segs = D.segmentPrefixes(fullPath);
+        var html = "";
+        for (var i = 0; i < segs.length; i++) {
+          html += '<span class="dcs-seg" data-prefix="' + escapeHtml(segs[i].prefix) + '">' +
+            escapeHtml(segs[i].label) +
+            '<span class="dcs-actions">' +
+            '<button type="button" class="dcs-hide" title="Hide ' + escapeHtml(segs[i].prefix) + (segs[i].isFile ? "" : " and everything under it") + '">&times;</button>' +
+            '<button type="button" class="dcs-mark" title="Mark ' + escapeHtml(segs[i].prefix) + ' for deletion">&#128465;</button>' +
+            '</span></span>' + (segs[i].isFile ? "" : "/");
+        }
+        link.html(html).addClass("dcs-done");
+      });
+    };
+
+    $(document).on("click", ".dcs-hide", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      D.addHidden(state, $(this).closest(".dcs-seg").attr("data-prefix"));
+      saveState();
+      redrawTables();
+      return false;
+    });
+
     redrawTables();
   }
 });
