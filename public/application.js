@@ -286,7 +286,7 @@ $(document).ready(function () {
         var chip = $('<span class="dcs-chip"></span>').text(entry);
         $('<button class="dcs-chip-x" title="Unhide">&times;</button>')
           .appendTo(chip)
-          .on("click", function () {
+          .bind("click", function () {
             D.removeHidden(state, entry);
             saveState();
             redrawTables();
@@ -314,19 +314,19 @@ $(document).ready(function () {
 
     $("#dcs-runtime-toggle")
       .prop("checked", state.hideRuntimeUsed)
-      .on("change", function () {
+      .bind("change", function () {
         state.hideRuntimeUsed = this.checked;
         saveState();
         redrawTables();
       });
 
-    $("#dcs-chips-toggle").on("click", function () {
+    $("#dcs-chips-toggle").bind("click", function () {
       var chips = $("#dcs-chips");
       chips.data("open", chips.data("open") !== true);
       updateBadges();
     });
 
-    $("#dcs-reset").on("click", function () {
+    $("#dcs-reset").bind("click", function () {
       if (!confirm("Reset session? This unhides everything (marked-for-deletion list is kept).")) return;
       window.CoverbandDeadCode.clearHides(state);
       $("#dcs-runtime-toggle").prop("checked", false);
@@ -366,7 +366,7 @@ $(document).ready(function () {
         }
         link.html(html).addClass("dcs-done");
 
-        link.find(".dcs-hide").on("click", function (e) {
+        link.find(".dcs-hide").bind("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
           D.addHidden(state, $(this).closest(".dcs-seg").attr("data-prefix"));
@@ -374,7 +374,7 @@ $(document).ready(function () {
           redrawTables();
           return false;
         });
-        link.find(".dcs-mark").on("click", function (e) {
+        link.find(".dcs-mark").bind("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
           openMarkPopup($(this).closest(".dcs-seg").attr("data-prefix"), e.pageX, e.pageY);
@@ -401,8 +401,8 @@ $(document).ready(function () {
       popup.css({ left: Math.min(x, $(window).width() - 340) + "px", top: (y + 8) + "px" });
       $("body").append(popup);
       $("#dcs-mark-comment").focus();
-      $("#dcs-mark-cancel").on("click", closeMarkPopup);
-      $("#dcs-mark-confirm").on("click", function () {
+      $("#dcs-mark-cancel").bind("click", closeMarkPopup);
+      $("#dcs-mark-confirm").bind("click", function () {
         D.addMark(state, prefix, $("#dcs-mark-comment").val(), new Date().toISOString());
         saveState();
         closeMarkPopup();
@@ -443,14 +443,14 @@ $(document).ready(function () {
         var tr = $("<tr></tr>");
         $('<td class="dcs-mono"></td>').text(m.path).appendTo(tr);
         var commentInput = $('<input type="text" class="dcs-comment-edit">').val(m.comment)
-          .on("change", function () {
+          .bind("change", function () {
             D.updateComment(state, m.path, $(this).val());
             saveState();
           });
         $("<td></td>").append(commentInput).appendTo(tr);
         $('<td class="dcs-mono"></td>').text(m.markedAt).appendTo(tr);
         $("<td></td>").append(
-          $('<button type="button" title="Unmark">&times;</button>').on("click", function () {
+          $('<button type="button" title="Unmark">&times;</button>').bind("click", function () {
             D.removeMark(state, m.path);
             saveState();
             redrawTables();
@@ -460,10 +460,10 @@ $(document).ready(function () {
         tbody.append(tr);
       });
       $("body").append(overlay);
-      $("#dcs-modal-close").on("click", closeMarkedModal);
-      overlay.on("click", function (e) { if (e.target === this) closeMarkedModal(); });
-      $("#dcs-csv").on("click", downloadCSV);
-      $("#dcs-start-over").on("click", function () {
+      $("#dcs-modal-close").bind("click", closeMarkedModal);
+      overlay.bind("click", function (e) { if (e.target === this) closeMarkedModal(); });
+      $("#dcs-csv").bind("click", downloadCSV);
+      $("#dcs-start-over").bind("click", function () {
         if (!confirm("Clear the entire marked-for-deletion list?")) return;
         D.clearMarks(state);
         saveState();
@@ -472,7 +472,7 @@ $(document).ready(function () {
       });
     }
 
-    $("#dcs-marked-btn").on("click", openMarkedModal);
+    $("#dcs-marked-btn").bind("click", openMarkedModal);
 
     redrawTables();
   }
