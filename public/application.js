@@ -272,10 +272,11 @@ $(document).ready(function () {
 
     function updateBadges() {
       var hidden = 0;
+      var stateNoMarks = { hiddenPaths: state.hiddenPaths, markedPaths: [], hideRuntimeUsed: state.hideRuntimeUsed };
       $(".file_list").each(function () {
         var data = $(this).dataTable().fnGetData();
         for (var i = 0; i < data.length; i++) {
-          if (D.isExcluded(state, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
+          if (D.isExcluded(stateNoMarks, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
         }
       });
       $("#dcs-hidden-count").text(hidden + " hidden");
@@ -364,17 +365,23 @@ $(document).ready(function () {
             '</span></span>' + (segs[i].isFile ? "" : "/");
         }
         link.html(html).addClass("dcs-done");
+
+        link.find(".dcs-hide").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          D.addHidden(state, $(this).closest(".dcs-seg").attr("data-prefix"));
+          saveState();
+          redrawTables();
+          return false;
+        });
+        link.find(".dcs-mark").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openMarkPopup($(this).closest(".dcs-seg").attr("data-prefix"), e.pageX, e.pageY);
+          return false;
+        });
       });
     };
-
-    $(document).on("click", ".dcs-hide", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      D.addHidden(state, $(this).closest(".dcs-seg").attr("data-prefix"));
-      saveState();
-      redrawTables();
-      return false;
-    });
 
     function closeMarkPopup() { $("#dcs-mark-popup").remove(); }
 
@@ -402,13 +409,6 @@ $(document).ready(function () {
         redrawTables();
       });
     }
-
-    $(document).on("click", ".dcs-mark", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openMarkPopup($(this).closest(".dcs-seg").attr("data-prefix"), e.pageX, e.pageY);
-      return false;
-    });
 
     function closeMarkedModal() { $("#dcs-modal-overlay").remove(); }
 
