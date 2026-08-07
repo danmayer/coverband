@@ -27,3 +27,4 @@ test/unique_files
 test/rails7_dummy/tmp
 CLAUDE.md
 .claude/
+scratch/
