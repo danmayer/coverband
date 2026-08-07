@@ -881,3 +881,16 @@ td:has(> span.green) {
 .dcs-seg:hover > .dcs-actions { display: inline; }
 .dcs-actions button { border: none; background: #ddd; border-radius: 3px; cursor: pointer; font-size: 0.85em; padding: 0 3px; margin-left: 2px; line-height: 1.2; }
 .dcs-actions button:hover { background: #bbb; }
+#dcs-mark-popup { position: absolute; z-index: 10000; background: #fff; border: 1px solid #999; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); padding: 10px; width: 320px; }
+#dcs-mark-popup .dcs-popup-path { font-family: monospace; font-weight: bold; margin-bottom: 6px; word-break: break-all; }
+#dcs-mark-popup textarea { width: 100%; box-sizing: border-box; }
+#dcs-mark-popup .dcs-popup-actions { margin-top: 6px; text-align: right; }
+#dcs-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10001; }
+#dcs-modal { background: #fff; border-radius: 6px; width: 80%; max-width: 900px; max-height: 80%; overflow: auto; margin: 5% auto; padding: 16px; }
+#dcs-modal-head { display: flex; justify-content: space-between; margin-bottom: 10px; }
+#dcs-modal-table { width: 100%; border-collapse: collapse; }
+#dcs-modal-table th, #dcs-modal-table td { border-bottom: 1px solid #eee; padding: 4px 8px; text-align: left; }
+#dcs-modal-foot { margin-top: 12px; text-align: right; }
+#dcs-modal-foot button { margin-left: 8px; }
+.dcs-mono { font-family: monospace; }
+.dcs-comment-edit { width: 100%; box-sizing: border-box; }

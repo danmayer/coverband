@@ -376,6 +376,104 @@ $(document).ready(function () {
       return false;
     });
 
+    function closeMarkPopup() { $("#dcs-mark-popup").remove(); }
+
+    function openMarkPopup(prefix, x, y) {
+      closeMarkPopup();
+      var popup = $(
+        '<div id="dcs-mark-popup">' +
+        '  <div class="dcs-popup-path"></div>' +
+        '  <textarea id="dcs-mark-comment" rows="2" placeholder="Optional comment (why is this dead?)"></textarea>' +
+        '  <div class="dcs-popup-actions">' +
+        '    <button type="button" id="dcs-mark-confirm">Mark for deletion</button>' +
+        '    <button type="button" id="dcs-mark-cancel">Cancel</button>' +
+        '  </div>' +
+        '</div>'
+      );
+      popup.find(".dcs-popup-path").text(prefix);
+      popup.css({ left: Math.min(x, $(window).width() - 340) + "px", top: (y + 8) + "px" });
+      $("body").append(popup);
+      $("#dcs-mark-comment").focus();
+      $("#dcs-mark-cancel").on("click", closeMarkPopup);
+      $("#dcs-mark-confirm").on("click", function () {
+        D.addMark(state, prefix, $("#dcs-mark-comment").val(), new Date().toISOString());
+        saveState();
+        closeMarkPopup();
+        redrawTables();
+      });
+    }
+
+    $(document).on("click", ".dcs-mark", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openMarkPopup($(this).closest(".dcs-seg").attr("data-prefix"), e.pageX, e.pageY);
+      return false;
+    });
+
+    function closeMarkedModal() { $("#dcs-modal-overlay").remove(); }
+
+    function downloadCSV() {
+      var blob = new Blob([D.toCSV(state.markedPaths)], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "coverband-dead-code-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    function openMarkedModal() {
+      closeMarkedModal();
+      var overlay = $('<div id="dcs-modal-overlay"><div id="dcs-modal">' +
+        '<div id="dcs-modal-head"><strong>Marked for deletion</strong>' +
+        '<button type="button" id="dcs-modal-close">&times;</button></div>' +
+        '<table id="dcs-modal-table"><thead><tr>' +
+        '<th>Path</th><th>Comment</th><th>Marked at</th><th></th>' +
+        '</tr></thead><tbody></tbody></table>' +
+        '<div id="dcs-modal-foot">' +
+        '<button type="button" id="dcs-csv">Download CSV</button>' +
+        '<button type="button" id="dcs-start-over">Start over</button>' +
+        '</div></div></div>');
+      var tbody = overlay.find("tbody");
+      if (state.markedPaths.length === 0) {
+        tbody.append('<tr><td colspan="4"><em>Nothing marked yet.</em></td></tr>');
+      }
+      $.each(state.markedPaths.slice(), function (_i, m) {
+        var tr = $("<tr></tr>");
+        $('<td class="dcs-mono"></td>').text(m.path).appendTo(tr);
+        var commentInput = $('<input type="text" class="dcs-comment-edit">').val(m.comment)
+          .on("change", function () {
+            D.updateComment(state, m.path, $(this).val());
+            saveState();
+          });
+        $("<td></td>").append(commentInput).appendTo(tr);
+        $('<td class="dcs-mono"></td>').text(m.markedAt).appendTo(tr);
+        $("<td></td>").append(
+          $('<button type="button" title="Unmark">&times;</button>').on("click", function () {
+            D.removeMark(state, m.path);
+            saveState();
+            redrawTables();
+            openMarkedModal(); // rebuild
+          })
+        ).appendTo(tr);
+        tbody.append(tr);
+      });
+      $("body").append(overlay);
+      $("#dcs-modal-close").on("click", closeMarkedModal);
+      overlay.on("click", function (e) { if (e.target === this) closeMarkedModal(); });
+      $("#dcs-csv").on("click", downloadCSV);
+      $("#dcs-start-over").on("click", function () {
+        if (!confirm("Clear the entire marked-for-deletion list?")) return;
+        D.clearMarks(state);
+        saveState();
+        redrawTables();
+        openMarkedModal();
+      });
+    }
+
+    $("#dcs-marked-btn").on("click", openMarkedModal);
+
     redrawTables();
   }
 });
