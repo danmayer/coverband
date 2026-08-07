@@ -867,3 +867,12 @@ td:has(> span.green) {
   background-color: #fbf0c0; }
 .source_table .skipped:nth-child(even) {
   background-color: #fbffcf; }
+
+/* Dead-code review session */
+#dcs-toolbar { margin: 8px 0 12px 0; padding: 8px 10px; background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85em; }
+#dcs-toolbar label { margin: 0 10px; cursor: pointer; }
+#dcs-toolbar button { margin: 0 4px; cursor: pointer; }
+.dcs-badge { background: #666; color: #fff; border-radius: 8px; padding: 1px 8px; margin: 0 6px; }
+#dcs-chips { margin-top: 6px; display: none; }
+.dcs-chip { display: inline-block; background: #e8e8e8; border: 1px solid #ccc; border-radius: 10px; padding: 1px 6px; margin: 2px; font-family: monospace; }
+.dcs-chip-x { border: none; background: transparent; cursor: pointer; font-weight: bold; margin-left: 4px; }

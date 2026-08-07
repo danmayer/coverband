@@ -33,7 +33,13 @@ $(document).ready(function () {
     ],
   }
 
+  tableOptions.fnDrawCallback = function (oSettings) {
+    if (window.deadCodeOnDraw) window.deadCodeOnDraw(oSettings);
+  };
+
   $(".file_list").dataTable(tableOptions);
+
+  initDeadCodeSession();
 
   // TODO: add support for searching on server side
   // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html
@@ -220,4 +226,124 @@ $(document).ready(function () {
   $("#loading").fadeOut();
   $("#wrapper").show();
   $(".dataTables_filter input").focus();
+
+  function initDeadCodeSession() {
+    if (!window.CoverbandDeadCode || !$(".file_list").length) return;
+    var D = window.CoverbandDeadCode;
+    var storageKey = "coverband_deadcode_session:" + ($(".file_list").data("coverageurl") || "/");
+    var state;
+    try {
+      state = D.parseState(window.localStorage.getItem(storageKey));
+    } catch (e) {
+      console && console.warn && console.warn("coverband dead-code session: localStorage unavailable", e);
+      state = D.emptyState();
+    }
+    if (!state.startedAt) state.startedAt = new Date().toISOString();
+
+    function saveState() {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch (e) { /* private mode etc.; session still works in-memory */ }
+    }
+    saveState();
+
+    function extractPath(cellHtml) {
+      var m = String(cellHtml).match(/title="([^"]*)"/);
+      return m ? m[1] : "";
+    }
+
+    function rowRuntime(aData) {
+      var n = parseFloat(String(aData[2]));
+      return isNaN(n) ? null : n;
+    }
+
+    // Custom filter: hide rows excluded by the session (DataTables 1.7 API)
+    $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
+      if (!$(oSettings.nTable).hasClass("file_list")) return true;
+      return !D.isExcluded(state, extractPath(aData[0]), rowRuntime(aData));
+    });
+
+    function redrawTables() {
+      $(".file_list").each(function () {
+        $(this).dataTable().fnDraw();
+      });
+      updateBadges();
+    }
+
+    function updateBadges() {
+      var hidden = 0;
+      $(".file_list").each(function () {
+        var data = $(this).dataTable().fnGetData();
+        for (var i = 0; i < data.length; i++) {
+          if (D.isExcluded(state, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
+        }
+      });
+      $("#dcs-hidden-count").text(hidden + " hidden");
+      $("#dcs-marked-count").text(state.markedPaths.length);
+      var chips = $("#dcs-chips").empty();
+      $.each(state.hiddenPaths, function (_i, entry) {
+        var chip = $('<span class="dcs-chip"></span>').text(entry);
+        $('<button class="dcs-chip-x" title="Unhide">&times;</button>')
+          .appendTo(chip)
+          .on("click", function () {
+            D.removeHidden(state, entry);
+            saveState();
+            redrawTables();
+          });
+        chips.append(chip);
+      });
+      chips.toggle(state.hiddenPaths.length > 0 && chips.data("open") === true);
+      $("#dcs-chips-toggle").toggle(state.hiddenPaths.length > 0)
+        .text("Hidden items (" + state.hiddenPaths.length + ")");
+    }
+
+    // Toolbar
+    var toolbar = $(
+      '<div id="dcs-toolbar">' +
+      '  <strong>Dead-code session</strong>' +
+      '  <label><input type="checkbox" id="dcs-runtime-toggle"> Hide files with runtime % &gt; 0</label>' +
+      '  <span class="dcs-badge" id="dcs-hidden-count">0 hidden</span>' +
+      '  <button type="button" id="dcs-marked-btn">Marked for deletion: <span id="dcs-marked-count">0</span></button>' +
+      '  <button type="button" id="dcs-chips-toggle">Hidden items</button>' +
+      '  <button type="button" id="dcs-reset">Reset session</button>' +
+      '  <div id="dcs-chips"></div>' +
+      '</div>'
+    );
+    $("#content").prepend(toolbar);
+
+    $("#dcs-runtime-toggle")
+      .prop("checked", state.hideRuntimeUsed)
+      .on("change", function () {
+        state.hideRuntimeUsed = this.checked;
+        saveState();
+        redrawTables();
+      });
+
+    $("#dcs-chips-toggle").on("click", function () {
+      var chips = $("#dcs-chips");
+      chips.data("open", chips.data("open") !== true);
+      updateBadges();
+    });
+
+    $("#dcs-reset").on("click", function () {
+      if (!confirm("Reset session? This unhides everything (marked-for-deletion list is kept).")) return;
+      window.CoverbandDeadCode.clearHides(state);
+      $("#dcs-runtime-toggle").prop("checked", false);
+      saveState();
+      redrawTables();
+    });
+
+    // Exposed for Tasks 3-4 and the shared fnDrawCallback
+    window.deadCodeSession = {
+      D: D, state: state, saveState: saveState,
+      redrawTables: redrawTables, updateBadges: updateBadges,
+      extractPath: extractPath
+    };
+    window.deadCodeOnDraw = function (oSettings) {
+      if (window.deadCodeDecorate) window.deadCodeDecorate(oSettings);
+      updateBadges();
+    };
+
+    redrawTables();
+  }
 });
