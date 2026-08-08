@@ -366,6 +366,16 @@ You can disable the settings view like so:
 
 `config.hide_settings = true`
 
+### Dead-code review session
+
+The web report includes a client-side "dead-code session" toolbar to help drive code-removal work:
+
+- Hide files or whole folders from the report via the ✕ icon that appears when hovering path segments, or hide everything with runtime % > 0 with one toggle.
+- Mark files or folders for deletion via the 🗑 icon (with an optional comment). Marked items disappear from the view and are listed in the "Marked for deletion" modal.
+- Export the marked list as a CSV (`path,comment,marked_at`) to feed a code-removal PR process.
+
+Session state lives in your browser's localStorage: "Reset session" clears the hidden set; "Start over" (in the modal) clears the marked list.
+
 ### Fixing Coverage Only Shows Loading Hits
 
 If all your coverage is being counted as loading or eager_loading coverage, and nothing is showing as runtime Coverage the initialization hook failed for some reason. The most likely reason for this issue is manually calling `eager_load!` on some Plugin/Gem. If you or a plugin is altering the Rails initialization process, you can manually flip Coverband to runtime coverage by calling these two lines, in an `after_initialize` block, in `application.rb`.

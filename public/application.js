@@ -33,7 +33,13 @@ $(document).ready(function () {
     ],
   }
 
+  tableOptions.fnDrawCallback = function (oSettings) {
+    if (window.deadCodeOnDraw) window.deadCodeOnDraw(oSettings);
+  };
+
   $(".file_list").dataTable(tableOptions);
+
+  initDeadCodeSession();
 
   // TODO: add support for searching on server side
   // best docs on our version of datatables 1.7 https://datatables.net/beta/1.7/examples/server_side/server_side.html
@@ -220,4 +226,254 @@ $(document).ready(function () {
   $("#loading").fadeOut();
   $("#wrapper").show();
   $(".dataTables_filter input").focus();
+
+  function initDeadCodeSession() {
+    if (!window.CoverbandDeadCode || !$(".file_list").length) return;
+    var D = window.CoverbandDeadCode;
+    var storageKey = "coverband_deadcode_session:" + ($(".file_list").data("coverageurl") || "/");
+    var state;
+    try {
+      state = D.parseState(window.localStorage.getItem(storageKey));
+    } catch (e) {
+      console && console.warn && console.warn("coverband dead-code session: localStorage unavailable", e);
+      state = D.emptyState();
+    }
+    if (!state.startedAt) state.startedAt = new Date().toISOString();
+
+    function saveState() {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch (e) { /* private mode etc.; session still works in-memory */ }
+    }
+    saveState();
+
+    function extractPath(cellHtml) {
+      var m = String(cellHtml).match(/title="([^"]*)"/);
+      return m ? m[1] : "";
+    }
+
+    function rowRuntime(aData) {
+      var n = parseFloat(String(aData[2]));
+      return isNaN(n) ? null : n;
+    }
+
+    // Custom filter: hide rows excluded by the session (DataTables 1.7 API)
+    $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
+      if (!$(oSettings.nTable).hasClass("file_list")) return true;
+      return !D.isExcluded(state, extractPath(aData[0]), rowRuntime(aData));
+    });
+
+    function redrawTables() {
+      $(".file_list").each(function () {
+        $(this).dataTable().fnDraw();
+      });
+      updateBadges();
+    }
+
+    function updateBadges() {
+      var hidden = 0;
+      var stateNoMarks = { hiddenPaths: state.hiddenPaths, markedPaths: [], hideRuntimeUsed: state.hideRuntimeUsed };
+      $(".file_list").each(function () {
+        var data = $(this).dataTable().fnGetData();
+        for (var i = 0; i < data.length; i++) {
+          if (D.isExcluded(stateNoMarks, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
+        }
+      });
+      $("#dcs-hidden-count").text(hidden + " hidden");
+      $("#dcs-marked-count").text(state.markedPaths.length);
+      var chips = $("#dcs-chips").empty();
+      $.each(state.hiddenPaths, function (_i, entry) {
+        var chip = $('<span class="dcs-chip"></span>').text(entry);
+        $('<button class="dcs-chip-x" title="Unhide">&times;</button>')
+          .appendTo(chip)
+          .bind("click", function () {
+            D.removeHidden(state, entry);
+            saveState();
+            redrawTables();
+          });
+        chips.append(chip);
+      });
+      chips.toggle(state.hiddenPaths.length > 0 && chips.data("open") === true);
+      $("#dcs-chips-toggle").toggle(state.hiddenPaths.length > 0)
+        .text("Hidden items (" + state.hiddenPaths.length + ")");
+    }
+
+    // Toolbar
+    var toolbar = $(
+      '<div id="dcs-toolbar">' +
+      '  <strong>Dead-code session</strong>' +
+      '  <label><input type="checkbox" id="dcs-runtime-toggle"> Hide files with runtime % &gt; 0</label>' +
+      '  <span class="dcs-badge" id="dcs-hidden-count">0 hidden</span>' +
+      '  <button type="button" id="dcs-marked-btn">Marked for deletion: <span id="dcs-marked-count">0</span></button>' +
+      '  <button type="button" id="dcs-chips-toggle">Hidden items</button>' +
+      '  <button type="button" id="dcs-reset">Reset session</button>' +
+      '  <div id="dcs-chips"></div>' +
+      '</div>'
+    );
+    $("#content").prepend(toolbar);
+
+    $("#dcs-runtime-toggle")
+      .prop("checked", state.hideRuntimeUsed)
+      .bind("change", function () {
+        state.hideRuntimeUsed = this.checked;
+        saveState();
+        redrawTables();
+      });
+
+    $("#dcs-chips-toggle").bind("click", function () {
+      var chips = $("#dcs-chips");
+      chips.data("open", chips.data("open") !== true);
+      updateBadges();
+    });
+
+    $("#dcs-reset").bind("click", function () {
+      if (!confirm("Reset session? This unhides everything (marked-for-deletion list is kept).")) return;
+      window.CoverbandDeadCode.clearHides(state);
+      $("#dcs-runtime-toggle").prop("checked", false);
+      saveState();
+      redrawTables();
+    });
+
+    // Exposed for Tasks 3-4 and the shared fnDrawCallback
+    window.deadCodeSession = {
+      D: D, state: state, saveState: saveState,
+      redrawTables: redrawTables, updateBadges: updateBadges,
+      extractPath: extractPath
+    };
+    window.deadCodeOnDraw = function (oSettings) {
+      if (window.deadCodeDecorate) window.deadCodeDecorate(oSettings);
+      updateBadges();
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    window.deadCodeDecorate = function (oSettings) {
+      $(oSettings.nTable).find("tbody td a.src_link").not(".dcs-done").each(function () {
+        var link = $(this);
+        var fullPath = link.attr("title");
+        if (!fullPath) return;
+        var segs = D.segmentPrefixes(fullPath);
+        var html = "";
+        for (var i = 0; i < segs.length; i++) {
+          html += '<span class="dcs-seg" data-prefix="' + escapeHtml(segs[i].prefix) + '">' +
+            escapeHtml(segs[i].label) +
+            '<span class="dcs-actions">' +
+            '<button type="button" class="dcs-hide" title="Hide ' + escapeHtml(segs[i].prefix) + (segs[i].isFile ? "" : " and everything under it") + '">&times;</button>' +
+            '<button type="button" class="dcs-mark" title="Mark ' + escapeHtml(segs[i].prefix) + ' for deletion">&#128465;</button>' +
+            '</span></span>' + (segs[i].isFile ? "" : "/");
+        }
+        link.html(html).addClass("dcs-done");
+
+        link.find(".dcs-hide").bind("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          D.addHidden(state, $(this).closest(".dcs-seg").attr("data-prefix"));
+          saveState();
+          redrawTables();
+          return false;
+        });
+        link.find(".dcs-mark").bind("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openMarkPopup($(this).closest(".dcs-seg").attr("data-prefix"), e.pageX, e.pageY);
+          return false;
+        });
+      });
+    };
+
+    function closeMarkPopup() { $("#dcs-mark-popup").remove(); }
+
+    function openMarkPopup(prefix, x, y) {
+      closeMarkPopup();
+      var popup = $(
+        '<div id="dcs-mark-popup">' +
+        '  <div class="dcs-popup-path"></div>' +
+        '  <textarea id="dcs-mark-comment" rows="2" placeholder="Optional comment (why is this dead?)"></textarea>' +
+        '  <div class="dcs-popup-actions">' +
+        '    <button type="button" id="dcs-mark-confirm">Mark for deletion</button>' +
+        '    <button type="button" id="dcs-mark-cancel">Cancel</button>' +
+        '  </div>' +
+        '</div>'
+      );
+      popup.find(".dcs-popup-path").text(prefix);
+      popup.css({ left: Math.min(x, $(window).width() - 340) + "px", top: (y + 8) + "px" });
+      $("body").append(popup);
+      $("#dcs-mark-comment").focus();
+      $("#dcs-mark-cancel").bind("click", closeMarkPopup);
+      $("#dcs-mark-confirm").bind("click", function () {
+        D.addMark(state, prefix, $("#dcs-mark-comment").val(), new Date().toISOString());
+        saveState();
+        closeMarkPopup();
+        redrawTables();
+      });
+    }
+
+    function closeMarkedModal() { $("#dcs-modal-overlay").remove(); }
+
+    function downloadCSV() {
+      var blob = new Blob([D.toCSV(state.markedPaths)], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "coverband-dead-code-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    function openMarkedModal() {
+      closeMarkedModal();
+      var overlay = $('<div id="dcs-modal-overlay"><div id="dcs-modal">' +
+        '<div id="dcs-modal-head"><strong>Marked for deletion</strong>' +
+        '<button type="button" id="dcs-modal-close">&times;</button></div>' +
+        '<table id="dcs-modal-table"><thead><tr>' +
+        '<th>Path</th><th>Comment</th><th>Marked at</th><th></th>' +
+        '</tr></thead><tbody></tbody></table>' +
+        '<div id="dcs-modal-foot">' +
+        '<button type="button" id="dcs-csv">Download CSV</button>' +
+        '<button type="button" id="dcs-start-over">Start over</button>' +
+        '</div></div></div>');
+      var tbody = overlay.find("tbody");
+      if (state.markedPaths.length === 0) {
+        tbody.append('<tr><td colspan="4"><em>Nothing marked yet.</em></td></tr>');
+      }
+      $.each(state.markedPaths.slice(), function (_i, m) {
+        var tr = $("<tr></tr>");
+        $('<td class="dcs-mono"></td>').text(m.path).appendTo(tr);
+        var commentInput = $('<input type="text" class="dcs-comment-edit">').val(m.comment)
+          .bind("change", function () {
+            D.updateComment(state, m.path, $(this).val());
+            saveState();
+          });
+        $("<td></td>").append(commentInput).appendTo(tr);
+        $('<td class="dcs-mono"></td>').text(m.markedAt).appendTo(tr);
+        $("<td></td>").append(
+          $('<button type="button" title="Unmark">&times;</button>').bind("click", function () {
+            D.removeMark(state, m.path);
+            saveState();
+            redrawTables();
+            openMarkedModal(); // rebuild
+          })
+        ).appendTo(tr);
+        tbody.append(tr);
+      });
+      $("body").append(overlay);
+      $("#dcs-modal-close").bind("click", closeMarkedModal);
+      overlay.bind("click", function (e) { if (e.target === this) closeMarkedModal(); });
+      $("#dcs-csv").bind("click", downloadCSV);
+      $("#dcs-start-over").bind("click", function () {
+        if (!confirm("Clear the entire marked-for-deletion list?")) return;
+        D.clearMarks(state);
+        saveState();
+        redrawTables();
+        openMarkedModal();
+      });
+    }
+
+    $("#dcs-marked-btn").bind("click", openMarkedModal);
+
+    redrawTables();
+  }
 });
