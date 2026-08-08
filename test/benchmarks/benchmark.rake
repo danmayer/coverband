@@ -173,12 +173,18 @@ namespace :benchmarks do
     }.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    unless data.match?("Total retained:  0 bytes")
-      puts data
-      raise "leaking memory!!!"
-    end
+    assert_no_coverband_leak(data)
   ensure
     $stdout = previous_out
+  end
+
+  # Check only that coverband itself retains no objects.
+  # External gems (json, redis-client) may retain strings via internal
+  # deduplication caches in newer Ruby versions — that is not a coverband leak.
+  def assert_no_coverband_leak(data)
+    return unless data.match(/retained objects by gem(.*)retained objects by file/m)&.[](0)&.match?(/coverband/)
+    puts data
+    raise "leaking memory!!!"
   end
 
   def measure_memory_report_coverage
@@ -216,13 +222,7 @@ namespace :benchmarks do
     }.pretty_print
     data = $stdout.string
     $stdout = previous_out
-    # Check only that coverband itself retains no objects.
-    # External gems (json, redis-client) may retain strings via internal
-    # deduplication caches in newer Ruby versions — that is not a coverband leak.
-    if data.match(/retained objects by gem(.*)retained objects by file/m)&.[](0)&.match?(/coverband/)
-      puts data
-      raise "leaking memory!!!"
-    end
+    assert_no_coverband_leak(data)
   ensure
     $stdout = previous_out
   end
