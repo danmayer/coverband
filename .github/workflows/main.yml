@@ -55,3 +55,11 @@ jobs:
           ruby-version: 3.1
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - run: bundle exec standardrb --format github
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node --test test/javascript/

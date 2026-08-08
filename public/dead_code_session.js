@@ -56,11 +56,14 @@
     return false;
   }
 
-  function isExcluded(state, path, runtimePercent) {
+  function isExcludedIgnoringMarks(state, path, runtimePercent) {
     if (matchesAny(state.hiddenPaths, path)) return true;
-    if (isMarked(state, path)) return true;
     if (state.hideRuntimeUsed && typeof runtimePercent === "number" && runtimePercent > 0) return true;
     return false;
+  }
+
+  function isExcluded(state, path, runtimePercent) {
+    return isExcludedIgnoringMarks(state, path, runtimePercent) || isMarked(state, path);
   }
 
   function addHidden(state, entry) {
@@ -125,11 +128,34 @@
     return out;
   }
 
+  // Extracts the full path from a DataTables cell's rendered HTML (the
+  // title attribute on the source link), e.g. '<a title="app/foo.rb">foo.rb</a>'.
+  function extractPath(cellHtml) {
+    var m = String(cellHtml).match(/title="([^"]*)"/);
+    return m ? m[1] : "";
+  }
+
+  // Parses the runtime % column (aData[2]) of a report row into a number,
+  // or null when it isn't numeric (e.g. "-" for untracked files).
+  function rowRuntime(aData) {
+    var n = parseFloat(String(aData[2]));
+    return isNaN(n) ? null : n;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function csvFilename(date) {
+    return "coverband-dead-code-" + date.toISOString().slice(0, 10) + ".csv";
+  }
+
   return {
     emptyState: emptyState,
     parseState: parseState,
     pathMatches: pathMatches,
     isExcluded: isExcluded,
+    isExcludedIgnoringMarks: isExcludedIgnoringMarks,
     addHidden: addHidden,
     removeHidden: removeHidden,
     clearHides: clearHides,
@@ -138,6 +164,10 @@
     updateComment: updateComment,
     clearMarks: clearMarks,
     toCSV: toCSV,
-    segmentPrefixes: segmentPrefixes
+    segmentPrefixes: segmentPrefixes,
+    extractPath: extractPath,
+    rowRuntime: rowRuntime,
+    escapeHtml: escapeHtml,
+    csvFilename: csvFilename
   };
 });

@@ -8,7 +8,7 @@ RuboCop::RakeTask.new
 
 task default: %i[test]
 
-task "test:all": %i[test forked_tests benchmarks:memory benchmarks]
+task "test:all": %i[test test:javascript forked_tests benchmarks:memory benchmarks]
 
 task :test
 require "rake/testtask"
@@ -19,6 +19,11 @@ Rake::TestTask.new(:test) do |test|
   # using test files opposed to pattern as it outputs which files are run
   test.test_files = FileList["test/integration/**/*_test.rb", "test/coverband/**/*_test.rb"]
   test.verbose = true
+end
+
+desc "run the web report's javascript unit tests (node --test)"
+task :"test:javascript" do
+  sh "node --test test/javascript/"
 end
 
 Rake::TestTask.new(:forked_tests) do |test|
