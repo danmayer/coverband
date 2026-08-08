@@ -1,3 +1,9 @@
+### 6.2.2
+
+* Feature: Added a dead-code review session to the web report — hide files/folders by hovering any path segment, mark files for deletion with an optional comment, and export marked entries to CSV to drive an out-of-band code-removal process; session state lives in browser localStorage; thanks @obie (#647, #649)
+* Feature: Added `Coverband::Collectors::QueryBurstTracker` to detect N+1/burst SQL patterns per request or job, with configurable query-count and SQL-time thresholds and a new Query Burst Tracker tab in the web UI (#644)
+* Fix: Scoped the `ruby-head` memory-leak benchmark check to only fail on Coverband's own retained objects, fixing CI false positives caused by stdlib/gem string-deduplication artifacts on newer Ruby (#648)
+
 ### 6.2.1
 
 * Fix: Search now includes full filenames hidden by truncation in the web UI; users can search for complete file paths even when displaying truncated versions (#569)
