@@ -23,7 +23,10 @@ end
 
 desc "run the web report's javascript unit tests (node --test)"
 task :"test:javascript" do
-  sh "node --test test/javascript/"
+  # Pass expanded file paths rather than the bare directory: node's
+  # directory-argument handling for --test is inconsistent across versions
+  # (Node 22 fails to find test/javascript/ as a directory in some CI images).
+  sh "node --test #{FileList["test/javascript/*.test.mjs"].join(" ")}"
 end
 
 Rake::TestTask.new(:forked_tests) do |test|
