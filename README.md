@@ -721,13 +721,16 @@ If you submit a change please make sure the tests and benchmarks are passing.
 - **total fail** on front end code, for line for line coverage, because of the precompiled template step basically coverage doesn't work well for `erb`, `slim`, and the like.
   - related it will try to report something, but the line numbers reported for `ERB` files are often off and aren't considered useful. I recommend filtering out .erb using the `config.ignore` option. The default configuration excludes these files
   - **NOTE:** We now have file level coverage for view files, but don't support line level detail
-- **Coverage does NOT work when used alongside Scout APM Auto Instrumentation**
-  - In an environment that uses Scout's `AUTO_INSTRUMENT=true` (usually production or staging) it stops reporting any coverage, it will show one or two files that have been loaded at the start but everything else will show up as having 0% coverage
+- **Scout APM Auto Instrumentation** — fixed in Ruby 3.4.10 / 4.0.4, broken on earlier Rubies
+  - **Symptom:** in an environment that uses Scout's auto instruments (usually production or staging) Coverband stops reporting coverage. You will see one or two files loaded at the start, and everything else shows up as 0% / never loaded. This is dangerous: live code, particularly your controllers, gets reported as dead code.
+  - **Cause:** this is a Ruby bug, not a bug in Coverband or Scout. Scout's auto instrumentation installs a `RubyVM::InstructionSequence.load_iseq` hook and loads your files through `RubyVM::InstructionSequence.compile` / `.compile_file`. Until recently those methods did not register a file with the `Coverage` module the way a normal `require` does, so the file was never measured and never even appeared in `Coverage.result`. Note that this affected *every* file loaded while the hook was installed, not just the controllers Scout rewrites, which is why coverage appears to vanish entirely.
+  - **Fix:** upgrade to **Ruby >= 3.4.10 or >= 4.0.4**, which include the fix for [Ruby Bug #22018](https://bugs.ruby-lang.org/issues/22018). Coverband and Scout auto instruments then work together with no configuration changes and no minimum version of either gem. Both `lines` and `oneshot_lines` collection modes are unaffected.
+  - **Workaround for Ruby <= 3.3:** the fix was not backported to Ruby 3.1, 3.2, or 3.3, so on those versions you must disable auto instruments to collect coverage — set `auto_instruments: false` in `scout_apm.yml` or `SCOUT_AUTO_INSTRUMENTS=false` in the environment.
   - Bug tracked here: https://github.com/scoutapp/scout_apm_ruby/issues/343
 - **Coverband, [Elastic APM](https://github.com/elastic/apm-agent-ruby) and resque**
   - In an environment that uses the Elastic APM ruby agent, resque jobs will fail with `Transactions may not be nested. Already inside #<ElasticAPM::Transaction>` if the `elastic-apm` gem is loaded _before_ the `coverband` gem
   - Put `coverage` ahead of `elastic-apm` in your Gemfile
-- **Bootsnap**, The methods used by [bootsnap do not support having coverage enabled](https://github.com/Shopify/bootsnap/blob/main/lib/bootsnap/compile_cache/iseq.rb#L87), so you can either have Coverband or bootsnap, but not both.  
+- **Bootsnap**, you can run bootsnap alongside Coverband, but you lose part of the boot time speedup. [Bootsnap detects that coverage is enabled](https://github.com/Shopify/bootsnap/blob/main/lib/bootsnap/compile_cache/iseq.rb) and disables its `ISeq` compile cache, because a cached instruction sequence would not carry the `Coverage` instrumentation. Bootsnap's other caches (load path, YAML, JSON) are unaffected and keep working.  
 
 ### Debugging Redis Store
 
