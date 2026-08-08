@@ -88,3 +88,36 @@ test("segmentPrefixes splits path into cumulative prefixes", () => {
   ]);
   assert.deepEqual(D.segmentPrefixes("foo.rb"), [{ label: "foo.rb", prefix: "foo.rb", isFile: true }]);
 });
+
+test("isExcludedIgnoringMarks applies hides and runtime rule but never marks", () => {
+  const s = D.emptyState();
+  D.addHidden(s, "app/hidden/");
+  D.addMark(s, "lib/dead.rb", "bye", "2026-08-07T00:00:00Z");
+  assert.ok(D.isExcludedIgnoringMarks(s, "app/hidden/x.rb", 0));
+  assert.ok(!D.isExcludedIgnoringMarks(s, "lib/dead.rb", 0), "marks alone must not exclude");
+  s.hideRuntimeUsed = true;
+  assert.ok(D.isExcludedIgnoringMarks(s, "app/live.rb", 12.5));
+  assert.ok(!D.isExcludedIgnoringMarks(s, "app/unused.rb", 0));
+});
+
+test("extractPath pulls the title attribute out of a rendered cell", () => {
+  assert.equal(D.extractPath('<a class="src_link" title="app/models/foo.rb">foo.rb</a>'), "app/models/foo.rb");
+  assert.equal(D.extractPath("<span>no title here</span>"), "");
+  assert.equal(D.extractPath(42), "");
+});
+
+test("rowRuntime parses the runtime column, null when not numeric", () => {
+  assert.equal(D.rowRuntime(["path", "link", "12.5"]), 12.5);
+  assert.equal(D.rowRuntime(["path", "link", "0"]), 0);
+  assert.equal(D.rowRuntime(["path", "link", "-"]), null);
+  assert.equal(D.rowRuntime(["path", "link", undefined]), null);
+});
+
+test("escapeHtml escapes the five HTML-significant characters", () => {
+  assert.equal(D.escapeHtml('<b>"Tom" & Jerry</b>'), "&lt;b&gt;&quot;Tom&quot; &amp; Jerry&lt;/b&gt;");
+  assert.equal(D.escapeHtml("plain"), "plain");
+});
+
+test("csvFilename embeds the ISO date", () => {
+  assert.equal(D.csvFilename(new Date("2026-08-07T15:04:05Z")), "coverband-dead-code-2026-08-07.csv");
+});

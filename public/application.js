@@ -247,15 +247,8 @@ $(document).ready(function () {
     }
     saveState();
 
-    function extractPath(cellHtml) {
-      var m = String(cellHtml).match(/title="([^"]*)"/);
-      return m ? m[1] : "";
-    }
-
-    function rowRuntime(aData) {
-      var n = parseFloat(String(aData[2]));
-      return isNaN(n) ? null : n;
-    }
+    var extractPath = D.extractPath;
+    var rowRuntime = D.rowRuntime;
 
     // Custom filter: hide rows excluded by the session (DataTables 1.7 API)
     $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
@@ -272,11 +265,10 @@ $(document).ready(function () {
 
     function updateBadges() {
       var hidden = 0;
-      var stateNoMarks = { hiddenPaths: state.hiddenPaths, markedPaths: [], hideRuntimeUsed: state.hideRuntimeUsed };
       $(".file_list").each(function () {
         var data = $(this).dataTable().fnGetData();
         for (var i = 0; i < data.length; i++) {
-          if (D.isExcluded(stateNoMarks, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
+          if (D.isExcludedIgnoringMarks(state, extractPath(data[i][0]), rowRuntime(data[i]))) hidden++;
         }
       });
       $("#dcs-hidden-count").text(hidden + " hidden");
@@ -345,9 +337,7 @@ $(document).ready(function () {
       updateBadges();
     };
 
-    function escapeHtml(s) {
-      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
+    var escapeHtml = D.escapeHtml;
 
     window.deadCodeDecorate = function (oSettings) {
       $(oSettings.nTable).find("tbody td a.src_link").not(".dcs-done").each(function () {
@@ -416,7 +406,7 @@ $(document).ready(function () {
       var blob = new Blob([D.toCSV(state.markedPaths)], { type: "text/csv;charset=utf-8" });
       var a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "coverband-dead-code-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.download = D.csvFilename(new Date());
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
