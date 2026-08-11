@@ -358,6 +358,47 @@ For each tracked key, the Query Burst Tracker reports:
 
 Tip: use this tracker in production-like traffic, where query patterns are most realistic.
 
+### Writing a Custom Tracker
+
+Trackers can be shipped by an application or a separate gem without changing Coverband. A tracker subclasses `Coverband::Collectors::AbstractTracker`, registers itself once when its file is required, and is initialized at Rails boot when its enablement block returns true.
+
+```ruby
+# lib/my_app/coverband/feature_flag_tracker.rb
+class FeatureFlagTracker < Coverband::Collectors::AbstractTracker
+  def railtie!
+    tracker = self
+    ActiveSupport::Notifications.subscribe("feature_flag.my_app") do |_name, _start, _finish, _id, payload|
+      tracker.track_key(payload.fetch(:key))
+    end
+  end
+
+  private
+
+  def concrete_target
+    MyApp::FeatureFlags.all.map(&:key)
+  end
+end
+
+Coverband::Configuration.add_tracker_flag(:track_feature_flags, default: false)
+Coverband::Collectors::TrackerRegistry.register(
+  :feature_flag_tracker,
+  tracker_class: FeatureFlagTracker,
+  enabled: ->(config) { config.track_feature_flags }
+)
+```
+
+Require the tracker before enabling it in `config/coverband.rb`:
+
+```ruby
+require "my_app/coverband/feature_flag_tracker"
+
+Coverband.configure do |config|
+  config.track_feature_flags = true
+end
+```
+
+`tracker_class` may also be a callable that returns a tracker instance when initialization needs to choose an implementation. Registration and enablement are evaluated at boot, not on every request. Duplicate tracker names raise `ArgumentError` so load-order mistakes fail early. Coverband's Query Burst Tracker is a bundled example of the same registration pattern.
+
 ### Hiding settings
 
 Coverband provides a view of all of its current settings. Sometimes you might want to hide this view,

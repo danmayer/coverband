@@ -266,3 +266,9 @@ module Coverband
     end
   end
 end
+
+Coverband::Collectors::TrackerRegistry.register(
+  :query_burst_tracker,
+  tracker_class: Coverband::Collectors::QueryBurstTracker,
+  enabled: ->(config) { config.track_query_bursts }
+)

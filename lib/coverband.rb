@@ -17,6 +17,7 @@ require "coverband/adapters/memcached_store"
 require "coverband/utils/file_hasher"
 require "coverband/collectors/coverage"
 require "coverband/collectors/abstract_tracker"
+require "coverband/collectors/tracker_registry"
 require "coverband/collectors/view_tracker"
 require "coverband/collectors/view_tracker_service"
 require "coverband/collectors/route_tracker"
@@ -109,10 +110,13 @@ module Coverband
   def self.track_key(tracker_type, key)
     return false unless key
 
-    supported_trackers = [:view_tracker, :translations_tracker, :routes_tracker, :query_burst_tracker]
+    aliases = {routes_tracker: :route_tracker}
+    canonical_tracker_type = aliases.fetch(tracker_type, tracker_type)
+    supported_trackers = Coverband::Collectors::TrackerRegistry.names
 
-    unless supported_trackers.include?(tracker_type)
-      raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{supported_trackers.join(", ")}"
+    unless supported_trackers.include?(canonical_tracker_type)
+      display_names = supported_trackers + aliases.keys
+      raise ArgumentError, "Unsupported tracker type: #{tracker_type}. Must be one of: #{display_names.join(", ")}"
     end
 
     begin

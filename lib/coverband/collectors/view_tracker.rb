@@ -144,3 +144,15 @@ module Coverband
     end
   end
 end
+
+Coverband::Collectors::TrackerRegistry.register(
+  :view_tracker,
+  tracker_class: lambda {
+    if Coverband.coverband_service?
+      Coverband::Collectors::ViewTrackerService.new
+    else
+      Coverband::Collectors::ViewTracker.new
+    end
+  },
+  enabled: ->(config) { config.track_views }
+)

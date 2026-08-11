@@ -5,6 +5,18 @@ module Coverband
   # Configuration parsing and options for the coverband gem.
   ###
   class Configuration
+    class << self
+      def add_tracker_flag(name, default: false)
+        name = name.to_sym
+        attr_accessor name
+        dynamic_flag_defaults[name] = default
+      end
+
+      def dynamic_flag_defaults
+        @dynamic_flag_defaults ||= {}
+      end
+    end
+
     attr_accessor :root_paths, :root,
       :verbose,
       :reporter, :redis_namespace, :redis_ttl,
@@ -117,6 +129,9 @@ module Coverband
       @reporting_wiggle = nil
 
       @trackers = []
+      self.class.dynamic_flag_defaults.each do |name, default|
+        instance_variable_set(:"@#{name}", default)
+      end
 
       # TODO: these are deprecated
       @s3_region = nil
@@ -128,28 +143,13 @@ module Coverband
     end
 
     def railtie!
-      if Coverband.configuration.track_routes
-        Coverband.configuration.route_tracker = Coverband::Collectors::RouteTracker.new
-        trackers << Coverband.configuration.route_tracker
-      end
+      Coverband::Collectors::TrackerRegistry.each do |entry|
+        next unless entry.enabled_proc.call(self)
 
-      if Coverband.configuration.track_translations
-        Coverband.configuration.translations_tracker = Coverband::Collectors::TranslationTracker.new
-        trackers << Coverband.configuration.translations_tracker
-      end
-
-      if Coverband.configuration.track_views
-        Coverband.configuration.view_tracker = if Coverband.coverband_service?
-          Coverband::Collectors::ViewTrackerService.new
-        else
-          Coverband::Collectors::ViewTracker.new
-        end
-        trackers << Coverband.configuration.view_tracker
-      end
-
-      if Coverband.configuration.track_query_bursts
-        Coverband.configuration.query_burst_tracker = Coverband::Collectors::QueryBurstTracker.new
-        trackers << Coverband.configuration.query_burst_tracker
+        tracker = build_tracker(entry)
+        setter = :"#{entry.accessor_name}="
+        public_send(setter, tracker) if respond_to?(setter)
+        trackers << tracker
       end
       trackers.each { |tracker| tracker.railtie! }
     rescue Redis::CannotConnectError => e
@@ -379,6 +379,14 @@ module Coverband
     end
 
     private
+
+    def build_tracker(entry)
+      if entry.tracker_class.respond_to?(:call)
+        entry.tracker_class.call
+      else
+        entry.tracker_class.new
+      end
+    end
 
     def redis_store_options
       {ttl: Coverband.configuration.redis_ttl,
