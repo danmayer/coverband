@@ -5,16 +5,14 @@ module Coverband
   # Configuration parsing and options for the coverband gem.
   ###
   class Configuration
-    class << self
-      def add_tracker_flag(name, default: false)
-        name = name.to_sym
-        attr_accessor name
-        dynamic_flag_defaults[name] = default
-      end
+    def self.add_tracker_flag(name, default: false)
+      name = name.to_sym
+      attr_accessor name
+      dynamic_flag_defaults[name] = default
+    end
 
-      def dynamic_flag_defaults
-        @dynamic_flag_defaults ||= {}
-      end
+    def self.dynamic_flag_defaults
+      @dynamic_flag_defaults ||= {}
     end
 
     attr_accessor :root_paths, :root,
@@ -129,6 +127,7 @@ module Coverband
       @reporting_wiggle = nil
 
       @trackers = []
+      @registered_trackers = {}
       self.class.dynamic_flag_defaults.each do |name, default|
         instance_variable_set(:"@#{name}", default)
       end
@@ -147,8 +146,9 @@ module Coverband
         next unless entry.enabled_proc.call(self)
 
         tracker = build_tracker(entry)
-        setter = :"#{entry.accessor_name}="
+        setter = :"#{entry.name}="
         public_send(setter, tracker) if respond_to?(setter)
+        registered_trackers[entry.name] = tracker
         trackers << tracker
       end
       trackers.each { |tracker| tracker.railtie! }
@@ -168,6 +168,13 @@ module Coverband
     # Alias for backward compatibility - track_key uses :routes_tracker symbol
     def routes_tracker
       route_tracker
+    end
+
+    # Look up an initialized tracker by its registered name. Bundled trackers
+    # also have their own accessor, trackers registered by an app or gem only
+    # have this.
+    def tracker_for(name)
+      registered_trackers[name.to_sym]
     end
 
     def password
@@ -380,12 +387,18 @@ module Coverband
 
     private
 
+    def registered_trackers
+      @registered_trackers ||= {}
+    end
+
     def build_tracker(entry)
-      if entry.tracker_class.respond_to?(:call)
+      tracker = if entry.tracker_class.respond_to?(:call)
         entry.tracker_class.call
       else
         entry.tracker_class.new
       end
+      Coverband::Collectors::TrackerRegistry.validate_report_route!(entry.name, tracker.class)
+      tracker
     end
 
     def redis_store_options

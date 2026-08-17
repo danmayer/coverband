@@ -365,6 +365,11 @@ Trackers can be shipped by an application or a separate gem without changing Cov
 ```ruby
 # lib/my_app/coverband/feature_flag_tracker.rb
 class FeatureFlagTracker < Coverband::Collectors::AbstractTracker
+  # required: the path this tracker reports on inside the Coverband web report,
+  # and the label for its tab
+  REPORT_ROUTE = "feature_flag_tracker"
+  TITLE = "Feature Flags"
+
   def railtie!
     tracker = self
     ActiveSupport::Notifications.subscribe("feature_flag.my_app") do |_name, _start, _finish, _id, payload|
@@ -397,7 +402,16 @@ Coverband.configure do |config|
 end
 ```
 
+Every tracker must declare its own `REPORT_ROUTE`. `AbstractTracker`'s default of `"/"` matches every path in the web report, so a tracker that inherits it would answer all of Coverband's own report routes. Registering such a tracker raises `ArgumentError` rather than letting it take over the UI.
+
 `tracker_class` may also be a callable that returns a tracker instance when initialization needs to choose an implementation. Registration and enablement are evaluated at boot, not on every request. Duplicate tracker names raise `ArgumentError` so load-order mistakes fail early. Coverband's Query Burst Tracker is a bundled example of the same registration pattern.
+
+Trackers registered this way have no dedicated `Coverband.configuration` accessor, so reach them by their registered name:
+
+```ruby
+Coverband.configuration.tracker_for(:feature_flag_tracker)
+Coverband.track_key(:feature_flag_tracker, "flags.new_checkout")
+```
 
 ### Hiding settings
 

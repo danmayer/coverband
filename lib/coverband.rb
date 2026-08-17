@@ -103,7 +103,7 @@ module Coverband
   end
 
   # Track a key with the specified tracker.
-  # @param tracker_type [Symbol] The type of tracker to use (e.g., :view_tracker, :translations_tracker, :routes_tracker, :query_burst_tracker)
+  # @param tracker_type [Symbol] The name of any registered tracker (e.g., :view_tracker, :translations_tracker, :routes_tracker, :query_burst_tracker)
   # @param key [String] The key to track
   # @return [Boolean] True if tracking was successful, false otherwise
   # @raise [ArgumentError] If the tracker_type is not supported
@@ -120,7 +120,13 @@ module Coverband
     end
 
     begin
-      tracker = configuration.send(tracker_type)
+      # bundled trackers have their own accessor, trackers registered by an app
+      # or gem are only reachable through the registry
+      tracker = if configuration.respond_to?(tracker_type)
+        configuration.public_send(tracker_type)
+      else
+        configuration.tracker_for(canonical_tracker_type)
+      end
       return false unless tracker&.respond_to?(:track_key)
 
       tracker.track_key(key)

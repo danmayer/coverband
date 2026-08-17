@@ -1,3 +1,7 @@
+### Unreleased
+
+* Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
+
 ### 6.2.2
 
 * Feature: Added a dead-code review session to the web report — hide files/folders by hovering any path segment, mark files for deletion with an optional comment, and export marked entries to CSV to drive an out-of-band code-removal process; session state lives in browser localStorage; thanks @obie (#647, #649)
