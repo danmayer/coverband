@@ -43,6 +43,10 @@ module Coverband
           end
         end
 
+        def pointer_session
+          @session
+        end
+
         def newly_tombstoned
           @session.newly_tombstoned
         end

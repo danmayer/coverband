@@ -33,10 +33,17 @@ module Coverband
           @token = nil
         end
 
+        def pointer_session
+          self
+        end
+
         def entries
           operation do
             @target.hgetall(data_key).reject { |field, _value| field == STARTED_AT_FIELD }
           end
+        rescue => e
+          @logger&.info("Coverband: storage unavailable for #{@key_base}, #{e.class}: #{e.message}")
+          {}
         end
 
         def record(delta)
@@ -83,6 +90,9 @@ module Coverband
             value = @target.hgetall(data_key)[STARTED_AT_FIELD]
             value ? Time.at(value.to_i) : nil
           end
+        rescue => e
+          @logger&.info("Coverband: storage unavailable for #{@key_base}, #{e.class}: #{e.message}")
+          nil
         end
 
         private

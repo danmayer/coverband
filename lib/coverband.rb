@@ -83,6 +83,26 @@ module Coverband
     @@configured
   end
 
+  ###
+  # Reads every generation pointer this reporting cycle will need in one round
+  # trip, rather than one small read per coverage type and tracker.
+  #
+  # Best effort by design: a failure here just means each session reads its own
+  # pointer, and the primed values expire so a session that does not report this
+  # cycle cannot act on a stale one later.
+  ###
+  def self.prefetch_report_pointers!
+    store = configuration.store
+    return unless store.respond_to?(:prefetch_pointers!)
+
+    tracker_sessions = configuration.trackers.map do |tracker|
+      tracker.pointer_session if tracker.respond_to?(:pointer_session)
+    end
+    store.prefetch_pointers!(tracker_sessions)
+  rescue => error
+    configuration.logger&.debug("Coverband: pointer prefetch skipped #{error.class}")
+  end
+
   def self.report_coverage
     coverage_instance.report_coverage
   end

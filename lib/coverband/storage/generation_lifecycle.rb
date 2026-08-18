@@ -38,12 +38,28 @@ module Coverband
         @generation.key
       end
 
+      # a primed pointer older than this is discarded and read fresh instead
+      PRIMED_POINTER_TTL = 5
+
       ###
-      # Hands over a pointer value fetched in a batch. Consumed by the next
-      # generation sync and never reused, so it cannot go stale.
+      # Hands over a pointer value fetched in a batch, for the reporting cycle
+      # that fetched it.
+      #
+      # It expires, and that matters: a session that does not report in the
+      # cycle would otherwise hold the primed value indefinitely, and a reset in
+      # the meantime would send its eventual write into a retired generation
+      # where nothing can read it.
       ###
       def prime_pointer(raw)
         @primed_pointer = raw
+        @primed_at = Time.now.to_i
+      end
+
+      def primed_pointer
+        return nil if @primed_pointer.nil?
+        return nil if (Time.now.to_i - @primed_at.to_i) > PRIMED_POINTER_TTL
+
+        @primed_pointer
       end
 
       private
@@ -72,8 +88,9 @@ module Coverband
         return if @synced
 
         @synced = true
-        result = @generation.resolve(primed: @primed_pointer)
+        result = @generation.resolve(primed: primed_pointer)
         @primed_pointer = nil
+        @primed_at = nil
         @sweep_due = !Array(result.pointer && result.pointer[Generation::RETIRE]).empty?
         @pointer = result.pointer if @sweep_due
 

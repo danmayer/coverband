@@ -24,6 +24,7 @@ module Coverband
       EPOCH = "epoch"
       AT = "at"
       DATA_LOSS_AT = "data_loss_detected_at"
+      DATA_LOSS_KIND = "data_loss_kind"
       SEQ = "seq"
       LAST_SEEN = "last_seen"
 
@@ -122,6 +123,18 @@ module Coverband
 
       def data_loss_at=(time)
         @meta[DATA_LOSS_AT] = time.to_i
+      end
+
+      ###
+      # The kind travels with the timestamp. Without it every loss another
+      # process reads back looks like an eviction, whatever actually happened.
+      ###
+      def data_loss_kind
+        @meta[DATA_LOSS_KIND]
+      end
+
+      def data_loss_kind=(kind)
+        @meta[DATA_LOSS_KIND] = kind.to_s
       end
 
       ###

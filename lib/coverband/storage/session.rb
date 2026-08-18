@@ -26,7 +26,7 @@ module Coverband
       # trip. Each document otherwise pays for its own small pointer read.
       ###
       def self.prefetch_pointers(target, sessions)
-        sessions = Array(sessions).reject { |session| session.nil? }
+        sessions = Array(sessions).compact.select { |session| session.respond_to?(:pointer_key) }
         return if sessions.length < 2
         return unless target.respond_to?(:read_multi)
 
@@ -71,17 +71,19 @@ module Coverband
       end
 
       def generation_token
-        generation
+        safely { generation }
       end
 
       def entries
-        operation { document.payload }
+        safely({}) { operation { document.payload } }
       end
 
       def tracking_since
-        operation do
-          started = document.started_at
-          started ? Time.at(started) : nil
+        safely do
+          operation do
+            started = document.started_at
+            started ? Time.at(started) : nil
+          end
         end
       end
 
@@ -97,10 +99,12 @@ module Coverband
       # nothing for coverage that is really there.
       ###
       def stored_size
-        operation do
-          raw = @target.read(data_key)
-          raw&.to_s&.bytesize
-        end
+        safely {
+          operation {
+            raw = @target.read(data_key)
+            raw&.to_s&.bytesize
+          }
+        }
       end
 
       def enqueue(payload)
@@ -170,11 +174,15 @@ module Coverband
 
           prefix = @writer.contiguous_prefix(watermark)
           if prefix.empty?
+            if @data_loss && !@data_loss_persisted
+              persist_data_loss(doc)
+              write(doc)
+            end
             keep_alive(doc)
             next((confirmed > 0) ? :confirmed : :deferred)
           end
 
-          doc.data_loss_at = @data_loss.at if @data_loss && doc.data_loss_at.nil?
+          persist_data_loss(doc)
           apply(doc, prefix)
           doc.record_watermark(@writer.writer_id, prefix.last.seq, host: @writer.host, pid: @writer.pid)
           doc.started_at!
@@ -269,7 +277,8 @@ module Coverband
         @seen_document = true unless raw.nil?
         # a loss another process recorded is still a loss for this report
         if @data_loss.nil? && doc.data_loss_at
-          @data_loss = DataLoss.new(at: Time.at(doc.data_loss_at), kind: :eviction,
+          @data_loss = DataLoss.new(at: Time.at(doc.data_loss_at),
+            kind: (doc.data_loss_kind || "eviction").to_sym,
             detail: "recorded by another process")
         end
         @observed_tombstone_epoch = doc.tombstone_epoch
@@ -410,11 +419,45 @@ module Coverband
 
       def record_loss(kind, detail)
         @data_loss = DataLoss.new(at: Time.now, kind: kind, detail: detail)
+        @data_loss_persisted = false
         log("data loss (#{kind}) for #{@key_base}: #{detail}")
+      end
+
+      def persist_data_loss(doc)
+        return if @data_loss.nil? || @data_loss_persisted
+
+        doc.data_loss_at = @data_loss.at
+        doc.data_loss_kind = @data_loss.kind
+        @data_loss_persisted = true
       end
 
       def log(message)
         @logger&.info("Coverband: #{message}")
+      end
+
+      ###
+      # A backend that is down, or a Solid Cache table that has not been created
+      # yet, must never raise into the request serving the report. Pending work
+      # is untouched, so the next cycle retries.
+      ###
+      ###
+      # Every way into storage runs through here. A backend that is down, or a
+      # Solid Cache table that has not been created yet, has to log and return
+      # the caller's fallback rather than raise into the request rendering the
+      # report.
+      #
+      # Reads only. Write failures keep propagating to the reporting paths that
+      # already rescue and log them, so their messages do not disappear.
+      ###
+      def safely(fallback = nil)
+        yield
+      rescue => error
+        log_unavailable(error)
+        fallback
+      end
+
+      def log_unavailable(error)
+        log("storage unavailable for #{@key_base}, #{error.class}: #{error.message}")
       end
     end
   end

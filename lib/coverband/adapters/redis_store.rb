@@ -58,7 +58,7 @@ module Coverband
 
         sessions.clear
         @tracker_storage = nil
-        @target = Storage::RedisTarget.new(@redis)
+        @target = Storage::RedisTarget.new(@redis, ttl: @ttl)
       end
 
       ###

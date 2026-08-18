@@ -75,7 +75,7 @@ module Coverband
       end
 
       def create(key, value)
-        return write(key, value) unless atomic_create?
+        return write(key, value, expires_in: nil) unless atomic_create?
 
         IOGuard.guard { target.write(key, value, unless_exist: true, expires_in: nil) }
       end

@@ -52,6 +52,11 @@ module Coverband
           0
         end
 
+        # the generation pointer holder, when this repository has one to batch
+        def pointer_session
+          nil
+        end
+
         # keys another process deleted since the last read, so trackers can drop
         # them from their permanent local dedupe and record them again if used
         def newly_tombstoned

@@ -190,11 +190,14 @@ module Coverband
       end
 
       def clear
-        if Coverband.configuration.web_enable_clear
-          Coverband.configuration.store.clear!
-          notice = "coverband coverage cleared"
+        notice = if Coverband.configuration.web_enable_clear
+          if Coverband.configuration.store.clear! == false
+            "coverage clear failed, the store did not accept the write"
+          else
+            "coverband coverage cleared"
+          end
         else
-          notice = "web_enable_clear isn't enabled in your configuration"
+          "web_enable_clear isn't enabled in your configuration"
         end
         [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end

@@ -98,6 +98,47 @@ module ActiveSupportCacheStoreBehavior
     assert_equal 1, @store.file_count
   end
 
+  ###
+  # A clear whose pointer write did not land has not happened, and the caller
+  # has to be able to tell.
+  ###
+  def test_clear_reports_whether_it_actually_cleared
+    mock_file_hash
+    @store.save_report(basic_coverage)
+    assert_equal true, @store.clear!
+
+    @store.save_report(basic_coverage)
+    cache.stubs(:write).returns(false)
+    assert_equal false, @store.clear!, "a clear that did not land must not report success"
+  end
+
+  ###
+  # An unavailable backend, or a Solid Cache table that has not been created
+  # yet, must never raise into the request serving the report.
+  ###
+  def test_reads_degrade_when_the_backend_is_unavailable
+    mock_file_hash
+    @store.save_report(basic_coverage)
+    cache.stubs(:read).raises(RuntimeError.new("ActiveRecord::StatementInvalid: no such table"))
+
+    assert_equal({}, @store.coverage)
+    assert_nil @store.size
+    assert_equal "N/A", @store.size_in_mib
+    assert_equal 0, @store.file_count
+  end
+
+  ###
+  # Write failures keep reaching the reporting paths that already rescue and
+  # log them, rather than being swallowed here where their messages would be
+  # lost.
+  ###
+  def test_write_failures_reach_the_reporting_path
+    mock_file_hash
+    cache.stubs(:write).raises(RuntimeError.new("ActiveRecord::ConnectionNotEstablished"))
+
+    assert_raises(RuntimeError) { @store.save_report(basic_coverage) }
+  end
+
   def test_capabilities
     assert @store.persistent_coverage?
     assert @store.supports_trackers?

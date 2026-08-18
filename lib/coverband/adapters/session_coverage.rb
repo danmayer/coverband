@@ -25,9 +25,27 @@ module Coverband
         true
       end
 
+      ###
+      # The generation pointers this store will consult, so a reporting cycle
+      # can fetch them in one round trip instead of one small read per document.
+      ###
+      def pointer_sessions
+        Coverband::TYPES.map { |session_type| build_session(session_type) }
+      end
+
+      def prefetch_pointers!(extra_sessions = [])
+        Storage::Session.prefetch_pointers(storage_target, pointer_sessions + Array(extra_sessions))
+      end
+
+      ###
+      # Returns whether every type was actually cleared. A reset whose pointer
+      # write did not land leaves the old generation authoritative, and callers
+      # need to be able to say so rather than reporting success.
+      ###
       def clear!
-        Coverband::TYPES.each { |type| session_for(type).reset }
+        results = Coverband::TYPES.map { |type| session_for(type).reset }
         @cached_file_count = nil
+        results.all?
       end
 
       def clear_file!(filename)
@@ -100,9 +118,7 @@ module Coverband
       ###
       def session_for(local_type)
         local_type ||= type
-        built = Coverband::TYPES.map { |session_type| build_session(session_type) }
-        Storage::Session.prefetch_pointers(storage_target, built) unless @pointers_prefetched
-        @pointers_prefetched = true
+        Coverband::TYPES.each { |session_type| build_session(session_type) }
         build_session(local_type)
       end
 

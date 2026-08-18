@@ -13,8 +13,9 @@ module Coverband
     # offer.
     ###
     class RedisTarget
-      def initialize(redis)
+      def initialize(redis, ttl: nil)
         @redis = redis
+        @ttl = ttl
       end
 
       attr_reader :redis
@@ -32,9 +33,15 @@ module Coverband
         end
       end
 
+      ###
+      # A caller supplied expiry wins; otherwise the store's configured ttl
+      # applies. Pointers pass expires_in: nil deliberately, so a pointer can
+      # never expire out from under a document that is still being refreshed.
+      ###
       def write(key, value, options = {})
-        if options[:expires_in]
-          @redis.set(key, value, ex: options[:expires_in])
+        expiry = options.key?(:expires_in) ? options[:expires_in] : @ttl
+        if expiry
+          @redis.set(key, value, ex: expiry)
         else
           @redis.set(key, value)
         end
@@ -46,6 +53,7 @@ module Coverband
       end
 
       def create(key, value)
+        # deliberately without the store ttl, see #write
         @redis.set(key, value, nx: true)
       end
 

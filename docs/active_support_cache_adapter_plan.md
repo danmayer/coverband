@@ -430,7 +430,10 @@ one more orphaned generation, which the leakage policy below already covers.
 - **This leakage is rate-bounded, not total-bounded.** Each individual path produces orphans
   rarely, but nothing reclaims them, so over many resets and restarts they can accumulate
   **without an upper bound in the absence of key enumeration or cache-wide expiration**. On
-  Redis a `SCAN`-based `rake coverband:clear_orphans` reclaims them by key pattern. On cache
+  Redis a `SCAN`-based `rake coverband:clear_orphans` reclaims them by key pattern — checking
+  each candidate against its pointer immediately before deleting, and skipping recently written
+  generations, since a snapshot taken earlier would let a concurrent reset make the newly
+  authoritative document look like an orphan. On cache
   backends the practical reclaimers are the backend's own expiry (which is why SolidCache's
   `max_age` cuts both ways) or a full `Rails.cache.clear`. Documented as a known operational
   characteristic rather than described as bounded.

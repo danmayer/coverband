@@ -66,6 +66,9 @@ module Coverband
         return {} unless storage
 
         storage.entries
+      rescue => e
+        logger&.error "Coverband: #{self.class.name} failed to read, error #{e.class.name} info #{e.message}"
+        {}
       end
 
       def all_keys
@@ -119,6 +122,11 @@ module Coverband
       ###
       def data_loss
         storage&.data_loss
+      end
+
+      # exposed so a reporting cycle can batch every pointer read it will make
+      def pointer_session
+        storage&.pointer_session
       end
 
       def save_report

@@ -17,6 +17,52 @@ module Coverband
         nil
       end
 
+      ###
+      # A generation key is only garbage while its pointer names something else.
+      #
+      # Deciding that from a snapshot taken earlier is unsafe: a reset between
+      # the snapshot and the delete would make the new, authoritative generation
+      # look like an orphan and take the live document with it. So each
+      # candidate is re-checked against its pointer immediately before deletion,
+      # and generations younger than the grace period are left alone entirely.
+      ###
+      GRACE_SECONDS = 3600
+
+      def self.remove_orphans(redis, format)
+        removed = 0
+
+        redis.scan_each(match: "#{format}*.g*").to_a.uniq.each do |key|
+          base = key[/\A(.*)\.g[^.]*\z/, 1]
+          token = key[/\.g([^.]*)\z/, 1]
+          next unless base && token
+
+          pointer = read_pointer(redis, "#{base}.pointer")
+          # a document whose pointer is gone is unreachable, but it may be a
+          # generation another process is about to point at, so let it age first
+          next if pointer && pointer["token"] == token
+          next if recently_written?(redis, key)
+
+          removed += redis.del(key)
+        end
+
+        removed
+      end
+
+      def self.read_pointer(redis, key)
+        raw = redis.get(key)
+        raw ? JSON.parse(raw) : nil
+      rescue JSON::ParserError
+        nil
+      end
+
+      def self.recently_written?(redis, key)
+        idle = redis.object("idletime", key)
+        idle ? idle < GRACE_SECONDS : true
+      rescue
+        # if we cannot tell how old it is, leave it alone
+        true
+      end
+
       def self.delete_matching(redis, patterns)
         keys = patterns.flat_map { |pattern| redis.scan_each(match: pattern).to_a }.uniq
         keys.any? ? redis.del(*keys) : 0
@@ -267,22 +313,13 @@ namespace :coverband do
     redis = Coverband::Utils::Tasks.redis_for_cleanup
     next unless redis
 
-    format = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
-    live = redis.scan_each(match: "#{format}*.pointer").to_a.uniq.each_with_object({}) do |pointer_key, tokens|
-      pointer = begin
-        JSON.parse(redis.get(pointer_key).to_s)
-      rescue JSON::ParserError
-        nil
-      end
-      next unless pointer
+    formats = [
+      Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION,
+      Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION
+    ].uniq
 
-      base = pointer_key.sub(/\.pointer\z/, "")
-      tokens["#{base}.g#{pointer["token"]}"] = true
-    end
-
-    orphans = redis.scan_each(match: "#{format}*.g*").to_a.uniq.reject { |key| live.key?(key) }
-    redis.del(*orphans) if orphans.any?
-    puts "removed #{orphans.length} orphaned Coverband generation keys"
+    removed = formats.sum { |format| Coverband::Utils::Tasks.remove_orphans(redis, format) }
+    puts "removed #{removed} orphaned Coverband generation keys"
   end
 
   ###

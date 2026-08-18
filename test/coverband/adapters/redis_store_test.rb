@@ -106,6 +106,21 @@ unless ENV["COVERBAND_HASH_REDIS_STORE"]
       assert @store.size > 1
     end
 
+    ###
+    # redis_ttl still defaults to 30 days, so the configured value has to reach
+    # the stored documents. The pointer deliberately never expires: one that
+    # outlived its document would leave live coverage unreachable.
+    ###
+    def test_configured_ttl_applies_to_documents_but_never_pointers
+      mock_file_hash
+      store = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: "ttl_test", ttl: 120)
+      store.save_report(basic_coverage)
+      session = store.send(:session_for, Coverband::RUNTIME_TYPE)
+
+      assert_operator @redis.ttl(session.send(:data_key)), :>, 0
+      assert_equal(-1, @redis.ttl(session.pointer_key), "the pointer must not expire")
+    end
+
     def test_key_base_is_namespaced_per_type
       key = @store.send(:key_base, Coverband::RUNTIME_TYPE)
       assert key.start_with?(REDIS_STORAGE_FORMAT_VERSION)

@@ -335,6 +335,30 @@ module ProtocolConformance
     target.singleton_class.remove_method(:read) if target.singleton_class.method_defined?(:read)
   end
 
+  ###
+  # A prefetched pointer is only good for the cycle that fetched it. A session
+  # that does not report in that cycle would otherwise hold it indefinitely, and
+  # a reset in between would send its eventual write into a retired generation
+  # where nothing can read it.
+  ###
+  def test_a_stale_primed_pointer_is_not_trusted
+    writer = build_session
+    idle = build_session
+    writer.record({"a" => 1})
+
+    # the idle session is handed the pointer, then never reports this cycle
+    Coverband::Storage::Session.prefetch_pointers(target, [writer, idle])
+    assert idle.instance_variable_get(:@primed_pointer), "the batch should have primed it"
+
+    # meanwhile another process resets, and the primed value ages out
+    assert writer.reset
+    idle.instance_variable_set(:@primed_at, Time.now.to_i - 3600)
+
+    idle.record({"b" => 2})
+    assert_equal 2, writer.entries["b"].to_i,
+      "a stale primed pointer must not send the write into a retired generation"
+  end
+
   def test_pending_dropped_by_age_records_data_loss
     session = build_session(max_age: -1)
     session.enqueue({"a" => 1})
@@ -447,6 +471,70 @@ module ProtocolConformance
     target.write(session.send(:data_key), "{not json")
     assert_equal({}, session.entries)
     assert_equal :corrupt_document, session.data_loss.kind
+  end
+
+  ###
+  # A store that is down, or a Solid Cache table that has not been created yet,
+  # must never raise into the request serving the report.
+  ###
+  def test_reads_degrade_when_the_backend_is_unavailable
+    session = build_session
+    session.record({"a" => 1})
+
+    target.define_singleton_method(:read) { |_key| raise "connection refused" }
+
+    assert_equal({}, session.entries)
+    assert_nil session.tracking_since
+    assert_nil session.stored_size
+  ensure
+    target.singleton_class.remove_method(:read) if target.singleton_class.method_defined?(:read)
+  end
+
+  ###
+  # A write the store refuses (rather than raises on) must keep the work, so the
+  # next cycle retries it.
+  ###
+  def test_a_refused_write_keeps_the_work
+    session = build_session
+    session.enqueue({"a" => 1})
+    target.define_singleton_method(:write) { |_key, _value, _options = {}| false }
+
+    assert_equal :failed, session.flush
+    assert_equal 1, session.pending_size, "a refused write must not lose the work"
+  ensure
+    target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)
+  end
+
+  ###
+  # A loss another process can see should say what actually happened, not be
+  # flattened into "eviction".
+  ###
+  def test_persisted_data_loss_keeps_its_classification
+    session = build_session(max_age: -1)
+    session.enqueue({"a" => 1})
+    session.flush # dropped by the age cap
+    assert_equal :pending_dropped, session.data_loss.kind
+
+    observer = build_session
+    observer.entries # the report reads the document, then asks about losses
+    assert_equal :pending_dropped, observer.data_loss&.kind,
+      "another process has to see what kind of loss it was"
+  end
+
+  ###
+  # A quiet document may never write another delta, so a loss recorded against
+  # it has to be able to reach storage on its own.
+  ###
+  def test_data_loss_is_persisted_without_a_following_delta
+    session = build_session
+    session.record({"a" => 1})
+    target.delete(session.send(:data_key))
+    session.entries # notices the eviction
+    session.flush # the next reporting cycle, with nothing new to say
+
+    observer = build_session
+    observer.entries
+    assert_equal :eviction, observer.data_loss&.kind
   end
 
   def test_reports_states_rather_than_outcomes

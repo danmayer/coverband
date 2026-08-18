@@ -93,7 +93,9 @@ module Coverband
         retired = prune_retired(retired).last(RETIRE_LIMIT)
 
         token = SecureRandom.hex(8)
-        written = @target.write(@key, {TOKEN => token, RETIRE => retired}.to_json)
+        # never expires: a pointer that outlived its document would leave the
+        # documents it names unreachable while they are still being written
+        written = @target.write(@key, {TOKEN => token, RETIRE => retired}.to_json, expires_in: nil)
 
         # a pointer write that didn't land is a reset that didn't happen
         return nil unless written
