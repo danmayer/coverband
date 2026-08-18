@@ -24,12 +24,17 @@ module Coverband
         @redis.get(key)
       end
 
+      ###
+      # Keys are expected frozen: Hash#[]= duplicates and freezes an unfrozen
+      # String key, and newer Ruby interns that copy, so it looks like a leak
+      # attributed to this line.
+      ###
       def read_multi(*keys)
         return {} if keys.empty?
 
         values = @redis.mget(*keys)
         keys.each_with_object({}).with_index do |(key, found), index|
-          found[key] = values[index] unless values[index].nil?
+          found[key.frozen? ? key : key.dup.freeze] = values[index] unless values[index].nil?
         end
       end
 

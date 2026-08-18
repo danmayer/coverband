@@ -38,7 +38,13 @@ module Coverband
 
       def initialize(target, key, grace_seconds:)
         @target = target
-        @key = key
+        ###
+        # Frozen because it is used as a Hash key when pointer reads are
+        # batched. Assigning an unfrozen String key makes Ruby allocate a frozen
+        # duplicate, which newer versions intern in a global table: the copy
+        # never goes away, and it is attributed to whoever supplied the key.
+        ###
+        @key = key.dup.freeze
         @grace_seconds = grace_seconds
       end
 

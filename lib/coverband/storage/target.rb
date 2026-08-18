@@ -51,7 +51,8 @@ module Coverband
           else
             keys.each_with_object({}) do |key, found|
               value = target.read(key)
-              found[key] = value unless value.nil?
+              # frozen for the same reason as the Redis target's read_multi
+              found[key.frozen? ? key : key.dup.freeze] = value unless value.nil?
             end
           end
         end
