@@ -3,6 +3,7 @@
 require_relative "document"
 require_relative "generation"
 require_relative "writer"
+require_relative "generation_lifecycle"
 
 module Coverband
   module Storage
@@ -18,6 +19,8 @@ module Coverband
     # retry safety, since re-applying a sum would double count.
     ###
     class Session
+      include GenerationLifecycle
+
       DataLoss = Struct.new(:at, :kind, :detail, keyword_init: true)
 
       DEFAULT_MAX_ENTRIES = 5
@@ -51,7 +54,7 @@ module Coverband
       end
 
       def generation_token
-        operation { @token }
+        generation
       end
 
       def entries
@@ -79,9 +82,14 @@ module Coverband
         end
       end
 
+      ###
+      # An empty payload still needs a flush, to confirm earlier work and let
+      # the keep-alive run, but enqueuing it would advance the watermark and
+      # rewrite the whole document every quiet cycle.
+      ###
       def record(payload)
         operation do
-          enqueue(payload)
+          enqueue(payload) unless payload.nil? || payload.empty?
           flush
         end
       end
@@ -120,7 +128,14 @@ module Coverband
           watermark = resolve_watermark(doc)
 
           confirmed = @writer.confirm_through(watermark)
-          record_dropped(@writer.enforce_caps!)
+
+          dropped = @writer.enforce_caps!
+          if dropped.any?
+            record_dropped(dropped)
+            # the dropped work is gone for good, so step over the hole it left
+            # rather than stalling on it forever
+            @writer.rebase_pending!(watermark)
+          end
 
           prefix = @writer.contiguous_prefix(watermark)
           if prefix.empty?
@@ -202,30 +217,6 @@ module Coverband
         watermark
       end
 
-      ###
-      # One pointer read per public call, not one per internal helper. The
-      # pointer is small, but a report cycle shouldn't pay for it repeatedly.
-      ###
-      def operation
-        outermost = !@in_operation
-        @in_operation = true
-        sync_generation if outermost
-        result = yield
-        if outermost && @sweep_due
-          @generation.sweep(@pointer)
-          @sweep_due = false
-        end
-        result
-      ensure
-        if outermost
-          @in_operation = false
-          @synced = false
-          # the parsed pointer is only needed for the sweep above, and holding
-          # it would retain a copy of the pointer document between reports
-          @pointer = nil
-        end
-      end
-
       def document
         raw = @target.read(data_key)
         doc = Document.parse(raw)
@@ -236,9 +227,15 @@ module Coverband
         elsif raw.nil? && @seen_document
           record_loss(:eviction, "document #{data_key} disappeared")
           @seen_document = false
+          ###
+          # Trackers dedupe locally and forever, so without this the keys they
+          # could still re-report would stay unreported after an eviction.
+          ###
+          @on_generation_change&.call
         end
 
         @seen_document = true unless raw.nil?
+        @observed_tombstone_epoch = doc.tombstone_epoch
         note_tombstones(doc)
         doc
       end
@@ -247,19 +244,29 @@ module Coverband
         seen = @tombstones_seen || 0
         return if doc.tombstone_epoch <= seen
 
-        fresh = doc.tombstones.select { |_key, epoch| epoch.to_i > seen }.keys
+        fresh = doc.tombstone_keys_above(seen)
         @tombstone_notifications = (@tombstone_notifications || []) | fresh
         @tombstones_seen = doc.tombstone_epoch
       end
 
+      ###
+      # The epoch a delta is stamped with when it is enqueued. It has to track
+      # what we have actually seen: a writer holding a stale 0 here would stamp
+      # genuine new observations as pre-delete and have them filtered out.
+      ###
       def observed_tombstone_epoch
-        @observed_tombstone_epoch ||= document.tombstone_epoch
+        @observed_tombstone_epoch || document.tombstone_epoch
       end
 
       def write(doc)
         @observed_tombstone_epoch = doc.tombstone_epoch
         result = @target.write(data_key, doc.to_json)
-        @last_write_at = Time.now.to_i if result
+        if result
+          @last_write_at = Time.now.to_i
+          # we know the document exists now, so a later absence is the backend
+          # dropping it rather than us never having written
+          @seen_document = true
+        end
         result
       end
 
@@ -286,39 +293,53 @@ module Coverband
         @jittered_keep_alive ||= @keep_alive_after + rand(@keep_alive_after / 4)
       end
 
-      def sync_generation
-        return if @synced
-
-        @synced = true
-        result = @generation.resolve
-        @sweep_due = !Array(result.pointer && result.pointer[Generation::RETIRE]).empty?
-        @pointer = result.pointer if @sweep_due
-
-        if @token.nil?
-          @token = result.token
-          @initialized_token = result.initialized
-          return
-        end
-
-        return if result.token == @token
-
-        ###
-        # Two very different reasons the token can change, and they want
-        # opposite handling. An operator reset means drop everything. Losing an
-        # initialization race means our unconfirmed deltas were written to a
-        # generation that can never become authoritative again, so carrying them
-        # forward can't double count.
-        ###
-        if @initialized_token
+      ###
+      # Two very different reasons the token can change, and they want opposite
+      # handling. An operator reset means drop everything. Losing an
+      # initialization race means our unconfirmed deltas went to a generation
+      # that can never become authoritative again, so carrying them forward
+      # cannot double count.
+      #
+      # Telling them apart needs evidence, not a flag: a reset names the token
+      # it retired, and a backend with atomic create cannot produce an
+      # initialization race in the first place. Anything we cannot prove was a
+      # race is treated as a reset, since carrying work across a deliberate
+      # clear is the worse mistake.
+      ###
+      def on_generation_changed(result)
+        if lost_initialization_race?(result.pointer)
           log("lost a pointer initialization race for #{@key_base}, carrying #{@writer.pending_size} deltas forward")
         else
           drop_local_state!
         end
 
-        @token = result.token
         @initialized_token = false
         @seen_document = false
         @observed_tombstone_epoch = nil
+      end
+
+      def on_generation_initialized(result)
+        @initialized_token = result.initialized
+      end
+
+      ###
+      # Reading our own token back as authoritative settles the initialization
+      # race, so a later change is a reset rather than a lost race.
+      ###
+      def on_generation_confirmed(_result)
+        @initialized_token = false
+      end
+
+      def lost_initialization_race?(pointer)
+        return false unless @initialized_token
+        return false if atomic_create_target?
+        return false if @generation.retires?(pointer, @token)
+
+        true
+      end
+
+      def atomic_create_target?
+        @target.respond_to?(:atomic_create?) && @target.atomic_create?
       end
 
       def drop_local_state!
@@ -326,10 +347,6 @@ module Coverband
         @observed_tombstone_epoch = nil
         @seen_document = false
         @on_generation_change&.call
-      end
-
-      def data_key
-        "#{@key_base}.g#{@token}"
       end
 
       def record_dropped(dropped)

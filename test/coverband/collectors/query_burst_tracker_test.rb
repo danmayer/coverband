@@ -59,6 +59,36 @@ class QueryBurstTrackerTest < Minitest::Test
     assert_equal [], subject.used_keys.keys
   end
 
+  ###
+  # Unsaved aggregates live outside the key sets the parent clears, so a reset
+  # that misses them writes pre-reset counters into the new generation.
+  ###
+  test "reset does not carry unsaved counters into the new generation" do
+    subject = tracker
+    subject.track_key(key: "controller:dogs#index", queries: 12, sql_time_ms: 50.0)
+    subject.reset_recordings
+    subject.save_report
+
+    assert_equal({}, subject.used_key_stats)
+  end
+
+  ###
+  # Same for a single key: clearing it must not leave its counters queued to be
+  # written straight back.
+  ###
+  test "clear_key does not leave the cleared key queued" do
+    subject = tracker
+    subject.track_key(key: "controller:dogs#index", queries: 12, sql_time_ms: 50.0)
+    subject.save_report
+    assert_includes subject.used_key_stats.keys, "controller:dogs#index"
+
+    subject.track_key(key: "controller:dogs#index", queries: 3, sql_time_ms: 5.0)
+    subject.clear_key!("controller:dogs#index")
+    subject.save_report
+
+    refute_includes subject.used_key_stats.keys, "controller:dogs#index"
+  end
+
   protected
 
   def fake_store

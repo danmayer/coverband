@@ -126,6 +126,36 @@ module Coverband
         @pending.length
       end
 
+      ###
+      # Renumbers surviving deltas so they sit contiguously above the watermark.
+      #
+      # Dropping a delta at the retention caps otherwise leaves a hole the
+      # prefix can never step over: contiguous_prefix looks for watermark + 1,
+      # finds the dropped sequence missing, and returns nothing on this flush
+      # and every flush after it. The document would silently stop being written.
+      #
+      # Payloads, enqueue times, and observed tombstone epochs are carried
+      # across untouched, since a delta must stay immutable once enqueued.
+      ###
+      def rebase_pending!(watermark)
+        return if @pending.empty?
+
+        next_seq = watermark + 1
+        @pending = @pending.sort_by(&:seq).map do |delta|
+          rebased = Delta.new(
+            seq: next_seq,
+            payload: delta.payload,
+            tombstone_epoch: delta.tombstone_epoch,
+            enqueued_at: delta.enqueued_at,
+            kind: delta.kind,
+            key: delta.key
+          ).freeze
+          next_seq += 1
+          rebased
+        end
+        @seq = next_seq - 1
+      end
+
       def clear_pending!
         @pending.clear
       end

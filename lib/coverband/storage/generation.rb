@@ -109,6 +109,17 @@ module Coverband
         end
       end
 
+      ###
+      # Whether this pointer says the token was retired by a reset. That is what
+      # separates "an operator cleared this" from "we lost an initialization
+      # race", which want opposite handling of unconfirmed work.
+      ###
+      def retires?(pointer, token)
+        return false unless pointer && token
+
+        Array(pointer[RETIRE]).any? { |entry| entry[TOKEN] == token }
+      end
+
       def data_key_for(token)
         "#{@key.sub(/\.pointer\z/, "")}.g#{token}"
       end

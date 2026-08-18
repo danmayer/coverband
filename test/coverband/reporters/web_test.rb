@@ -122,6 +122,34 @@ module Coverband
       latest_index = last_response.body.index("app/views/z_latest.html.erb")
       assert first_index < latest_index
     end
+
+    ###
+    # A reset whose pointer write did not land has not happened. Reporting it as
+    # done leaves the operator believing data is gone when it is not.
+    ###
+    test "failed tracker reset is reported as a failure" do
+      Coverband.configuration.stubs(:web_enable_clear).returns(true)
+      tracker = FakeViewsTracker.new(used_keys: {})
+      tracker.define_singleton_method(:reset_recordings) { false }
+      Coverband.configuration.stubs(:trackers).returns([tracker])
+
+      get "/views_tracker/clear_views"
+
+      assert_equal 302, last_response.status
+      assert_includes last_response.headers["Location"], "failed"
+    end
+
+    test "successful tracker reset is reported as reset" do
+      Coverband.configuration.stubs(:web_enable_clear).returns(true)
+      tracker = FakeViewsTracker.new(used_keys: {})
+      tracker.define_singleton_method(:reset_recordings) { true }
+      Coverband.configuration.stubs(:trackers).returns([tracker])
+
+      get "/views_tracker/clear_views"
+
+      assert_equal 302, last_response.status
+      refute_includes last_response.headers["Location"], "failed"
+    end
   end
 end
 

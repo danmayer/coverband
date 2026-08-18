@@ -144,6 +144,107 @@ module ProtocolConformance
     assert_equal 0, writer.pending_size, "inherited pending would double count"
   end
 
+  ###
+  # Dropping a delta at the caps leaves a hole above the watermark. If the
+  # prefix will not step over it, the document stops being written on this flush
+  # and every flush after it.
+  ###
+  def test_a_dropped_delta_does_not_stall_the_document_forever
+    session = build_session(max_entries: 1)
+    session.enqueue({"a" => 1})
+    session.enqueue({"a" => 2})
+
+    assert_equal :written_unconfirmed, session.flush
+    assert_equal 2, session.entries["a"], "the surviving delta must still land"
+
+    session.enqueue({"a" => 4})
+    assert_equal :written_unconfirmed, session.flush
+    assert_equal 6, session.entries["a"], "later work must keep landing"
+  end
+
+  def test_stepping_over_a_gap_does_not_replay_the_survivor
+    session = build_session(max_entries: 1)
+    session.enqueue({"a" => 1})
+    session.enqueue({"a" => 2})
+    session.flush
+    3.times { session.flush }
+    assert_equal 2, session.entries["a"], "re-flushing must not reapply"
+  end
+
+  ###
+  # Losing an initialization race carries unconfirmed work forward, because the
+  # orphaned generation can never become authoritative. An operator reset must
+  # not be mistaken for that, or pre-reset work lands in the new generation.
+  ###
+  def test_reset_by_another_process_does_not_carry_work_forward
+    writer = build_session
+    operator = build_session
+
+    writer.record({"a" => 1}) # written, still unconfirmed
+    operator.entries # learn the generation the writer initialized
+
+    assert operator.reset
+    writer.flush # the writer only now notices the token changed
+
+    assert_equal({}, writer.entries, "pre-reset work must not land in the new generation")
+  end
+
+  ###
+  # Tombstones outlive the deltas they filter. Pruning by a count of later
+  # deletes let a burst of clears drop a seconds-old tombstone while a stale
+  # delta was still pending.
+  ###
+  def test_tombstones_are_pruned_by_age_not_by_delete_count
+    a = build_session
+    b = build_session
+    a.record({"gone" => 1})
+    b.entries
+    b.enqueue({"gone" => 5}) # stamped pre-delete
+
+    a.delete_entry("gone")
+    1_100.times { |i| a.delete_entry("filler_#{i}") }
+
+    b.flush
+    assert_nil a.entries["gone"], "a burst of clears must not expose the deleted key"
+  end
+
+  ###
+  # Observing someone else's delete has to move the epoch stamped on our next
+  # delta, or genuine later observations are filtered out as pre-delete.
+  ###
+  def test_observing_a_delete_lets_the_key_be_recorded_again
+    a = build_session
+    b = build_session
+    a.record({"key" => 1})
+    b.record({"other" => 1}) # b writes, caching the epoch it saw
+
+    a.delete_entry("key")
+    b.entries # b observes the delete
+
+    b.record({"key" => 9})
+    assert_equal 9, a.entries["key"], "a post-delete observation must be accepted"
+  end
+
+  ###
+  # A quiet tracker should not rewrite its whole document every cycle just to
+  # confirm that nothing changed.
+  ###
+  def test_an_empty_report_does_not_rewrite_the_document
+    session = build_session
+    session.record({"a" => 1})
+    session.flush # confirm
+
+    writes = 0
+    target.define_singleton_method(:write) do |key, value, options = {}|
+      writes += 1
+      super(key, value, options)
+    end
+    5.times { session.record({}) }
+    assert_equal 0, writes, "quiet cycles must not rewrite the document"
+  ensure
+    target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)
+  end
+
   def test_pending_dropped_by_age_records_data_loss
     session = build_session(max_age: -1)
     session.enqueue({"a" => 1})
@@ -231,6 +332,22 @@ module ProtocolConformance
     target.stubs(:write).returns(false)
     assert_equal :failed, session.flush
     assert_equal 1, session.pending_size
+  end
+
+  ###
+  # Trackers dedupe locally and forever. If an eviction does not invalidate that
+  # dedupe, the keys they could still re-report stay unreported.
+  ###
+  def test_eviction_invalidates_local_dedupe
+    invalidated = 0
+    session = build_session(on_generation_change: -> { invalidated += 1 })
+    session.record({"a" => 1})
+
+    target.delete(session.send(:data_key))
+    session.entries
+
+    assert_equal :eviction, session.data_loss.kind
+    assert_equal 1, invalidated, "the tracker has to be told to re-report what it still knows"
   end
 
   def test_corrupt_document_degrades_and_flags_data_loss

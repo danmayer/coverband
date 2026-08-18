@@ -230,11 +230,14 @@ module Coverband
       end
 
       def clear_abstract_tracking(tracker)
-        if Coverband.configuration.web_enable_clear
-          tracker.reset_recordings
-          notice = "#{tracker.title} tracking reset"
+        notice = if !Coverband.configuration.web_enable_clear
+          "web_enable_clear isn't enabled in your configuration"
+        elsif tracker.reset_recordings == false
+          # a reset whose pointer write didn't land hasn't happened, and saying
+          # otherwise leaves the operator believing data is gone when it is not
+          "#{tracker.title} tracking reset failed, the store did not accept the write"
         else
-          notice = "web_enable_clear isn't enabled in your configuration"
+          "#{tracker.title} tracking reset"
         end
         [302, {"Location" => "#{base_path}/#{tracker.route}?notice=#{notice}"}, []]
       end

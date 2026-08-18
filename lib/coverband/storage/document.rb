@@ -21,6 +21,8 @@ module Coverband
       STARTED_AT = "started_at"
       TOMBSTONE_EPOCH = "tombstone_epoch"
       TOMBSTONES = "tombstones"
+      EPOCH = "epoch"
+      AT = "at"
       DATA_LOSS_AT = "data_loss_detected_at"
       SEQ = "seq"
       LAST_SEEN = "last_seen"
@@ -76,19 +78,32 @@ module Coverband
 
       ###
       # A key can only be recreated by a writer that observed the tombstone
-      # first. No wall clock is involved anywhere, so clock skew and same second
-      # granularity can't resurrect a deleted key.
+      # first. The comparison is on epochs, never wall clocks, so clock skew and
+      # same second granularity can't resurrect a deleted key.
+      #
+      # The recorded time is used for pruning only.
       ###
       def tombstoned?(key, observed_epoch)
-        epoch = tombstones[key.to_s]
+        epoch = tombstone_epoch_for(key)
         return false unless epoch
 
-        observed_epoch.to_i < epoch.to_i
+        observed_epoch.to_i < epoch
+      end
+
+      def tombstone_epoch_for(key)
+        entry = tombstones[key.to_s]
+        return nil unless entry
+
+        entry.is_a?(Hash) ? entry[EPOCH].to_i : entry.to_i
+      end
+
+      def tombstone_keys_above(epoch)
+        tombstones.select { |key, _entry| tombstone_epoch_for(key).to_i > epoch.to_i }.keys
       end
 
       def add_tombstone(key)
         @meta[TOMBSTONE_EPOCH] = tombstone_epoch + 1
-        tombstones[key.to_s] = tombstone_epoch
+        tombstones[key.to_s] = {EPOCH => tombstone_epoch, AT => Time.now.to_i}
         @payload.delete(key.to_s)
         tombstone_epoch
       end
@@ -118,12 +133,20 @@ module Coverband
         applied.delete_if { |_id, entry| (now - entry[LAST_SEEN].to_i) > horizon }
         return if tombstone_epoch.zero?
 
-        # tombstones are only needed while a delta old enough to need filtering
-        # could still exist, which the age cap bounds
-        tombstones.delete_if { |_key, epoch| (tombstone_epoch - epoch.to_i) > TOMBSTONE_RETAIN }
+        ###
+        # Elapsed time, not a count of later deletes. Pruning after N deletes
+        # meant a burst of clears could drop a seconds-old tombstone while a
+        # delta stamped before it was still pending and able to resurrect the
+        # key. The caller's horizon is longer than the pending age cap, so a
+        # delta always expires before the tombstone that filters it.
+        ###
+        tombstones.delete_if do |_key, entry|
+          at = entry.is_a?(Hash) ? entry[AT].to_i : 0
+          # entries without a recorded time predate this format; treat them as
+          # current rather than dropping the protection they provide
+          at > 0 && (now - at) > horizon
+        end
       end
-
-      TOMBSTONE_RETAIN = 1000
 
       def to_json(*args)
         {META => @meta, PAYLOAD => @payload}.to_json(*args)

@@ -114,6 +114,26 @@ module Coverband
         false
       end
 
+      ###
+      # Unsaved aggregates live here rather than in the key sets the parent
+      # clears, so the lifecycle hooks have to reach them too. Otherwise counters
+      # accumulated before a reset get written into the new generation, and a
+      # cleared key comes back with its old totals.
+      ###
+      protected
+
+      def drop_local_state!
+        super
+        @pending_stats&.clear
+      end
+
+      public
+
+      def clear_key!(key)
+        @pending_stats&.delete(key.to_s) if key
+        super
+      end
+
       def merger
         @merger ||= lambda do |doc, delta|
           delta.payload.each do |key, stats_json|

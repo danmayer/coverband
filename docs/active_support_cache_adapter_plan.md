@@ -2,7 +2,11 @@
 
 Tracking issue: [#533 Build generic Active Support Cache adapter](https://github.com/danmayer/coverband/issues/533)
 
-Status: **proposed, revision 8** — corrects the Redis `clear_key!` durability claim to
+Status: **implemented, revision 9** — shipped in #652. Revision 9 records what
+review found wrong in the first implementation: a dropped delta must be stepped
+over rather than stalled on, an initialization race has to be proven rather than
+assumed, tombstones need timestamps, and an observed delete has to move the
+enqueue epoch. Previously **proposed, revision 8** — corrects the Redis `clear_key!` durability claim to
 best-effort, restores applied sequences to all whole-document layouts (conflict detection, not
 only retry safety), makes the cleanup queue and orphan leakage honestly best-effort, and
 expands the SolidCache analysis (quiet-document expiry, storage-I/O guard). Targets a **7.0.0
@@ -284,6 +288,14 @@ watermark, pending starting at seq 1) is unambiguous and proceeds.
 | Absolute age | Wall-clock cap, independent of cycle count | Same |
 | Identity rotation | Missing-watermark recovery | New identity, pending dropped, loss recorded |
 
+**"Advance past the gap" is load-bearing, and the first implementation missed
+it.** `contiguous_prefix` looks for `watermark + 1`; if the cap dropped exactly
+that sequence, the prefix is empty on this flush *and every flush after it*, so
+the document silently stops being written forever. Surviving deltas are
+therefore renumbered contiguously above the watermark whenever a drop punches a
+hole — carrying their payloads, enqueue times, and observed tombstone epochs
+across untouched, since a delta stays immutable once enqueued.
+
 The absolute age cap exists because cycle-based bounds say nothing in wall-clock terms — a
 suspended or descheduled process can hold pending state far longer than any cycle count.
 
@@ -310,6 +322,15 @@ For documents written as a whole (all cache documents; Redis coverage and query 
   `tombstone_epoch` its writer had observed. An incoming entry for a tombstoned key is
   accepted only if the delta's observed epoch is `>=` the tombstone's. A stale writer that
   never saw the delete carries a lower epoch and is dropped rather than resurrecting the key.
+- **Tombstones still need a recorded time, for pruning only.** Pruning them by a count of
+  later deletes — as the first implementation did — lets a burst of clears evict a
+  seconds-old tombstone while a delta stamped before it is still pending, which is exactly
+  the resurrection the epoch protects against. The pruning horizon is time based and longer
+  than the pending age cap, so a delta always expires before its filter does.
+- **Observing a delete must move the enqueue epoch.** A writer that cached epoch 0 and then
+  read a document showing epoch 3 has to stamp its *next* delta with 3. Leaving the cached
+  value stale makes that writer's own genuine later observations look pre-delete, so they are
+  filtered out and the key can never be recorded again.
 
 **Observing a tombstone must invalidate local dedupe.** Presence trackers keep keys forever
 in `@logged_keys`, so without this a legitimate future use of a cleared key would never be
@@ -357,6 +378,15 @@ first-cycle data when a writer lost an initialization race. The rule is now spli
   the carried deltas cannot already be counted in the surviving document.
 - If carry-forward is impossible (deltas already dropped by a cap), record data loss.
 
+**Distinguishing the two needs evidence, not a flag.** The first implementation
+tracked "did I create this pointer?" and treated any later token change as a
+race, so an operator reset was misread and pre-reset work was applied to the
+fresh generation. Two facts settle it instead: a reset **names the token it
+retired** in the pointer's cleanup queue, and a backend with **atomic create
+cannot produce an initialization race at all**. Anything not provably a race is
+treated as a reset, because carrying work across a deliberate clear is the worse
+mistake.
+
 #### Cleanup: a bounded queue, not one slot
 
 A single `retire` slot leaked in three ways: a second reset overwrote the first instruction
@@ -399,7 +429,9 @@ one more orphaned generation, which the leakage policy below already covers.
 ### Mechanism 3 — eviction detection
 
 A writer holding a token that finds the pointer or document absent logs a warning, records
-`data_loss_detected_at`, clears local dedupe so its **locally reconstructible state** is
+`data_loss_detected_at`, clears local dedupe — via the same generation-change callback a reset
+uses, which a first implementation neglected to fire, leaving trackers holding `@logged_keys`
+and never re-reporting anything — so its **locally reconstructible state** is
 re-reported **once**, and exposes it for a web UI banner: *"tracker data was lost at
 &lt;time&gt; — results before that point are unavailable."*
 

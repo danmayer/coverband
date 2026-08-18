@@ -2,6 +2,7 @@
 
 require_relative "base"
 require_relative "../../storage/generation"
+require_relative "../../storage/generation_lifecycle"
 
 module Coverband
   module Adapters
@@ -19,6 +20,8 @@ module Coverband
       # are documented as best effort here.
       ###
       class RedisHashRepository < Base
+        include Storage::GenerationLifecycle
+
         STARTED_AT_FIELD = "__coverband_started_at__"
 
         def initialize(target:, key_base:, logger: nil, grace_seconds: 1200, on_generation_change: nil)
@@ -82,46 +85,15 @@ module Coverband
           end
         end
 
-        def generation
-          operation { @token }
-        end
-
         private
-
-        def operation
-          outermost = !@in_operation
-          @in_operation = true
-          sync_generation if outermost
-          result = yield
-          if outermost && @sweep_due
-            @generation.sweep(@pointer)
-            @sweep_due = false
-          end
-          result
-        ensure
-          if outermost
-            @in_operation = false
-            @synced = false
-          end
-        end
 
         def started_at_set?
           @started_at_set ||= !@target.hgetall(data_key)[STARTED_AT_FIELD].nil?
         end
 
-        def sync_generation
-          return if @synced
-
-          @synced = true
-          result = @generation.resolve
-          @pointer = result.pointer
-          @sweep_due = !Array(result.pointer && result.pointer[Storage::Generation::RETIRE]).empty?
-
-          if @token && result.token != @token
-            @started_at_set = false
-            @on_generation_change&.call
-          end
-          @token = result.token
+        def on_generation_changed(_result)
+          @started_at_set = false
+          @on_generation_change&.call
         end
 
         def data_key
