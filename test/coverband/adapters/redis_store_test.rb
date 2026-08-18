@@ -106,8 +106,54 @@ unless ENV["COVERBAND_HASH_REDIS_STORE"]
       assert @store.size > 1
     end
 
-    def test_base_key
-      assert @store.send(:base_key).end_with?(Coverband::RUNTIME_TYPE.to_s)
+    def test_key_base_is_namespaced_per_type
+      key = @store.send(:key_base, Coverband::RUNTIME_TYPE)
+      assert key.start_with?(REDIS_STORAGE_FORMAT_VERSION)
+      assert key.end_with?(Coverband::RUNTIME_TYPE.to_s)
+      refute_equal key, @store.send(:key_base, Coverband::EAGER_TYPE)
+    end
+
+    ###
+    # Data keys hang off a generation token so a reset retires the whole key
+    # rather than racing stale writers for the value inside it.
+    ###
+    def test_data_keys_are_generation_scoped
+      mock_file_hash
+      @store.save_report(basic_coverage)
+      session = @store.send(:session_for, Coverband::RUNTIME_TYPE)
+      assert_match(/\.g[0-9a-f]+\z/, session.send(:data_key))
+    end
+
+    def test_reset_retires_the_generation
+      mock_file_hash
+      @store.save_report(basic_coverage)
+      before = @store.send(:session_for, Coverband::RUNTIME_TYPE).generation_token
+      @store.clear!
+      after = @store.send(:session_for, Coverband::RUNTIME_TYPE).generation_token
+      refute_equal before, after
+      assert_equal({}, @store.coverage)
+    end
+
+    ###
+    # The conflict Coverband has always had: two processes read the same
+    # coverage, both add to it, and the second write drops the first one's
+    # contribution. Applied sequences let the loser notice and re-apply.
+    ###
+    def test_concurrent_writers_converge_without_double_counting
+      mock_file_hash
+      # same namespace, so both writers address the same document
+      other = Coverband::Adapters::RedisStore.new(@redis, redis_namespace: @store.redis_namespace)
+
+      @store.save_report("app_path/dog.rb" => [1, 0, 0])
+      other.save_report("app_path/dog.rb" => [0, 1, 0])
+
+      # settle: any repair happens on a later cycle, and must not inflate
+      3.times do
+        @store.save_report({})
+        other.save_report({})
+      end
+
+      assert_equal [1, 1, 0], @store.coverage["app_path/dog.rb"]["data"]
     end
   end
 end

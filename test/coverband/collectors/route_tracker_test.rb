@@ -6,18 +6,12 @@ class RouterTrackerTest < Minitest::Test
   # NOTE: using struct vs open struct as open struct has a special keyword method that overshadows the method value on Ruby 2.x
   Payload = Struct.new(:path, :method)
 
-  def tracker_key
-    Coverband::Collectors::RouteTracker.expects(:supported_version?).at_least_once.returns(true)
-    Coverband::Collectors::RouteTracker.new.send(:tracker_key)
-  end
-
   def setup
     super
-    fake_store.raw_store.del(tracker_key)
+    Coverband::Collectors::RouteTracker.stubs(:supported_version?).returns(true)
   end
 
   test "init correctly" do
-    Coverband::Collectors::RouteTracker.expects(:supported_version?).returns(true)
     tracker = Coverband::Collectors::RouteTracker.new(store: fake_store, roots: "dir")
     assert_nil tracker.target.first
     assert !tracker.store.nil?
@@ -28,7 +22,6 @@ class RouterTrackerTest < Minitest::Test
   test "track redirect routes" do
     store = fake_store
     route_hash = {controller: nil, action: nil, url_path: "path", verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
 
     payload = {
@@ -60,7 +53,6 @@ class RouterTrackerTest < Minitest::Test
   test "track controller routes in Rails < 6.1" do
     store = fake_store
     route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       params: {"controller" => "some/controller"},
@@ -77,7 +69,6 @@ class RouterTrackerTest < Minitest::Test
   test "track controller routes in Rails >= 6.1" do
     store = fake_store
     route_hash = {controller: "some/controller", action: "index", url_path: nil, verb: "GET"}
-    store.raw_store.expects(:hset).with(tracker_key, {route_hash.to_s => anything})
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     payload = {
       params: {
@@ -172,8 +163,6 @@ class RouterTrackerTest < Minitest::Test
       path: "path",
       method: "GET"
     }
-    store.raw_store.expects(:del).with(tracker_key)
-    store.raw_store.expects(:del).with("#{tracker_key}_time")
     tracker = Coverband::Collectors::RouteTracker.new(store: store, roots: "dir")
     tracker.track_key(payload)
     tracker.reset_recordings
@@ -194,7 +183,7 @@ class RouterTrackerTest < Minitest::Test
     tracker.save_report
     assert_equal [route_hash.to_s], tracker.used_keys.keys
     tracker.clear_key!(route_hash.to_s)
-    assert_equal [], tracker.store.raw_store.hgetall(tracker_key).keys
+    assert_equal [], tracker.used_keys.keys
   end
 
   protected

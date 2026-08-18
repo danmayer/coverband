@@ -68,11 +68,10 @@ module Coverband
       end
 
       def used_keys
-        return {} unless redis_store
+        return {} unless storage
 
-        views = redis_store.hgetall(tracker_key)
         normalized_views = {}
-        views.each_pair do |view, time|
+        storage.entries.each_pair do |view, time|
           normalized_view = normalize_path(view)
           normalized_views[normalized_view] = time
         end
@@ -102,11 +101,12 @@ module Coverband
 
       def clear_key!(filename)
         return unless filename
-        return unless redis_store
+        return unless storage
 
         filename = "#{@project_directory}/#{filename}"
-        redis_store.hdel(tracker_key, filename)
+        storage.delete_entry(filename)
         @logged_keys.delete(filename)
+        @keys_to_record.delete(filename)
       end
 
       private

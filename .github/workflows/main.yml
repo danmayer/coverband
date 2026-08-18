@@ -38,6 +38,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      memcached:
+        image: memcached:1.6
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 2 bash -c '</dev/tcp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
@@ -45,7 +54,13 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - run: bundle exec rake test:all
+        env:
+          # the memcached adapter has an ENV gate so local runs need no service,
+          # which also meant CI never exercised it
+          COVERBAND_MEMCACHED: "true"
       - run: "RUBYOPT='--enable=frozen-string-literal --debug=frozen-string-literal' bundle exec rake"
+        env:
+          COVERBAND_MEMCACHED: "true"
   starndardrb:
     runs-on: ubuntu-latest
     steps:

@@ -55,7 +55,10 @@ Gem::Specification.new do |spec|
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
-  spec.add_development_dependency "dalli" # Default memcached adapter
+  spec.add_development_dependency "dalli" # memcached client for the cache adapter tests
+  # the cache adapter duck types the ActiveSupport::Cache::Store interface and
+  # never requires it, but the tests need real cache stores to run against
+  spec.add_development_dependency "activesupport"
   spec.add_development_dependency "mcp" # For MCP server support testing
 
   # TODO: Remove when other production adapters exist

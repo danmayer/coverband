@@ -1,3 +1,26 @@
+### 7.0.0
+
+**Breaking changes**
+
+* **Coverage and tracker history do not survive this upgrade.** Stored documents now carry the metadata the new merge protocol needs, and keys are scoped by a generation token, so the storage format version changed for both `RedisStore` and the cache adapters. Old keys are ignored rather than migrated, and coverage accumulates fresh from the upgrade. Delete the old `coverband_3_2.*` keys once you are happy with the new data.
+* **`Coverband::Adapters::MemcachedStore` is deprecated** and is now a thin subclass of the new `ActiveSupportCacheStore`. Its `memcached_namespace` option and reader keep working; its stored data is not migrated.
+* **`background_reporting_sleep_seconds` now defaults to 600** for the new cache adapter (`HashRedisStore` still defaults to 300, everything else to 60), because each report rewrites a whole document.
+* `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.
+* `Adapters::Base#get_coverage_report` now reports the receiver's coverage instead of routing through `Coverband.configuration.store`, which quietly returned another store's data when the receiver was not the configured one.
+* `AbstractTracker#redis_store` is deprecated in favor of `#storage`, and trackers no longer reach through the store to raw Redis commands.
+
+**Features**
+
+* Added `Coverband::Adapters::ActiveSupportCacheStore`, which stores coverage in any `ActiveSupport::Cache::Store` — Redis, Memcached, files, or Solid Cache for Postgres/MySQL/SQLite. The cache target can be passed lazily (`ActiveSupportCacheStore.new { Rails.cache }`) so it works from `config/coverband.rb`, where `Rails.cache` does not exist yet (#533)
+* Trackers (views, routes, translations, query bursts) now work on non-Redis stores. They previously reached through the store to raw Redis commands, so file and memcached users got trackers that silently collected nothing and empty web UI tabs
+* Fixed the read-modify-write conflict Coverband has always had on `RedisStore`: concurrent reports could silently drop one process's contribution. Reports are now applied under a per-writer sequence, so a conflicting write is detected and repaired on the next cycle without double counting. `QueryBurstTracker` had the same conflict on its cumulative counters and is fixed the same way
+* Resets are now strong: `clear!` and `reset_recordings` retire a whole generation key, so a straggling write from before the reset cannot undo it
+* Coverband now detects when a backend has dropped its data (cache eviction, `Rails.cache.clear`) and reports it in the web UI rather than silently showing partial numbers
+* Trackers are skipped with an explanatory log line when the configured store cannot support them, instead of collecting nothing
+* Query bursts no longer count Coverband's own storage queries against the surrounding request, which would otherwise inflate query counts on a database backed cache
+* Added `persistent_coverage?`, `supports_trackers?`, and `supports_paged_reports?` capability predicates on adapters, plus `file_count` and `cached_file_count` defaults so non-Redis stores no longer raise from the web UI's datatables path
+* CI now runs a memcached service, so the memcached backed adapter is actually exercised
+
 ### Unreleased
 
 * Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)

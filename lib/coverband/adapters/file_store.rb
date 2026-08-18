@@ -69,6 +69,10 @@ module Coverband
         File.write(path, JSON.dump(data))
       end
 
+      def persistent_coverage?
+        true
+      end
+
       def raw_store
         raise NotImplementedError, "FileStore doesn't support raw_store"
       end

@@ -201,6 +201,28 @@ namespace :coverband do
   end
 
   ###
+  # 7.0 changed the storage format, so the pre-upgrade keys are ignored rather
+  # than migrated. This deletes them once the new data looks right.
+  ###
+  desc "delete Coverband data left behind by pre 7.0 storage formats (Redis only)"
+  task :clear_legacy do
+    store = Coverband.configuration.store
+    unless store.respond_to?(:raw_store) && store.raw_store.respond_to?(:scan_each)
+      puts "Only a Redis backed store can enumerate its own keys."
+      puts "On a cache backed store, clear the cache itself (for example Rails.cache.clear)."
+      next
+    end
+
+    redis = store.raw_store
+    patterns = %w[coverband_3_2* coverband_hash_3_2* *_tracker *_tracker_time]
+    deleted = patterns.sum do |pattern|
+      keys = redis.scan_each(match: pattern).to_a.uniq
+      keys.any? ? redis.del(*keys) : 0
+    end
+    puts "removed #{deleted} legacy Coverband keys"
+  end
+
+  ###
   # clear all coverband trackers data
   ###
   desc "reset Coverband trackers data (view, routes, translations, etc), helpful for development, debugging, etc"

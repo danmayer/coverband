@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "securerandom"
+require_relative "tracker_storage/redis"
 
 module Coverband
   module Adapters
@@ -186,6 +187,24 @@ module Coverband
 
       def raw_store
         @redis
+      end
+
+      def persistent_coverage?
+        true
+      end
+
+      ###
+      # Coverage storage here is unchanged: LUA scripts and per file keys avoid
+      # the merge conflict entirely. Tracker storage is shared across adapters,
+      # so this store picks it up like any other.
+      ###
+      def tracker_storage
+        @tracker_storage ||= TrackerStorage::Redis.new(redis: @redis, namespace: @redis_namespace,
+          format_version: REDIS_STORAGE_FORMAT_VERSION)
+      end
+
+      def supports_paged_reports?
+        true
       end
 
       def size

@@ -35,22 +35,61 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
+      ###
+      # Adapters return bytes as an Integer, or nil when the size isn't
+      # knowable. Presentation lives here, so a store returning the string
+      # "N/A" can't be treated as truthy and reported as 0.00 MiB.
+      ###
       def size_in_mib
-        if size
-          format("%<size>.2f", size: (size.to_f / 2**20))
-        else
-          "N/A"
-        end
+        bytes = size
+        return "N/A" unless bytes.is_a?(Numeric)
+
+        format("%<size>.2f", size: (bytes.to_f / 2**20))
+      end
+
+      ###
+      # Storage backend for the trackers, or nil when this store can't support
+      # them. Trackers are skipped rather than silently collecting nothing.
+      ###
+      def tracker_storage
+        nil
+      end
+
+      def supports_trackers?
+        !tracker_storage.nil?
+      end
+
+      # paginated / single file report loading, HashRedisStore only
+      def supports_paged_reports?
+        false
+      end
+
+      # eligible for the core coverage contract: round trips and can be counted
+      def persistent_coverage?
+        false
+      end
+
+      def file_count
+        coverage(Coverband::RUNTIME_TYPE).keys.length
+      end
+
+      def cached_file_count
+        @cached_file_count ||= file_count
       end
 
       def save_report(_report)
         raise "abstract"
       end
 
+      ###
+      # Reports this adapter's coverage. It used to route through
+      # Coverband.configuration.store, which quietly reported someone else's
+      # data whenever the receiver wasn't the configured store.
+      ###
       def get_coverage_report(options = {})
         coverage_cache = {}
-        data = Coverband.configuration.store.split_coverage(Coverband::TYPES, coverage_cache, options)
-        data.merge(Coverband::MERGED_TYPE => Coverband.configuration.store.merged_coverage(Coverband::TYPES, coverage_cache))
+        data = split_coverage(Coverband::TYPES, coverage_cache, options)
+        data.merge(Coverband::MERGED_TYPE => merged_coverage(Coverband::TYPES, coverage_cache))
       end
 
       def covered_files

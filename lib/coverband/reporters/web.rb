@@ -153,6 +153,7 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
+        notice += data_loss_notice(tracker)
         used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
@@ -209,6 +210,25 @@ module Coverband
         [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
 
+      ###
+      # A cache can drop what we wrote, and a conflicted delta can outlive its
+      # retention caps. Both are repaired as far as they can be, but the numbers
+      # on screen are partial after either, so say so rather than implying the
+      # report is complete.
+      ###
+      def data_loss_notice(tracker)
+        # trackers registered by an app or gem need not implement this
+        return "" unless tracker.respond_to?(:data_loss)
+
+        loss = tracker.data_loss
+        return "" unless loss
+
+        detail = Rack::Utils.escape_html(loss.detail.to_s)
+        "<strong>Notice:</strong> tracker data was lost at #{loss.at.iso8601} " \
+          "(#{Rack::Utils.escape_html(loss.kind.to_s)}): #{detail}. " \
+          "Results before that point are unavailable.<br/>"
+      end
+
       def clear_abstract_tracking(tracker)
         if Coverband.configuration.web_enable_clear
           tracker.reset_recordings
@@ -223,7 +243,7 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           key = request.params["key"]
           tracker.clear_key!(key)
-          notice = "coverage for #{tracker.title} #{key} cleared"
+          notice = "coverage for #{tracker.title} #{key} clear submitted, applied within a reporting cycle"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end

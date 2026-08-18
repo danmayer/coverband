@@ -32,6 +32,16 @@ module Coverband
         @keys_to_record = Set.new
       end
 
+      ###
+      # Whether two recordings of the same key combine to the same result.
+      # Presence trackers merge by taking the later timestamp, so they do; a
+      # tracker accumulating counters must say so, because re-applying a sum
+      # double counts and the storage layer picks its layout accordingly.
+      ###
+      def self.idempotent_merge?
+        true
+      end
+
       def logged_keys
         @logged_keys.to_a
       end
@@ -53,9 +63,9 @@ module Coverband
       end
 
       def used_keys
-        return {} unless redis_store
+        return {} unless storage
 
-        redis_store.hgetall(tracker_key)
+        storage.entries
       end
 
       def all_keys
@@ -76,43 +86,47 @@ module Coverband
       end
 
       def tracking_since
-        return "N/A" unless redis_store
+        return "N/A" unless storage
 
-        if (tracking_time = redis_store.get(tracker_time_key))
-          Time.at(tracking_time.to_i).iso8601
-        else
-          "N/A"
-        end
+        (tracking_time = storage.tracking_since) ? tracking_time.iso8601 : "N/A"
       end
 
       def reset_recordings
-        return unless redis_store
+        return unless storage
 
-        redis_store.del(tracker_key)
-        redis_store.del(tracker_time_key)
+        drop_local_state!
+        storage.reset
       end
 
       def clear_key!(key)
         return unless key
-        return unless redis_store
+        return unless storage
 
-        puts "#{tracker_key} key #{key}"
-        redis_store.hdel(tracker_key, key)
+        storage.delete_entry(key)
         @logged_keys.delete(key)
+        @keys_to_record.delete(key)
+      end
+
+      ###
+      # Data loss the storage layer noticed and repaired as best it could:
+      # eviction, a dropped pending delta, an ambiguous watermark. Surfaced so
+      # the report can say the numbers are partial rather than implying they are
+      # complete.
+      ###
+      def data_loss
+        storage&.data_loss
       end
 
       def save_report
-        return unless redis_store
+        return unless storage
 
-        redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
-        @one_time_timestamp = true
-        reported_time = Time.now.to_i
-        if @keys_to_record.any?
-          redis_store.hset(tracker_key, @keys_to_record.each_with_object({}) { |key, h| h[key.to_s] = reported_time })
-        end
-        @keys_to_record.clear
+        forget_deleted_keys
+        result = storage.record(delta_to_record)
+        # the document repositories keep unconfirmed deltas themselves, so
+        # holding a second copy here would just enqueue duplicates
+        @keys_to_record.clear if storage.retains_pending? || result != :failed
       rescue => e
-        # we don't want to raise errors if Coverband can't reach redis.
+        # we don't want to raise errors if Coverband can't reach its store.
         # This is a nice to have not a bring the system down
         logger&.error "Coverband: #{self.class.name} failed to store, error #{e.class.name} info #{e.message}"
       end
@@ -132,6 +146,29 @@ module Coverband
 
       protected
 
+      def delta_to_record
+        return {} if @keys_to_record.empty?
+
+        reported_time = Time.now.to_i
+        @keys_to_record.each_with_object({}) { |key, hash| hash[key.to_s] = reported_time }
+      end
+
+      ###
+      # A key another process cleared has to leave our dedupe set, or a later
+      # genuine use of it would never be enqueued again.
+      ###
+      def forget_deleted_keys
+        storage.newly_tombstoned.each do |key|
+          @logged_keys.delete_if { |logged| logged.to_s == key }
+          @keys_to_record.delete_if { |pending| pending.to_s == key }
+        end
+      end
+
+      def drop_local_state!
+        @logged_keys.clear
+        @keys_to_record.clear
+      end
+
       def newly_seen_key?(key)
         !@logged_keys.include?(key)
       end
@@ -141,44 +178,54 @@ module Coverband
         @ignore_patterns.none? { |pattern| key.match?(pattern) }
       end
 
+      ###
+      # Presence merging keeps the later of the two timestamps, so applying the
+      # same delta twice changes nothing.
+      ###
+      def merger
+        @merger ||= lambda do |doc, delta|
+          delta.payload.each do |key, value|
+            next if doc.tombstoned?(key, delta.tombstone_epoch)
+
+            existing = doc.payload[key.to_s]
+            doc.payload[key.to_s] = value.to_s if existing.nil? || existing.to_i < value.to_i
+          end
+        end
+      end
+
+      def storage
+        return @storage if defined?(@storage) && @storage
+
+        factory = store.tracker_storage
+        @storage = factory&.for(
+          class_key,
+          merger: merger,
+          idempotent: self.class.idempotent_merge?,
+          logger: logger,
+          on_generation_change: method(:drop_local_state!)
+        )
+      end
+
+      ###
+      # Deprecated: trackers used to reach through the store to raw Redis
+      # commands, which is why only Redis backed stores could track anything.
+      # Kept for a release so out of tree trackers keep working.
+      ###
+      def redis_store
+        Coverband.configuration.logger&.info(
+          "Coverband: #{self.class.name}#redis_store is deprecated, use #storage"
+        )
+        storage
+      end
+
       private
 
       def concrete_target
         raise "subclass must implement"
       end
 
-      def redis_store
-        @redis_store ||= begin
-          store.raw_store
-        rescue NotImplementedError
-          nil
-        end
-      end
-
-      def tracker_time_key_exists?
-        return false unless redis_store
-
-        if defined?(redis_store.exists?)
-          redis_store.exists?(tracker_time_key)
-        else
-          redis_store.exists(tracker_time_key)
-        end
-      end
-
-      def tracker_key
-        "#{class_key}_tracker"
-      end
-
-      def tracker_time_key
-        "#{class_key}_tracker_time"
-      end
-
       def class_key
-        @class_key ||= if Coverband.configuration.redis_namespace
-          "#{Coverband.configuration.redis_namespace}_#{self.class.name.split("::").last}"
-        else
-          self.class.name.split("::").last
-        end
+        @class_key ||= self.class.name.split("::").last
       end
     end
   end

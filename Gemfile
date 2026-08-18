@@ -11,3 +11,8 @@ gem "webrick"
 
 # Required for Ruby 3.4+ (extracted from stdlib)
 gem "cgi"
+
+# ActiveSupport 8.1's MemCacheStore passes positional options to ConnectionPool,
+# which connection_pool 3.x turned into keyword arguments. Pinned so the
+# memcached backed cache adapter tests can actually run.
+gem "connection_pool", "~> 2.5"

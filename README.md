@@ -496,6 +496,44 @@ Coverband on very high volume sites with many server processes reporting can hav
 
 See more discussion [here](https://github.com/danmayer/coverband/issues/384).
 
+### ActiveSupport::Cache Store
+
+Coverband can store coverage in any `ActiveSupport::Cache::Store`, which covers
+Redis, Memcached, files, and — through [Solid Cache](https://github.com/rails/solid_cache) —
+Postgres, MySQL, and SQLite.
+
+```ruby
+# Rails.cache does not exist yet when config/coverband.rb loads, so pass a block
+config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }
+
+# or hand it a store directly
+config.store = Coverband::Adapters::ActiveSupportCacheStore.new(
+  ActiveSupport::Cache::MemCacheStore.new("localhost:11211")
+)
+```
+
+Unlike the previous `MemcachedStore` (now a deprecated subclass of this one),
+this adapter supports the view, route, translation, and query burst trackers.
+
+Things to know before pointing it at a cache:
+
+- **A cache may evict what Coverband writes.** Use a store that will not expire
+  the data: a dedicated Solid Cache database with `max_age: nil` plus a size
+  limit, or a Redis instance with no eviction policy. Coverband detects the loss
+  and reports it in the web UI when it can, but it cannot prevent it.
+- **Memcached's 1MB value limit applies to every document**, trackers included.
+  A large translation or view tracker can exceed it, in which case the write is
+  refused and Coverband logs what could not be stored. Raise the slab limit
+  (`-I`) or use Redis/Solid Cache for large apps.
+- **`ActiveSupport::Cache::MemoryStore` is per process**, so it is only useful
+  for development and tests.
+- **Solid Cache** writes go through ActiveRecord, so size your connection pool
+  for one extra connection per process, and prefer a separate cache database so
+  Coverband's writes do not evict your application's own cached data.
+- For very large multi-process deployments `Coverband::Adapters::HashRedisStore`
+  is still the best option: it avoids write conflicts entirely rather than
+  repairing them.
+
 ### Clear Coverage
 
 Now that Coverband uses MD5 hashes there should be no reason to manually clear coverage unless one is testing, changing versions, or possibly debugging Coverband itself.

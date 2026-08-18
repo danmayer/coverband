@@ -8,18 +8,8 @@ class QueryBurstTrackerTest < Minitest::Test
     Coverband::Collectors::QueryBurstTracker.new(store: fake_store)
   end
 
-  def tracker_key
-    tracker.send(:tracker_key)
-  end
-
-  def tracker_time_key
-    tracker.send(:tracker_time_key)
-  end
-
   def setup
     super
-    fake_store.raw_store.del(tracker_key)
-    fake_store.raw_store.del(tracker_time_key)
   end
 
   test "track key aggregates request SQL stats and threshold hits" do

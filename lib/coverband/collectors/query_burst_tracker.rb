@@ -53,20 +53,18 @@ module Coverband
       end
 
       def used_keys
-        return {} unless redis_store
+        return {} unless storage
 
-        stats_hash = redis_store.hgetall(tracker_key)
-        stats_hash.each_with_object({}) do |(key, stats_json), used|
+        storage.entries.each_with_object({}) do |(key, stats_json), used|
           stats = parse_stats(stats_json)
           used[key] = stats["last_seen"].to_i
         end
       end
 
       def used_key_stats
-        return {} unless redis_store
+        return {} unless storage
 
-        stats_hash = redis_store.hgetall(tracker_key)
-        stats_hash
+        storage.entries
           .transform_values { |stats_json| parse_stats(stats_json) }
           .sort_by { |key, stats| [-stats["threshold_hits"].to_i, -stats["total_sql_time_ms"].to_f, key] }
           .to_h
@@ -91,23 +89,41 @@ module Coverband
         }.to_json
       end
 
+      ###
+      # These stats are cumulative, so a lost update can never be noticed by
+      # reading the total back and re-applying one would double count. The
+      # storage layer's applied sequences are what make the retry safe, which is
+      # also why this tracker can't use the per field Redis hash layout.
+      ###
       def save_report
-        return unless redis_store
+        return unless storage
         return if @pending_stats.empty?
 
-        redis_store.set(tracker_time_key, Time.now.to_i) unless @one_time_timestamp || tracker_time_key_exists?
-        @one_time_timestamp = true
-
-        existing_stats = redis_store.hgetall(tracker_key)
-        merged = @pending_stats.each_with_object({}) do |(key, pending), h|
-          existing = parse_stats(existing_stats[key])
-          h[key] = merge_stats(existing, pending).to_json
-        end
-
-        redis_store.hset(tracker_key, merged) if merged.any?
-        @pending_stats.clear
+        delta = @pending_stats.each_with_object({}) { |(key, stats), h| h[key] = stats.to_json }
+        result = storage.record(delta)
+        @pending_stats.clear if storage.retains_pending? || result != :failed
       rescue => e
         logger&.error "Coverband: #{self.class.name} failed to store, error #{e.class.name} info #{e.message}"
+      end
+
+      ###
+      # Counters sum and maxima take the larger value, so this merge is not
+      # idempotent: applying the same delta twice inflates the totals.
+      ###
+      def self.idempotent_merge?
+        false
+      end
+
+      def merger
+        @merger ||= lambda do |doc, delta|
+          delta.payload.each do |key, stats_json|
+            next if doc.tombstoned?(key, delta.tombstone_epoch)
+
+            existing = parse_stats(doc.payload[key.to_s])
+            incoming = parse_stats(stats_json)
+            doc.payload[key.to_s] = merge_stats(existing, incoming).to_json
+          end
+        end
       end
 
       private
@@ -222,8 +238,15 @@ module Coverband
         Thread.current[CONTEXT_STACK_KEY] ||= []
       end
 
+      ###
+      # With a database backed cache, Coverband's own storage I/O is SQL. Left
+      # unfiltered it lands on whatever controller action or job triggered the
+      # report, inflating its query count and potentially tripping the very
+      # thresholds this tracker exists to detect.
+      ###
       def ignore_sql_event?(payload)
         return true if payload[:cached]
+        return true if Coverband::Storage::IOGuard.active?
 
         name = payload[:name].to_s
         IGNORED_SQL_NAMES.include?(name)

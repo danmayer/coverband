@@ -1,37 +1,47 @@
 # frozen_string_literal: true
 
-require_relative "../storage/redis_target"
+require "json"
+require_relative "../storage/target"
 require_relative "../storage/session"
-require_relative "tracker_storage/redis"
+require_relative "tracker_storage/cache"
 
 module Coverband
   module Adapters
     ###
-    # RedisStore store a merged coverage file to redis
+    # Stores coverage in any ActiveSupport::Cache::Store, which covers Redis,
+    # Memcached, files, and (through Solid Cache) Postgres, MySQL, and SQLite
+    # with one adapter instead of one per backend.
+    #
+    # Coverage counts are additive, so a lost update can't be repaired by
+    # writing again: the merge protocol in Coverband::Storage::Session is what
+    # makes retry safe. See docs/active_support_cache_adapter_plan.md.
+    #
+    # The cache target may be given lazily because Rails.cache does not exist
+    # while config/coverband.rb is loading:
+    #
+    #   config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }
     ###
-    class RedisStore < Base
+    class ActiveSupportCacheStore < Base
       ###
-      # This key isn't related to the coverband version, but to the internal format
-      # used to store data to redis. It is changed only when breaking changes to our
-      # redis format are required.
-      #
-      # Bumped from coverband_3_2 for 7.0: coverage documents now carry the
-      # metadata the merge protocol needs, and keys are generation scoped. There
-      # is no migration; old keys are ignored.
+      # Bumped from coverband_3_2: documents now carry their metadata, and keys
+      # are generation scoped. Old keys are ignored, not migrated.
       ###
-      REDIS_STORAGE_FORMAT_VERSION = "coverband_5_0"
+      STORAGE_FORMAT_VERSION = "coverband_cache_4_0"
 
+      # coverage deltas are large, so they get a tighter pending bound than the
+      # trackers do
       COVERAGE_MAX_ENTRIES = 2
 
-      attr_reader :redis_namespace
+      attr_reader :cache_namespace
 
-      def initialize(redis, opts = {})
+      def initialize(cache = nil, opts = {}, &block)
         super()
-        @redis = redis
-        @ttl = opts[:ttl]
-        @redis_namespace = opts[:redis_namespace]
-        @format_version = REDIS_STORAGE_FORMAT_VERSION
+        @target = Storage::Target.new(cache, &block)
+        @cache_namespace = opts[:cache_namespace] || opts[:memcached_namespace] ||
+          opts[:redis_namespace] || Coverband.configuration.redis_namespace
+        @format_version = self.class::STORAGE_FORMAT_VERSION
         @sessions = {}
+        @ttl = opts[:ttl]
       end
 
       def persistent_coverage?
@@ -39,8 +49,7 @@ module Coverband
       end
 
       def tracker_storage
-        sync_target
-        @tracker_storage ||= TrackerStorage::Redis.new(redis: @redis, namespace: @redis_namespace,
+        @tracker_storage ||= TrackerStorage::Cache.new(target: @target, namespace: @cache_namespace,
           format_version: @format_version)
       end
 
@@ -59,18 +68,14 @@ module Coverband
       end
 
       def size
-        raw = @redis.get(session_for(type).send(:data_key))
-        raw&.bytesize
-      end
-
-      def type=(type)
-        super
-        @cached_file_count = nil
+        raw = @target.read(session_for(type).send(:data_key))
+        raw&.to_s&.bytesize
       end
 
       def coverage(local_type = nil, opts = {})
         local_type ||= opts.key?(:override_type) ? opts[:override_type] : type
-        data = session_for(local_type).entries.dup
+        data = session_for(local_type).entries
+        data = data.dup
         unless opts[:skip_hash_check]
           data.delete_if { |file_path, file_data| file_hash(file_path) != file_data["file_hash"] }
         end
@@ -78,10 +83,10 @@ module Coverband
       end
 
       ###
-      # Coverage counts are additive, so the old read-merge-write could silently
-      # drop a process's contribution when two reported at once. The report is
-      # enqueued as an immutable delta and applied under a per writer sequence,
-      # which makes the retry that repairs the conflict safe to perform.
+      # The report is enqueued as an immutable delta and merged inside the
+      # session. Expanding it here, once, is deliberate: re-expanding on retry
+      # would hand an old delta a fresh timestamp and let it slip past a
+      # tombstone recorded in between.
       ###
       def save_report(report)
         session_for(type).record(expand_report(report.dup))
@@ -93,7 +98,7 @@ module Coverband
       end
 
       def raw_store
-        @redis
+        raise NotImplementedError, "#{self.class.name} doesn't support raw_store, use tracker_storage"
       end
 
       def data_loss
@@ -104,26 +109,15 @@ module Coverband
         coverage(Coverband::RUNTIME_TYPE, skip_hash_check: true).keys.length
       end
 
-      private
-
-      attr_reader :redis
-
-      ###
-      # The client can be swapped after construction, and a different client is
-      # a different database: cached generation tokens and unconfirmed deltas
-      # from the old one would be meaningless against the new one.
-      ###
-      def sync_target
-        return @target if @target && @target.redis.equal?(@redis)
-
-        @sessions.clear
-        @tracker_storage = nil
-        @target = Storage::RedisTarget.new(@redis)
+      def type=(type)
+        super
+        @cached_file_count = nil
       end
+
+      private
 
       def session_for(local_type)
         local_type ||= type
-        sync_target
         @sessions[local_type] ||= Storage::Session.new(
           target: @target,
           key_base: key_base(local_type),
@@ -134,6 +128,11 @@ module Coverband
         )
       end
 
+      ###
+      # Coverage payloads merge by summing line hits, which is why the applied
+      # sequence guard exists: applying the same delta twice would inflate the
+      # counts rather than being a no-op.
+      ###
       def coverage_merger
         @coverage_merger ||= lambda do |doc, delta|
           incoming = delta.payload.reject do |file, _data|
@@ -150,7 +149,7 @@ module Coverband
       end
 
       def key_base(local_type)
-        [@format_version, @redis_namespace, "coverage", local_type].compact.join(".")
+        [@format_version, @cache_namespace, "coverage", local_type].compact.join(".")
       end
     end
   end

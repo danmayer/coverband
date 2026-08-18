@@ -3,14 +3,9 @@
 require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 class ViewTrackerTest < Minitest::Test
-  def tracker_key
-    "coverband_test_ViewTracker_tracker"
-  end
-
   def setup
     super
     Coverband.configuration.ignore += ["app/views/anything/ignore_me.html.erb"]
-    fake_store.raw_store.del(tracker_key)
   end
 
   test "init correctly" do
@@ -26,11 +21,11 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
-    store.raw_store.expects(:hset).with(tracker_key, {file_path => anything})
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(identifier: file_path)
     tracker.save_report
     assert_equal [file_path], tracker.logged_keys
+    assert_equal [file_path], tracker.used_keys.keys
   end
 
   test "track partials that include the word vendor in the path" do
@@ -67,11 +62,11 @@ class ViewTrackerTest < Minitest::Test
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/layout"
-    store.raw_store.expects(:hset).with(tracker_key, {file_path => anything})
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(layout: file_path)
     tracker.save_report
     assert_equal [file_path], tracker.logged_keys
+    assert_equal [file_path], tracker.used_keys.keys
   end
 
   test "report used partials" do
@@ -123,22 +118,28 @@ class ViewTrackerTest < Minitest::Test
   test "reset store" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
-    store.raw_store.expects(:del).with(tracker_key)
-    store.raw_store.expects(:del).with("#{tracker_key}_time")
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
-    tracker.track_key(identifier: "file")
-    tracker.reset_recordings
+    tracker.track_key(identifier: file_path)
+    tracker.save_report
+    assert_equal [file_path], tracker.used_keys.keys
+
+    assert tracker.reset_recordings
+    assert_equal({}, tracker.used_keys)
+    assert_equal "N/A", tracker.tracking_since
+    assert_equal [], tracker.logged_keys
   end
 
   test "clear_key" do
     Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
     store = fake_store
     file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
-    store.raw_store.expects(:hdel).with(tracker_key, file_path)
     tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
     tracker.track_key(identifier: file_path)
+    tracker.save_report
     tracker.clear_key!("file")
     assert_equal [], tracker.logged_keys
+    assert_equal [], tracker.used_keys.keys
   end
 
   test "no-op tracker operations with non-redis stores" do
@@ -153,6 +154,7 @@ class ViewTrackerTest < Minitest::Test
     assert_equal "N/A", tracker.tracking_since
     assert_nil tracker.reset_recordings
     assert_nil tracker.clear_key!("file")
+    assert_nil tracker.data_loss
   end
 
   protected
