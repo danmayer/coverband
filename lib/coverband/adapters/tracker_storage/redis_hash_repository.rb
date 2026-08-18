@@ -3,6 +3,7 @@
 require_relative "base"
 require_relative "../../storage/generation"
 require_relative "../../storage/generation_lifecycle"
+require_relative "../../storage/read_fallback"
 
 module Coverband
   module Adapters
@@ -10,17 +11,15 @@ module Coverband
       ###
       # Presence trackers on Redis, kept on native hash operations.
       #
-      # Their merge is max(timestamp), so re-applying a field is a no-op and
-      # there is nothing to detect: a field written by one process is never
-      # reverted by another's write. That is strictly stronger than any whole
-      # document protocol, so these trackers keep HSET and HDEL.
-      #
-      # The one thing HDEL can't do is stop a delete from being undone by an
-      # HSET that was already queued before it, which is why single key clears
-      # are documented as best effort here.
+      # Their merge is max(timestamp), so re-applying a field is a no-op and a
+      # field written by one process is never reverted by another's write --
+      # strictly stronger than any whole document protocol, so these keep HSET
+      # and HDEL. What HDEL cannot do is stop a delete being undone by an HSET
+      # queued before it, which is why single key clears are best effort.
       ###
       class RedisHashRepository < Base
         include Storage::GenerationLifecycle
+        include Storage::ReadFallback
 
         STARTED_AT_FIELD = "__coverband_started_at__"
 
@@ -43,12 +42,11 @@ module Coverband
         end
 
         def entries
-          operation do
-            @target.hgetall(data_key).reject { |field, _value| field == STARTED_AT_FIELD }
+          safely({}) do
+            operation do
+              @target.hgetall(data_key).reject { |field, _value| field == STARTED_AT_FIELD }
+            end
           end
-        rescue => e
-          @logger&.info("Coverband: storage unavailable for #{@key_base}, #{e.class}: #{e.message}")
-          {}
         end
 
         def record(delta)
@@ -66,11 +64,9 @@ module Coverband
           :failed
         end
 
-        ###
-        # HDEL can't stop an HSET that was queued before it, so a key observed
-        # by another process just before the delete can come back with no
-        # post-delete observation behind it. Best effort, and documented as such.
-        ###
+        # best effort: a key observed by another process just before the delete
+        # can come back with no post-delete observation behind it
+
         def delete_entry(key)
           operation do
             @target.hdel(data_key, key.to_s)
@@ -91,13 +87,12 @@ module Coverband
         end
 
         def tracking_since
-          operation do
-            value = @target.hgetall(data_key)[STARTED_AT_FIELD]
-            value ? Time.at(value.to_i) : nil
+          safely do
+            operation do
+              value = @target.hgetall(data_key)[STARTED_AT_FIELD]
+              value ? Time.at(value.to_i) : nil
+            end
           end
-        rescue => e
-          @logger&.info("Coverband: storage unavailable for #{@key_base}, #{e.class}: #{e.message}")
-          nil
         end
 
         private

@@ -20,8 +20,7 @@ require "coverband/adapters/session_coverage"
 require "coverband/adapters/tracker_storage/base"
 require "coverband/adapters/tracker_storage/document_repository"
 require "coverband/adapters/tracker_storage/redis_hash_repository"
-require "coverband/adapters/tracker_storage/cache"
-require "coverband/adapters/tracker_storage/redis"
+require "coverband/adapters/tracker_storage/factory"
 require "coverband/adapters/redis_store"
 require "coverband/adapters/hash_redis_store"
 require "coverband/adapters/file_store"
@@ -84,17 +83,13 @@ module Coverband
   end
 
   ###
-  # Reads every generation pointer this reporting cycle will need in one round
-  # trip, rather than one small read per coverage type and tracker.
+  # Every generation pointer this cycle will need, in one round trip rather than
+  # one small read per coverage type and tracker. Called from report_coverage,
+  # which every entry point goes through, and trackers report immediately after,
+  # inside the window a primed pointer stays valid for.
   #
-  # Called from report_coverage, which every reporting entry point goes through:
-  # the background loop, at_exit, the middleware, Resque, Rails boot, and direct
-  # calls. Trackers report immediately after, inside the window a primed pointer
-  # stays valid for.
-  #
-  # Best effort by design: a failure here just means each session reads its own
-  # pointer, and the primed values expire so a session that does not report this
-  # cycle cannot act on a stale one later.
+  # Best effort: on failure each session reads its own pointer, and primed values
+  # expire so a session that does not report this cycle cannot act on a stale one.
   ###
   def self.prefetch_report_pointers!
     store = configuration.store
@@ -109,13 +104,10 @@ module Coverband
   end
 
   ###
-  # Drops the transient state a reporting cycle leaves behind: unconfirmed
-  # deltas, and pointers primed by the cycle's batched read, on the store and on
-  # every tracker.
-  #
-  # Trackers matter here as much as the store, since the same batch primes both.
-  # Only for benchmarks and shutdown paths: it forfeits the repair those
-  # unconfirmed deltas exist for.
+  # Drops what a reporting cycle leaves behind -- unconfirmed deltas, and pointers
+  # primed by its batched read -- on the store and on every tracker, since the
+  # same batch primes both. Benchmarks and shutdown only: it forfeits the repair
+  # those unconfirmed deltas exist for.
   ###
   def self.discard_pending!
     store = configuration.store

@@ -3,14 +3,10 @@
 module Coverband
   module Storage
     ###
-    # Presents a Redis client through the same small interface as an
-    # ActiveSupport::Cache store, so the generation pointer and merge protocol
-    # are one implementation rather than two.
-    #
-    # Also exposes the native hash operations, which idempotent presence
-    # trackers keep using: per field writes are never reverted by another
-    # process, which is stronger than anything a whole document protocol can
-    # offer.
+    # A Redis client behind the same small interface as an ActiveSupport::Cache
+    # store, so the generation pointer and merge protocol are one implementation
+    # rather than two. The native hash operations are exposed too, for the
+    # idempotent presence trackers that keep using them.
     ###
     class RedisTarget
       def initialize(redis, ttl: nil)
@@ -24,11 +20,9 @@ module Coverband
         @redis.get(key)
       end
 
-      ###
-      # Keys are expected frozen: Hash#[]= duplicates and freezes an unfrozen
-      # String key, and newer Ruby interns that copy, so it looks like a leak
-      # attributed to this line.
-      ###
+      # keys are expected frozen: Hash#[]= duplicates and freezes an unfrozen
+      # String key, and newer Ruby interns that copy, which reads as a leak here
+
       def read_multi(*keys)
         return {} if keys.empty?
 
@@ -38,11 +32,10 @@ module Coverband
         end
       end
 
-      ###
-      # A caller supplied expiry wins; otherwise the store's configured ttl
-      # applies. Pointers pass expires_in: nil deliberately, so a pointer can
-      # never expire out from under a document that is still being refreshed.
-      ###
+      # a caller supplied expiry wins, otherwise the store's ttl applies;
+      # pointers pass expires_in: nil so one can never expire out from under a
+      # document that is still being refreshed
+
       def write(key, value, options = {})
         expiry = options.key?(:expires_in) ? options[:expires_in] : @ttl
         if expiry

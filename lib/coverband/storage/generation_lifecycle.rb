@@ -5,16 +5,13 @@ require_relative "generation"
 module Coverband
   module Storage
     ###
-    # Shared generation bookkeeping for anything that stores data under a
-    # generation scoped key.
+    # Shared generation bookkeeping for anything stored under a generation scoped
+    # key: read the pointer once per public call rather than once per helper, run
+    # the delayed sweep with that pointer in hand, and drop it afterwards so it
+    # is not retained between reports.
     #
-    # The rules are small but easy to get subtly wrong in two places: read the
-    # pointer once per public call rather than once per helper, run the delayed
-    # cleanup sweep with the pointer already in hand, and drop the parsed
-    # pointer afterwards so it is not retained between reports.
-    #
-    # The coupling is deliberate but has to be written down, because a mixin
-    # reaching into an includer's instance variables is otherwise guesswork.
+    # A mixin reaching into an includer's instance variables is guesswork unless
+    # the coupling is written down, so:
     #
     # Required of the includer, set before any operation runs:
     #   @generation  a Storage::Generation for this document
@@ -42,13 +39,10 @@ module Coverband
       PRIMED_POINTER_TTL = 5
 
       ###
-      # Hands over a pointer value fetched in a batch, for the reporting cycle
-      # that fetched it.
-      #
-      # It expires, and that matters: a session that does not report in the
-      # cycle would otherwise hold the primed value indefinitely, and a reset in
-      # the meantime would send its eventual write into a retired generation
-      # where nothing can read it.
+      # A pointer value fetched in a batch, for the cycle that fetched it. The
+      # expiry matters: a session that does not report this cycle would otherwise
+      # hold it indefinitely, and a reset in the meantime would send its eventual
+      # write into a retired generation where nothing can read it.
       ###
       def prime_pointer(raw)
         @primed_pointer = raw

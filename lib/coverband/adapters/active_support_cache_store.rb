@@ -3,21 +3,17 @@
 require "json"
 require_relative "../storage/target"
 require_relative "../storage/session"
-require_relative "tracker_storage/cache"
+require_relative "tracker_storage/factory"
 require_relative "session_coverage"
 
 module Coverband
   module Adapters
     ###
-    # Stores coverage in any ActiveSupport::Cache::Store, which covers Redis,
-    # Memcached, files, and (through Solid Cache) Postgres, MySQL, and SQLite
-    # with one adapter instead of one per backend.
+    # Stores coverage in any ActiveSupport::Cache::Store: Redis, Memcached,
+    # files, and through Solid Cache, Postgres, MySQL, and SQLite -- one adapter
+    # instead of one per backend. See docs/active_support_cache_adapter_plan.md.
     #
-    # Coverage counts are additive, so a lost update can't be repaired by
-    # writing again: the merge protocol in Coverband::Storage::Session is what
-    # makes retry safe. See docs/active_support_cache_adapter_plan.md.
-    #
-    # The cache target may be given lazily because Rails.cache does not exist
+    # The cache target may be given lazily, because Rails.cache does not exist
     # while config/coverband.rb is loading:
     #
     #   config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }
@@ -25,10 +21,8 @@ module Coverband
     class ActiveSupportCacheStore < Base
       include SessionCoverage
 
-      ###
-      # Bumped from coverband_3_2: documents now carry their metadata, and keys
-      # are generation scoped. Old keys are ignored, not migrated.
-      ###
+      # bumped from coverband_3_2: documents carry their metadata and keys are
+      # generation scoped, so old keys are ignored rather than migrated
       STORAGE_FORMAT_VERSION = "coverband_cache_4_0"
 
       attr_reader :cache_namespace
@@ -43,7 +37,7 @@ module Coverband
       end
 
       def tracker_storage
-        @tracker_storage ||= TrackerStorage::Cache.new(target: @target, namespace: @cache_namespace,
+        @tracker_storage ||= TrackerStorage::Factory.cache(target: @target, namespace: @cache_namespace,
           format_version: @format_version)
       end
 
@@ -53,19 +47,11 @@ module Coverband
 
       private
 
-      ###
-      # Both types are built together on first use. Reporting one type would
-      # otherwise allocate the other's keys later, at an unpredictable moment.
-      ###
       def storage_target
         @target
       end
 
       def coverage_key_base(local_type)
-        key_base(local_type)
-      end
-
-      def key_base(local_type)
         [@format_version, @cache_namespace, "coverage", local_type].compact.join(".")
       end
     end

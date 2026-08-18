@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "securerandom"
-require_relative "tracker_storage/redis"
+require_relative "tracker_storage/factory"
 
 module Coverband
   module Adapters
@@ -199,7 +199,7 @@ module Coverband
       # so this store picks it up like any other.
       ###
       def tracker_storage
-        @tracker_storage ||= TrackerStorage::Redis.new(redis: @redis, namespace: @redis_namespace,
+        @tracker_storage ||= TrackerStorage::Factory.redis(redis: @redis, namespace: @redis_namespace,
           format_version: REDIS_STORAGE_FORMAT_VERSION)
       end
 

@@ -18,13 +18,12 @@ module Coverband
       end
 
       ###
-      # A generation key is only garbage while its pointer names something else.
-      #
-      # Deciding that from a snapshot taken earlier is unsafe: a reset between
-      # the snapshot and the delete would make the new, authoritative generation
-      # look like an orphan and take the live document with it. So each
-      # candidate is re-checked against its pointer immediately before deletion,
-      # and generations younger than the grace period are left alone entirely.
+      # A generation key is only garbage while its pointer names something else,
+      # and deciding that from an earlier snapshot is unsafe: a reset in between
+      # would make the new authoritative generation look like an orphan and take
+      # the live document with it. Each candidate is re-checked against its
+      # pointer immediately before deletion, and anything younger than the grace
+      # period is left alone.
       ###
       GRACE_SECONDS = 3600
 
@@ -37,9 +36,8 @@ module Coverband
           next unless base && token
 
           pointer = read_pointer(redis, "#{base}.pointer")
-          # a document whose pointer is gone is unreachable, but it may be a
-          # generation another process is about to point at, so let it age first
           next if pointer && pointer["token"] == token
+          # it may be a generation another process is about to point at
           next if recently_written?(redis, key)
 
           removed += redis.del(key)
@@ -64,11 +62,9 @@ module Coverband
       end
 
       ###
-      # Formats no adapter writes any more.
-      #
-      # Anything a live adapter still uses is filtered out rather than listed by
-      # hand: getting this list wrong deletes production coverage, and the
-      # adapters already know which formats they own.
+      # Formats no adapter writes any more. What a live adapter still uses is
+      # subtracted rather than trusted to a hand-written list: getting this wrong
+      # deletes production coverage, and the adapters already know what they own.
       ###
       def self.legacy_formats
         current = [
@@ -290,10 +286,9 @@ namespace :coverband do
 
   ###
   # 7.0 changed the storage format, so pre-upgrade keys are ignored rather than
-  # migrated. This deletes them once the new data looks right.
-  #
-  # Scoped to Coverband's own namespaces and tracker names: a bare "*_tracker"
-  # glob would happily delete an application's keys out of the same database.
+  # migrated; this deletes them once the new data looks right. Scoped to
+  # Coverband's own namespaces and tracker names, since a bare "*_tracker" glob
+  # would happily delete an application's keys out of the same database.
   ###
   desc "delete Coverband data left behind by pre 7.0 storage formats (Redis only)"
   task :clear_legacy do
@@ -303,11 +298,6 @@ namespace :coverband do
     namespaces = [Coverband.configuration.redis_namespace, nil].uniq
     trackers = %w[ViewTracker RouteTracker TranslationTracker QueryBurstTracker]
 
-    ###
-    # Only formats nothing writes any more. coverband_hash_4_0 is deliberately
-    # absent: HashRedisStore coverage was left unchanged by 7.0, so it is still
-    # the current format and a glob for it would delete live coverage.
-    ###
     legacy_formats = Coverband::Utils::Tasks.legacy_formats
 
     patterns = legacy_formats.map { |format| "#{format}*" }
@@ -323,13 +313,12 @@ namespace :coverband do
   end
 
   ###
-  # A reset retires a generation by pointing somewhere new, and deletes the old
-  # key. A straggler mid-write can recreate it afterwards, and a cleanup
-  # instruction can be lost when two resets race, so a few orphans accumulate
-  # with nothing to reclaim them.
+  # A reset deletes the key it retires, but a straggler mid-write can recreate it
+  # afterwards, and two racing resets can lose one another's cleanup instruction,
+  # so orphans accumulate with nothing to reclaim them.
   #
-  # Only Redis can enumerate its own keys. On a cache backed store the backend's
-  # own expiry, or clearing the cache, is the equivalent.
+  # Redis only, since only Redis can enumerate its own keys. On a cache backed
+  # store the backend's expiry, or clearing the cache, is the equivalent.
   ###
   desc "delete Coverband generation keys no longer referenced by any pointer (Redis only)"
   task :clear_orphans do

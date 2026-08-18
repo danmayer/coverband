@@ -122,10 +122,10 @@ unless ENV["COVERBAND_HASH_REDIS_STORE"]
     end
 
     def test_key_base_is_namespaced_per_type
-      key = @store.send(:key_base, Coverband::RUNTIME_TYPE)
+      key = @store.send(:coverage_key_base, Coverband::RUNTIME_TYPE)
       assert key.start_with?(REDIS_STORAGE_FORMAT_VERSION)
       assert key.end_with?(Coverband::RUNTIME_TYPE.to_s)
-      refute_equal key, @store.send(:key_base, Coverband::EAGER_TYPE)
+      refute_equal key, @store.send(:coverage_key_base, Coverband::EAGER_TYPE)
     end
 
     ###

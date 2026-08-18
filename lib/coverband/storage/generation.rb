@@ -8,14 +8,13 @@ module Coverband
     ###
     # Per document generation pointer holding an opaque token.
     #
-    # The token lives in the key rather than in the document because a stale
-    # writer can overwrite a value but can't overwrite a key it no longer
-    # addresses. That is what makes reset strong on a last write wins store
-    # without CAS: a reset retires the whole key, and stragglers write to a key
-    # nothing reads.
+    # The token lives in the key, not the document, because a stale writer can
+    # overwrite a value but not a key it no longer addresses. That is what makes
+    # reset strong on a last-write-wins store without CAS: a reset retires the
+    # whole key and stragglers write where nothing reads.
     #
-    # Reporters may initialize an absent pointer. Only reset replaces one that
-    # exists; a reporter re-asserting a token it read earlier would be
+    # Reporters may initialize an absent pointer, but only reset replaces one
+    # that exists: a reporter re-asserting a token it read earlier would be
     # indistinguishable from resurrecting a generation retired in between.
     ###
     class Generation
@@ -27,23 +26,18 @@ module Coverband
       GRACE = 2
 
       ###
-      # pointer rides along so callers can run the sweep without reading again.
-      #
-      # pointer_missing separates "nobody has written this pointer yet" from
-      # "the pointer we were using is gone". A caller already holding a token
-      # needs that distinction: the second case orphans a document that may
-      # still exist, which is data loss worth reporting.
+      # pointer rides along so callers can sweep without reading again.
+      # pointer_missing separates "nobody has written this yet" from "the pointer
+      # we were using is gone" -- the second orphans a document that may still
+      # exist, which is loss worth reporting.
       ###
       Result = Struct.new(:token, :initialized, :pointer, :pointer_missing, keyword_init: true)
 
       def initialize(target, key, grace_seconds:)
         @target = target
-        ###
-        # Frozen because it is used as a Hash key when pointer reads are
-        # batched. Assigning an unfrozen String key makes Ruby allocate a frozen
-        # duplicate, which newer versions intern in a global table: the copy
-        # never goes away, and it is attributed to whoever supplied the key.
-        ###
+        # frozen because it is a Hash key when pointer reads are batched: an
+        # unfrozen String key makes Ruby allocate a frozen duplicate, which newer
+        # versions intern globally and never release
         @key = key.dup.freeze
         @grace_seconds = grace_seconds
       end
@@ -58,11 +52,9 @@ module Coverband
       # Returns the authoritative token, creating one when the pointer is
       # absent. `initialized` tells the caller it created the pointer, which is
       # what separates "I lost an init race" from "an operator reset" later on.
-      ###
-      ###
-      # primed lets a caller hand over a pointer value it already fetched, so a
-      # reporting cycle can read every document's pointer in one round trip
-      # instead of one small read per document.
+      #
+      # `primed` is a pointer value the caller already fetched, so a reporting
+      # cycle can read every document's pointer in one round trip.
       ###
       def resolve(primed: nil)
         return resolve_from(primed) if primed.is_a?(Hash)
@@ -83,12 +75,11 @@ module Coverband
       end
 
       ###
-      # Writes a fresh token without reading it first, so concurrent resets
-      # collapse harmlessly: every one of them is a valid reset.
-      #
-      # Appending to the cleanup queue does need the old pointer, which is why
-      # the queue is best effort. Two concurrent resets can drop one another's
-      # cleanup instruction. Reset itself stays correct; only cleanup suffers.
+      # Writes a fresh token without reading first, so concurrent resets collapse
+      # harmlessly: every one of them is a valid reset. Appending to the cleanup
+      # queue does need the old pointer, so that queue is best effort -- two
+      # concurrent resets can drop one another's instruction. Only cleanup
+      # suffers; reset itself stays correct.
       ###
       def reset!(current_token: nil)
         previous = parse(@target.read(@key))
@@ -101,8 +92,8 @@ module Coverband
         retired = prune_retired(retired).last(RETIRE_LIMIT)
 
         token = SecureRandom.hex(8)
-        # never expires: a pointer that outlived its document would leave the
-        # documents it names unreachable while they are still being written
+        # never expires: a pointer outliving its document would leave the
+        # documents it names unreachable while still being written
         written = @target.write(@key, {TOKEN => token, RETIRE => retired}.to_json, expires_in: nil)
 
         # a pointer write that didn't land is a reset that didn't happen
@@ -113,9 +104,9 @@ module Coverband
       end
 
       ###
-      # Any reporter can run the delayed sweep, because the reset initiator is
-      # often a web request or rake task that has already exited. Deletes are
-      # idempotent, and the window stops them repeating forever. No reporter
+      # Any reporter runs the delayed sweep, because the reset initiator is often
+      # a web request or rake task that has already exited. Deletes are
+      # idempotent and the window stops them repeating forever; no reporter
       # writes the pointer.
       ###
       def sweep(pointer = nil)
@@ -131,22 +122,20 @@ module Coverband
         end
       end
 
-      ###
-      # Whether this pointer says the token was retired by a reset. That is what
-      # separates "an operator cleared this" from "we lost an initialization
-      # race", which want opposite handling of unconfirmed work.
-      ###
+      # whether the pointer says a reset retired this token, which is what
+      # separates an operator clear from a lost initialization race
+
       def retires?(pointer, token)
         return false unless pointer && token
 
         Array(pointer[RETIRE]).any? { |entry| entry[TOKEN] == token }
       end
 
-      ###
-      # A pointer already parsed by a batched read. Priming the parsed value
-      # rather than the raw string means the strings that batch read are not
-      # referenced past the batch itself.
-      ###
+      private
+
+      # a pointer already parsed by a batched read; priming the parsed value
+      # rather than the raw string keeps that read's strings from being
+      # referenced past the batch itself
       def resolve_from(pointer)
         if pointer[TOKEN]
           Result.new(token: pointer[TOKEN], initialized: false, pointer: pointer, pointer_missing: false)
@@ -158,8 +147,6 @@ module Coverband
       def data_key_for(token)
         "#{@key.sub(/\.pointer\z/, "")}.g#{token}"
       end
-
-      private
 
       def prune_retired(entries)
         cutoff = Time.now.to_i - SWEEP_WINDOW

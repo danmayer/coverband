@@ -8,11 +8,10 @@ module Coverband
     # One stored unit: metadata and payload, written together and reverted
     # together.
     #
-    # The co-reversion half matters as much as the co-writing half. A layout
-    # where a stale write can revert the metadata while leaving payload
-    # contributions intact (a Redis hash with metadata in a reserved field)
-    # silently breaks the watermark, so non-idempotent merges must live in a
-    # document like this one.
+    # Co-reversion matters as much as co-writing. A layout where a stale write
+    # reverts the metadata while leaving payload contributions intact (a Redis
+    # hash with metadata in a reserved field) silently breaks the watermark, so
+    # non-idempotent merges have to live in a document like this one.
     ###
     class Document
       META = "meta"
@@ -79,10 +78,9 @@ module Coverband
 
       ###
       # A key can only be recreated by a writer that observed the tombstone
-      # first. The comparison is on epochs, never wall clocks, so clock skew and
-      # same second granularity can't resurrect a deleted key.
-      #
-      # The recorded time is used for pruning only.
+      # first. Compared on epochs, never wall clocks, so clock skew and
+      # same-second granularity can't resurrect a deleted key; the recorded time
+      # is for pruning only.
       ###
       def tombstoned?(key, observed_epoch)
         epoch = tombstone_epoch_for(key)
@@ -125,10 +123,9 @@ module Coverband
         @meta[DATA_LOSS_AT] = time.to_i
       end
 
-      ###
-      # The kind travels with the timestamp. Without it every loss another
-      # process reads back looks like an eviction, whatever actually happened.
-      ###
+      # travels with the timestamp; without it every loss another process reads
+      # back looks like an eviction, whatever actually happened
+
       def data_loss_kind
         @meta[DATA_LOSS_KIND]
       end
@@ -137,22 +134,17 @@ module Coverband
         @meta[DATA_LOSS_KIND] = kind.to_s
       end
 
-      ###
-      # Pruning has to stay outside the pending age cap, or a delayed delta
-      # could outlive the guard that keeps it from being applied twice.
-      ###
+      # stays outside the pending age cap, or a delayed delta could outlive the
+      # guard that keeps it from being applied twice
+
       def prune!(horizon:)
         now = Time.now.to_i
         applied.delete_if { |_id, entry| (now - entry[LAST_SEEN].to_i) > horizon }
         return if tombstone_epoch.zero?
 
-        ###
-        # Elapsed time, not a count of later deletes. Pruning after N deletes
-        # meant a burst of clears could drop a seconds-old tombstone while a
-        # delta stamped before it was still pending and able to resurrect the
-        # key. The caller's horizon is longer than the pending age cap, so a
-        # delta always expires before the tombstone that filters it.
-        ###
+        # elapsed time, not a count of later deletes: pruning after N deletes let
+        # a burst of clears drop a seconds-old tombstone while a delta stamped
+        # before it was still pending and able to resurrect the key
         tombstones.delete_if do |_key, entry|
           at = entry.is_a?(Hash) ? entry[AT].to_i : 0
           # entries without a recorded time predate this format; treat them as

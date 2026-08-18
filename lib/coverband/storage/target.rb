@@ -5,9 +5,8 @@ require_relative "io_guard"
 module Coverband
   module Storage
     ###
-    # The single choke point where Coverband talks to an ActiveSupport::Cache
-    # store. Everything goes through here so the storage I/O guard covers reads
-    # and deletes, not only writes.
+    # The one place Coverband talks to an ActiveSupport::Cache store, so the
+    # storage I/O guard covers reads and deletes, not only writes.
     #
     # The target may be given lazily (a block or callable) because Rails.cache
     # does not exist while config/coverband.rb is loading.
@@ -25,10 +24,9 @@ module Coverband
         @mutex = Mutex.new
       end
 
-      ###
-      # Resolved once, on first use. The mutex is what makes "exactly once"
-      # true when several threads report at the same time on boot.
-      ###
+      # resolved once, on first use; the mutex is what makes that true when
+      # several threads report at the same time on boot
+
       def target
         return @target if @target
 
@@ -58,19 +56,17 @@ module Coverband
         end
       end
 
-      ###
-      # Returns the store's own truthiness. A false write means "not durable"
-      # and callers must retain their pending state, so we never coerce it.
-      ###
+      # the store's own truthiness: a false write means "not durable" and callers
+      # have to retain their pending state, so it is never coerced
+
       def write(key, value, options = {})
         IOGuard.guard { target.write(key, value, {expires_in: nil}.merge(options)) }
       end
 
-      ###
-      # Whether creation is atomic across the processes that matter, not
-      # whether the store accepts the option. MemoryStore and FileStore both
-      # accept unless_exist without giving a usable guarantee.
-      ###
+      # whether creation is atomic across processes, not whether the store
+      # accepts the option: MemoryStore and FileStore accept unless_exist
+      # without giving a usable guarantee
+
       def atomic_create?
         ATOMIC_CREATE_STORES.include?(target.class.name)
       end

@@ -34,9 +34,9 @@ module Coverband
 
       ###
       # Whether two recordings of the same key combine to the same result.
-      # Presence trackers merge by taking the later timestamp, so they do; a
-      # tracker accumulating counters must say so, because re-applying a sum
-      # double counts and the storage layer picks its layout accordingly.
+      # Presence trackers take the later timestamp, so they do; one accumulating
+      # counters has to say so, since re-applying a sum double counts and the
+      # storage layer picks its layout from this.
       ###
       def self.idempotent_merge?
         true
@@ -94,11 +94,10 @@ module Coverband
         (tracking_time = storage.tracking_since) ? tracking_time.iso8601 : "N/A"
       end
 
-      ###
-      # Local state is dropped by the storage layer's generation change
-      # callback, which only fires once the new pointer is durable. Clearing it
-      # here first would throw away unsaved work on a reset that never landed.
-      ###
+      # local state is dropped by the generation change callback, which only
+      # fires once the new pointer is durable; clearing here first would throw
+      # away unsaved work on a reset that never landed
+
       def reset_recordings
         return unless storage
 
@@ -114,12 +113,9 @@ module Coverband
         @keys_to_record.delete(key)
       end
 
-      ###
-      # Data loss the storage layer noticed and repaired as best it could:
-      # eviction, a dropped pending delta, an ambiguous watermark. Surfaced so
-      # the report can say the numbers are partial rather than implying they are
-      # complete.
-      ###
+      # loss the storage layer noticed and repaired as best it could, surfaced so
+      # the report can say the numbers are partial rather than imply they are not
+
       def data_loss
         storage&.data_loss
       end
@@ -165,10 +161,9 @@ module Coverband
         @keys_to_record.each_with_object({}) { |key, hash| hash[key.to_s] = reported_time }
       end
 
-      ###
-      # A key another process cleared has to leave our dedupe set, or a later
-      # genuine use of it would never be enqueued again.
-      ###
+      # a key another process cleared has to leave the dedupe set, or a later
+      # genuine use of it would never be enqueued again
+
       def forget_deleted_keys
         storage.newly_tombstoned.each do |key|
           @logged_keys.delete_if { |logged| logged.to_s == key }
@@ -178,9 +173,8 @@ module Coverband
 
       ###
       # A reset means the operator wants everything gone. An eviction means the
-      # backend lost data this process can still partly reconstruct, so the keys
-      # it already knows about are queued to be reported once more rather than
-      # forgotten along with them.
+      # backend lost data this process can partly reconstruct, so the keys it
+      # already knows are queued to be reported once more rather than forgotten.
       ###
       def drop_local_state!(reason = :reset)
         if reason == :eviction

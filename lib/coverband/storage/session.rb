@@ -4,27 +4,26 @@ require_relative "document"
 require_relative "generation"
 require_relative "writer"
 require_relative "generation_lifecycle"
+require_relative "read_fallback"
 
 module Coverband
   module Storage
     ###
     # Runs the merge protocol for one document.
     #
-    # Conflicting writes are retried idempotently and normally converge while
-    # the originating writer is alive and the delta is still pending. That is
-    # the whole guarantee: conflict is repaired, not prevented.
-    #
-    # Every whole document read modify write layout uses applied sequences for
-    # conflict detection. Non-idempotent layouts additionally depend on them for
-    # retry safety, since re-applying a sum would double count.
+    # Conflict is repaired, not prevented: a clobbered write converges while the
+    # originating writer is alive and its delta is still pending. Applied
+    # sequences are what detect the conflict, and for non-idempotent merges they
+    # are also what makes the retry safe, since re-applying a sum would double
+    # count.
     ###
     class Session
       include GenerationLifecycle
+      include ReadFallback
 
-      ###
-      # Reads every pointer a reporting cycle is about to need in one round
-      # trip. Each document otherwise pays for its own small pointer read.
-      ###
+      # every pointer a reporting cycle needs, in one round trip instead of one
+      # small read per document
+
       def self.prefetch_pointers(target, sessions)
         sessions = Array(sessions).compact.select { |session| session.respond_to?(:pointer_key) }
         return if sessions.length < 2
@@ -35,8 +34,7 @@ module Coverband
           raw = found[session.pointer_key]
           next if raw.nil?
 
-          # parsed once here, so the raw strings this batch read are not held by
-          # anyone after it returns
+          # parsed here so the batch's raw strings are not held after it returns
           parsed = begin
             raw.is_a?(Hash) ? raw : JSON.parse(raw)
           rescue JSON::ParserError
@@ -45,8 +43,7 @@ module Coverband
           session.prime_pointer(parsed) if parsed
         end
       rescue => error
-        # batching is an optimization; a failure here just means each session
-        # reads its own pointer as before
+        # an optimization only: on failure each session reads its own pointer
         Coverband.configuration.logger&.debug("Coverband: pointer prefetch failed #{error.class}")
       end
 
@@ -104,11 +101,9 @@ module Coverband
       end
 
       ###
-      # Bytes of the stored document, or nil when there is nothing stored.
-      #
-      # Goes through the normal operation lifecycle: a freshly built session has
-      # no token yet, so reading its key directly would address ".g" and report
-      # nothing for coverage that is really there.
+      # Bytes stored, or nil for nothing stored. Goes through operation because a
+      # freshly built session has no token yet, and reading its key directly
+      # would address ".g" and report nothing for coverage that is really there.
       ###
       def stored_size
         safely {
@@ -129,11 +124,9 @@ module Coverband
         end
       end
 
-      ###
-      # An empty payload still needs a flush, to confirm earlier work and let
-      # the keep-alive run, but enqueuing it would advance the watermark and
-      # rewrite the whole document every quiet cycle.
-      ###
+      # an empty payload still needs the flush, to confirm earlier work and run
+      # the keep-alive; enqueuing it would rewrite the document every quiet cycle
+
       def record(payload)
         operation do
           enqueue(payload) unless payload.nil? || payload.empty?
@@ -143,9 +136,8 @@ module Coverband
 
       ###
       # A fresh token retires the whole generation, so stragglers write to a key
-      # nothing reads. Returns false when the pointer write didn't land: a reset
-      # that isn't durable must be reported as a failure, never as a silent
-      # partial reset.
+      # nothing reads. False when the pointer write didn't land: a reset that
+      # isn't durable is a failure, never a silent partial reset.
       ###
       def reset
         operation do
@@ -166,9 +158,6 @@ module Coverband
         end
       end
 
-      ###
-      # The six step write algorithm.
-      ###
       def flush
         operation do
           doc = document
@@ -188,8 +177,7 @@ module Coverband
           if prefix.empty?
             if @data_loss && !@data_loss_persisted
               persist_data_loss(doc)
-              # a refused write leaves it unpersisted, so the next cycle retries
-              write(doc)
+              write(doc) # a refused write stays unpersisted and retries next cycle
             end
             keep_alive(doc)
             next((confirmed > 0) ? :confirmed : :deferred)
@@ -204,7 +192,7 @@ module Coverband
           if write(doc)
             :written_unconfirmed
           else
-            # not durable: keep everything pending so the next cycle retries
+            # not durable: everything stays pending for the next cycle
             log("failed to write #{@key_base}, retaining #{@writer.pending_size} pending deltas")
             :failed
           end
@@ -216,16 +204,11 @@ module Coverband
       end
 
       ###
-      # Forfeits unconfirmed deltas. They are held so a conflicting write can be
-      # repaired on the next cycle, so dropping them trades that repair for the
-      # memory. Only for benchmarks and shutdown paths, never during normal
-      # reporting.
-      ###
-      ###
-      # Drops the transient state a reporting cycle accumulates: unconfirmed
-      # deltas, and any pointer primed by the cycle's batched read. Both are
-      # bounded and deliberate, but they are held between cycles, so a leak
-      # check has to be able to put the session back to a quiet baseline.
+      # Drops the state a reporting cycle accumulates: unconfirmed deltas, and
+      # any pointer primed by the cycle's batched read. Both are bounded and
+      # deliberate, but they are held between cycles, so a leak check has to be
+      # able to put the session back to a quiet baseline. Forfeits the repair
+      # those deltas would have done, so it is for benchmarks and shutdown only.
       ###
       def discard_pending!
         @writer.clear_pending!
@@ -233,12 +216,10 @@ module Coverband
       end
 
       ###
-      # Keys another process deleted since we last looked. Presence trackers
-      # keep keys in a permanent local dedupe set, so without this a cleared key
-      # would never be enqueued again no matter how often it is used.
-      #
-      # Drained from what the last document read already told us, so asking
-      # costs nothing.
+      # Keys another process deleted since we last looked, drained from what the
+      # last read already told us. Presence trackers dedupe locally and forever,
+      # so without this a cleared key is never enqueued again however often it
+      # is used.
       ###
       def newly_tombstoned
         drained = @tombstone_notifications || []
@@ -261,12 +242,10 @@ module Coverband
       def resolve_watermark(doc)
         watermark = doc.watermark_for(@writer.writer_id)
 
-        ###
-        # A writer that has seen its own watermark and then finds it gone can't
-        # tell whether its deltas are in the payload. Re-applying could double
-        # count, assuming durability could lose data, so it becomes someone else
-        # and gives up the ambiguous deltas.
-        ###
+        # having seen its own watermark and then found it gone, a writer cannot
+        # tell whether its deltas are in the payload; re-applying could double
+        # count and assuming durability could lose data, so it becomes someone
+        # else and gives up the ambiguous deltas
         if !doc.watermark_present?(@writer.writer_id) && @writer.observed_watermark? && @writer.pending_size > 0
           abandoned = @writer.rotate_identity!
           record_loss(:identity_rotated, "abandoned #{abandoned.length} deltas with an ambiguous watermark")
@@ -287,20 +266,18 @@ module Coverband
         elsif raw.nil? && @seen_document
           record_loss(:eviction, "document #{data_key} disappeared")
           @seen_document = false
-          ###
-          # Trackers dedupe locally and forever, so without this the keys they
-          # could still re-report would stay unreported after an eviction.
-          ###
+          # trackers dedupe locally and forever, so the keys they could still
+          # re-report would stay unreported after an eviction
           @on_generation_change&.call(:eviction)
         end
 
         @seen_document = true unless raw.nil?
-        # a loss another process recorded is still a loss for this report
-        # our own marker read back from storage: now it is durable
+        # our own marker, read back from storage: now it is durable
         if @data_loss && doc.data_loss_at && doc.data_loss_at >= @data_loss.at.to_i
           @data_loss_persisted = true
         end
 
+        # a loss another process recorded is still a loss for this report
         if @data_loss.nil? && doc.data_loss_at
           @data_loss = DataLoss.new(at: Time.at(doc.data_loss_at),
             kind: (doc.data_loss_kind || "eviction").to_sym,
@@ -320,11 +297,9 @@ module Coverband
         @tombstones_seen = doc.tombstone_epoch
       end
 
-      ###
-      # The epoch a delta is stamped with when it is enqueued. It has to track
-      # what we have actually seen: a writer holding a stale 0 here would stamp
-      # genuine new observations as pre-delete and have them filtered out.
-      ###
+      # has to track what we have actually seen: a writer holding a stale 0 would
+      # stamp genuine new observations as pre-delete and have them filtered out
+
       def observed_tombstone_epoch
         @observed_tombstone_epoch || document.tombstone_epoch
       end
@@ -334,8 +309,8 @@ module Coverband
         result = @target.write(data_key, doc.to_json)
         if result
           @last_write_at = Time.now.to_i
-          # we know the document exists now, so a later absence is the backend
-          # dropping it rather than us never having written
+          # it exists now, so a later absence is the backend dropping it rather
+          # than us never having written
           @seen_document = true
         end
         result
@@ -344,8 +319,8 @@ module Coverband
       ###
       # Coverband writes deltas, not heartbeats, so a document that stops seeing
       # new keys stops being written and ages out of a cache that expires by
-      # write age. Touching a document is safe (it is an ordinary empty delta
-      # write the protocol already repairs); touching the pointer is not.
+      # write age. Touching the document is safe -- an ordinary write the
+      # protocol already repairs. Touching the pointer is not.
       ###
       def keep_alive(doc)
         return unless @keep_alive_after
@@ -365,24 +340,19 @@ module Coverband
       end
 
       ###
-      # Two very different reasons the token can change, and they want opposite
-      # handling. An operator reset means drop everything. Losing an
-      # initialization race means our unconfirmed deltas went to a generation
-      # that can never become authoritative again, so carrying them forward
-      # cannot double count.
+      # Two reasons the token can change, wanting opposite handling. An operator
+      # reset means drop everything. A lost initialization race means our deltas
+      # went to a generation that can never become authoritative, so carrying
+      # them forward cannot double count.
       #
-      # Telling them apart needs evidence, not a flag: a reset names the token
-      # it retired, and a backend with atomic create cannot produce an
-      # initialization race in the first place. Anything we cannot prove was a
-      # race is treated as a reset, since carrying work across a deliberate
-      # clear is the worse mistake.
+      # Telling them apart takes evidence, not a flag: a reset names the token it
+      # retired, and a backend with atomic create cannot produce a race at all.
+      # Anything unproven is treated as a reset, since carrying work across a
+      # deliberate clear is the worse mistake.
       ###
       def on_generation_changed(result)
-        ###
-        # The pointer vanished while we were using it. Whatever it addressed may
-        # still be sitting in the backend, unreachable, so the loss is reported
-        # rather than passed off as an ordinary generation change.
-        ###
+        # the pointer vanished while we were using it, so whatever it addressed
+        # may still be in the backend, unreachable: that is loss worth reporting
         if result.pointer_missing
           record_loss(:orphaned_generation, "pointer for #{@key_base} disappeared, generation #{@token} is orphaned")
           @token = result.token
@@ -405,10 +375,9 @@ module Coverband
         @initialized_token = result.initialized
       end
 
-      ###
-      # Reading our own token back as authoritative settles the initialization
-      # race, so a later change is a reset rather than a lost race.
-      ###
+      # reading our own token back settles the initialization race, so a later
+      # change is a reset rather than a lost race
+
       def on_generation_confirmed(_result)
         @initialized_token = false
       end
@@ -429,8 +398,8 @@ module Coverband
         @writer.rotate_identity!
         @observed_tombstone_epoch = nil
         @seen_document = false
-        # epochs restart at zero in a new generation, so remembering a larger
-        # one from the retired generation would ignore its first deletes
+        # epochs restart at zero in a new generation, so a larger remembered one
+        # would ignore the new generation's first deletes
         @tombstones_seen = nil
         @tombstone_notifications = []
         @on_generation_change&.call(reason)
@@ -449,45 +418,15 @@ module Coverband
       end
 
       ###
-      # Stamps the loss onto the document about to be written. It is not marked
-      # persisted here: the write can be refused or clobbered by a stale writer,
-      # and believing it landed would drop the marker for good. Confirmation
-      # comes from reading it back.
+      # Stamps the loss onto the document about to be written, without marking it
+      # persisted: the write can be refused or clobbered, and believing it landed
+      # would drop the marker for good. Confirmation comes from reading it back.
       ###
       def persist_data_loss(doc)
         return if @data_loss.nil? || @data_loss_persisted
 
         doc.data_loss_at = @data_loss.at
         doc.data_loss_kind = @data_loss.kind
-      end
-
-      def log(message)
-        @logger&.info("Coverband: #{message}")
-      end
-
-      ###
-      # A backend that is down, or a Solid Cache table that has not been created
-      # yet, must never raise into the request serving the report. Pending work
-      # is untouched, so the next cycle retries.
-      ###
-      ###
-      # Every way into storage runs through here. A backend that is down, or a
-      # Solid Cache table that has not been created yet, has to log and return
-      # the caller's fallback rather than raise into the request rendering the
-      # report.
-      #
-      # Reads only. Write failures keep propagating to the reporting paths that
-      # already rescue and log them, so their messages do not disappear.
-      ###
-      def safely(fallback = nil)
-        yield
-      rescue => error
-        log_unavailable(error)
-        fallback
-      end
-
-      def log_unavailable(error)
-        log("storage unavailable for #{@key_base}, #{error.class}: #{error.message}")
       end
     end
   end

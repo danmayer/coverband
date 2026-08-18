@@ -10,8 +10,8 @@ module Coverband
     #
     # Identity is a process lifetime nonce, never a hash of hostname and pid:
     # pids get reused, and a restarted process inheriting a dead writer's high
-    # watermark would see its own new low sequences treated as already applied.
-    # host and pid ride along for humans reading the stored document.
+    # watermark would treat its own new low sequences as already applied. host
+    # and pid ride along for humans reading the document.
     ###
     class Writer
       Delta = Struct.new(:seq, :payload, :tombstone_epoch, :enqueued_at, :kind, :key, keyword_init: true)
@@ -45,10 +45,9 @@ module Coverband
 
       attr_reader :pid
 
-      ###
-      # Deltas are frozen at enqueue. Re-expanding one on retry would hand it a
-      # fresh timestamp, letting it slip past a tombstone recorded in between.
-      ###
+      # frozen at enqueue: re-expanding on retry would hand a delta a fresh
+      # timestamp and let it slip past a tombstone recorded in between
+
       def enqueue(payload, tombstone_epoch:, kind: :merge, key: nil)
         check_fork!
         @seq += 1
@@ -64,8 +63,7 @@ module Coverband
         delta
       end
 
-      ###
-      # Everything through the watermark is proven durable, so it can go.
+      # everything through the watermark is proven durable, so it can go
       def confirm_through(seq)
         check_fork!
         confirmed = @pending.count { |delta| delta.seq <= seq }
@@ -74,9 +72,8 @@ module Coverband
       end
 
       ###
-      # The contiguous prefix above the watermark. Stopping at the first gap is
-      # what makes the watermark an invariant rather than a hint: we can never
-      # record seq 2 onto a document that is missing seq 1.
+      # Stopping at the first gap is what makes the watermark an invariant rather
+      # than a hint: seq 2 can never be recorded onto a document missing seq 1.
       ###
       def contiguous_prefix(watermark)
         check_fork!
@@ -91,11 +88,9 @@ module Coverband
         prefix
       end
 
-      ###
-      # Drops whatever has outlived its guard. Returns the dropped deltas so the
-      # caller can record data loss; silently discarding them is what we are
-      # trying to avoid.
-      ###
+      # drops whatever outlived its guard, returning it so the caller can record
+      # the loss rather than discard it silently
+
       def enforce_caps!
         check_fork!
         dropped = []
@@ -127,19 +122,17 @@ module Coverband
       end
 
       ###
-      # Renumbers surviving deltas so they sit contiguously above the watermark.
+      # Renumbers survivors to sit contiguously above the watermark. A delta
+      # dropped at the retention caps otherwise leaves a hole the prefix can
+      # never step over -- contiguous_prefix wants watermark + 1, never finds it,
+      # and the document silently stops being written from then on.
       #
-      # Dropping a delta at the retention caps otherwise leaves a hole the
-      # prefix can never step over: contiguous_prefix looks for watermark + 1,
-      # finds the dropped sequence missing, and returns nothing on this flush
-      # and every flush after it. The document would silently stop being written.
-      #
-      # Payloads, enqueue times, and observed tombstone epochs are carried
-      # across untouched, since a delta must stay immutable once enqueued.
+      # Payloads, enqueue times, and tombstone epochs carry across untouched: a
+      # delta stays immutable once enqueued.
       ###
       def rebase_pending!(watermark)
-        # even with nothing left, the counter has to come back to the watermark,
-        # or the next enqueue starts above it and every prefix stays empty
+        # with nothing left the counter still has to come back, or the next
+        # enqueue starts above the watermark and every prefix stays empty
         if @pending.empty?
           @seq = watermark
           return
@@ -165,11 +158,9 @@ module Coverband
         @pending.clear
       end
 
-      ###
-      # A writer that has seen its own watermark and then finds it gone cannot
-      # tell "pruned but applied" from "never applied". Neither guess is safe,
-      # so it becomes a different writer and gives up its ambiguous deltas.
-      ###
+      # cannot tell "pruned but applied" from "never applied", and neither guess
+      # is safe, so it becomes a different writer and gives up the ambiguity
+
       def rotate_identity!
         abandoned = @pending.dup
         reset_identity!
@@ -184,10 +175,9 @@ module Coverband
         @observed_watermark
       end
 
-      ###
-      # Forked children must not re-apply deltas the parent may already have
-      # applied, and must not share the parent's sequence counter.
-      ###
+      # a forked child must not re-apply what the parent may already have
+      # applied, nor share its sequence counter
+
       def check_fork!
         return if @pid == Process.pid
 

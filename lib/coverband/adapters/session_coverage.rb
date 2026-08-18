@@ -5,14 +5,13 @@ require_relative "../storage/session"
 module Coverband
   module Adapters
     ###
-    # Coverage storage on top of the merge protocol, shared by the adapters that
-    # keep coverage in a single document per type.
+    # Coverage on top of the merge protocol, shared by the adapters that keep it
+    # in one document per type.
     #
-    # Coverage counts are additive, so a write another process drops cannot be
-    # repaired by simply writing again: re-applying a sum double counts. The
-    # per writer sequences in Coverband::Storage::Session are what make the
-    # retry safe, which is why both adapters go through here rather than each
-    # merging on their own.
+    # Counts are additive, so a dropped write cannot be repaired by writing
+    # again: re-applying a sum double counts. The per writer sequences in
+    # Storage::Session are what make the retry safe, which is why both adapters
+    # go through here rather than each merging on their own.
     #
     # Including classes provide #storage_target and #coverage_key_base.
     ###
@@ -25,10 +24,9 @@ module Coverband
         true
       end
 
-      ###
-      # The generation pointers this store will consult, so a reporting cycle
-      # can fetch them in one round trip instead of one small read per document.
-      ###
+      # the pointers this store will consult, so a cycle can fetch them in one
+      # round trip instead of one small read per document
+
       def pointer_sessions
         Coverband::TYPES.map { |session_type| build_session(session_type) }
       end
@@ -37,11 +35,10 @@ module Coverband
         Storage::Session.prefetch_pointers(storage_target, pointer_sessions + Array(extra_sessions))
       end
 
-      ###
-      # Returns whether every type was actually cleared. A reset whose pointer
-      # write did not land leaves the old generation authoritative, and callers
-      # need to be able to say so rather than reporting success.
-      ###
+      # whether every type actually cleared: a reset whose pointer write did not
+      # land leaves the old generation authoritative, and callers have to be able
+      # to say so rather than report success
+
       def clear!
         results = Coverband::TYPES.map { |type| session_for(type).reset }
         @cached_file_count = nil
@@ -75,11 +72,9 @@ module Coverband
         data
       end
 
-      ###
-      # Expanding the report here, once, is deliberate. Re-expanding it on a
-      # retry would hand an old delta a fresh timestamp and let it slip past a
-      # tombstone recorded in between.
-      ###
+      # expanded here once: re-expanding on a retry would hand an old delta a
+      # fresh timestamp and let it slip past a tombstone recorded in between
+
       def save_report(report)
         session_for(type).record(own_expanded_report(report))
         @cached_file_count = nil
@@ -97,11 +92,9 @@ module Coverband
         Coverband::TYPES.map { |type| session_for(type).data_loss }.compact.first
       end
 
-      ###
-      # Unconfirmed reports are held so a conflicting write can be repaired next
-      # cycle. This gives that up in exchange for the memory, and is only for
-      # benchmarks and shutdown paths.
-      ###
+      # gives up the repair those held reports would have done, in exchange for
+      # the memory; benchmarks and shutdown only
+
       def discard_pending!
         Coverband::TYPES.each { |type| session_for(type).discard_pending! }
       end
@@ -109,15 +102,15 @@ module Coverband
       private
 
       ###
-      # A delta has to be re-appliable, because that is how a lost update gets
-      # repaired. expand_report hands the delta the caller's own line arrays,
-      # and array_add sums into those arrays in place unless they are frozen,
-      # so an unfrozen payload gets overwritten with the merged document total
-      # the first time it is applied. A delta repaired after that would carry
-      # the whole document back in and double it, once per repair.
+      # A delta has to survive being applied, because re-applying it is how a
+      # lost update gets repaired. expand_report hands the delta the caller's own
+      # line arrays and array_add sums into them in place unless they are frozen,
+      # so an unfrozen payload is overwritten with the merged document total on
+      # its first apply -- and a repair after that carries the whole document
+      # back in and doubles it, once per repair.
       #
-      # Freezing is what selects array_add's copying branch, so the delta keeps
-      # this process's own counts and the caller's report is left alone.
+      # Freezing selects array_add's copying branch, so the delta keeps this
+      # process's own counts and the caller's report is left alone.
       ###
       def own_expanded_report(report)
         expand_report(report).each_value do |entry|
@@ -130,10 +123,9 @@ module Coverband
         @sessions ||= {}
       end
 
-      ###
-      # Both types are built together on first use. Reporting one type would
-      # otherwise allocate the other's keys later, at an unpredictable moment.
-      ###
+      # both types are built together, or reporting one would allocate the
+      # other's keys later at an unpredictable moment
+
       def session_for(local_type)
         local_type ||= type
         Coverband::TYPES.each { |session_type| build_session(session_type) }
@@ -151,10 +143,9 @@ module Coverband
         )
       end
 
-      ###
-      # Line hits sum, so this merge is not idempotent and the applied sequence
-      # guard is what keeps a retry from inflating the counts.
-      ###
+      # line hits sum, so this merge is not idempotent and the applied sequence
+      # guard is what keeps a retry from inflating the counts
+
       def coverage_merger
         @coverage_merger ||= lambda do |doc, delta|
           incoming = delta.payload.reject do |file, _data|

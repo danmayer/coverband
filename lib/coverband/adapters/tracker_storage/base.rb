@@ -8,9 +8,9 @@ module Coverband
       # applied sequence protocol all live below this line; trackers deal in
       # keys and timestamps.
       #
-      # record's return values name protocol states rather than outcomes,
-      # because "written" and "proven durable" are different things and the
-      # difference is the entire point of the watermark:
+      # record returns a protocol state rather than an outcome, because
+      # "written" and "proven durable" are different things and that difference
+      # is the entire point of the watermark:
       #
       #   :written_unconfirmed  merged and written, still awaiting confirmation
       #   :confirmed            an earlier write was proven durable and dropped
@@ -18,34 +18,34 @@ module Coverband
       #   :failed               refused or errored, pending retained for retry
       ###
       class Base
-        ABSTRACT = "abstract"
+        ABSTRACT_KEY = "abstract"
 
         def entries
-          raise ABSTRACT
+          raise ABSTRACT_KEY
         end
 
         def record(_delta)
-          raise ABSTRACT
+          raise ABSTRACT_KEY
         end
 
         def delete_entry(_key)
-          raise ABSTRACT
+          raise ABSTRACT_KEY
         end
 
         def reset
-          raise ABSTRACT
+          raise ABSTRACT_KEY
         end
 
         def tracking_since
-          raise ABSTRACT
+          raise ABSTRACT_KEY
+        end
+
+        def generation
+          raise ABSTRACT_KEY
         end
 
         def data_loss
           nil
-        end
-
-        def generation
-          raise ABSTRACT
         end
 
         def pending_size

@@ -2,7 +2,7 @@
 
 require_relative "../storage/redis_target"
 require_relative "../storage/session"
-require_relative "tracker_storage/redis"
+require_relative "tracker_storage/factory"
 require_relative "session_coverage"
 
 module Coverband
@@ -36,7 +36,7 @@ module Coverband
 
       def tracker_storage
         sync_target
-        @tracker_storage ||= TrackerStorage::Redis.new(redis: @redis, namespace: @redis_namespace,
+        @tracker_storage ||= TrackerStorage::Factory.redis(redis: @redis, namespace: @redis_namespace,
           format_version: @format_version)
       end
 
@@ -61,19 +61,11 @@ module Coverband
         @target = Storage::RedisTarget.new(@redis, ttl: @ttl)
       end
 
-      ###
-      # Both types are built together on first use. Reporting one type would
-      # otherwise allocate the other's keys later, at an unpredictable moment.
-      ###
       def storage_target
         sync_target
       end
 
       def coverage_key_base(local_type)
-        key_base(local_type)
-      end
-
-      def key_base(local_type)
         [@format_version, @redis_namespace, "coverage", local_type].compact.join(".")
       end
     end

@@ -85,7 +85,7 @@ class CacheTrackerStorageTest < Minitest::Test
 
   def setup
     super
-    @factory = Coverband::Adapters::TrackerStorage::Cache.new(
+    @factory = Coverband::Adapters::TrackerStorage::Factory.cache(
       target: Coverband::Storage::Target.new(ActiveSupport::Cache::MemoryStore.new),
       namespace: "coverband_test",
       format_version: "test_1_0"
@@ -135,7 +135,7 @@ class RedisTrackerStorageTest < Minitest::Test
 
   def setup
     super
-    @factory = Coverband::Adapters::TrackerStorage::Redis.new(
+    @factory = Coverband::Adapters::TrackerStorage::Factory.redis(
       redis: Coverband::Test.redis,
       namespace: "coverband_test",
       format_version: "test_1_0"

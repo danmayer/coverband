@@ -35,11 +35,9 @@ module Coverband
         raise ABSTRACT_KEY
       end
 
-      ###
-      # Adapters return bytes as an Integer, or nil when the size isn't
-      # knowable. Presentation lives here, so a store returning the string
-      # "N/A" can't be treated as truthy and reported as 0.00 MiB.
-      ###
+      # adapters return bytes or nil; presentation lives here, so a store
+      # returning the string "N/A" can't be truthy and reported as 0.00 MiB
+
       def size_in_mib
         bytes = size
         return "N/A" unless bytes.is_a?(Numeric)
@@ -47,10 +45,9 @@ module Coverband
         format("%<size>.2f", size: (bytes.to_f / 2**20))
       end
 
-      ###
-      # Storage backend for the trackers, or nil when this store can't support
-      # them. Trackers are skipped rather than silently collecting nothing.
-      ###
+      # tracker storage, or nil when this store can't support it; trackers are
+      # then skipped rather than left silently collecting nothing
+
       def tracker_storage
         nil
       end
@@ -81,11 +78,9 @@ module Coverband
         raise "abstract"
       end
 
-      ###
-      # Reports this adapter's coverage. It used to route through
-      # Coverband.configuration.store, which quietly reported someone else's
-      # data whenever the receiver wasn't the configured store.
-      ###
+      # this adapter's coverage: it used to route through configuration.store,
+      # quietly reporting someone else's data when the receiver was not it
+
       def get_coverage_report(options = {})
         coverage_cache = {}
         data = split_coverage(Coverband::TYPES, coverage_cache, options)
