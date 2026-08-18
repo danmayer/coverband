@@ -64,7 +64,7 @@ jobs:
       # Solid Cache needs Rails 7.2+, and its engine changes process wide state,
       # so it runs on its own only where it is available
       - run: bundle exec rake test:solid_cache
-        if: matrix.gemfile == 'Gemfile.rails8.0
+        if: matrix.gemfile == 'Gemfile.rails8.0'
   starndardrb:
     runs-on: ubuntu-latest
     steps:
