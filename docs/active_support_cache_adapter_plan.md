@@ -480,7 +480,12 @@ writer remains alive and the delta remains pending.**
 
 **I/O cost.** No extra *write*. Confirmation requires a read in a cycle that would otherwise be
 silent, plus **one pointer read per document per cycle** — up to six for a process running
-coverage plus four trackers, batched via `read_multi`/`MGET` into a single round trip.
+coverage plus four trackers, batched via `read_multi`/`MGET` into a single round trip at the
+start of each reporting cycle.
+
+A batched pointer is only good for the cycle that fetched it, and expires. A session that does
+not report in that cycle would otherwise hold it indefinitely, and a reset in the meantime
+would send its eventual write into a retired generation where nothing can read it.
 
 ## Design
 
@@ -563,7 +568,7 @@ not `require "active_support"`.
 | Method | Used for |
 | --- | --- |
 | `read(name)` | fetch documents |
-| `read_multi(*names)` | batch per-document pointer reads |
+| `read_multi(*names)` | batch every pointer a reporting cycle needs into one round trip |
 | `write(name, value, expires_in: nil)` | store documents and pointers; **return value honored** |
 | `write(name, value, unless_exist: true)` | pointer initialization where supported |
 | `delete(name)` | cleanup-queue sweeps |
@@ -726,7 +731,10 @@ asserts identical types across implementations.
   (`abstract_tracker.rb:113` is skipped by the `rescue`), so a falsey write silently drops
   data — a bug fix for the Redis path too.
 - Pointer `write` returning `false` → reset reports failure.
-- Backend unreachable → tracker no-ops; never raise into the request path.
+- Backend unreachable, or a Solid Cache table that does not exist yet → **reads** log and
+  return empty, never raising into the request rendering the report. **Writes** keep
+  propagating to the reporting paths that already rescue and log them, so their messages are
+  not swallowed.
 
 ### Coverage adapter details
 
