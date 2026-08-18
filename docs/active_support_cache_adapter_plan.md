@@ -261,6 +261,20 @@ serialized **once at enqueue**, then frozen; retries re-send identical bytes. Lo
 re-expanding would hand an old delta a fresh timestamp, letting it bypass a tombstone
 recorded in between.
 
+**The freeze has to reach the line arrays**, and a shallow `Hash#freeze` does not. Two
+things alias into a delta's payload: `expand_report` stores the caller's own line array
+under `data` rather than a copy, and `array_add` sums into the array it is handed unless
+that array is frozen. So an unfrozen delta gets overwritten with the merged document
+total the first time it is applied — and a delta only survives its first apply when it
+needs repairing, which is exactly when it gets applied again. Each repair then adds the
+whole document to itself. Under contention this compounds per cycle: a benchmark of 4
+processes × 25 cycles expecting 100 hits per line read 2.5 million.
+
+The measurement to keep: with the arrays copied and frozen, the same benchmark converges
+on exactly 100 at moderate contention, and undercounts *with a `pending_dropped` data-loss
+marker* when contention exceeds the retention cap. Silent inflation is the failure this
+section exists to prevent; bounded, reported loss is the designed behavior.
+
 #### Writer identity
 
 `digest(hostname + pid)` is unsafe — PIDs are reused, and forks would share identity.

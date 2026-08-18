@@ -150,6 +150,64 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # save_report is handed the collector's report, and the merge sums into the
+  # line arrays it is given. Writing the merged total back into the caller's
+  # own arrays makes the next cycle report counts that were already stored.
+  ###
+  def test_save_report_leaves_the_callers_report_alone
+    mock_file_hash
+    report = {"app_path/dog.rb" => [0, 1, 2]}
+    @store.save_report(report)
+    @store.save_report(report) # the second merge is the one with a total to write back
+    assert_equal [0, 1, 2], report["app_path/dog.rb"]
+  end
+
+  ###
+  # Repair means applying a delta a second time, so the delta has to still hold
+  # this process's own counts. The merge used to sum the document into the
+  # delta's payload on the first apply, so a repaired report carried the whole
+  # document back in and doubled it, once per repair.
+  ###
+  def test_a_repaired_report_is_applied_once_not_compounded
+    mock_file_hash
+    other = build_store
+    @store.save_report({"app_path/dog.rb" => [100, 0, 0]}) # history worth carrying
+
+    a = @store.send(:session_for, Coverband::RUNTIME_TYPE)
+    b = other.send(:session_for, Coverband::RUNTIME_TYPE)
+    a.entries
+    b.entries # both learn the generation and read the same document
+
+    a.enqueue(@store.send(:own_expanded_report, {"app_path/dog.rb" => [1, 0, 0]}))
+    b.enqueue(other.send(:own_expanded_report, {"app_path/dog.rb" => [10, 0, 0]}))
+    doc_a = a.send(:operation) { a.send(:document) }
+    doc_b = b.send(:operation) { b.send(:document) }
+
+    apply_as(a, doc_a)
+    apply_as(b, doc_b) # stale: drops a's contribution along with a's watermark
+
+    3.times do
+      a.flush
+      b.flush
+    end
+
+    assert_equal 111, @store.coverage["app_path/dog.rb"]["data"].first,
+      "each contribution counts once: 100 stored, plus 1 and 10"
+  end
+
+  # apply a session's pending prefix to a document it read earlier, so a stale
+  # write can be set up deterministically instead of raced for
+  def apply_as(session, doc)
+    writer = session.instance_variable_get(:@writer)
+    watermark = doc.watermark_for(writer.writer_id)
+    writer.confirm_through(watermark) # flush drops confirmed work before it looks for a prefix
+    prefix = writer.contiguous_prefix(watermark)
+    session.send(:apply, doc, prefix)
+    doc.record_watermark(writer.writer_id, prefix.last.seq)
+    session.send(:operation) { session.send(:write, doc) }
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

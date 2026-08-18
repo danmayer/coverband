@@ -8,6 +8,7 @@
 * `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.
 * `Adapters::Base#get_coverage_report` now reports the receiver's coverage instead of routing through `Coverband.configuration.store`, which quietly returned another store's data when the receiver was not the configured one.
 * `AbstractTracker#redis_store` is deprecated in favor of `#storage`, and trackers no longer reach through the store to raw Redis commands.
+* `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
 
 **Features**
 

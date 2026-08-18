@@ -81,12 +81,12 @@ module Coverband
       # tombstone recorded in between.
       ###
       def save_report(report)
-        session_for(type).record(expand_report(report.dup))
+        session_for(type).record(own_expanded_report(report))
         @cached_file_count = nil
       end
 
       def save_coverage(report, local_type = nil)
-        session_for(local_type || type).record(expand_report(report.dup))
+        session_for(local_type || type).record(own_expanded_report(report))
       end
 
       def file_count
@@ -107,6 +107,24 @@ module Coverband
       end
 
       private
+
+      ###
+      # A delta has to be re-appliable, because that is how a lost update gets
+      # repaired. expand_report hands the delta the caller's own line arrays,
+      # and array_add sums into those arrays in place unless they are frozen,
+      # so an unfrozen payload gets overwritten with the merged document total
+      # the first time it is applied. A delta repaired after that would carry
+      # the whole document back in and double it, once per repair.
+      #
+      # Freezing is what selects array_add's copying branch, so the delta keeps
+      # this process's own counts and the caller's report is left alone.
+      ###
+      def own_expanded_report(report)
+        expand_report(report).each_value do |entry|
+          entry[Base::DATA_KEY] = entry[Base::DATA_KEY].dup.freeze
+          entry.freeze
+        end
+      end
 
       def sessions
         @sessions ||= {}
