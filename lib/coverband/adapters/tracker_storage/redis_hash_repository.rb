@@ -73,7 +73,7 @@ module Coverband
 
             @token = token
             @started_at_set = false
-            @on_generation_change&.call
+            @on_generation_change&.call(:reset)
             true
           end
         end
@@ -91,9 +91,9 @@ module Coverband
           @started_at_set ||= !@target.hgetall(data_key)[STARTED_AT_FIELD].nil?
         end
 
-        def on_generation_changed(_result)
+        def on_generation_changed(result)
           @started_at_set = false
-          @on_generation_change&.call
+          @on_generation_change&.call(result.pointer_missing ? :eviction : :reset)
         end
 
         def data_key

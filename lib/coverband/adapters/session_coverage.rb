@@ -40,8 +40,7 @@ module Coverband
       end
 
       def size
-        raw = storage_target.read(session_for(type).send(:data_key))
-        raw&.to_s&.bytesize
+        session_for(type).stored_size
       end
 
       def type=(type)
@@ -101,7 +100,9 @@ module Coverband
       ###
       def session_for(local_type)
         local_type ||= type
-        Coverband::TYPES.each { |session_type| build_session(session_type) }
+        built = Coverband::TYPES.map { |session_type| build_session(session_type) }
+        Storage::Session.prefetch_pointers(storage_target, built) unless @pointers_prefetched
+        @pointers_prefetched = true
         build_session(local_type)
       end
 

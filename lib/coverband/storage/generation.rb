@@ -26,8 +26,15 @@ module Coverband
       SWEEP_WINDOW = 24 * 60 * 60
       GRACE = 2
 
-      # pointer rides along so callers can run the sweep without reading again
-      Result = Struct.new(:token, :initialized, :pointer, keyword_init: true)
+      ###
+      # pointer rides along so callers can run the sweep without reading again.
+      #
+      # pointer_missing separates "nobody has written this pointer yet" from
+      # "the pointer we were using is gone". A caller already holding a token
+      # needs that distinction: the second case orphans a document that may
+      # still exist, which is data loss worth reporting.
+      ###
+      Result = Struct.new(:token, :initialized, :pointer, :pointer_missing, keyword_init: true)
 
       def initialize(target, key, grace_seconds:)
         @target = target
@@ -46,11 +53,16 @@ module Coverband
       # absent. `initialized` tells the caller it created the pointer, which is
       # what separates "I lost an init race" from "an operator reset" later on.
       ###
-      def resolve
-        raw = @target.read(@key)
+      ###
+      # primed lets a caller hand over a pointer value it already fetched, so a
+      # reporting cycle can read every document's pointer in one round trip
+      # instead of one small read per document.
+      ###
+      def resolve(primed: nil)
+        raw = primed.nil? ? @target.read(@key) : primed
         pointer = parse(raw)
         if pointer && pointer[TOKEN]
-          return Result.new(token: pointer[TOKEN], initialized: false, pointer: pointer)
+          return Result.new(token: pointer[TOKEN], initialized: false, pointer: pointer, pointer_missing: false)
         end
 
         token = SecureRandom.hex(8)
@@ -59,7 +71,7 @@ module Coverband
         # another process may have won an atomic create
         settled = parse(@target.read(@key))
         actual = (settled && settled[TOKEN]) ? settled[TOKEN] : token
-        Result.new(token: actual, initialized: true, pointer: settled)
+        Result.new(token: actual, initialized: true, pointer: settled, pointer_missing: true)
       end
 
       ###

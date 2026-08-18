@@ -245,6 +245,96 @@ module ProtocolConformance
     target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)
   end
 
+  ###
+  # Dropping the whole queue is the same wedge as dropping one delta: the
+  # counter has to come back to the watermark or the next enqueue starts above
+  # it and no prefix ever matches again.
+  ###
+  def test_dropping_the_entire_queue_does_not_wedge_the_writer
+    writer = Coverband::Storage::Writer.new(max_entries: 5, max_bytes: 10_000, max_age: -1)
+    writer.enqueue({"a" => 1}, tombstone_epoch: 0)
+    assert_equal 1, writer.enforce_caps!.length
+    writer.rebase_pending!(0)
+
+    delta = writer.enqueue({"a" => 2}, tombstone_epoch: 0)
+    assert_equal 1, delta.seq, "the next delta has to sit directly above the watermark"
+    assert_equal [1], writer.contiguous_prefix(0).map(&:seq)
+  end
+
+  ###
+  # Tombstone epochs restart at zero in a new generation, so remembering a
+  # larger one from the retired generation would ignore its first deletes.
+  ###
+  def test_tombstone_observation_resets_with_the_generation
+    a = build_session
+    b = build_session
+    a.record({"one" => 1})
+    3.times { |i| a.delete_entry("gone_#{i}") }
+    b.entries
+    b.newly_tombstoned
+
+    assert a.reset
+    b.entries # b picks up the new generation
+
+    a.record({"two" => 1})
+    a.delete_entry("two")
+    b.entries
+
+    assert_includes b.newly_tombstoned, "two",
+      "a delete in the new generation must not be masked by the old epoch"
+  end
+
+  ###
+  # A pointer can be evicted while the document it addressed survives. That
+  # orphans real data, so it is reported rather than passed off as an ordinary
+  # generation change.
+  ###
+  def test_pointer_eviction_is_reported_as_an_orphaned_generation
+    reasons = []
+    session = build_session(on_generation_change: ->(reason) { reasons << reason })
+    session.record({"a" => 1})
+
+    target.delete(session.pointer_key)
+    session.entries
+
+    assert_equal :orphaned_generation, session.data_loss.kind
+    assert_equal [:eviction], reasons
+  end
+
+  def test_stored_size_resolves_the_generation_first
+    session = build_session
+    assert_nil session.stored_size
+    session.record({"a" => 1})
+
+    fresh = build_session
+    assert fresh.stored_size > 1, "a session that has not synced yet still has to find the document"
+  end
+
+  ###
+  # One pointer read for the cycle rather than one per document.
+  ###
+  def test_pointers_can_be_prefetched_in_one_round_trip
+    a = build_session(key_base: "prefetch.a")
+    b = build_session(key_base: "prefetch.b")
+    a.record({"x" => 1})
+    b.record({"y" => 1})
+
+    fresh_a = build_session(key_base: "prefetch.a")
+    fresh_b = build_session(key_base: "prefetch.b")
+    Coverband::Storage::Session.prefetch_pointers(target, [fresh_a, fresh_b])
+
+    reads = 0
+    target.define_singleton_method(:read) do |key|
+      reads += 1 if key.end_with?(".pointer")
+      super(key)
+    end
+    assert_equal 1, fresh_a.entries["x"].to_i
+    assert_equal 1, fresh_b.entries["y"].to_i
+    assert_equal 0, reads, "primed pointers must not be read again individually"
+  ensure
+    target.singleton_class.remove_method(:read) if target.singleton_class.method_defined?(:read)
+  end
+
   def test_pending_dropped_by_age_records_data_loss
     session = build_session(max_age: -1)
     session.enqueue({"a" => 1})
@@ -339,15 +429,16 @@ module ProtocolConformance
   # dedupe, the keys they could still re-report stay unreported.
   ###
   def test_eviction_invalidates_local_dedupe
-    invalidated = 0
-    session = build_session(on_generation_change: -> { invalidated += 1 })
+    reasons = []
+    session = build_session(on_generation_change: ->(reason) { reasons << reason })
     session.record({"a" => 1})
 
     target.delete(session.send(:data_key))
     session.entries
 
     assert_equal :eviction, session.data_loss.kind
-    assert_equal 1, invalidated, "the tracker has to be told to re-report what it still knows"
+    assert_equal [:eviction], reasons,
+      "the tracker has to be told this was an eviction, not an operator reset"
   end
 
   def test_corrupt_document_degrades_and_flags_data_loss

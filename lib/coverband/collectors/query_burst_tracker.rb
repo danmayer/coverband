@@ -122,9 +122,11 @@ module Coverband
       ###
       protected
 
-      def drop_local_state!
+      def drop_local_state!(reason = :reset)
         super
-        @pending_stats&.clear
+        # counters are not reconstructible from local state the way presence
+        # keys are, so an eviction loses them either way
+        @pending_stats&.clear if reason != :eviction
       end
 
       public

@@ -19,6 +19,7 @@
 * Trackers are skipped with an explanatory log line when the configured store cannot support them, instead of collecting nothing
 * Query bursts no longer count Coverband's own storage queries against the surrounding request, which would otherwise inflate query counts on a database backed cache
 * Added `persistent_coverage?`, `supports_trackers?`, and `supports_paged_reports?` capability predicates on adapters, plus `file_count` and `cached_file_count` defaults so non-Redis stores no longer raise from the web UI's datatables path
+* Added `rake coverband:clear_orphans` to reclaim generation keys no longer referenced by a pointer, and scoped `coverband:clear_legacy` to Coverband's own namespaces and tracker names so it cannot delete unrelated application keys
 * CI now runs a memcached service, so the memcached backed adapter is actually exercised
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
 

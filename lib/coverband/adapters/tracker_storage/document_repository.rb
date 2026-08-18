@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "forwardable"
 require_relative "base"
 require_relative "../../storage/session"
 
@@ -16,6 +17,13 @@ module Coverband
       # summing counters.
       ###
       class DocumentRepository < Base
+        extend Forwardable
+
+        # the session owns the protocol; this class only decides what a tracker
+        # is allowed to ask for and normalizes what comes back
+        def_delegators :@session, :record, :delete_entry, :reset, :tracking_since,
+          :data_loss, :pending_size
+
         def initialize(target:, key_base:, merger:, logger: nil, on_generation_change: nil, session_options: {})
           @session = Storage::Session.new(
             target: target,
@@ -35,36 +43,12 @@ module Coverband
           end
         end
 
-        def record(delta)
-          @session.record(delta)
-        end
-
-        def delete_entry(key)
-          @session.delete_entry(key)
-        end
-
-        def reset
-          @session.reset
-        end
-
-        def tracking_since
-          @session.tracking_since
-        end
-
-        def data_loss
-          @session.data_loss
+        def newly_tombstoned
+          @session.newly_tombstoned
         end
 
         def generation
           @session.generation_token
-        end
-
-        def pending_size
-          @session.pending_size
-        end
-
-        def newly_tombstoned
-          @session.newly_tombstoned
         end
 
         # the session keeps unconfirmed deltas, so callers hand theirs over

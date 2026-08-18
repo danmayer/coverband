@@ -91,10 +91,14 @@ module Coverband
         (tracking_time = storage.tracking_since) ? tracking_time.iso8601 : "N/A"
       end
 
+      ###
+      # Local state is dropped by the storage layer's generation change
+      # callback, which only fires once the new pointer is durable. Clearing it
+      # here first would throw away unsaved work on a reset that never landed.
+      ###
       def reset_recordings
         return unless storage
 
-        drop_local_state!
         storage.reset
       end
 
@@ -164,9 +168,19 @@ module Coverband
         end
       end
 
-      def drop_local_state!
-        @logged_keys.clear
-        @keys_to_record.clear
+      ###
+      # A reset means the operator wants everything gone. An eviction means the
+      # backend lost data this process can still partly reconstruct, so the keys
+      # it already knows about are queued to be reported once more rather than
+      # forgotten along with them.
+      ###
+      def drop_local_state!(reason = :reset)
+        if reason == :eviction
+          @logged_keys.each { |key| @keys_to_record << key if track_key?(key) }
+        else
+          @logged_keys.clear
+          @keys_to_record.clear
+        end
       end
 
       def newly_seen_key?(key)
@@ -202,7 +216,7 @@ module Coverband
           merger: merger,
           idempotent: self.class.idempotent_merge?,
           logger: logger,
-          on_generation_change: method(:drop_local_state!)
+          on_generation_change: ->(reason) { drop_local_state!(reason) }
         )
       end
 

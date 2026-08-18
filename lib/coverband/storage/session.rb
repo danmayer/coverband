@@ -21,6 +21,23 @@ module Coverband
     class Session
       include GenerationLifecycle
 
+      ###
+      # Reads every pointer a reporting cycle is about to need in one round
+      # trip. Each document otherwise pays for its own small pointer read.
+      ###
+      def self.prefetch_pointers(target, sessions)
+        sessions = Array(sessions).reject { |session| session.nil? }
+        return if sessions.length < 2
+        return unless target.respond_to?(:read_multi)
+
+        found = target.read_multi(*sessions.map(&:pointer_key))
+        sessions.each { |session| session.prime_pointer(found[session.pointer_key]) }
+      rescue => error
+        # batching is an optimization; a failure here just means each session
+        # reads its own pointer as before
+        Coverband.configuration.logger&.debug("Coverband: pointer prefetch failed #{error.class}")
+      end
+
       DataLoss = Struct.new(:at, :kind, :detail, keyword_init: true)
 
       DEFAULT_MAX_ENTRIES = 5
@@ -70,6 +87,20 @@ module Coverband
 
       def pending_size
         @writer.pending_size
+      end
+
+      ###
+      # Bytes of the stored document, or nil when there is nothing stored.
+      #
+      # Goes through the normal operation lifecycle: a freshly built session has
+      # no token yet, so reading its key directly would address ".g" and report
+      # nothing for coverage that is really there.
+      ###
+      def stored_size
+        operation do
+          raw = @target.read(data_key)
+          raw&.to_s&.bytesize
+        end
       end
 
       def enqueue(payload)
@@ -143,6 +174,7 @@ module Coverband
             next((confirmed > 0) ? :confirmed : :deferred)
           end
 
+          doc.data_loss_at = @data_loss.at if @data_loss && doc.data_loss_at.nil?
           apply(doc, prefix)
           doc.record_watermark(@writer.writer_id, prefix.last.seq, host: @writer.host, pid: @writer.pid)
           doc.started_at!
@@ -231,10 +263,15 @@ module Coverband
           # Trackers dedupe locally and forever, so without this the keys they
           # could still re-report would stay unreported after an eviction.
           ###
-          @on_generation_change&.call
+          @on_generation_change&.call(:eviction)
         end
 
         @seen_document = true unless raw.nil?
+        # a loss another process recorded is still a loss for this report
+        if @data_loss.nil? && doc.data_loss_at
+          @data_loss = DataLoss.new(at: Time.at(doc.data_loss_at), kind: :eviction,
+            detail: "recorded by another process")
+        end
         @observed_tombstone_epoch = doc.tombstone_epoch
         note_tombstones(doc)
         doc
@@ -307,6 +344,18 @@ module Coverband
       # clear is the worse mistake.
       ###
       def on_generation_changed(result)
+        ###
+        # The pointer vanished while we were using it. Whatever it addressed may
+        # still be sitting in the backend, unreachable, so the loss is reported
+        # rather than passed off as an ordinary generation change.
+        ###
+        if result.pointer_missing
+          record_loss(:orphaned_generation, "pointer for #{@key_base} disappeared, generation #{@token} is orphaned")
+          @token = result.token
+          drop_local_state!(:eviction)
+          return
+        end
+
         if lost_initialization_race?(result.pointer)
           log("lost a pointer initialization race for #{@key_base}, carrying #{@writer.pending_size} deltas forward")
         else
@@ -342,11 +391,15 @@ module Coverband
         @target.respond_to?(:atomic_create?) && @target.atomic_create?
       end
 
-      def drop_local_state!
+      def drop_local_state!(reason = :reset)
         @writer.rotate_identity!
         @observed_tombstone_epoch = nil
         @seen_document = false
-        @on_generation_change&.call
+        # epochs restart at zero in a new generation, so remembering a larger
+        # one from the retired generation would ignore its first deletes
+        @tombstones_seen = nil
+        @tombstone_notifications = []
+        @on_generation_change&.call(reason)
       end
 
       def record_dropped(dropped)

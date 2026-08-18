@@ -79,6 +79,19 @@ module ActiveSupportCacheStoreBehavior
     refute_equal "N/A", @store.size_in_mib
   end
 
+  ###
+  # A session has no generation token until an operation resolves one, so a
+  # freshly built adapter has to sync before it can find the document at all.
+  ###
+  def test_size_on_a_fresh_adapter_finds_existing_coverage
+    mock_file_hash
+    @store.save_report(basic_coverage)
+
+    fresh = build_store
+    assert fresh.size > 1, "a new adapter must not report nothing for stored coverage"
+    refute_equal "N/A", fresh.size_in_mib
+  end
+
   def test_file_count
     mock_file_hash
     @store.save_report(basic_coverage)

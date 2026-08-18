@@ -1,5 +1,30 @@
 # frozen_string_literal: true
 
+module Coverband
+  module Utils
+    module Tasks
+      def self.redis_for_cleanup
+        store = Coverband.configuration.store
+        if store.respond_to?(:raw_store) && store.raw_store.respond_to?(:scan_each)
+          return store.raw_store
+        end
+
+        puts "Only a Redis backed store can enumerate its own keys."
+        puts "On a cache backed store, clear the cache itself (for example Rails.cache.clear)."
+        nil
+      rescue NotImplementedError
+        puts "This store does not expose a Redis client, nothing to enumerate."
+        nil
+      end
+
+      def self.delete_matching(redis, patterns)
+        keys = patterns.flat_map { |pattern| redis.scan_each(match: pattern).to_a }.uniq
+        keys.any? ? redis.del(*keys) : 0
+      end
+    end
+  end
+end
+
 namespace :coverband do
   # handles configuring in require => false and COVERBAND_DISABLE_AUTO_START cases
   Coverband.configure unless Coverband.configured?
@@ -201,25 +226,63 @@ namespace :coverband do
   end
 
   ###
-  # 7.0 changed the storage format, so the pre-upgrade keys are ignored rather
-  # than migrated. This deletes them once the new data looks right.
+  # 7.0 changed the storage format, so pre-upgrade keys are ignored rather than
+  # migrated. This deletes them once the new data looks right.
+  #
+  # Scoped to Coverband's own namespaces and tracker names: a bare "*_tracker"
+  # glob would happily delete an application's keys out of the same database.
   ###
   desc "delete Coverband data left behind by pre 7.0 storage formats (Redis only)"
   task :clear_legacy do
-    store = Coverband.configuration.store
-    unless store.respond_to?(:raw_store) && store.raw_store.respond_to?(:scan_each)
-      puts "Only a Redis backed store can enumerate its own keys."
-      puts "On a cache backed store, clear the cache itself (for example Rails.cache.clear)."
-      next
+    redis = Coverband::Utils::Tasks.redis_for_cleanup
+    next unless redis
+
+    namespaces = [Coverband.configuration.redis_namespace, nil].uniq
+    trackers = %w[ViewTracker RouteTracker TranslationTracker QueryBurstTracker]
+    legacy_formats = %w[coverband_3_2 coverband_hash_3_2 coverband_hash_4_0]
+
+    patterns = legacy_formats.map { |format| "#{format}*" }
+    namespaces.each do |namespace|
+      trackers.each do |tracker|
+        prefix = namespace ? "#{namespace}_#{tracker}" : tracker
+        patterns << "#{prefix}_tracker"
+        patterns << "#{prefix}_tracker_time"
+      end
     end
 
-    redis = store.raw_store
-    patterns = %w[coverband_3_2* coverband_hash_3_2* *_tracker *_tracker_time]
-    deleted = patterns.sum do |pattern|
-      keys = redis.scan_each(match: pattern).to_a.uniq
-      keys.any? ? redis.del(*keys) : 0
+    puts "removed #{Coverband::Utils::Tasks.delete_matching(redis, patterns)} legacy Coverband keys"
+  end
+
+  ###
+  # A reset retires a generation by pointing somewhere new, and deletes the old
+  # key. A straggler mid-write can recreate it afterwards, and a cleanup
+  # instruction can be lost when two resets race, so a few orphans accumulate
+  # with nothing to reclaim them.
+  #
+  # Only Redis can enumerate its own keys. On a cache backed store the backend's
+  # own expiry, or clearing the cache, is the equivalent.
+  ###
+  desc "delete Coverband generation keys no longer referenced by any pointer (Redis only)"
+  task :clear_orphans do
+    redis = Coverband::Utils::Tasks.redis_for_cleanup
+    next unless redis
+
+    format = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
+    live = redis.scan_each(match: "#{format}*.pointer").to_a.uniq.each_with_object({}) do |pointer_key, tokens|
+      pointer = begin
+        JSON.parse(redis.get(pointer_key).to_s)
+      rescue JSON::ParserError
+        nil
+      end
+      next unless pointer
+
+      base = pointer_key.sub(/\.pointer\z/, "")
+      tokens["#{base}.g#{pointer["token"]}"] = true
     end
-    puts "removed #{deleted} legacy Coverband keys"
+
+    orphans = redis.scan_each(match: "#{format}*.g*").to_a.uniq.reject { |key| live.key?(key) }
+    redis.del(*orphans) if orphans.any?
+    puts "removed #{orphans.length} orphaned Coverband generation keys"
   end
 
   ###

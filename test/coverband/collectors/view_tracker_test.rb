@@ -157,6 +157,41 @@ class ViewTrackerTest < Minitest::Test
     assert_nil tracker.data_loss
   end
 
+  ###
+  # An eviction loses the stored document, but this process still knows which
+  # views it has seen. Those are re-reported once rather than forgotten.
+  ###
+  test "eviction re-reports the keys this process can still reconstruct" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
+    tracker.track_key(identifier: file_path)
+    tracker.save_report
+    assert_equal [file_path], tracker.used_keys.keys
+
+    # the backend drops what we wrote
+    Coverband::Test.redis.flushdb
+    tracker.used_keys # notices the loss
+    tracker.save_report
+
+    assert_equal [file_path], tracker.used_keys.keys,
+      "a key this process still knows about has to come back"
+  end
+
+  test "a reset that does not land keeps the recorded keys" do
+    Coverband::Collectors::ViewTracker.expects(:supported_version?).returns(true)
+    store = fake_store
+    file_path = "#{File.expand_path(Coverband.configuration.root)}/file"
+    tracker = Coverband::Collectors::ViewTracker.new(store: store, roots: "dir")
+    tracker.track_key(identifier: file_path)
+    tracker.save_report
+
+    tracker.send(:storage).stubs(:reset).returns(false)
+    refute tracker.reset_recordings
+    assert_equal [file_path], tracker.logged_keys, "a failed reset must not clear local state"
+  end
+
   protected
 
   def fake_store

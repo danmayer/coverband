@@ -13,12 +13,37 @@ module Coverband
     # cleanup sweep with the pointer already in hand, and drop the parsed
     # pointer afterwards so it is not retained between reports.
     #
-    # Including classes provide @generation and may define
-    # #on_generation_changed(result) to react to a new token.
+    # The coupling is deliberate but has to be written down, because a mixin
+    # reaching into an includer's instance variables is otherwise guesswork.
+    #
+    # Required of the includer, set before any operation runs:
+    #   @generation  a Storage::Generation for this document
+    #   @key_base    the key prefix the generation token is appended to
+    #
+    # Owned entirely by this module, and not to be touched by the includer:
+    #   @token       the authoritative generation token
+    #   @in_operation, @synced, @pointer, @sweep_due, @primed_pointer
+    #
+    # Optional hooks, each called at most once per sync:
+    #   #on_generation_initialized(result)  no token was held before
+    #   #on_generation_confirmed(result)    the held token is still authoritative
+    #   #on_generation_changed(result)      a different token is now authoritative
     ###
     module GenerationLifecycle
       def generation
         operation { @token }
+      end
+
+      def pointer_key
+        @generation.key
+      end
+
+      ###
+      # Hands over a pointer value fetched in a batch. Consumed by the next
+      # generation sync and never reused, so it cannot go stale.
+      ###
+      def prime_pointer(raw)
+        @primed_pointer = raw
       end
 
       private
@@ -47,7 +72,8 @@ module Coverband
         return if @synced
 
         @synced = true
-        result = @generation.resolve
+        result = @generation.resolve(primed: @primed_pointer)
+        @primed_pointer = nil
         @sweep_due = !Array(result.pointer && result.pointer[Generation::RETIRE]).empty?
         @pointer = result.pointer if @sweep_due
 

@@ -294,7 +294,10 @@ that sequence, the prefix is empty on this flush *and every flush after it*, so
 the document silently stops being written forever. Surviving deltas are
 therefore renumbered contiguously above the watermark whenever a drop punches a
 hole — carrying their payloads, enqueue times, and observed tombstone epochs
-across untouched, since a delta stays immutable once enqueued.
+across untouched, since a delta stays immutable once enqueued. **The sequence
+counter has to come back to the watermark even when nothing survives the drop**,
+or the next enqueue starts above the watermark and wedges the writer just as
+thoroughly.
 
 The absolute age cap exists because cycle-based bounds say nothing in wall-clock terms — a
 suspended or descheduled process can hold pending state far longer than any cycle count.
@@ -362,8 +365,8 @@ initialize an absent one; only reset replaces one that exists.
 | --- | --- |
 | **Initialization** | Pointer absent → write a fresh token with `unless_exist: true`. The question is **not whether the method accepts the option** — ActiveSupport 8.1's `MemoryStore` and `FileStore` both accept it — but whether creation is **atomic across the processes that matter**. Redis and Memcached give a genuine atomic create; `FileStore` and `MemoryStore` do not (and `MemoryStore` is per-process anyway). The contract test asserts atomic-create semantics per backend and routes non-atomic backends through init-race carry-forward, below. |
 | **Reset** | Write a fresh token **without reading first**. Concurrent resets collapse harmlessly — each is a valid reset. |
-| **Pointer evicted** | Re-initialize with a fresh token. **This does not imply the document was evicted**; the cache may drop the small pointer and keep the large document. The retained document is thereby orphaned, so this path **records a data-loss event** classifying the old generation as orphaned rather than assuming it was already gone. |
-| **Pointer write fails / returns `false`** | **Reset reports failure** to the caller and the UI. "Strong reset" means *strong once the pointer write succeeds* — never a silent partial reset. |
+| **Pointer evicted** | Re-initialize with a fresh token, and record `:orphaned_generation`. `resolve` therefore has to report *that the pointer was absent*, not just hand back a token: without that evidence the caller cannot tell first-ever initialization from the eviction of a pointer it was already using. **This does not imply the document was evicted**; the cache may drop the small pointer and keep the large document. The retained document is thereby orphaned, so this path **records a data-loss event** classifying the old generation as orphaned rather than assuming it was already gone. |
+| **Pointer write fails / returns `false`** | **Reset reports failure** to the caller and the UI. "Strong reset" means *strong once the pointer write succeeds* — never a silent partial reset. Local state must be dropped only by the generation-change callback that fires *after* the write lands, or a failed reset destroys unsaved work while the old generation is still authoritative. |
 
 #### Token-change handling
 

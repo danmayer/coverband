@@ -138,7 +138,12 @@ module Coverband
       # across untouched, since a delta must stay immutable once enqueued.
       ###
       def rebase_pending!(watermark)
-        return if @pending.empty?
+        # even with nothing left, the counter has to come back to the watermark,
+        # or the next enqueue starts above it and every prefix stays empty
+        if @pending.empty?
+          @seq = watermark
+          return
+        end
 
         next_seq = watermark + 1
         @pending = @pending.sort_by(&:seq).map do |delta|
