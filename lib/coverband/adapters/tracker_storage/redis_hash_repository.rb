@@ -110,10 +110,6 @@ module Coverband
           @started_at_set = false
           @on_generation_change&.call(result.pointer_missing ? :eviction : :reset)
         end
-
-        def data_key
-          "#{@key_base}.g#{@token}"
-        end
       end
     end
   end
