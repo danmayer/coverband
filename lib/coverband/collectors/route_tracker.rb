@@ -99,3 +99,9 @@ module Coverband
     end
   end
 end
+
+Coverband::Collectors::TrackerRegistry.register(
+  :route_tracker,
+  tracker_class: Coverband::Collectors::RouteTracker,
+  enabled: ->(config) { config.track_routes }
+)

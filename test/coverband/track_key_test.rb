@@ -51,6 +51,14 @@ class TrackKeyTest < Minitest::Test
     assert Coverband.track_key(:routes_tracker, "index#show")
   end
 
+  test "track_key with canonical route_tracker" do
+    mock_route_tracker = mock
+    mock_route_tracker.expects(:track_key).with("index#show").returns(true)
+    Coverband.configuration.expects(:route_tracker).returns(mock_route_tracker)
+
+    assert Coverband.track_key(:route_tracker, "index#show")
+  end
+
   test "track_key with query_burst_tracker" do
     mock_query_burst_tracker = mock
     payload = {key: "controller:users#index", queries: 42, sql_time_ms: 155.2}

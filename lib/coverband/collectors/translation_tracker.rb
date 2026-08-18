@@ -58,3 +58,9 @@ module Coverband
     end
   end
 end
+
+Coverband::Collectors::TrackerRegistry.register(
+  :translations_tracker,
+  tracker_class: Coverband::Collectors::TranslationTracker,
+  enabled: ->(config) { config.track_translations }
+)
