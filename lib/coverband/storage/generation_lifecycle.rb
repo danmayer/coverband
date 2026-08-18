@@ -55,6 +55,11 @@ module Coverband
         @primed_at = Time.now.to_i
       end
 
+      def clear_primed_pointer!
+        @primed_pointer = nil
+        @primed_at = nil
+      end
+
       def primed_pointer
         return nil if @primed_pointer.nil?
         return nil if (Time.now.to_i - @primed_at.to_i) > PRIMED_POINTER_TTL

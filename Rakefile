@@ -27,9 +27,14 @@ end
 ###
 desc "run the Solid Cache backed adapter tests (SQLite, needs solid_cache)"
 task :"test:solid_cache" do
-  # BUNDLE_WITH opts the optional group onto the load path for this run only
+  # BUNDLE_WITH opts the optional group onto the load path for this run only.
+  # It has to already be installed: `bundle install --with solid_cache`.
   sh({"COVERBAND_SOLID_CACHE" => "true", "BUNDLE_WITH" => "solid_cache"},
-    "bundle exec ruby -Ilib -Itest test/coverband/adapters/solid_cache_store_test.rb")
+    "bundle exec ruby -Ilib -Itest test/coverband/adapters/solid_cache_store_test.rb") do |ok, _res|
+    unless ok
+      abort "solid_cache tests failed. If the gems are missing, run: bundle install --with solid_cache"
+    end
+  end
 end
 
 desc "run the web report's javascript unit tests (node --test)"

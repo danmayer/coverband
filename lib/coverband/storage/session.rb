@@ -209,8 +209,15 @@ module Coverband
       # memory. Only for benchmarks and shutdown paths, never during normal
       # reporting.
       ###
+      ###
+      # Drops the transient state a reporting cycle accumulates: unconfirmed
+      # deltas, and any pointer primed by the cycle's batched read. Both are
+      # bounded and deliberate, but they are held between cycles, so a leak
+      # check has to be able to put the session back to a quiet baseline.
+      ###
       def discard_pending!
         @writer.clear_pending!
+        clear_primed_pointer!
       end
 
       ###

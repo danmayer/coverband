@@ -359,6 +359,25 @@ module ProtocolConformance
       "a stale primed pointer must not send the write into a retired generation"
   end
 
+  ###
+  # Unconfirmed deltas and primed pointers are both transient cycle state held
+  # between reports. A leak check has to be able to put a session back to a
+  # quiet baseline, or that state looks like a leak.
+  ###
+  def test_discard_pending_clears_transient_cycle_state
+    a = build_session
+    b = build_session
+    a.enqueue({"a" => 1})
+    Coverband::Storage::Session.prefetch_pointers(target, [a, b])
+    assert a.pending_size > 0
+    refute_nil a.instance_variable_get(:@primed_pointer)
+
+    a.discard_pending!
+
+    assert_equal 0, a.pending_size
+    assert_nil a.instance_variable_get(:@primed_pointer), "a primed pointer is cycle state too"
+  end
+
   def test_pending_dropped_by_age_records_data_loss
     session = build_session(max_age: -1)
     session.enqueue({"a" => 1})

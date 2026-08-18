@@ -62,9 +62,16 @@ jobs:
         env:
           COVERBAND_MEMCACHED: "true"
       # Solid Cache needs Rails 7.2+, and its engine changes process wide state,
-      # so it runs on its own only where it is available
-      - run: bundle exec rake test:solid_cache
+      # so it runs on its own, only where it is available.
+      #
+      # Its gems sit in an optional bundler group, which bundler-cache does not
+      # install, so the group is installed here rather than assumed present.
+      - name: Solid Cache adapter tests
         if: matrix.gemfile == 'Gemfile.rails8.0'
+        run: |
+          bundle config set --local with solid_cache
+          bundle install --jobs 4
+          bundle exec rake test:solid_cache
   starndardrb:
     runs-on: ubuntu-latest
     steps:
