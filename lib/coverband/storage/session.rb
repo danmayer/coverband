@@ -31,7 +31,19 @@ module Coverband
         return unless target.respond_to?(:read_multi)
 
         found = target.read_multi(*sessions.map(&:pointer_key))
-        sessions.each { |session| session.prime_pointer(found[session.pointer_key]) }
+        sessions.each do |session|
+          raw = found[session.pointer_key]
+          next if raw.nil?
+
+          # parsed once here, so the raw strings this batch read are not held by
+          # anyone after it returns
+          parsed = begin
+            raw.is_a?(Hash) ? raw : JSON.parse(raw)
+          rescue JSON::ParserError
+            nil
+          end
+          session.prime_pointer(parsed) if parsed
+        end
       rescue => error
         # batching is an optimization; a failure here just means each session
         # reads its own pointer as before

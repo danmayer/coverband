@@ -108,6 +108,27 @@ module Coverband
     configuration.logger&.debug("Coverband: pointer prefetch skipped #{error.class}")
   end
 
+  ###
+  # Drops the transient state a reporting cycle leaves behind: unconfirmed
+  # deltas, and pointers primed by the cycle's batched read, on the store and on
+  # every tracker.
+  #
+  # Trackers matter here as much as the store, since the same batch primes both.
+  # Only for benchmarks and shutdown paths: it forfeits the repair those
+  # unconfirmed deltas exist for.
+  ###
+  def self.discard_pending!
+    store = configuration.store
+    store.discard_pending! if store.respond_to?(:discard_pending!)
+
+    configuration.trackers.each do |tracker|
+      session = tracker.pointer_session if tracker.respond_to?(:pointer_session)
+      session&.discard_pending!
+    end
+  rescue => error
+    configuration.logger&.debug("Coverband: discard_pending! skipped #{error.class}")
+  end
+
   def self.report_coverage
     prefetch_report_pointers!
     coverage_instance.report_coverage

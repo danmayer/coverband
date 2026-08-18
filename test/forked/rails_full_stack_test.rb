@@ -91,7 +91,7 @@ class RailsFullStackTest < Minitest::Test
             # and deliberate, so drop it here like the delta above and let the
             # check catch anything else.
             ###
-            Coverband.configuration.store.discard_pending!
+            Coverband.discard_pending!
             # needed to test older versions to discover when we had the regression
             # Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)
           end

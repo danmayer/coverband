@@ -59,6 +59,8 @@ module Coverband
       # instead of one small read per document.
       ###
       def resolve(primed: nil)
+        return resolve_from(primed) if primed.is_a?(Hash)
+
         raw = primed.nil? ? @target.read(@key) : primed
         pointer = parse(raw)
         if pointer && pointer[TOKEN]
@@ -132,6 +134,19 @@ module Coverband
         return false unless pointer && token
 
         Array(pointer[RETIRE]).any? { |entry| entry[TOKEN] == token }
+      end
+
+      ###
+      # A pointer already parsed by a batched read. Priming the parsed value
+      # rather than the raw string means the strings that batch read are not
+      # referenced past the batch itself.
+      ###
+      def resolve_from(pointer)
+        if pointer[TOKEN]
+          Result.new(token: pointer[TOKEN], initialized: false, pointer: pointer, pointer_missing: false)
+        else
+          resolve
+        end
       end
 
       def data_key_for(token)

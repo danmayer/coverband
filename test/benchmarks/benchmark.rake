@@ -176,6 +176,9 @@ namespace :benchmarks do
       # retention is bounded and deliberate, so drop it here the same way
       # Delta's previous coverage is dropped below, and let the check catch
       # anything else.
+      #
+      # This store is built here rather than configured, so it is cleared
+      # directly.
       ###
       store.discard_pending!
     }.pretty_print
@@ -221,7 +224,7 @@ namespace :benchmarks do
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
       end
       # see the note above: bounded, deliberate retention for conflict repair
-      Coverband.configuration.store.discard_pending!
+      Coverband.discard_pending!
       # Reset file converter caches INSIDE the block but AFTER the loop.
       # This lets GC collect the instance (and any strings allocated in it during the loop)
       # before MemoryProfiler measures retained objects, so those strings aren't flagged.

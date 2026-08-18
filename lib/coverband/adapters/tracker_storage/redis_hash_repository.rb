@@ -37,6 +37,11 @@ module Coverband
           self
         end
 
+        # no pending deltas here, but a primed pointer is still cycle state
+        def discard_pending!
+          clear_primed_pointer!
+        end
+
         def entries
           operation do
             @target.hgetall(data_key).reject { |field, _value| field == STARTED_AT_FIELD }
