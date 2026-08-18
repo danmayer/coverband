@@ -21,6 +21,7 @@
 * Added `persistent_coverage?`, `supports_trackers?`, and `supports_paged_reports?` capability predicates on adapters, plus `file_count` and `cached_file_count` defaults so non-Redis stores no longer raise from the web UI's datatables path
 * `redis_ttl` applies to stored coverage documents again; generation pointers deliberately never expire, since a pointer that outlived its document would leave live coverage unreachable
 * Storage reads degrade to empty and log when the backend is unavailable (an unreachable cache, or a Solid Cache table that has not been created yet) rather than raising into the request rendering the report; write failures still reach the reporting paths that log them
+* Added `rake test:solid_cache`, an ENV gated SQLite backed Solid Cache suite covering atomic pointer creation, batched pointer reads, ActiveRecord being unavailable, a missing Solid Cache schema, and Coverband's own SQL not being attributed to the request that triggered the report
 * Added `rake coverband:clear_orphans` to reclaim generation keys no longer referenced by a pointer, and scoped `coverband:clear_legacy` to Coverband's own namespaces and tracker names so it cannot delete unrelated application keys
 * CI now runs a memcached service, so the memcached backed adapter is actually exercised
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping

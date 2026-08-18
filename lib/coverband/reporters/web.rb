@@ -206,7 +206,7 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           filename = request.params["filename"]
           Coverband.configuration.store.clear_file!(filename)
-          notice = "coverage for file #{filename} cleared"
+          notice = "coverage clear submitted for file #{filename}, applied within a reporting cycle"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end

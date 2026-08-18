@@ -39,7 +39,6 @@ module Coverband
             # NOTE: Normally as processes first start we immediately report, this causes a redis spike on deploys
             # if deferred is set also sleep frst to spread load
             sleep(sleep_seconds.to_i) if Coverband.configuration.defer_eager_loading_data?
-            Coverband.prefetch_report_pointers!
             Coverband.report_coverage
             Coverband.configuration.trackers.each { |tracker| tracker.save_report }
             if Coverband.configuration.verbose

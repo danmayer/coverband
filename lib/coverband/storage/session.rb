@@ -176,6 +176,7 @@ module Coverband
           if prefix.empty?
             if @data_loss && !@data_loss_persisted
               persist_data_loss(doc)
+              # a refused write leaves it unpersisted, so the next cycle retries
               write(doc)
             end
             keep_alive(doc)
@@ -276,6 +277,11 @@ module Coverband
 
         @seen_document = true unless raw.nil?
         # a loss another process recorded is still a loss for this report
+        # our own marker read back from storage: now it is durable
+        if @data_loss && doc.data_loss_at && doc.data_loss_at >= @data_loss.at.to_i
+          @data_loss_persisted = true
+        end
+
         if @data_loss.nil? && doc.data_loss_at
           @data_loss = DataLoss.new(at: Time.at(doc.data_loss_at),
             kind: (doc.data_loss_kind || "eviction").to_sym,
@@ -423,12 +429,17 @@ module Coverband
         log("data loss (#{kind}) for #{@key_base}: #{detail}")
       end
 
+      ###
+      # Stamps the loss onto the document about to be written. It is not marked
+      # persisted here: the write can be refused or clobbered by a stale writer,
+      # and believing it landed would drop the marker for good. Confirmation
+      # comes from reading it back.
+      ###
       def persist_data_loss(doc)
         return if @data_loss.nil? || @data_loss_persisted
 
         doc.data_loss_at = @data_loss.at
         doc.data_loss_kind = @data_loss.kind
-        @data_loss_persisted = true
       end
 
       def log(message)

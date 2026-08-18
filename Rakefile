@@ -21,6 +21,17 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
+###
+# Solid Cache brings a Rails engine with it, which changes how the rest of the
+# suite behaves in the same process. It gets its own task and its own process.
+###
+desc "run the Solid Cache backed adapter tests (SQLite, needs solid_cache)"
+task :"test:solid_cache" do
+  # BUNDLE_WITH opts the optional group onto the load path for this run only
+  sh({"COVERBAND_SOLID_CACHE" => "true", "BUNDLE_WITH" => "solid_cache"},
+    "bundle exec ruby -Ilib -Itest test/coverband/adapters/solid_cache_store_test.rb")
+end
+
 desc "run the web report's javascript unit tests (node --test)"
 task :"test:javascript" do
   # Pass expanded file paths rather than the bare directory: node's

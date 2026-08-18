@@ -891,7 +891,7 @@ Infrastructure:
 - [ ] `activesupport` as an explicit dev dependency (currently only transitive via `rails`).
 - [ ] `MemoryStore` + `FileStore` cases run with no services at all.
 - [ ] Integration test in `test/rails7_dummy` / `test/rails8_dummy` using `Rails.cache`.
-- [ ] **SolidCache case** (ENV-gated, SQLite is enough for CI): verifies atomic-create
+- [x] **SolidCache case** (ENV-gated, SQLite is enough for CI): verifies atomic-create
       semantics for pointer initialization, `read_multi` batching, that an
       ActiveRecord-unavailable report degrades to a no-op instead of raising, and that a
       missing SolidCache schema degrades the same way. Also **verify the installed version's

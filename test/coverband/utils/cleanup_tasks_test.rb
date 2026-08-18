@@ -72,6 +72,27 @@ class CleanupTasksTest < Minitest::Test
   end
 
   ###
+  # HashRedisStore coverage was left unchanged by 7.0, so its format version is
+  # still current. A cleanup that treats it as legacy deletes live coverage.
+  ###
+  def test_clear_legacy_never_deletes_a_format_an_adapter_still_writes
+    current = [
+      Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION,
+      Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION,
+      Coverband::Adapters::ActiveSupportCacheStore::STORAGE_FORMAT_VERSION
+    ]
+    current.each_with_index { |format, i| @redis.set("#{format}.live_key_#{i}", "{}") }
+
+    Rake::Task["coverband:clear_legacy"].invoke
+
+    current.each_with_index do |format, i|
+      assert @redis.exists?("#{format}.live_key_#{i}"),
+        "#{format} is still written by an adapter and must never be treated as legacy"
+    end
+    assert_empty(Coverband::Utils::Tasks.legacy_formats & current)
+  end
+
+  ###
   # A bare "*_tracker" glob would take an application's own keys with it.
   ###
   def test_clear_legacy_leaves_unrelated_application_keys_alone

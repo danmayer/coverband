@@ -63,6 +63,23 @@ module Coverband
         true
       end
 
+      ###
+      # Formats no adapter writes any more.
+      #
+      # Anything a live adapter still uses is filtered out rather than listed by
+      # hand: getting this list wrong deletes production coverage, and the
+      # adapters already know which formats they own.
+      ###
+      def self.legacy_formats
+        current = [
+          Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION,
+          Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION,
+          Coverband::Adapters::ActiveSupportCacheStore::STORAGE_FORMAT_VERSION
+        ]
+
+        %w[coverband_3_2 coverband_hash_3_2 coverband_hash_4_0] - current
+      end
+
       def self.delete_matching(redis, patterns)
         keys = patterns.flat_map { |pattern| redis.scan_each(match: pattern).to_a }.uniq
         keys.any? ? redis.del(*keys) : 0
@@ -285,7 +302,13 @@ namespace :coverband do
 
     namespaces = [Coverband.configuration.redis_namespace, nil].uniq
     trackers = %w[ViewTracker RouteTracker TranslationTracker QueryBurstTracker]
-    legacy_formats = %w[coverband_3_2 coverband_hash_3_2 coverband_hash_4_0]
+
+    ###
+    # Only formats nothing writes any more. coverband_hash_4_0 is deliberately
+    # absent: HashRedisStore coverage was left unchanged by 7.0, so it is still
+    # the current format and a glob for it would delete live coverage.
+    ###
+    legacy_formats = Coverband::Utils::Tasks.legacy_formats
 
     patterns = legacy_formats.map { |format| "#{format}*" }
     namespaces.each do |namespace|

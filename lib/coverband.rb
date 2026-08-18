@@ -87,6 +87,11 @@ module Coverband
   # Reads every generation pointer this reporting cycle will need in one round
   # trip, rather than one small read per coverage type and tracker.
   #
+  # Called from report_coverage, which every reporting entry point goes through:
+  # the background loop, at_exit, the middleware, Resque, Rails boot, and direct
+  # calls. Trackers report immediately after, inside the window a primed pointer
+  # stays valid for.
+  #
   # Best effort by design: a failure here just means each session reads its own
   # pointer, and the primed values expire so a session that does not report this
   # cycle cannot act on a stale one later.
@@ -104,6 +109,7 @@ module Coverband
   end
 
   def self.report_coverage
+    prefetch_report_pointers!
     coverage_instance.report_coverage
   end
 

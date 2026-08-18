@@ -537,6 +537,30 @@ module ProtocolConformance
     assert_equal :eviction, observer.data_loss&.kind
   end
 
+  ###
+  # A marker whose write was refused is not durable. Believing otherwise drops
+  # the only record that anything was lost.
+  ###
+  def test_a_refused_loss_marker_write_is_retried
+    session = build_session(max_age: -1)
+    session.entries # establish the pointer before the document write fails
+
+    # only the document write is refused; the pointer is fine
+    target.define_singleton_method(:write) do |key, value, options = {}|
+      key.include?(".g") ? false : super(key, value, options)
+    end
+    session.enqueue({"a" => 1})
+    session.flush # the loss happens, but the document cannot be written
+    assert_equal :pending_dropped, session.data_loss.kind
+    target.singleton_class.remove_method(:write)
+
+    session.flush # storage is back
+    observer = build_session
+    observer.entries
+    assert_equal :pending_dropped, observer.data_loss&.kind,
+      "the marker has to survive a write that did not land"
+  end
+
   def test_reports_states_rather_than_outcomes
     session = build_session
     assert_equal :written_unconfirmed, session.record({"a" => 1})
