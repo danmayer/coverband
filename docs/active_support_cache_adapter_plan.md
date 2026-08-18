@@ -335,6 +335,12 @@ For documents written as a whole (all cache documents; Redis coverage and query 
   value stale makes that writer's own genuine later observations look pre-delete, so they are
   filtered out and the key can never be recorded again.
 
+**Tombstone observation is scoped to one generation.** The epoch a process has
+seen, and any queued notifications, must be cleared whenever the token changes:
+epochs restart at zero in a new generation, so a remembered epoch from the
+retired one masks the new generation's first deletes and local dedupe is never
+invalidated for those keys.
+
 **Observing a tombstone must invalidate local dedupe.** Presence trackers keep keys forever
 in `@logged_keys`, so without this a legitimate future use of a cleared key would never be
 enqueued again. On reading a tombstone for key K with epoch > the epoch last observed, a
