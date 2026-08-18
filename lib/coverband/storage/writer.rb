@@ -126,6 +126,10 @@ module Coverband
         @pending.length
       end
 
+      def clear_pending!
+        @pending.clear
+      end
+
       ###
       # A writer that has seen its own watermark and then finds it gone cannot
       # tell "pruned but applied" from "never applied". Neither guess is safe,

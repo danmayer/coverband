@@ -100,6 +100,15 @@ module Coverband
         Coverband::TYPES.map { |type| session_for(type).data_loss }.compact.first
       end
 
+      ###
+      # Unconfirmed reports are held so a conflicting write can be repaired next
+      # cycle. This gives that up in exchange for the memory, and is only for
+      # benchmarks and shutdown paths.
+      ###
+      def discard_pending!
+        Coverband::TYPES.each { |type| session_for(type).discard_pending! }
+      end
+
       def file_count
         coverage(Coverband::RUNTIME_TYPE, skip_hash_check: true).keys.length
       end
@@ -121,9 +130,18 @@ module Coverband
         @target = Storage::RedisTarget.new(@redis)
       end
 
+      ###
+      # Both types are built together on first use. Reporting one type would
+      # otherwise allocate the other's keys later, at an unpredictable moment.
+      ###
       def session_for(local_type)
         local_type ||= type
         sync_target
+        Coverband::TYPES.each { |session_type| build_session(session_type) }
+        @sessions[local_type] ||= build_session(local_type)
+      end
+
+      def build_session(local_type)
         @sessions[local_type] ||= Storage::Session.new(
           target: @target,
           key_base: key_base(local_type),

@@ -85,6 +85,13 @@ class RailsFullStackTest < Minitest::Test
             # we clear this as this one variable is expected to retain memory and is a false positive
             ###
             Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
+            ###
+            # Coverband holds the most recent unconfirmed reports so another
+            # process clobbering them can be repaired on the next cycle. Bounded
+            # and deliberate, so drop it here like the delta above and let the
+            # check catch anything else.
+            ###
+            Coverband.configuration.store.discard_pending!
             # needed to test older versions to discover when we had the regression
             # Coverband::Collectors::Coverage.instance.send(:add_previous_results, nil)
           end

@@ -148,6 +148,16 @@ module Coverband
       end
 
       ###
+      # Forfeits unconfirmed deltas. They are held so a conflicting write can be
+      # repaired on the next cycle, so dropping them trades that repair for the
+      # memory. Only for benchmarks and shutdown paths, never during normal
+      # reporting.
+      ###
+      def discard_pending!
+        @writer.clear_pending!
+      end
+
+      ###
       # Keys another process deleted since we last looked. Presence trackers
       # keep keys in a permanent local dedupe set, so without this a cleared key
       # would never be enqueued again no matter how often it is used.
@@ -210,6 +220,9 @@ module Coverband
         if outermost
           @in_operation = false
           @synced = false
+          # the parsed pointer is only needed for the sweep above, and holding
+          # it would retain a copy of the pointer document between reports
+          @pointer = nil
         end
       end
 
@@ -278,8 +291,8 @@ module Coverband
 
         @synced = true
         result = @generation.resolve
-        @pointer = result.pointer
         @sweep_due = !Array(result.pointer && result.pointer[Generation::RETIRE]).empty?
+        @pointer = result.pointer if @sweep_due
 
         if @token.nil?
           @token = result.token
