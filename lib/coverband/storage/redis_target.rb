@@ -57,14 +57,6 @@ module Coverband
         @redis.del(key)
       end
 
-      def exist?(key)
-        if @redis.respond_to?(:exists?)
-          @redis.exists?(key)
-        else
-          @redis.exists(key) > 0
-        end
-      end
-
       # native hash operations, used by the idempotent presence trackers
       def hgetall(key)
         @redis.hgetall(key)

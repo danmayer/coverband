@@ -440,6 +440,48 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # The other half of the ownership rule: a write that *raises* after the delta
+  # was taken is still ours, so it must report :retained rather than propagate.
+  # Raising would hand the same work two owners, which is how the additive
+  # trackers double counted.
+  ###
+  def test_a_write_that_raises_after_the_enqueue_keeps_the_work_here
+    mock_file_hash
+    @store.save_report({"app_path/dog.rb" => [1, 0, 0]}) # establish the document
+
+    cache.stubs(:write).raises(RuntimeError.new("write timeout"))
+
+    assert_equal :retained, @store.save_report({"app_path/dog.rb" => [0, 1, 0]}),
+      "a failure after the delta was taken is not the caller's problem again"
+
+    cache.unstub(:write)
+    @store.save_report({})
+    assert_equal [1, 1, 0], @store.coverage["app_path/dog.rb"]["data"]
+  end
+
+  ###
+  # Not every cache store implements read_multi, and the pointer batch has to
+  # degrade to individual reads rather than lose the pointers.
+  ###
+  def test_pointer_batching_falls_back_when_the_store_cannot_read_multi
+    mock_file_hash
+    @store.save_report(basic_coverage)
+
+    plain = Object.new
+    plain.define_singleton_method(:read) { |key| @data&.[](key) }
+    plain.define_singleton_method(:write) { |key, value, *| (@data ||= {})[key] = value }
+    plain.define_singleton_method(:delete) { |key| @data&.delete(key) }
+    refute plain.respond_to?(:read_multi)
+
+    target = Coverband::Storage::Target.new(plain)
+    target.write("a", "1")
+    target.write("b", "2")
+
+    assert_equal({"a" => "1", "b" => "2"}, target.read_multi("a", "b"))
+    assert_equal({}, target.read_multi)
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

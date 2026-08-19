@@ -691,7 +691,6 @@ not `require "active_support"`.
 | `write(name, value, expires_in: nil)` | store documents and pointers; **return value honored** |
 | `write(name, value, unless_exist: true)` | pointer initialization where supported |
 | `delete(name)` | cleanup-queue sweeps |
-| `exist?(name)` | initialization checks |
 
 No CAS and no locking is required. `unless_exist` support must be **verified per backend**,
 not assumed — a store that silently ignores the option degrades to last-write-wins, which the

@@ -586,6 +586,119 @@ module ProtocolConformance
     assert_equal :confirmed, session.flush
     assert_equal :deferred, session.flush
   end
+
+  ###
+  # A writer that saw its own watermark and then finds it gone cannot tell
+  # "pruned but applied" from "never applied". Re-applying could double count
+  # and assuming durability could lose data, so it becomes a different writer
+  # and gives up the ambiguous deltas -- reported, never silent.
+  ###
+  def test_a_vanished_watermark_rotates_identity_rather_than_guessing
+    session = build_session
+    session.record({"a" => 1})
+    session.flush # reads its own watermark back, which is what makes it ambiguous later
+    before = session.instance_variable_get(:@writer).writer_id
+
+    # the watermark is pruned while this writer's delta is still pending
+    session.enqueue({"a" => 1})
+    doc = session.send(:operation) { session.send(:document) }
+    doc.applied.clear
+    session.send(:operation) { session.send(:write, doc) }
+
+    session.flush
+
+    refute_equal before, session.instance_variable_get(:@writer).writer_id,
+      "an ambiguous watermark has to be given up, not guessed at"
+    assert_equal :identity_rotated, session.data_loss.kind
+    assert_equal 0, session.pending_size
+  end
+
+  ###
+  # Coverband writes deltas, not heartbeats, so a document that stops seeing new
+  # keys stops being written and ages out of a cache that expires by write age.
+  ###
+  def test_a_quiet_document_is_kept_alive
+    session = build_session(keep_alive_after: 60)
+    session.record({"a" => 1})
+    session.instance_variable_set(:@last_write_at, Time.now.to_i - 10_000)
+
+    writes = 0
+    original = target.method(:write)
+    target.define_singleton_method(:write) do |*args, **kw|
+      writes += 1
+      original.call(*args, **kw)
+    end
+
+    session.flush # nothing new, but the document is old enough to touch
+    assert_operator writes, :>, 0, "a quiet document has to be refreshed, or it expires"
+  ensure
+    target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)
+  end
+
+  def test_a_quiet_document_is_not_touched_before_its_time
+    session = build_session(keep_alive_after: 10_000)
+    session.record({"a" => 1})
+
+    writes = 0
+    original = target.method(:write)
+    target.define_singleton_method(:write) do |*args, **kw|
+      writes += 1
+      original.call(*args, **kw)
+    end
+
+    session.flush
+    assert_equal 0, writes, "touching every quiet cycle would rewrite the document forever"
+  ensure
+    target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)
+  end
+
+  ###
+  # The byte cap is the one that protects against a few enormous deltas rather
+  # than many small ones, and it always leaves one behind: dropping everything
+  # would lose the work whose size caused the problem, with nothing to report.
+  ###
+  def test_the_byte_cap_drops_oldest_and_keeps_one
+    session = build_session(max_entries: 100, max_bytes: 200)
+    5.times { |i| session.enqueue({"k#{i}" => "x" * 100}) }
+
+    dropped = session.instance_variable_get(:@writer).enforce_caps!
+
+    refute_empty dropped, "a queue past the byte cap has to shed something"
+    assert_equal 1, session.pending_size, "and stop at one rather than emptying itself"
+  end
+
+  ###
+  # Losing an initialization race is not a reset: the deltas went to a
+  # generation that can never become authoritative, so carrying them forward
+  # cannot double count. Dropping them would lose the cycle for nothing.
+  ###
+  def test_a_lost_initialization_race_carries_work_forward
+    session = build_session(key_base: "conformance.race")
+    session.enqueue({"a" => 1})
+    session.send(:operation) {}
+    session.instance_variable_set(:@initialized_token, true)
+
+    # another process won the race, and its pointer names a token we never held
+    generation = session.instance_variable_get(:@generation)
+    result = Coverband::Storage::Generation::Result.new(
+      token: "winner", initialized: false, pointer: {"token" => "winner", "retire" => []},
+      pointer_missing: false
+    )
+    session.send(:on_generation_changed, result)
+
+    if target.respond_to?(:atomic_create?) && target.atomic_create?
+      # a backend that creates atomically cannot produce a race, so an
+      # unexplained token change is a reset, and carrying work across a
+      # deliberate clear is the worse mistake
+      assert_equal 0, session.pending_size,
+        "without a race to explain it, a new token is a reset"
+    else
+      assert_equal 1, session.pending_size,
+        "work bound for a generation that lost a race is still unreported work"
+    end
+  ensure
+    generation&.reset!
+  end
 end
 
 class CacheProtocolConformanceTest < Minitest::Test

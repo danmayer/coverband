@@ -78,11 +78,6 @@ class StorageIOGuardTest < Minitest::Test
         record(:delete)
         true
       end
-
-      def exist?(_key)
-        record(:exist)
-        false
-      end
     end.new
 
     target = Coverband::Storage::Target.new(recorder)
@@ -90,9 +85,8 @@ class StorageIOGuardTest < Minitest::Test
     target.read_multi("k")
     target.write("k", "v")
     target.delete("k")
-    target.exist?("k")
 
-    assert_equal({read: true, read_multi: true, write: true, delete: true, exist: true}, recorder.guarded)
+    assert_equal({read: true, read_multi: true, write: true, delete: true}, recorder.guarded)
   end
 end
 

@@ -93,10 +93,6 @@ module Coverband
         IOGuard.guard { target.delete(key) }
       end
 
-      def exist?(key)
-        IOGuard.guard { target.exist?(key) }
-      end
-
       private
 
       def usable(resolved)
