@@ -1,3 +1,44 @@
+### 7.0.0
+
+**Breaking changes**
+
+* **Coverage and tracker history do not survive this upgrade.** Stored documents now carry the metadata the new merge protocol needs, and keys are scoped by a generation token, so the storage format version changed for both `RedisStore` and the cache adapters. Old keys are ignored rather than migrated, and coverage accumulates fresh from the upgrade. Delete the old `coverband_3_2.*` keys once you are happy with the new data.
+* **`Coverband::Adapters::MemcachedStore` is deprecated** and is now a thin subclass of the new `ActiveSupportCacheStore`. Its `memcached_namespace` option and reader keep working; its stored data is not migrated.
+* **`background_reporting_sleep_seconds` now defaults to 600** for the new cache adapter (`HashRedisStore` still defaults to 300, everything else to 60), because each report rewrites a whole document.
+* `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.
+* `Adapters::Base#get_coverage_report` now reports the receiver's coverage instead of routing through `Coverband.configuration.store`, which quietly returned another store's data when the receiver was not the configured one.
+* `AbstractTracker#redis_store` is deprecated in favor of `#storage`, and trackers no longer reach through the store to raw Redis commands.
+* Work is retained when generation resolution fails, so a backend blip during a reporting cycle no longer discards that cycle's coverage. Previously only deltas that had reached the pending queue were protected, and the generation is resolved before the payload is enqueued. The retention caps apply to that held work too, so a sustained outage cannot grow the queue without limit
+* A cache store that is not resolvable yet (`ActiveSupportCacheStore.new { Rails.cache }` running before Rails assigns `Rails.cache`) is no longer a `NoMethodError` on a nil target. It holds the cycle's work, logs, and resolves on a later cycle. A resolver returning something that is not a cache store now names the problem instead of failing deep in the storage layer
+* Rake tasks that reach the store (`coverband:clear`, `clear_coverage`, `clear_tracker`, `clear_legacy`, `clear_orphans`, `coverage`, `coverage_json`, `coverage_html`) load the Rails environment first. With a lazily configured store they previously failed with an unavailable cache unless `rake environment` was named explicitly
+* Coverage data loss (eviction, dropped pending deltas) is now surfaced on the web report index. It was logged and shown on the tracker tabs, but the coverage index reported partial numbers as though they were complete
+* `Adapters::SessionCoverage#save_report` returns the protocol state from `Session#record` rather than `nil`, so a caller can tell a write that landed from one that was deferred or refused
+* Coverage now absorbs the two-cycle outage the design commits to. The cap bounds the queue, and the cycle that recovers takes a slot in it, so a cap of 2 only ever absorbed one; it is now 3
+* Data loss from dropping a delta that was already written and merely awaiting confirmation is reported as `unconfirmed_dropped` rather than `pending_dropped`, and the web report says the numbers may be undercounted instead of claiming earlier results are unavailable. Only the second kind is lost coverage
+* Trackers keep their own keys whenever a report is not stored (`:failed`, `:unavailable`, or an error), so an unreachable backend is no longer lossier for them than one that raises. `TrackerStorage::Base#retains_pending?` is removed; the decision comes from what `record` returns
+* A write refused or errored *after* the delta was enqueued now reports `:retained` rather than `:failed`, since the work is in the storage queue and a caller holding a second copy would replay it. This is the documented memcached >1MB path, where it double counted `QueryBurstTracker`
+* `QueryBurstTracker` reports on a quiet cycle when storage is holding work it could not write, instead of waiting for the next burst to flush it
+* A document that cannot be written is now reported while it is happening, rather than an hour later. Its retention caps never fire on a quiet tracker -- nothing new arrives for them to drop -- so only the absolute age cap eventually turned a permanently refused write (a tracker document past memcached's 1MB limit, for instance) into a loss event, and until then the tab read "0 used" exactly like an app that used none. The web report now says how many reports could not be stored and since when
+* Presence trackers (views, routes, translations) re-supply their known keys when storage reports work dropped at its retention caps, so a backend outage longer than the queue no longer leaves a used view reading as unused. Their merge is idempotent, so this cannot double count; `QueryBurstTracker` sums, so its loss stays irreducible and reported
+* `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
+
+**Features**
+
+* Added `Coverband::Adapters::ActiveSupportCacheStore`, which stores coverage in any `ActiveSupport::Cache::Store` — Redis, Memcached, files, or Solid Cache for Postgres/MySQL/SQLite. The cache target can be passed lazily (`ActiveSupportCacheStore.new { Rails.cache }`) so it works from `config/coverband.rb`, where `Rails.cache` does not exist yet (#533)
+* Trackers (views, routes, translations, query bursts) now work on non-Redis stores. They previously reached through the store to raw Redis commands, so file and memcached users got trackers that silently collected nothing and empty web UI tabs
+* Fixed the read-modify-write conflict Coverband has always had on `RedisStore`: concurrent reports could silently drop one process's contribution. Reports are now applied under a per-writer sequence, so a conflicting write is detected and repaired on the next cycle without double counting. `QueryBurstTracker` had the same conflict on its cumulative counters and is fixed the same way
+* Resets are now strong: `clear!` and `reset_recordings` retire a whole generation key, so a straggling write from before the reset cannot undo it
+* Coverband now detects when a backend has dropped its data (cache eviction, `Rails.cache.clear`) and reports it in the web UI rather than silently showing partial numbers
+* Trackers are skipped with an explanatory log line when the configured store cannot support them, instead of collecting nothing
+* Query bursts no longer count Coverband's own storage queries against the surrounding request, which would otherwise inflate query counts on a database backed cache
+* Added `persistent_coverage?`, `supports_trackers?`, and `supports_paged_reports?` capability predicates on adapters, plus `file_count` and `cached_file_count` defaults so non-Redis stores no longer raise from the web UI's datatables path
+* `redis_ttl` applies to stored coverage documents again; generation pointers deliberately never expire, since a pointer that outlived its document would leave live coverage unreachable
+* Storage reads degrade to empty and log when the backend is unavailable (an unreachable cache, or a Solid Cache table that has not been created yet) rather than raising into the request rendering the report; write failures still reach the reporting paths that log them
+* Added `rake test:solid_cache`, an ENV gated SQLite backed Solid Cache suite covering atomic pointer creation, batched pointer reads, ActiveRecord being unavailable, a missing Solid Cache schema, and Coverband's own SQL not being attributed to the request that triggered the report
+* Added `rake coverband:clear_orphans` to reclaim generation keys no longer referenced by a pointer, and scoped `coverband:clear_legacy` to Coverband's own namespaces and tracker names so it cannot delete unrelated application keys
+* CI now runs a memcached service, so the memcached backed adapter is actually exercised
+* Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
+
 ### Unreleased
 
 * Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)

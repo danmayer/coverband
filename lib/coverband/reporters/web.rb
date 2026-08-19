@@ -114,6 +114,8 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
+        notice += data_loss_notice(Coverband.configuration.store, subject: "coverage")
+        notice += unwritten_notice(Coverband.configuration.store, subject: "coverage")
         page = (request.params["page"] || 1).to_i
         options = {
           static: false,
@@ -153,6 +155,8 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
+        notice += data_loss_notice(tracker, subject: "tracker")
+        notice += unwritten_notice(tracker, subject: "tracker")
         used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
@@ -189,11 +193,14 @@ module Coverband
       end
 
       def clear
-        if Coverband.configuration.web_enable_clear
-          Coverband.configuration.store.clear!
-          notice = "coverband coverage cleared"
+        notice = if Coverband.configuration.web_enable_clear
+          if Coverband.configuration.store.clear! == false
+            "coverage clear failed, the store did not accept the write"
+          else
+            "coverband coverage cleared"
+          end
         else
-          notice = "web_enable_clear isn't enabled in your configuration"
+          "web_enable_clear isn't enabled in your configuration"
         end
         [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
@@ -202,19 +209,71 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           filename = request.params["filename"]
           Coverband.configuration.store.clear_file!(filename)
-          notice = "coverage for file #{filename} cleared"
+          notice = "coverage clear submitted for file #{filename}, applied within a reporting cycle"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end
         [302, {"Location" => "#{base_path}?notice=#{notice}"}, []]
       end
 
-      def clear_abstract_tracking(tracker)
-        if Coverband.configuration.web_enable_clear
-          tracker.reset_recordings
-          notice = "#{tracker.title} tracking reset"
+      ###
+      # A cache can drop what we wrote, and a conflicted delta can outlive its
+      # retention caps. Both are repaired as far as they can be, but the numbers
+      # on screen are partial after either, so say so rather than implying the
+      # report is complete.
+      ###
+      ###
+      # Nothing is lost, but nothing is arriving either, and an empty tab reads
+      # exactly like an app that used nothing. Process-local, unlike a recorded
+      # loss -- when the failure is that nothing can be stored, what this process
+      # is holding is the only evidence there is.
+      ###
+      def unwritten_notice(source, subject:)
+        return "" unless source.respond_to?(:unwritten)
+
+        held = source.unwritten
+        return "" unless held
+
+        "<strong>Notice:</strong> #{held.deltas} #{subject} #{(held.deltas == 1) ? "report" : "reports"} " \
+          "could not be stored, the oldest since #{held.since.iso8601}. What is shown is missing them, " \
+          "and the log says why each write was refused.<br/>"
+      end
+
+      def data_loss_notice(source, subject:)
+        # stores and trackers registered by an app or gem need not implement this
+        return "" unless source.respond_to?(:data_loss)
+
+        loss = source.data_loss
+        return "" unless loss
+
+        detail = Rack::Utils.escape_html(loss.detail.to_s)
+        kind = Rack::Utils.escape_html(loss.kind.to_s)
+        lead, consequence = data_loss_wording(loss, subject)
+        "<strong>Notice:</strong> #{lead} at #{loss.at.iso8601} " \
+          "(#{kind}): #{detail}. #{consequence}<br/>"
+      end
+
+      # a forfeited retry is not lost data -- that work is in the document unless
+      # another writer clobbered the write it went out in -- so it must not read
+      # like a real eviction
+      def data_loss_wording(loss, subject)
+        if loss.kind.to_s == "unconfirmed_dropped"
+          ["some #{subject} data may be undercounted",
+            "Affected only if another process overwrote that write."]
         else
-          notice = "web_enable_clear isn't enabled in your configuration"
+          ["#{subject} data was lost", "Results before that point are unavailable."]
+        end
+      end
+
+      def clear_abstract_tracking(tracker)
+        notice = if !Coverband.configuration.web_enable_clear
+          "web_enable_clear isn't enabled in your configuration"
+        elsif tracker.reset_recordings == false
+          # a reset whose pointer write didn't land hasn't happened, and saying
+          # otherwise leaves the operator believing data is gone when it is not
+          "#{tracker.title} tracking reset failed, the store did not accept the write"
+        else
+          "#{tracker.title} tracking reset"
         end
         [302, {"Location" => "#{base_path}/#{tracker.route}?notice=#{notice}"}, []]
       end
@@ -223,7 +282,7 @@ module Coverband
         if Coverband.configuration.web_enable_clear
           key = request.params["key"]
           tracker.clear_key!(key)
-          notice = "coverage for #{tracker.title} #{key} cleared"
+          notice = "coverage for #{tracker.title} #{key} clear submitted, applied within a reporting cycle"
         else
           notice = "web_enable_clear isn't enabled in your configuration"
         end

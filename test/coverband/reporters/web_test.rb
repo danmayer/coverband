@@ -122,6 +122,89 @@ module Coverband
       latest_index = last_response.body.index("app/views/z_latest.html.erb")
       assert first_index < latest_index
     end
+
+    ###
+    # A reset whose pointer write did not land has not happened. Reporting it as
+    # done leaves the operator believing data is gone when it is not.
+    ###
+    test "failed tracker reset is reported as a failure" do
+      Coverband.configuration.stubs(:web_enable_clear).returns(true)
+      tracker = FakeViewsTracker.new(used_keys: {})
+      tracker.define_singleton_method(:reset_recordings) { false }
+      Coverband.configuration.stubs(:trackers).returns([tracker])
+
+      get "/views_tracker/clear_views"
+
+      assert_equal 302, last_response.status
+      assert_includes last_response.headers["Location"], "failed"
+    end
+
+    test "successful tracker reset is reported as reset" do
+      Coverband.configuration.stubs(:web_enable_clear).returns(true)
+      tracker = FakeViewsTracker.new(used_keys: {})
+      tracker.define_singleton_method(:reset_recordings) { true }
+      Coverband.configuration.stubs(:trackers).returns([tracker])
+
+      get "/views_tracker/clear_views"
+
+      assert_equal 302, last_response.status
+      refute_includes last_response.headers["Location"], "failed"
+    end
+
+    ###
+    # A coverage document eviction was logged but never shown: only the tracker
+    # tabs surfaced data loss, so the index reported partial numbers as if they
+    # were complete.
+    ###
+    def test_index_surfaces_coverage_data_loss
+      loss = Coverband::Storage::Session::DataLoss.new(
+        at: Time.now, kind: :eviction, detail: "document disappeared"
+      )
+      Coverband.configuration.store.stubs(:data_loss).returns(loss)
+
+      get "/"
+      assert last_response.ok?
+      assert_match(/coverage data was lost at \d{4}-/, last_response.body)
+      assert_match(/\(eviction\).*Results before that point are unavailable\./, last_response.body)
+    end
+
+    ###
+    # Nothing is lost, but nothing is arriving either, and an empty report reads
+    # exactly like an app that used nothing.
+    ###
+    def test_index_reports_work_that_could_not_be_stored
+      held = Coverband::Storage::Session::UnwrittenWork.new(deltas: 3, since: Time.now)
+      Coverband.configuration.store.stubs(:unwritten).returns(held)
+
+      get "/"
+      assert last_response.ok?
+      assert_match(/3 coverage reports could not be stored/, last_response.body)
+      assert_match(/the oldest since \d{4}-/, last_response.body)
+    end
+
+    ###
+    # A forfeited repair is not lost data, and the two have to read differently
+    # or an operator cannot tell a blip from an eviction.
+    ###
+    def test_index_words_a_forfeited_repair_differently_from_lost_data
+      loss = Coverband::Storage::Session::DataLoss.new(
+        at: Time.now, kind: :unconfirmed_dropped, detail: "gave up the retry for 1 deltas"
+      )
+      Coverband.configuration.store.stubs(:data_loss).returns(loss)
+
+      get "/"
+      assert_match(/some coverage data may be undercounted at \d{4}-/, last_response.body)
+      assert_match(/Affected only if another process overwrote that write\./, last_response.body)
+      refute_match(/was lost/, last_response.body)
+    end
+
+    def test_index_says_nothing_when_no_coverage_was_lost
+      Coverband.configuration.store.stubs(:data_loss).returns(nil)
+
+      get "/"
+      assert last_response.ok?
+      refute_match(/data was lost/, last_response.body)
+    end
   end
 end
 

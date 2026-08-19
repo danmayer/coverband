@@ -142,6 +142,15 @@ module Coverband
     end
 
     def railtie!
+      unless store.supports_trackers?
+        if Coverband::Collectors::TrackerRegistry.registry.any? { |_name, entry| entry.enabled_proc.call(self) }
+          logger.info "Coverband: #{store.class.name} does not support tracking, " \
+            "view/route/translation/query burst trackers are disabled. " \
+            "Coverband::Adapters::ActiveSupportCacheStore supports tracking on any ActiveSupport::Cache store."
+        end
+        return
+      end
+
       Coverband::Collectors::TrackerRegistry.each do |entry|
         next unless entry.enabled_proc.call(self)
 
@@ -209,6 +218,10 @@ module Coverband
       @background_reporting_sleep_seconds ||= if service?
         # default to 10m for service
         (Coverband.configuration.coverband_env == "production") ? 600 : 60
+      elsif store.is_a?(Coverband::Adapters::ActiveSupportCacheStore)
+        # every report rewrites a whole document, and a cache backed store is
+        # the one most likely to be shared with the host application
+        600
       elsif store.is_a?(Coverband::Adapters::HashRedisStore)
         # Default to 5 minutes if using the hash redis store
         300

@@ -38,6 +38,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      memcached:
+        image: memcached:1.6
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 2 bash -c '</dev/tcp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
@@ -45,7 +54,24 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - run: bundle exec rake test:all
+        env:
+          # the memcached adapter has an ENV gate so local runs need no service,
+          # which also meant CI never exercised it
+          COVERBAND_MEMCACHED: "true"
       - run: "RUBYOPT='--enable=frozen-string-literal --debug=frozen-string-literal' bundle exec rake"
+        env:
+          COVERBAND_MEMCACHED: "true"
+      # Solid Cache needs Rails 7.2+, and its engine changes process wide state,
+      # so it runs on its own, only where it is available.
+      #
+      # Its gems sit in an optional bundler group, which bundler-cache does not
+      # install, so the group is installed here rather than assumed present.
+      - name: Solid Cache adapter tests
+        if: matrix.gemfile == 'Gemfile.rails8.0'
+        run: |
+          bundle config set --local with solid_cache
+          bundle install --jobs 4
+          bundle exec rake test:solid_cache
   starndardrb:
     runs-on: ubuntu-latest
     steps:

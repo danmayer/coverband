@@ -23,6 +23,18 @@
 # Example with TLS (rediss:// scheme automatically enables TLS):
 # redis_url = "rediss://my-elasticache.abcdef.cache.amazonaws.com:6379"
 
+####
+# Or store coverage in any ActiveSupport::Cache store: Redis, Memcached, files,
+# or Solid Cache (Postgres/MySQL/SQLite). Pass a block because Rails.cache does
+# not exist yet while this file is being loaded.
+####
+# config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }
+#
+# A cache can evict what Coverband writes. Give it a store that will not expire
+# the data, for example a dedicated Solid Cache database with `max_age: nil`
+# plus a size limit, or a Redis instance with no eviction policy. Coverband
+# detects and reports the loss when it can, but it cannot prevent it.
+
 # Allow folks to reset the coverband data via the web UI
 # config.web_enable_clear = true
 

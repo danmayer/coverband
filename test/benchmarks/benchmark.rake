@@ -170,6 +170,17 @@ namespace :benchmarks do
 
     MemoryProfiler.report {
       10.times { store.save_report(report) }
+      ###
+      # Coverband holds the most recent unconfirmed reports so a conflicting
+      # write from another process can be repaired on the next cycle. That
+      # retention is bounded and deliberate, so drop it here the same way
+      # Delta's previous coverage is dropped below, and let the check catch
+      # anything else.
+      #
+      # This store is built here rather than configured, so it is cleared
+      # directly.
+      ###
+      store.discard_pending!
     }.pretty_print
     data = $stdout.string
     $stdout = previous_out
@@ -212,6 +223,8 @@ namespace :benchmarks do
         ###
         Coverband::Collectors::Delta.class_variable_set(:@@previous_coverage, nil)
       end
+      # see the note above: bounded, deliberate retention for conflict repair
+      Coverband.discard_pending!
       # Reset file converter caches INSIDE the block but AFTER the loop.
       # This lets GC collect the instance (and any strings allocated in it during the loop)
       # before MemoryProfiler measures retained objects, so those strings aren't flagged.
