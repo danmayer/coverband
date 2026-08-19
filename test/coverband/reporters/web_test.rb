@@ -150,6 +150,31 @@ module Coverband
       assert_equal 302, last_response.status
       refute_includes last_response.headers["Location"], "failed"
     end
+
+    ###
+    # A coverage document eviction was logged but never shown: only the tracker
+    # tabs surfaced data loss, so the index reported partial numbers as if they
+    # were complete.
+    ###
+    def test_index_surfaces_coverage_data_loss
+      loss = Coverband::Storage::Session::DataLoss.new(
+        at: Time.now, kind: :eviction, detail: "document disappeared"
+      )
+      Coverband.configuration.store.stubs(:data_loss).returns(loss)
+
+      get "/"
+      assert last_response.ok?
+      assert_match(/coverage data was lost/, last_response.body)
+      assert_match(/eviction/, last_response.body)
+    end
+
+    def test_index_says_nothing_when_no_coverage_was_lost
+      Coverband.configuration.store.stubs(:data_loss).returns(nil)
+
+      get "/"
+      assert last_response.ok?
+      refute_match(/data was lost/, last_response.body)
+    end
   end
 end
 

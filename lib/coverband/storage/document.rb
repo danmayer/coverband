@@ -125,7 +125,6 @@ module Coverband
 
       # travels with the timestamp; without it every loss another process reads
       # back looks like an eviction, whatever actually happened
-
       def data_loss_kind
         @meta[DATA_LOSS_KIND]
       end
@@ -136,7 +135,6 @@ module Coverband
 
       # stays outside the pending age cap, or a delayed delta could outlive the
       # guard that keeps it from being applied twice
-
       def prune!(horizon:)
         now = Time.now.to_i
         applied.delete_if { |_id, entry| (now - entry[LAST_SEEN].to_i) > horizon }

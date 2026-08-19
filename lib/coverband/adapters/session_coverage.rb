@@ -26,7 +26,6 @@ module Coverband
 
       # the pointers this store will consult, so a cycle can fetch them in one
       # round trip instead of one small read per document
-
       def pointer_sessions
         Coverband::TYPES.map { |session_type| build_session(session_type) }
       end
@@ -38,7 +37,6 @@ module Coverband
       # whether every type actually cleared: a reset whose pointer write did not
       # land leaves the old generation authoritative, and callers have to be able
       # to say so rather than report success
-
       def clear!
         results = Coverband::TYPES.map { |type| session_for(type).reset }
         @cached_file_count = nil
@@ -74,7 +72,6 @@ module Coverband
 
       # expanded here once: re-expanding on a retry would hand an old delta a
       # fresh timestamp and let it slip past a tombstone recorded in between
-
       def save_report(report)
         session_for(type).record(own_expanded_report(report))
         @cached_file_count = nil
@@ -94,7 +91,6 @@ module Coverband
 
       # gives up the repair those held reports would have done, in exchange for
       # the memory; benchmarks and shutdown only
-
       def discard_pending!
         Coverband::TYPES.each { |type| session_for(type).discard_pending! }
       end
@@ -125,7 +121,6 @@ module Coverband
 
       # both types are built together, or reporting one would allocate the
       # other's keys later at an unpredictable moment
-
       def session_for(local_type)
         local_type ||= type
         Coverband::TYPES.each { |session_type| build_session(session_type) }
@@ -145,7 +140,6 @@ module Coverband
 
       # line hits sum, so this merge is not idempotent and the applied sequence
       # guard is what keeps a retry from inflating the counts
-
       def coverage_merger
         @coverage_merger ||= lambda do |doc, delta|
           incoming = delta.payload.reject do |file, _data|

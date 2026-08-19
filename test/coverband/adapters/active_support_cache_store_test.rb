@@ -208,6 +208,58 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # The retention protocol only protects deltas that reached the queue, and
+  # generation resolution runs before the payload is enqueued. A backend blip
+  # there used to drop the whole cycle -- up to 600s of coverage on the default
+  # reporting interval.
+  ###
+  def test_a_failure_resolving_the_generation_does_not_drop_the_cycle
+    mock_file_hash
+    @store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+
+    # fail the pointer read, the way an unreachable backend does
+    cache.stubs(:read).raises(RuntimeError.new("backend blip"))
+    assert_raises(RuntimeError) { @store.save_report({"app_path/dog.rb" => [0, 1, 0]}) }
+
+    cache.unstub(:read)
+    @store.save_report({})
+
+    assert_equal [1, 1, 0], @store.coverage["app_path/dog.rb"]["data"],
+      "the cycle that failed on the pointer read has to be replayed, not lost"
+  end
+
+  ###
+  # Coverband.start runs from before_configuration, so a reporting cycle can
+  # land before Rails has assigned Rails.cache. That is not a failed write: the
+  # work is held, and it must not raise into the app booting.
+  ###
+  def test_a_target_that_is_not_ready_yet_holds_the_work_instead_of_raising
+    mock_file_hash
+    ready = false
+    store = Coverband::Adapters::ActiveSupportCacheStore.new { ready ? cache : nil }
+
+    store.save_report({"app_path/dog.rb" => [1, 0, 0]}) # must not raise into a booting app
+    assert_equal({}, store.coverage)
+
+    ready = true # Rails.cache is assigned
+    store.save_report({"app_path/dog.rb" => [0, 1, 0]})
+
+    assert_equal [1, 1, 0], store.coverage["app_path/dog.rb"]["data"],
+      "work held while the cache was unavailable has to land once it resolves"
+  end
+
+  ###
+  # A resolver handing back something that is not a cache store is a
+  # configuration mistake, and has to say so rather than surface as
+  # NoMethodError from inside the storage layer.
+  ###
+  def test_a_resolver_returning_the_wrong_object_names_the_problem
+    target = Coverband::Storage::Target.new(Object.new)
+    error = assert_raises(Coverband::Storage::Target::Unavailable) { target.read("key") }
+    assert_match(/does not respond to/, error.message)
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

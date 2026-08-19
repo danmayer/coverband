@@ -22,7 +22,6 @@ module Coverband
 
       # keys are expected frozen: Hash#[]= duplicates and freezes an unfrozen
       # String key, and newer Ruby interns that copy, which reads as a leak here
-
       def read_multi(*keys)
         return {} if keys.empty?
 
@@ -35,7 +34,6 @@ module Coverband
       # a caller supplied expiry wins, otherwise the store's ttl applies;
       # pointers pass expires_in: nil so one can never expire out from under a
       # document that is still being refreshed
-
       def write(key, value, options = {})
         expiry = options.key?(:expires_in) ? options[:expires_in] : @ttl
         if expiry

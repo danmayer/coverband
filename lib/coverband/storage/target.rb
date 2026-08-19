@@ -12,6 +12,18 @@ module Coverband
     # does not exist while config/coverband.rb is loading.
     ###
     class Target
+      ###
+      # Not a failure: the store exists but is not ready to be resolved yet.
+      # Coverband.start runs from before_configuration, so a reporting cycle can
+      # land before Rails has assigned Rails.cache. Callers hold their work and
+      # try again rather than treating it as a lost write.
+      ###
+      Unavailable = Class.new(StandardError)
+
+      # the calls the merge protocol makes; a resolver handing back something
+      # else is a configuration mistake worth naming
+      REQUIRED_METHODS = %i[read write delete].freeze
+
       ATOMIC_CREATE_STORES = [
         "ActiveSupport::Cache::RedisCacheStore",
         "ActiveSupport::Cache::MemCacheStore",
@@ -20,20 +32,22 @@ module Coverband
 
       def initialize(target = nil, &block)
         @resolver = block || target
-        @target = target unless target.respond_to?(:call)
         @mutex = Mutex.new
+        @target = usable(target) unless target.respond_to?(:call)
       end
 
-      # resolved once, on first use; the mutex is what makes that true when
-      # several threads report at the same time on boot
-
+      ###
+      # Resolved once, on first use; the mutex is what makes that true when
+      # several threads report at the same time on boot. An unusable result is
+      # not memoized, so a later cycle can resolve it properly.
+      ###
       def target
         return @target if @target
 
         @mutex.synchronize do
-          @target ||= @resolver.respond_to?(:call) ? @resolver.call : @resolver
+          @target ||= usable(@resolver.respond_to?(:call) ? @resolver.call : @resolver)
         end
-        @target
+        @target || raise(Unavailable, unavailable_message)
       end
 
       def read(key)
@@ -58,7 +72,6 @@ module Coverband
 
       # the store's own truthiness: a false write means "not durable" and callers
       # have to retain their pending state, so it is never coerced
-
       def write(key, value, options = {})
         IOGuard.guard { target.write(key, value, {expires_in: nil}.merge(options)) }
       end
@@ -66,7 +79,6 @@ module Coverband
       # whether creation is atomic across processes, not whether the store
       # accepts the option: MemoryStore and FileStore accept unless_exist
       # without giving a usable guarantee
-
       def atomic_create?
         ATOMIC_CREATE_STORES.include?(target.class.name)
       end
@@ -83,6 +95,26 @@ module Coverband
 
       def exist?(key)
         IOGuard.guard { target.exist?(key) }
+      end
+
+      private
+
+      def usable(resolved)
+        return nil if resolved.nil?
+        return resolved if REQUIRED_METHODS.all? { |method| resolved.respond_to?(method) }
+
+        @unusable = resolved
+        nil
+      end
+
+      def unavailable_message
+        if @unusable
+          "the configured cache store (#{@unusable.class}) does not respond to " \
+            "#{REQUIRED_METHODS.join(", ")}, so Coverband cannot store coverage in it"
+        else
+          "the cache store is not available yet. Rails.cache is assigned after " \
+            "Coverband starts, so this resolves on a later reporting cycle"
+        end
       end
     end
   end

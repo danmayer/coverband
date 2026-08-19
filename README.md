@@ -512,6 +512,16 @@ config.store = Coverband::Adapters::ActiveSupportCacheStore.new(
 )
 ```
 
+The block form is the one to use with Solid Cache: its models come from a Rails
+engine that has not loaded when `config/coverband.rb` runs, so building a
+`SolidCache::Store` there raises `uninitialized constant
+SolidCache::Store::Entries::Entry`.
+
+Coverband starts from `before_configuration`, which is earlier than Rails
+assigns `Rails.cache`, so the first reporting cycle can run before the block can
+resolve. That cycle's coverage is held and written once the cache appears; it is
+not lost, and it does not raise into the booting app.
+
 Unlike the previous `MemcachedStore` (now a deprecated subclass of this one),
 this adapter supports the view, route, translation, and query burst trackers.
 

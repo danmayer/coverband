@@ -114,6 +114,7 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
+        notice += data_loss_notice(Coverband.configuration.store, subject: "coverage")
         page = (request.params["page"] || 1).to_i
         options = {
           static: false,
@@ -153,7 +154,7 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        notice += data_loss_notice(tracker)
+        notice += data_loss_notice(tracker, subject: "tracker")
         used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
@@ -219,15 +220,15 @@ module Coverband
       # on screen are partial after either, so say so rather than implying the
       # report is complete.
       ###
-      def data_loss_notice(tracker)
-        # trackers registered by an app or gem need not implement this
-        return "" unless tracker.respond_to?(:data_loss)
+      def data_loss_notice(source, subject:)
+        # stores and trackers registered by an app or gem need not implement this
+        return "" unless source.respond_to?(:data_loss)
 
-        loss = tracker.data_loss
+        loss = source.data_loss
         return "" unless loss
 
         detail = Rack::Utils.escape_html(loss.detail.to_s)
-        "<strong>Notice:</strong> tracker data was lost at #{loss.at.iso8601} " \
+        "<strong>Notice:</strong> #{subject} data was lost at #{loss.at.iso8601} " \
           "(#{Rack::Utils.escape_html(loss.kind.to_s)}): #{detail}. " \
           "Results before that point are unavailable.<br/>"
       end

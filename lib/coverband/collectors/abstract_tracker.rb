@@ -97,7 +97,6 @@ module Coverband
       # local state is dropped by the generation change callback, which only
       # fires once the new pointer is durable; clearing here first would throw
       # away unsaved work on a reset that never landed
-
       def reset_recordings
         return unless storage
 
@@ -115,7 +114,6 @@ module Coverband
 
       # loss the storage layer noticed and repaired as best it could, surfaced so
       # the report can say the numbers are partial rather than imply they are not
-
       def data_loss
         storage&.data_loss
       end
@@ -163,7 +161,6 @@ module Coverband
 
       # a key another process cleared has to leave the dedupe set, or a later
       # genuine use of it would never be enqueued again
-
       def forget_deleted_keys
         storage.newly_tombstoned.each do |key|
           @logged_keys.delete_if { |logged| logged.to_s == key }

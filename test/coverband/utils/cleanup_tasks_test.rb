@@ -105,4 +105,29 @@ class CleanupTasksTest < Minitest::Test
       "cleanup must be scoped to Coverband's own keys"
     refute @redis.exists?("coverband_3_2.runtime")
   end
+
+  ###
+  # A lazily configured store has nothing to resolve until Rails has loaded, so
+  # a task that skips the environment fails on an unavailable cache. Every task
+  # that reaches storage has to boot first.
+  ###
+  def test_store_touching_tasks_load_the_environment_first
+    source = File.read(File.expand_path("../../../../lib/coverband/utils/tasks.rb", __FILE__))
+    tasks = source.scan(/^  task :?(\w+)(?:,|\s|=)[^\n]*do\n(.*?)\n  end\n/m)
+
+    store_touching = tasks.select do |_name, body|
+      body.include?("configuration.store") || body.include?("redis_for_cleanup") ||
+        body.include?("Reporters::")
+    end
+    refute_empty store_touching
+
+    missing = store_touching.reject { |_name, body| body.include?("load_environment!") }
+    assert_empty missing.map(&:first),
+      "these tasks reach the store without booting the app first"
+  end
+
+  def test_load_environment_is_a_no_op_without_rails
+    Rake::Task.stubs(:task_defined?).with("environment").returns(false)
+    assert_nil Coverband::Utils::Tasks.load_environment!
+  end
 end

@@ -3,6 +3,18 @@
 module Coverband
   module Utils
     module Tasks
+      ###
+      # Boots the app before touching the store. A lazily configured store
+      # (config.store = ActiveSupportCacheStore.new { Rails.cache }) has nothing
+      # to resolve until Rails has loaded, so without this every task that
+      # reaches storage fails on an unavailable cache.
+      ###
+      def self.load_environment!
+        return unless defined?(Rake) && Rake::Task.task_defined?("environment")
+
+        Rake.application["environment"].invoke
+      end
+
       def self.redis_for_cleanup
         store = Coverband.configuration.store
         if store.respond_to?(:raw_store) && store.raw_store.respond_to?(:scan_each)
@@ -98,6 +110,7 @@ namespace :coverband do
 
   desc "console formatted report of Coverband code coverage"
   task :coverage do
+    Coverband::Utils::Tasks.load_environment!
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"
     require "coverband/utils/file_list"
@@ -109,6 +122,7 @@ namespace :coverband do
 
   desc "JSON formatted report of Coverband code coverage"
   task :coverage_json do
+    Coverband::Utils::Tasks.load_environment!
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"
     require "coverband/utils/file_list"
@@ -137,6 +151,7 @@ namespace :coverband do
   ###
   desc "static HTML formatted report of Coverband code coverage"
   task :coverage_html do
+    Coverband::Utils::Tasks.load_environment!
     require "coverband/utils/html_formatter"
     require "coverband/utils/result"
     require "coverband/utils/file_list"
@@ -191,9 +206,7 @@ namespace :coverband do
 
   desc "Run a simple rack app to report Coverband code coverage"
   task :coverage_server do
-    if Rake::Task.task_defined?("environment")
-      Rake.application["environment"].invoke
-    end
+    Coverband::Utils::Tasks.load_environment!
     if Coverband.configuration.store.is_a?(Coverband::Adapters::FileStore)
       Coverband.configuration.store.merge_mode = true
     end
@@ -225,9 +238,7 @@ namespace :coverband do
       $stdout = $stderr
     end
 
-    if Rake::Task.task_defined?("environment")
-      Rake.application["environment"].invoke
-    end
+    Coverband::Utils::Tasks.load_environment!
 
     if use_stdio_mode
       # Restore stdout for JSON-RPC communication over stdio
@@ -281,6 +292,7 @@ namespace :coverband do
   ###
   desc "reset Coverband coverage data, helpful for development, debugging, etc"
   task :clear_coverage do
+    Coverband::Utils::Tasks.load_environment!
     Coverband.configuration.store.clear!
   end
 
@@ -292,6 +304,7 @@ namespace :coverband do
   ###
   desc "delete Coverband data left behind by pre 7.0 storage formats (Redis only)"
   task :clear_legacy do
+    Coverband::Utils::Tasks.load_environment!
     redis = Coverband::Utils::Tasks.redis_for_cleanup
     next unless redis
 
@@ -322,6 +335,7 @@ namespace :coverband do
   ###
   desc "delete Coverband generation keys no longer referenced by any pointer (Redis only)"
   task :clear_orphans do
+    Coverband::Utils::Tasks.load_environment!
     redis = Coverband::Utils::Tasks.redis_for_cleanup
     next unless redis
 
@@ -339,6 +353,7 @@ namespace :coverband do
   ###
   desc "reset Coverband trackers data (view, routes, translations, etc), helpful for development, debugging, etc"
   task :clear_tracker do
+    Coverband::Utils::Tasks.load_environment!
     # Load rails-related trackers, if the gem is used in a rails app.
     Coverband.configuration.railtie! if defined?(Rails::Railtie)
 

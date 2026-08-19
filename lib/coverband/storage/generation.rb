@@ -124,7 +124,6 @@ module Coverband
 
       # whether the pointer says a reset retired this token, which is what
       # separates an operator clear from a lost initialization race
-
       def retires?(pointer, token)
         return false unless pointer && token
 

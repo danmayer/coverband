@@ -23,7 +23,6 @@ module Coverband
 
       # every pointer a reporting cycle needs, in one round trip instead of one
       # small read per document
-
       def self.prefetch_pointers(target, sessions)
         sessions = Array(sessions).compact.select { |session| session.respond_to?(:pointer_key) }
         return if sessions.length < 2
@@ -124,14 +123,32 @@ module Coverband
         end
       end
 
-      # an empty payload still needs the flush, to confirm earlier work and run
-      # the keep-alive; enqueuing it would rewrite the document every quiet cycle
-
+      ###
+      # An empty payload still needs the flush, to confirm earlier work and run
+      # the keep-alive; enqueuing it would rewrite the document every quiet
+      # cycle.
+      #
+      # Generation resolution happens before the payload is enqueued, so a
+      # backend that fails there would drop the cycle's work entirely: the
+      # retention protocol only protects deltas that reached the queue. Anything
+      # that did not get enqueued is held for the next cycle.
+      ###
       def record(payload)
+        enqueued = payload.nil? || payload.empty?
         operation do
-          enqueue(payload) unless payload.nil? || payload.empty?
+          unless enqueued
+            enqueue(payload)
+            enqueued = true
+          end
           flush
         end
+      rescue Target::Unavailable => error
+        retain(payload) unless enqueued
+        log(error.message)
+        :deferred
+      rescue
+        retain(payload) unless enqueued
+        raise
       end
 
       ###
@@ -149,6 +166,9 @@ module Coverband
           drop_local_state!
           true
         end
+      rescue Target::Unavailable => error
+        log(error.message)
+        false
       end
 
       def delete_entry(key)
@@ -229,6 +249,20 @@ module Coverband
 
       private
 
+      ###
+      # Holds a payload that never reached the queue, stamped with the last
+      # epoch this session observed -- the same stamp the next cycle would use.
+      # Zero when nothing has been observed yet, which can only filter the delta
+      # against an existing tombstone, never resurrect a deleted key.
+      ###
+      def retain(payload)
+        return if payload.nil? || payload.empty?
+
+        @writer.enqueue(payload, tombstone_epoch: @observed_tombstone_epoch.to_i)
+      rescue => error
+        log("could not retain work for #{@key_base}, #{error.class}: #{error.message}")
+      end
+
       def apply(doc, prefix)
         prefix.each do |delta|
           if delta.kind == :delete
@@ -299,7 +333,6 @@ module Coverband
 
       # has to track what we have actually seen: a writer holding a stale 0 would
       # stamp genuine new observations as pre-delete and have them filtered out
-
       def observed_tombstone_epoch
         @observed_tombstone_epoch || document.tombstone_epoch
       end
@@ -377,7 +410,6 @@ module Coverband
 
       # reading our own token back settles the initialization race, so a later
       # change is a reset rather than a lost race
-
       def on_generation_confirmed(_result)
         @initialized_token = false
       end

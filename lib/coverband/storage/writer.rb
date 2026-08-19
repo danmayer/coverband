@@ -47,7 +47,6 @@ module Coverband
 
       # frozen at enqueue: re-expanding on retry would hand a delta a fresh
       # timestamp and let it slip past a tombstone recorded in between
-
       def enqueue(payload, tombstone_epoch:, kind: :merge, key: nil)
         check_fork!
         @seq += 1
@@ -90,7 +89,6 @@ module Coverband
 
       # drops whatever outlived its guard, returning it so the caller can record
       # the loss rather than discard it silently
-
       def enforce_caps!
         check_fork!
         dropped = []
@@ -160,7 +158,6 @@ module Coverband
 
       # cannot tell "pruned but applied" from "never applied", and neither guess
       # is safe, so it becomes a different writer and gives up the ambiguity
-
       def rotate_identity!
         abandoned = @pending.dup
         reset_identity!
@@ -177,7 +174,6 @@ module Coverband
 
       # a forked child must not re-apply what the parent may already have
       # applied, nor share its sequence counter
-
       def check_fork!
         return if @pid == Process.pid
 

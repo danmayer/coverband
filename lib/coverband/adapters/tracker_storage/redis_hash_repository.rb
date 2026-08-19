@@ -66,7 +66,6 @@ module Coverband
 
         # best effort: a key observed by another process just before the delete
         # can come back with no post-delete observation behind it
-
         def delete_entry(key)
           operation do
             @target.hdel(data_key, key.to_s)
