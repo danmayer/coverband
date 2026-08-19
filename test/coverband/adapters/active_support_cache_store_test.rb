@@ -260,6 +260,70 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # The retention caps live in flush, and a cycle that fails before flush never
+  # reaches them. Holding that work is right, but holding it without a bound
+  # grows the queue by one delta per cycle for as long as the outage lasts --
+  # on the 600s default, six per hour per process, per document.
+  ###
+  def test_retained_work_is_still_bounded_during_a_sustained_outage
+    mock_file_hash
+    session = @store.send(:session_for, Coverband::RUNTIME_TYPE)
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+
+    20.times do |cycle|
+      @store.save_report({"app_path/dog.rb" => [cycle, 0, 0]})
+    rescue RuntimeError
+      # the reporting paths log this; here we only care about what is retained
+    end
+
+    assert_operator session.pending_size, :<=, Coverband::Adapters::SessionCoverage::COVERAGE_MAX_ENTRIES,
+      "an outage must not grow the pending queue without limit"
+    assert session.data_loss, "work dropped at the caps has to be reported, not discarded silently"
+    assert_equal :pending_dropped, session.data_loss.kind
+  end
+
+  ###
+  # Dropping at the caps leaves a sequence hole, and only a flush knows the
+  # watermark to rebase against. A cycle carrying new work closes it by
+  # accident, because that work pushes the queue back over the cap and the
+  # existing rebase runs -- a quiet cycle does not, and the retained work would
+  # sit unwritable until some later report happened to carry a payload.
+  ###
+  def test_retained_work_lands_on_a_quiet_cycle_after_a_drop
+    mock_file_hash
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+    20.times do
+      @store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+    rescue RuntimeError
+    end
+
+    cache.unstub(:read)
+    @store.save_report({}) # a quiet cycle, carrying nothing of its own
+
+    stored = @store.coverage["app_path/dog.rb"]
+    refute_nil stored, "work that survived the caps has to land without waiting for new work"
+    assert_operator stored["data"][0], :>, 0
+  end
+
+  ###
+  # A resolver handing back the wrong object can never resolve, so repeating the
+  # same line every cycle is noise rather than signal.
+  ###
+  def test_a_misconfigured_store_is_reported_once_not_every_cycle
+    messages = []
+    logger = Object.new
+    logger.define_singleton_method(:info) { |message| messages << message }
+    logger.define_singleton_method(:error) { |message| messages << message }
+    Coverband.configuration.stubs(:logger).returns(logger)
+
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(Object.new)
+    5.times { store.save_report({"app_path/dog.rb" => [1, 0, 0]}) }
+
+    misconfigured = messages.select { |message| message.include?("does not respond to") }
+    assert_equal 1, misconfigured.length, "a permanent misconfiguration is worth saying once"
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

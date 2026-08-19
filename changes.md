@@ -8,10 +8,11 @@
 * `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.
 * `Adapters::Base#get_coverage_report` now reports the receiver's coverage instead of routing through `Coverband.configuration.store`, which quietly returned another store's data when the receiver was not the configured one.
 * `AbstractTracker#redis_store` is deprecated in favor of `#storage`, and trackers no longer reach through the store to raw Redis commands.
-* Work is retained when generation resolution fails, so a backend blip during a reporting cycle no longer discards that cycle's coverage. Previously only deltas that had reached the pending queue were protected, and the generation is resolved before the payload is enqueued.
+* Work is retained when generation resolution fails, so a backend blip during a reporting cycle no longer discards that cycle's coverage. Previously only deltas that had reached the pending queue were protected, and the generation is resolved before the payload is enqueued. The retention caps apply to that held work too, so a sustained outage cannot grow the queue without limit
 * A cache store that is not resolvable yet (`ActiveSupportCacheStore.new { Rails.cache }` running before Rails assigns `Rails.cache`) is no longer a `NoMethodError` on a nil target. It holds the cycle's work, logs, and resolves on a later cycle. A resolver returning something that is not a cache store now names the problem instead of failing deep in the storage layer
 * Rake tasks that reach the store (`coverband:clear`, `clear_coverage`, `clear_tracker`, `clear_legacy`, `clear_orphans`, `coverage`, `coverage_json`, `coverage_html`) load the Rails environment first. With a lazily configured store they previously failed with an unavailable cache unless `rake environment` was named explicitly
 * Coverage data loss (eviction, dropped pending deltas) is now surfaced on the web report index. It was logged and shown on the tracker tabs, but the coverage index reported partial numbers as though they were complete
+* `Adapters::SessionCoverage#save_report` returns the protocol state from `Session#record` rather than `nil`, so a caller can tell a write that landed from one that was deferred or refused
 * `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
 
 **Features**

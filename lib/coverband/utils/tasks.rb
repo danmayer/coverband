@@ -21,8 +21,12 @@ module Coverband
           return store.raw_store
         end
 
-        puts "Only a Redis backed store can enumerate its own keys."
-        puts "On a cache backed store, clear the cache itself (for example Rails.cache.clear)."
+        puts "Only a Redis backed store can enumerate its own keys, so this task"
+        puts "cannot run against #{store.class}."
+        puts "Retired generations are swept automatically by whichever process reports"
+        puts "next, so orphans are the residue of a lost sweep rather than the norm."
+        puts "To reclaim them on a cache backed store, clear the cache itself"
+        puts "(for example Rails.cache.clear) or let its own expiry do it."
         nil
       rescue NotImplementedError
         puts "This store does not expose a Redis client, nothing to enumerate."

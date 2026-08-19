@@ -144,7 +144,7 @@ module Coverband
         end
       rescue Target::Unavailable => error
         retain(payload) unless enqueued
-        log(error.message)
+        log_unavailable(error)
         :deferred
       rescue
         retain(payload) unless enqueued
@@ -167,7 +167,7 @@ module Coverband
           true
         end
       rescue Target::Unavailable => error
-        log(error.message)
+        log_unavailable(error)
         false
       end
 
@@ -194,6 +194,18 @@ module Coverband
           end
 
           prefix = @writer.contiguous_prefix(watermark)
+          ###
+          # Pending work that yields no prefix means a sequence hole: something
+          # was dropped somewhere that had no watermark to rebase against, which
+          # is what retain does during an outage. Closing it here rather than
+          # tracking who owes a rebase keeps the invariant structural -- a flush
+          # with pending work always makes progress.
+          ###
+          if prefix.empty? && @writer.pending_size > 0
+            @writer.rebase_pending!(watermark)
+            prefix = @writer.contiguous_prefix(watermark)
+          end
+
           if prefix.empty?
             if @data_loss && !@data_loss_persisted
               persist_data_loss(doc)
@@ -254,11 +266,33 @@ module Coverband
       # epoch this session observed -- the same stamp the next cycle would use.
       # Zero when nothing has been observed yet, which can only filter the delta
       # against an existing tombstone, never resurrect a deleted key.
+      #
+      # The caps are enforced here too. flush is where they normally run, and a
+      # sustained outage never reaches it: an unreachable backend, or a store
+      # misconfigured with something that can never resolve, would otherwise
+      # grow the queue by one delta per cycle for as long as it lasts.
+      #
+      # Dropping leaves a sequence hole that only a flush can close, since only
+      # it knows the watermark to rebase against.
       ###
+      ###
+      # A misconfigured store can never resolve, so repeating it every cycle is
+      # noise; a store that is merely not ready yet is worth saying each time,
+      # since each line is a cycle that has been deferred.
+      ###
+      def log_unavailable(error)
+        return log(error.message) unless error.is_a?(Target::Misconfigured)
+        return if @misconfiguration_logged
+
+        @misconfiguration_logged = true
+        @logger&.error("Coverband: #{error.message}")
+      end
+
       def retain(payload)
         return if payload.nil? || payload.empty?
 
         @writer.enqueue(payload, tombstone_epoch: @observed_tombstone_epoch.to_i)
+        record_dropped(@writer.enforce_caps!)
       rescue => error
         log("could not retain work for #{@key_base}, #{error.class}: #{error.message}")
       end

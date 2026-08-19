@@ -72,9 +72,12 @@ module Coverband
 
       # expanded here once: re-expanding on a retry would hand an old delta a
       # fresh timestamp and let it slip past a tombstone recorded in between
+      # returns Session#record's protocol state, so a caller can tell a write
+      # that landed from one that was deferred or refused
       def save_report(report)
-        session_for(type).record(own_expanded_report(report))
+        result = session_for(type).record(own_expanded_report(report))
         @cached_file_count = nil
+        result
       end
 
       def save_coverage(report, local_type = nil)

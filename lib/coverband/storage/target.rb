@@ -20,6 +20,11 @@ module Coverband
       ###
       Unavailable = Class.new(StandardError)
 
+      # the resolver handed back something that is not a cache store, which no
+      # later cycle can fix; worth saying once, loudly, rather than every cycle
+      # in the same words as the transient case
+      Misconfigured = Class.new(Unavailable)
+
       # the calls the merge protocol makes; a resolver handing back something
       # else is a configuration mistake worth naming
       REQUIRED_METHODS = %i[read write delete].freeze
@@ -47,7 +52,8 @@ module Coverband
         @mutex.synchronize do
           @target ||= usable(@resolver.respond_to?(:call) ? @resolver.call : @resolver)
         end
-        @target || raise(Unavailable, unavailable_message)
+        return @target if @target
+        raise(@unusable ? Misconfigured : Unavailable, unavailable_message)
       end
 
       def read(key)
