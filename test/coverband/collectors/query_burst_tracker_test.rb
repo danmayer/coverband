@@ -143,6 +143,79 @@ class QueryBurstTrackerTest < Minitest::Test
       "an outage of any length has to be lossless while the tracker holds the keys"
   end
 
+  ###
+  # A write refused after the delta was enqueued is not the same as one refused
+  # before it: storage has the work either way it is described, but only in the
+  # second case is it the caller's again. Keeping a copy against the first gives
+  # the delta two owners, and these counters sum.
+  #
+  # This is the documented memcached >1MB path, so it is reachable in ordinary
+  # operation rather than only under injected faults.
+  ###
+  test "a write refused after the enqueue is not counted twice" do
+    require "active_support"
+    require "active_support/cache"
+
+    Coverband::Collectors::QueryBurstTracker.expects(:supported_version?).at_least_once.returns(true)
+    refusing = false
+    cache = ActiveSupport::Cache::MemoryStore.new
+    # the document only, never the pointer, which is the shape of a slab refusal
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if refusing && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "burst_refused")
+    subject = Coverband::Collectors::QueryBurstTracker.new(store: store)
+
+    subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 10.0)
+    subject.save_report # establishes the document
+
+    refusing = true
+    3.times do
+      subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 10.0)
+      subject.save_report
+    end
+
+    refusing = false
+    subject.save_report
+
+    assert_equal 4, subject.used_key_stats["controller:books#index"]["requests"],
+      "four requests were observed, so four have to be stored"
+  end
+
+  ###
+  # The quiet cycle is the only chance storage gets to flush work it took but
+  # could not write, so a tracker with nothing new of its own still has to ask.
+  ###
+  test "a quiet cycle still flushes work storage is holding" do
+    require "active_support"
+    require "active_support/cache"
+
+    Coverband::Collectors::QueryBurstTracker.expects(:supported_version?).at_least_once.returns(true)
+    refusing = false
+    cache = ActiveSupport::Cache::MemoryStore.new
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if refusing && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "burst_quiet")
+    subject = Coverband::Collectors::QueryBurstTracker.new(store: store)
+    subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 10.0)
+    subject.save_report
+
+    refusing = true
+    subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 10.0)
+    subject.save_report
+
+    refusing = false
+    subject.save_report # nothing new of its own
+
+    assert_equal 2, subject.used_key_stats["controller:books#index"]["requests"],
+      "retained work has to land without waiting for the next burst"
+  end
+
   def fake_store
     @fake_store ||= Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
   end

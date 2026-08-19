@@ -15,8 +15,13 @@ module Coverband
       #   :written_unconfirmed  merged and written, still awaiting confirmation
       #   :confirmed            an earlier write was proven durable and dropped
       #   :deferred             enqueued only, nothing flushed this call
-      #   :failed               refused or errored, the work is the caller's again
+      #   :retained             taken, but not durable yet; still ours to retry
+      #   :failed               refused before we took it, so it is yours again
       #   :unavailable          the backend cannot be reached at all, same
+      #
+      # Only the last two mean the caller still owns the work. Keeping a copy
+      # against any of the others gives the same delta two owners, and both
+      # replay it.
       ###
       class Base
         ABSTRACT_KEY = "abstract"

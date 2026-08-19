@@ -229,8 +229,9 @@ module Coverband
 
         detail = Rack::Utils.escape_html(loss.detail.to_s)
         kind = Rack::Utils.escape_html(loss.kind.to_s)
-        "<strong>Notice:</strong> #{data_loss_summary(loss, subject)} at " \
-          "#{loss.at.iso8601} (#{kind}): #{detail}.<br/>"
+        lead, consequence = data_loss_wording(loss, subject)
+        "<strong>Notice:</strong> #{lead} at #{loss.at.iso8601} " \
+          "(#{kind}): #{detail}. #{consequence}<br/>"
       end
 
       ###
@@ -239,11 +240,12 @@ module Coverband
       # went out in. Saying "results before that point are unavailable" for it
       # would leave an operator unable to tell it from a real eviction.
       ###
-      def data_loss_summary(loss, subject)
+      def data_loss_wording(loss, subject)
         if loss.kind.to_s == "unconfirmed_dropped"
-          "some #{subject} may be undercounted, and cannot be repaired now"
+          ["some #{subject} data may be undercounted",
+            "A repair was given up on and cannot be retried."]
         else
-          "#{subject} data was lost, and results before that point are unavailable,"
+          ["#{subject} data was lost", "Results before that point are unavailable."]
         end
       end
 

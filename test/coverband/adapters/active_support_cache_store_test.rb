@@ -500,7 +500,7 @@ if ENV["COVERBAND_MEMCACHED"]
         hash["key_#{i}"] = SecureRandom.hex(32_768)
       end
       session.enqueue(oversized)
-      assert_equal :failed, session.flush
+      assert_equal :retained, session.flush
       assert_equal 1, session.pending_size, "a refused write must keep the work, not drop it"
       assert messages.any? { |message| message.include?("failed to write") },
         "the warning has to name what could not be stored"

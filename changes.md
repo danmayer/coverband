@@ -16,6 +16,8 @@
 * Coverage now absorbs the two-cycle outage the design commits to. The cap bounds the queue, and the cycle that recovers takes a slot in it, so a cap of 2 only ever absorbed one; it is now 3
 * Data loss from dropping a delta that was already written and merely awaiting confirmation is reported as `unconfirmed_dropped` rather than `pending_dropped`, and the web report says the numbers may be undercounted instead of claiming earlier results are unavailable. Only the second kind is lost coverage
 * Trackers keep their own keys whenever a report is not stored (`:failed`, `:unavailable`, or an error), so an unreachable backend is no longer lossier for them than one that raises. `TrackerStorage::Base#retains_pending?` is removed; the decision comes from what `record` returns
+* A write refused or errored *after* the delta was enqueued now reports `:retained` rather than `:failed`, since the work is in the storage queue and a caller holding a second copy would replay it. This is the documented memcached >1MB path, where it double counted `QueryBurstTracker`
+* `QueryBurstTracker` reports on a quiet cycle when storage is holding work it could not write, instead of waiting for the next burst to flush it
 * `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
 
 **Features**

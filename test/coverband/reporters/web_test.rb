@@ -164,8 +164,24 @@ module Coverband
 
       get "/"
       assert last_response.ok?
-      assert_match(/coverage data was lost/, last_response.body)
-      assert_match(/eviction/, last_response.body)
+      assert_match(/coverage data was lost at \d{4}-/, last_response.body)
+      assert_match(/\(eviction\).*Results before that point are unavailable\./, last_response.body)
+    end
+
+    ###
+    # A forfeited repair is not lost data, and the two have to read differently
+    # or an operator cannot tell a blip from an eviction.
+    ###
+    def test_index_words_a_forfeited_repair_differently_from_lost_data
+      loss = Coverband::Storage::Session::DataLoss.new(
+        at: Time.now, kind: :unconfirmed_dropped, detail: "gave up the retry for 1 deltas"
+      )
+      Coverband.configuration.store.stubs(:data_loss).returns(loss)
+
+      get "/"
+      assert_match(/some coverage data may be undercounted at \d{4}-/, last_response.body)
+      assert_match(/cannot be retried/, last_response.body)
+      refute_match(/was lost/, last_response.body)
     end
 
     def test_index_says_nothing_when_no_coverage_was_lost

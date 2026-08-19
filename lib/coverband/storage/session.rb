@@ -135,21 +135,37 @@ module Coverband
       # that did not get enqueued is held for the next cycle.
       ###
       def record(payload)
-        enqueued = payload.nil? || payload.empty?
+        # "nothing to take" is not "taken": an empty payload leaves the caller
+        # holding nothing, so a failure on that cycle still has to be raised
+        nothing_to_take = payload.nil? || payload.empty?
+        taken = false
         operation do
-          unless enqueued
+          unless nothing_to_take || taken
             enqueue(payload)
-            enqueued = true
+            taken = true
           end
           flush
         end
       rescue Target::Unavailable => error
-        retain(payload) unless enqueued
+        retain(payload) unless taken || nothing_to_take
         log_unavailable(error)
-        :unavailable
-      rescue
-        retain(payload) unless enqueued
-        raise
+        taken ? :retained : :unavailable
+      rescue => error
+        ###
+        # Whether the work is ours decides who keeps it, and it decides whether
+        # this can raise at all: a caller that sees an exception keeps its own
+        # copy, so raising after we have taken the delta gives it two owners and
+        # replays it. Log it here instead, where the raise would have been the
+        # only record.
+        ###
+        if taken
+          log("failed to store #{@key_base}, retaining #{@writer.pending_size} pending deltas, " \
+            "#{error.class}: #{error.message}")
+          :retained
+        else
+          retain(payload) unless nothing_to_take
+          raise
+        end
       end
 
       ###
@@ -228,9 +244,10 @@ module Coverband
             @written_through = prefix.last.seq
             :written_unconfirmed
           else
-            # not durable: everything stays pending for the next cycle
+            # not durable, but ours: everything stays pending for the next cycle,
+            # so a caller holding a second copy would replay it
             log("failed to write #{@key_base}, retaining #{@writer.pending_size} pending deltas")
-            :failed
+            :retained
           end
         end
       end

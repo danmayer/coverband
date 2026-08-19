@@ -463,7 +463,7 @@ module ProtocolConformance
     session = build_session
     session.enqueue({"a" => 1})
     target.stubs(:write).returns(false)
-    assert_equal :failed, session.flush
+    assert_equal :retained, session.flush
     assert_equal 1, session.pending_size
   end
 
@@ -518,7 +518,7 @@ module ProtocolConformance
     session.enqueue({"a" => 1})
     target.define_singleton_method(:write) { |_key, _value, _options = {}| false }
 
-    assert_equal :failed, session.flush
+    assert_equal :retained, session.flush
     assert_equal 1, session.pending_size, "a refused write must not lose the work"
   ensure
     target.singleton_class.remove_method(:write) if target.singleton_class.method_defined?(:write)

@@ -271,6 +271,14 @@ Which is also why only coverage retains work on failure. If both the tracker and
 the session held the same delta they would each replay it, and for the additive
 trackers that double counts.
 
+The same reasoning decides what `record` may return, and whether it may raise at
+all. "Refused" is two different situations, and only the session knows which:
+work rejected *before* it was enqueued is the caller's again (`:failed`,
+`:unavailable`), while a write refused or errored *after* the enqueue is in the
+queue and still ours (`:retained`). A raise is itself a signal of the first kind,
+since a caller that sees an exception keeps its copy — so once the delta has been
+taken, the failure is logged rather than raised.
+
 #### Deltas are immutable after enqueue
 
 Expanded (`expand_report`, stamping `first_updated_at` / `last_updated_at` / `file_hash`) and

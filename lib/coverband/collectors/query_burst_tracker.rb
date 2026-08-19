@@ -97,7 +97,9 @@ module Coverband
       ###
       def save_report
         return unless storage
-        return if @pending_stats.empty?
+        # storage may be holding work from a cycle that could not be written,
+        # and a quiet cycle is the only chance it gets to flush it
+        return if @pending_stats.empty? && storage.pending_size.zero?
 
         delta = @pending_stats.each_with_object({}) { |(key, stats), h| h[key] = stats.to_json }
         result = storage.record(delta)
