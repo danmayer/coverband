@@ -96,6 +96,12 @@ module Coverband
         Coverband::TYPES.map { |type| session_for(type).data_loss }.compact.first
       end
 
+      # work held because it cannot be written, which for a document that can
+      # never be written is the only signal there is
+      def unwritten
+        Coverband::TYPES.map { |type| session_for(type).unwritten }.compact.first
+      end
+
       # gives up the repair those held reports would have done, in exchange for
       # the memory; benchmarks and shutdown only
       def discard_pending!

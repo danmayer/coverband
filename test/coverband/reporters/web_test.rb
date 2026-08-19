@@ -169,6 +169,20 @@ module Coverband
     end
 
     ###
+    # Nothing is lost, but nothing is arriving either, and an empty report reads
+    # exactly like an app that used nothing.
+    ###
+    def test_index_reports_work_that_could_not_be_stored
+      held = Coverband::Storage::Session::UnwrittenWork.new(deltas: 3, since: Time.now)
+      Coverband.configuration.store.stubs(:unwritten).returns(held)
+
+      get "/"
+      assert last_response.ok?
+      assert_match(/3 coverage reports could not be stored/, last_response.body)
+      assert_match(/the oldest since \d{4}-/, last_response.body)
+    end
+
+    ###
     # A forfeited repair is not lost data, and the two have to read differently
     # or an operator cannot tell a blip from an eviction.
     ###

@@ -48,6 +48,14 @@ module Coverband
 
       DataLoss = Struct.new(:at, :kind, :detail, keyword_init: true)
 
+      ###
+      # Work the session is holding because it cannot be written. Distinct from
+      # DataLoss, which says something is gone: this says nothing is arriving,
+      # which for a quiet document is otherwise indistinguishable from an app
+      # that genuinely used nothing.
+      ###
+      UnwrittenWork = Struct.new(:deltas, :since, keyword_init: true)
+
       DEFAULT_MAX_ENTRIES = 5
       DEFAULT_MAX_BYTES = 8 * 1024 * 1024
       # stays well under the pruning horizon so a delta can never outlive its
@@ -57,6 +65,20 @@ module Coverband
       KEEP_ALIVE_AFTER = 3 * 24 * 60 * 60
 
       attr_reader :data_loss
+
+      ###
+      # A document that can never be written -- one past memcached's value limit
+      # is the documented case -- otherwise reports nothing at all. Its caps
+      # never fire, because a quiet tracker enqueues nothing new for them to
+      # drop, so only the absolute age cap eventually converts the stall into a
+      # loss, an hour later by default.
+      ###
+      def unwritten
+        return nil unless @unwritten_since
+        return nil if @writer.pending_size.zero?
+
+        UnwrittenWork.new(deltas: @writer.pending_size, since: Time.at(@unwritten_since))
+      end
 
       def initialize(target:, key_base:, merger:, logger: nil,
         max_entries: DEFAULT_MAX_ENTRIES, max_bytes: DEFAULT_MAX_BYTES,
@@ -159,6 +181,7 @@ module Coverband
         # only record.
         ###
         if taken
+          note_unwritten
           log("failed to store #{@key_base}, retaining #{@writer.pending_size} pending deltas, " \
             "#{error.class}: #{error.message}")
           :retained
@@ -246,6 +269,7 @@ module Coverband
           else
             # not durable, but ours: everything stays pending for the next cycle,
             # so a caller holding a second copy would replay it
+            note_unwritten
             log("failed to write #{@key_base}, retaining #{@writer.pending_size} pending deltas")
             :retained
           end
@@ -321,6 +345,7 @@ module Coverband
         return if payload.nil? || payload.empty?
 
         @writer.enqueue(payload, tombstone_epoch: @observed_tombstone_epoch.to_i)
+        note_unwritten
         record_dropped(@writer.enforce_caps!)
       rescue => error
         log("could not retain work for #{@key_base}, #{error.class}: #{error.message}")
@@ -405,6 +430,7 @@ module Coverband
         result = @target.write(data_key, doc.to_json)
         if result
           @last_write_at = Time.now.to_i
+          @unwritten_since = nil
           # it exists now, so a later absence is the backend dropping it rather
           # than us never having written
           @seen_document = true
@@ -517,6 +543,10 @@ module Coverband
         else
           record_loss(:pending_dropped, "dropped #{dropped.length} deltas that outlived the retention caps")
         end
+      end
+
+      def note_unwritten
+        @unwritten_since ||= Time.now.to_i
       end
 
       def record_loss(kind, detail)

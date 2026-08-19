@@ -389,6 +389,57 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # A document that can never be written stores nothing while its caps never
+  # fire, because a quiet document enqueues nothing new for them to drop. Only
+  # the absolute age cap turns that into a loss, an hour later by default, and
+  # until then an empty report is indistinguishable from an app that ran nothing.
+  ###
+  def test_a_document_that_cannot_be_written_says_so_without_waiting_for_the_age_cap
+    mock_file_hash
+    refusing = true
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if refusing && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+
+    store = build_store
+    store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+
+    assert_nil store.data_loss, "nothing has been dropped yet, so nothing is lost"
+    held = store.unwritten
+    refute_nil held, "but the work is not stored either, and that has to be visible"
+    assert_operator held.deltas, :>, 0
+    assert_kind_of Time, held.since
+  ensure
+    cache.singleton_class.remove_method(:write) if cache.singleton_class.method_defined?(:write)
+  end
+
+  ###
+  # And it has to stop saying so once the writes land, or it becomes noise that
+  # an operator learns to ignore.
+  ###
+  def test_unwritten_work_clears_once_it_is_stored
+    mock_file_hash
+    refusing = true
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if refusing && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+
+    store = build_store
+    store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+    refute_nil store.unwritten
+
+    refusing = false
+    store.save_report({})
+
+    assert_nil store.unwritten, "a stall that has cleared must stop being reported"
+    assert_equal [1, 0, 0], store.coverage["app_path/dog.rb"]["data"]
+  ensure
+    cache.singleton_class.remove_method(:write) if cache.singleton_class.method_defined?(:write)
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

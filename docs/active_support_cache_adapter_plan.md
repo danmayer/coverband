@@ -271,6 +271,22 @@ Which is also why only coverage retains work on failure. If both the tracker and
 the session held the same delta they would each replay it, and for the additive
 trackers that double counts.
 
+Loss is not the only thing worth reporting, and for one shape it is not even the
+first thing to happen. A document that can never be written -- past memcached's
+value limit, say -- drops nothing, because a quiet tracker enqueues nothing new
+for the caps to drop; the queue sits at one delta and only the absolute age cap
+eventually converts the stall into a recorded loss, an hour later by default.
+Until then an empty tracker tab is indistinguishable from an app that used
+nothing, which is the same "reads as unused" hazard, reached by a stuck document
+rather than a dropped delta.
+
+So the session reports held work (`unwritten`) separately from lost work
+(`data_loss`). It is process-local, unlike a recorded loss, because the failure
+is precisely that nothing can be stored -- there is nowhere durable to put the
+marker. That is acceptable here: any process rendering the report is also a
+reporting process, and a document that is unwritable is unwritable for all of
+them.
+
 Idempotence buys one more thing at the far end of an outage. The queue is
 bounded, so loss past the cap is linear in outage length — but a presence
 tracker still holds its keys locally, and re-supplying them costs nothing when

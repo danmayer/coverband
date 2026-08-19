@@ -118,6 +118,12 @@ module Coverband
         storage&.data_loss
       end
 
+      # reports this tracker cannot store, so a tab showing nothing can say why
+      # rather than reading as an app that used nothing
+      def unwritten
+        storage&.unwritten
+      end
+
       # exposed so a reporting cycle can batch every pointer read it will make
       def pointer_session
         storage&.pointer_session

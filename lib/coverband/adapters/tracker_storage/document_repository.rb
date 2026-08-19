@@ -18,7 +18,7 @@ module Coverband
 
         # the session owns the protocol; this decides what a tracker may ask for
         def_delegators :@session, :record, :delete_entry, :reset, :tracking_since,
-          :data_loss, :pending_size, :newly_tombstoned
+          :data_loss, :unwritten, :pending_size, :newly_tombstoned
         def_delegator :@session, :generation_token, :generation
 
         def initialize(target:, key_base:, merger:, logger: nil, on_generation_change: nil, session_options: {})

@@ -115,6 +115,35 @@ class TranslationTrackerTest < Minitest::Test
     refute Coverband::Collectors::QueryBurstTracker.idempotent_merge?
   end
 
+  ###
+  # The exposed shape: a document that can never be written, on a tracker quiet
+  # enough that the retention caps never fire. Nothing is dropped, so nothing is
+  # recorded as lost, and the tab reads "0 used" exactly like an app that used
+  # none -- for an hour, until the absolute age cap manufactures a loss event.
+  ###
+  test "a tracker that cannot store anything does not read as one that used nothing" do
+    require "active_support"
+    require "active_support/cache"
+
+    cache = ActiveSupport::Cache::MemoryStore.new
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if key.to_s.include?("tracker") && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "translation_stuck")
+    tracker = Coverband::Collectors::TranslationTracker.new(store: store, roots: "dir")
+
+    tracker.track_key(:"en.a.only_key")
+    30.times { tracker.save_report }
+
+    assert_equal [], tracker.used_keys.keys, "the writes really are all refused"
+    assert_nil tracker.data_loss, "the caps never fire on a quiet tracker, so nothing is dropped"
+
+    held = tracker.unwritten
+    refute_nil held, "which leaves this as the only signal that the tab is empty for a reason"
+    assert_operator held.deltas, :>, 0
+  end
+
   def fake_store
     @fake_store ||= Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
   end

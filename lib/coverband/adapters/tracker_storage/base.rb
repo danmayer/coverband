@@ -54,6 +54,12 @@ module Coverband
           nil
         end
 
+        # work held because it could not be written; a layout with no queue of
+        # its own has none to report
+        def unwritten
+          nil
+        end
+
         def pending_size
           0
         end

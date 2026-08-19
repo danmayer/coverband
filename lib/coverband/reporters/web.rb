@@ -115,6 +115,7 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         notice += data_loss_notice(Coverband.configuration.store, subject: "coverage")
+        notice += unwritten_notice(Coverband.configuration.store, subject: "coverage")
         page = (request.params["page"] || 1).to_i
         options = {
           static: false,
@@ -155,6 +156,7 @@ module Coverband
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
         notice += data_loss_notice(tracker, subject: "tracker")
+        notice += unwritten_notice(tracker, subject: "tracker")
         used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
@@ -220,6 +222,28 @@ module Coverband
       # on screen are partial after either, so say so rather than implying the
       # report is complete.
       ###
+      ###
+      # A document that can never be written -- past memcached's value limit, say
+      # -- stores nothing while its caps never fire, because a quiet tracker
+      # enqueues nothing new to drop. Only the absolute age cap turns that into
+      # a loss event, an hour later by default, and until then an empty tab is
+      # indistinguishable from an app that used nothing.
+      #
+      # This is process-local, unlike a recorded loss: it says what this process
+      # is holding, which is the only evidence available when the failure is
+      # that nothing can be stored at all.
+      ###
+      def unwritten_notice(source, subject:)
+        return "" unless source.respond_to?(:unwritten)
+
+        held = source.unwritten
+        return "" unless held
+
+        "<strong>Notice:</strong> #{held.deltas} #{subject} #{(held.deltas == 1) ? "report" : "reports"} " \
+          "could not be stored, the oldest since #{held.since.iso8601}. What is shown is missing them, " \
+          "and the log says why each write was refused.<br/>"
+      end
+
       def data_loss_notice(source, subject:)
         # stores and trackers registered by an app or gem need not implement this
         return "" unless source.respond_to?(:data_loss)
