@@ -324,6 +324,71 @@ module ActiveSupportCacheStoreBehavior
   end
 
   ###
+  # The cap counts the queue, not missed cycles: the cycle that recovers carries
+  # its own delta and takes a slot, so a cap of N absorbs an outage of N - 1.
+  # The plan commits to two cycles for coverage, so the cap has to be three.
+  ###
+  def test_coverage_absorbs_the_documented_two_cycle_outage
+    mock_file_hash
+    @store.save_report({"app_path/dog.rb" => [1, 0, 0]}) # establish the document
+
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+    2.times do |cycle|
+      @store.save_report({"app_path/dog.rb" => [0, cycle + 1, 0]})
+    rescue RuntimeError
+    end
+
+    cache.unstub(:read)
+    @store.save_report({"app_path/dog.rb" => [0, 0, 1]}) # recovery carries work too
+    @store.save_report({})
+
+    assert_equal [1, 3, 1], @store.coverage["app_path/dog.rb"]["data"],
+      "both outage cycles have to survive, alongside the cycle that recovered"
+  end
+
+  ###
+  # Dropping a delta that was written and was only awaiting confirmation costs
+  # the repair, not the data. Reporting it the same way as a real eviction
+  # leaves an operator unable to tell a blip from lost coverage.
+  ###
+  def test_giving_up_an_unconfirmed_retry_is_not_reported_as_lost_data
+    mock_file_hash
+    session = @store.send(:session_for, Coverband::RUNTIME_TYPE)
+    # written, and still awaiting the read that would confirm its watermark
+    @store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+
+    # long enough for the caps to reach that written delta
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+    3.times do
+      @store.save_report({"app_path/dog.rb" => [0, 1, 0]})
+    rescue RuntimeError
+    end
+    cache.unstub(:read)
+    @store.save_report({})
+
+    assert_equal :unconfirmed_dropped, session.data_loss.kind,
+      "the dropped delta was already in the document, so this is a forfeited repair"
+    assert_equal 1, @store.coverage["app_path/dog.rb"]["data"][0],
+      "and its coverage is still there"
+  end
+
+  ###
+  # The counterpart: work dropped before it ever reached a document really is
+  # gone, and has to keep saying so.
+  ###
+  def test_dropping_work_that_never_reached_a_document_is_reported_as_lost
+    mock_file_hash
+    session = @store.send(:session_for, Coverband::RUNTIME_TYPE)
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+    10.times do
+      @store.save_report({"app_path/dog.rb" => [1, 0, 0]})
+    rescue RuntimeError
+    end
+
+    assert_equal :pending_dropped, session.data_loss.kind
+  end
+
+  ###
   # Coverage counts are additive, so a lost update can't be repaired by writing
   # again. Two adapters over the same cache have to converge exactly.
   ###

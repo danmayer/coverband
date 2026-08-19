@@ -16,9 +16,13 @@ module Coverband
     # Including classes provide #storage_target and #coverage_key_base.
     ###
     module SessionCoverage
-      # coverage deltas are large, so they get a tighter pending bound than the
-      # trackers do
-      COVERAGE_MAX_ENTRIES = 2
+      ###
+      # Coverage deltas are large, so they get a tighter bound than the trackers
+      # do. The cap counts the queue, not missed cycles: the cycle that recovers
+      # carries its own delta, so it takes a slot too, and the outage a store
+      # can absorb is one less than this.
+      ###
+      COVERAGE_MAX_ENTRIES = 3
 
       def persistent_coverage?
         true
@@ -137,7 +141,10 @@ module Coverband
           merger: coverage_merger,
           logger: Coverband.configuration.logger,
           max_entries: COVERAGE_MAX_ENTRIES,
-          grace_seconds: grace_seconds
+          grace_seconds: grace_seconds,
+          # Delta has already advanced its baseline by the time a report is
+          # handed over, so nothing else is holding this cycle's work
+          retain_on_failure: true
         )
       end
 

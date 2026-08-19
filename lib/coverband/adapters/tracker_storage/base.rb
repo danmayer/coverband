@@ -15,7 +15,8 @@ module Coverband
       #   :written_unconfirmed  merged and written, still awaiting confirmation
       #   :confirmed            an earlier write was proven durable and dropped
       #   :deferred             enqueued only, nothing flushed this call
-      #   :failed               refused or errored, pending retained for retry
+      #   :failed               refused or errored, the work is the caller's again
+      #   :unavailable          the backend cannot be reached at all, same
       ###
       class Base
         ABSTRACT_KEY = "abstract"
@@ -61,11 +62,6 @@ module Coverband
         # them from their permanent local dedupe and record them again if used
         def newly_tombstoned
           []
-        end
-
-        # whether this repository keeps unconfirmed deltas itself
-        def retains_pending?
-          false
         end
       end
     end

@@ -228,9 +228,23 @@ module Coverband
         return "" unless loss
 
         detail = Rack::Utils.escape_html(loss.detail.to_s)
-        "<strong>Notice:</strong> #{subject} data was lost at #{loss.at.iso8601} " \
-          "(#{Rack::Utils.escape_html(loss.kind.to_s)}): #{detail}. " \
-          "Results before that point are unavailable.<br/>"
+        kind = Rack::Utils.escape_html(loss.kind.to_s)
+        "<strong>Notice:</strong> #{data_loss_summary(loss, subject)} at " \
+          "#{loss.at.iso8601} (#{kind}): #{detail}.<br/>"
+      end
+
+      ###
+      # Giving up an unconfirmed retry is not the same as losing data: that work
+      # is already in the document unless another writer clobbered the write it
+      # went out in. Saying "results before that point are unavailable" for it
+      # would leave an operator unable to tell it from a real eviction.
+      ###
+      def data_loss_summary(loss, subject)
+        if loss.kind.to_s == "unconfirmed_dropped"
+          "some #{subject} may be undercounted, and cannot be repaired now"
+        else
+          "#{subject} data was lost, and results before that point are unavailable,"
+        end
       end
 
       def clear_abstract_tracking(tracker)

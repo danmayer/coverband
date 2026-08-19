@@ -62,7 +62,7 @@ module Coverband
         max_entries: DEFAULT_MAX_ENTRIES, max_bytes: DEFAULT_MAX_BYTES,
         max_age: DEFAULT_MAX_AGE, prune_horizon: DEFAULT_PRUNE_HORIZON,
         grace_seconds: 1200, keep_alive_after: KEEP_ALIVE_AFTER,
-        on_generation_change: nil)
+        on_generation_change: nil, retain_on_failure: false)
         @target = target
         @key_base = key_base
         @merger = merger
@@ -70,6 +70,7 @@ module Coverband
         @prune_horizon = prune_horizon
         @keep_alive_after = keep_alive_after
         @on_generation_change = on_generation_change
+        @retain_on_failure = retain_on_failure
         @writer = Writer.new(max_entries: max_entries, max_bytes: max_bytes, max_age: max_age)
         @generation = Generation.new(target, "#{key_base}.pointer", grace_seconds: grace_seconds)
         @token = nil
@@ -145,7 +146,7 @@ module Coverband
       rescue Target::Unavailable => error
         retain(payload) unless enqueued
         log_unavailable(error)
-        :deferred
+        :unavailable
       rescue
         retain(payload) unless enqueued
         raise
@@ -191,6 +192,7 @@ module Coverband
             # the dropped work is gone for good, so step over the hole it left
             # rather than stalling on it forever
             @writer.rebase_pending!(watermark)
+            @written_through = nil
           end
 
           prefix = @writer.contiguous_prefix(watermark)
@@ -203,6 +205,7 @@ module Coverband
           ###
           if prefix.empty? && @writer.pending_size > 0
             @writer.rebase_pending!(watermark)
+            @written_through = nil
             prefix = @writer.contiguous_prefix(watermark)
           end
 
@@ -222,6 +225,7 @@ module Coverband
           doc.prune!(horizon: @prune_horizon)
 
           if write(doc)
+            @written_through = prefix.last.seq
             :written_unconfirmed
           else
             # not durable: everything stays pending for the next cycle
@@ -267,6 +271,13 @@ module Coverband
       # Zero when nothing has been observed yet, which can only filter the delta
       # against an existing tombstone, never resurrect a deleted key.
       #
+      # Only for callers that hand their work over and forget it, which is why
+      # it is off by default. Coverage does: Delta has already advanced its
+      # previous-coverage baseline by the time this runs, so nothing else holds
+      # the cycle. A tracker keeps its own keys until it is told they are
+      # stored, so retaining here as well replays the same work twice -- and for
+      # the additive trackers, that double counts.
+      #
       # The caps are enforced here too. flush is where they normally run, and a
       # sustained outage never reaches it: an unreachable backend, or a store
       # misconfigured with something that can never resolve, would otherwise
@@ -289,6 +300,7 @@ module Coverband
       end
 
       def retain(payload)
+        return unless @retain_on_failure
         return if payload.nil? || payload.empty?
 
         @writer.enqueue(payload, tombstone_epoch: @observed_tombstone_epoch.to_i)
@@ -462,6 +474,7 @@ module Coverband
 
       def drop_local_state!(reason = :reset)
         @writer.rotate_identity!
+        @written_through = nil
         @observed_tombstone_epoch = nil
         @seen_document = false
         # epochs restart at zero in a new generation, so a larger remembered one
@@ -471,10 +484,22 @@ module Coverband
         @on_generation_change&.call(reason)
       end
 
+      ###
+      # A dropped delta is only lost coverage if it never reached a document.
+      # One that was written and was merely awaiting confirmation is already in
+      # the payload; dropping it forfeits the repair if some other writer
+      # clobbered that write, which is a weaker claim than "results before this
+      # point are unavailable" and has to read differently to an operator.
+      ###
       def record_dropped(dropped)
         return if dropped.empty?
 
-        record_loss(:pending_dropped, "dropped #{dropped.length} deltas that outlived the retention caps")
+        if @written_through && dropped.all? { |delta| delta.seq <= @written_through }
+          record_loss(:unconfirmed_dropped,
+            "gave up the retry for #{dropped.length} deltas already written but never confirmed")
+        else
+          record_loss(:pending_dropped, "dropped #{dropped.length} deltas that outlived the retention caps")
+        end
       end
 
       def record_loss(kind, detail)

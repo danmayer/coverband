@@ -123,14 +123,24 @@ module Coverband
         storage&.pointer_session
       end
 
+      ###
+      # States meaning the work is not stored and not held for us. A tracker's
+      # own key set is unbounded and re-supplied every cycle, so keeping it is
+      # what makes an outage of any length lossless -- where the storage layer's
+      # queue is capped, and a key dropped from it can never come back, since
+      # this tracker's dedupe set already has it.
+      #
+      # Anything else means storage took responsibility, and holding a second
+      # copy would enqueue the same work twice.
+      ###
+      UNSTORED_STATES = %i[failed unavailable].freeze
+
       def save_report
         return unless storage
 
         forget_deleted_keys
         result = storage.record(delta_to_record)
-        # the document repositories keep unconfirmed deltas themselves, so
-        # holding a second copy here would just enqueue duplicates
-        @keys_to_record.clear if storage.retains_pending? || result != :failed
+        @keys_to_record.clear unless UNSTORED_STATES.include?(result)
       rescue => e
         # we don't want to raise errors if Coverband can't reach its store.
         # This is a nice to have not a bring the system down

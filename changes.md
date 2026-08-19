@@ -13,6 +13,9 @@
 * Rake tasks that reach the store (`coverband:clear`, `clear_coverage`, `clear_tracker`, `clear_legacy`, `clear_orphans`, `coverage`, `coverage_json`, `coverage_html`) load the Rails environment first. With a lazily configured store they previously failed with an unavailable cache unless `rake environment` was named explicitly
 * Coverage data loss (eviction, dropped pending deltas) is now surfaced on the web report index. It was logged and shown on the tracker tabs, but the coverage index reported partial numbers as though they were complete
 * `Adapters::SessionCoverage#save_report` returns the protocol state from `Session#record` rather than `nil`, so a caller can tell a write that landed from one that was deferred or refused
+* Coverage now absorbs the two-cycle outage the design commits to. The cap bounds the queue, and the cycle that recovers takes a slot in it, so a cap of 2 only ever absorbed one; it is now 3
+* Data loss from dropping a delta that was already written and merely awaiting confirmation is reported as `unconfirmed_dropped` rather than `pending_dropped`, and the web report says the numbers may be undercounted instead of claiming earlier results are unavailable. Only the second kind is lost coverage
+* Trackers keep their own keys whenever a report is not stored (`:failed`, `:unavailable`, or an error), so an unreachable backend is no longer lossier for them than one that raises. `TrackerStorage::Base#retains_pending?` is removed; the decision comes from what `record` returns
 * `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
 
 **Features**

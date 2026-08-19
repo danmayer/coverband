@@ -43,10 +43,6 @@ module Coverband
         def pointer_session
           @session
         end
-
-        def retains_pending?
-          true
-        end
       end
     end
   end

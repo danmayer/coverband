@@ -91,6 +91,58 @@ class QueryBurstTrackerTest < Minitest::Test
 
   protected
 
+  ###
+  # A tracker keeps its own counters when a report does not land, and the
+  # storage layer holds nothing for it -- otherwise both replay the same work
+  # and these counters, which sum, come out doubled.
+  ###
+  test "a failed report is not counted twice when it is retried" do
+    require "active_support"
+    require "active_support/cache"
+
+    cache = ActiveSupport::Cache::MemoryStore.new
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "burst_retry")
+    Coverband::Collectors::QueryBurstTracker.expects(:supported_version?).at_least_once.returns(true)
+    subject = Coverband::Collectors::QueryBurstTracker.new(store: store)
+    subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 120.0)
+
+    cache.stubs(:read).raises(RuntimeError.new("backend down"))
+    subject.save_report # logged and swallowed, counters kept
+
+    cache.unstub(:read)
+    subject.save_report
+    subject.save_report
+
+    assert_equal 1, subject.used_key_stats["controller:books#index"]["requests"],
+      "one request was observed, so one request has to be stored"
+  end
+
+  ###
+  # An unreachable backend must not be lossier than one that raises. A tracker's
+  # key set is unbounded and re-supplied every cycle; the storage queue is
+  # capped, so handing the keys over and clearing them loses anything that
+  # outlives the cap -- and the dedupe set stops it ever coming back.
+  ###
+  test "keys survive a backend that never becomes available" do
+    require "active_support"
+    require "active_support/cache"
+
+    Coverband::Collectors::QueryBurstTracker.expects(:supported_version?).at_least_once.returns(true)
+    ready = false
+    cache = ActiveSupport::Cache::MemoryStore.new
+    store = Coverband::Adapters::ActiveSupportCacheStore.new { ready ? cache : nil }
+    subject = Coverband::Collectors::QueryBurstTracker.new(store: store)
+    subject.track_key(key: "controller:books#index", queries: 40, sql_time_ms: 120.0)
+
+    12.times { subject.save_report } # far past any cap the storage queue has
+
+    ready = true
+    subject.save_report
+
+    assert_equal 1, subject.used_key_stats["controller:books#index"]["requests"],
+      "an outage of any length has to be lossless while the tracker holds the keys"
+  end
+
   def fake_store
     @fake_store ||= Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
   end

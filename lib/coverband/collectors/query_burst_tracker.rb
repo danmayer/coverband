@@ -101,7 +101,7 @@ module Coverband
 
         delta = @pending_stats.each_with_object({}) { |(key, stats), h| h[key] = stats.to_json }
         result = storage.record(delta)
-        @pending_stats.clear if storage.retains_pending? || result != :failed
+        @pending_stats.clear unless UNSTORED_STATES.include?(result)
       rescue => e
         logger&.error "Coverband: #{self.class.name} failed to store, error #{e.class.name} info #{e.message}"
       end

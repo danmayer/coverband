@@ -124,10 +124,6 @@ class CacheTrackerStorageTest < Minitest::Test
     b.entries
     assert_includes b.newly_tombstoned, "gone"
   end
-
-  def test_repository_retains_pending_itself
-    assert repository.retains_pending?
-  end
 end
 
 class RedisTrackerStorageTest < Minitest::Test
@@ -152,7 +148,6 @@ class RedisTrackerStorageTest < Minitest::Test
   def test_presence_trackers_use_a_redis_hash
     repo = repository
     assert_kind_of Coverband::Adapters::TrackerStorage::RedisHashRepository, repo
-    refute repo.retains_pending?
   end
 
   ###
@@ -163,7 +158,6 @@ class RedisTrackerStorageTest < Minitest::Test
   def test_additive_trackers_use_a_document
     repo = repository("QueryBurstTracker", idempotent: false)
     assert_kind_of Coverband::Adapters::TrackerStorage::DocumentRepository, repo
-    assert repo.retains_pending?
   end
 
   def test_hash_and_document_layouts_agree_on_reads

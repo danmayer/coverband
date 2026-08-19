@@ -42,7 +42,7 @@ Along the way, improve the read-modify-write merge conflict Coverband has always
 | # | Decision |
 | --- | --- |
 | 1 | **Back-port the merge protocol to `RedisStore`** in this release. |
-| 2 | **`@pending` retention:** 5 cycles for trackers, 2 for coverage, plus a hard byte cap **and an absolute wall-clock age cap**; drop with a logged warning and a recorded data-loss event. |
+| 2 | **`@pending` retention:** a queue of 5 for trackers and 3 for coverage, plus a hard byte cap **and an absolute wall-clock age cap**; drop with a logged warning and a recorded data-loss event. |
 | 3 | **No legacy data migration.** New storage formats start fresh. **Breaking change**, major version bump, called out in `changes.md`. |
 | 4 | **Default reporting cycle moves to 600s** for the new adapter. |
 | 5 | Name stays `ActiveSupportCacheStore`; only `MemcachedStore` is deprecated; `FileStore` users wanting trackers are pointed at the new adapter. |
@@ -254,6 +254,23 @@ Invariant: **`applied[writer_id].seq = s` means every sequence `1..s` from that 
 represented in this payload.** Step 4 refuses to skip gaps; step 5 records only what it
 applied.
 
+#### The cap is a queue depth, not a cycle count
+
+The cycle that recovers carries its own delta, so it takes a slot alongside the
+retained ones: **a cap of N absorbs an outage of N - 1 cycles**. Coverage is
+capped at 3 to deliver the two cycles above, and trackers at 5 for four.
+
+Trackers only lean on this when storage has taken responsibility for the work.
+While a report is unstored (`:failed`, `:unavailable`, or a raise) the tracker
+keeps its own key set, which is unbounded and re-supplied every cycle, so an
+outage of any length is lossless for them. The queue bounds coverage, which has
+no second copy anywhere: `Delta` has already advanced its baseline by the time
+a report is handed over.
+
+Which is also why only coverage retains work on failure. If both the tracker and
+the session held the same delta they would each replay it, and for the additive
+trackers that double counts.
+
 #### Deltas are immutable after enqueue
 
 Expanded (`expand_report`, stamping `first_updated_at` / `last_updated_at` / `file_hash`) and
@@ -298,7 +315,7 @@ watermark, pending starting at seq 1) is unambiguous and proceeds.
 
 | Cause | Trigger | Response |
 | --- | --- | --- |
-| Retention cap | 5 cycles (trackers) / 2 (coverage) / byte cap | Drop, record loss, advance past gap once |
+| Retention cap | queue of 5 (trackers) / 3 (coverage) / byte cap | Drop, record loss, advance past gap once |
 | Absolute age | Wall-clock cap, independent of cycle count | Same |
 | Identity rotation | Missing-watermark recovery | New identity, pending dropped, loss recorded |
 
@@ -478,7 +495,7 @@ writer remains alive and the delta remains pending.**
 | Property | `HashRedisStore` | `RedisStore` (7.0) | Cache adapter |
 | --- | --- | --- | --- |
 | Coverage conflict, quiescent | Cannot occur (LUA, per-file keys) | Repaired next cycle | Repaired next cycle |
-| Coverage conflict, sustained | Cannot occur | Bounded by 2 cycles / byte cap / age cap, then dropped + reported | Same |
+| Coverage conflict, sustained | Cannot occur | Bounded by the queue / byte cap / age cap, then dropped + reported | Same |
 | Presence trackers | Atomic per field | **Atomic per field** (native `HSET`, unchanged) | Conflict detected via applied sequences and repaired next cycle; bounded by 5 cycles |
 | Query-burst counters | Repaired next cycle | Repaired next cycle (was silently lossy; now one JSON document) | Repaired next cycle |
 | Process death with pending deltas | No pending state | Loses that writer's unconfirmed cycle | Same |
