@@ -141,6 +141,7 @@ module Coverband
         forget_deleted_keys
         result = storage.record(delta_to_record)
         @keys_to_record.clear unless UNSTORED_STATES.include?(result)
+        recover_dropped_keys
       rescue => e
         # we don't want to raise errors if Coverband can't reach its store.
         # This is a nice to have not a bring the system down
@@ -190,6 +191,31 @@ module Coverband
           @logged_keys.clear
           @keys_to_record.clear
         end
+      end
+
+      ###
+      # Work dropped at the storage caps is gone, and this tracker's dedupe set
+      # has already moved on, so those keys would never be reported again: a
+      # used view reading as unused. That is the dangerous direction for
+      # anything driving deletion, so what is known is queued again, the same
+      # way an eviction is handled.
+      #
+      # Only sound where the merge is idempotent. Re-supplying a summed counter
+      # is precisely the double count :retained exists to prevent, so
+      # QueryBurstTracker's loss is irreducible and stays reported.
+      #
+      # Keyed on the loss timestamp so a sustained outage re-supplies once per
+      # drop rather than once per cycle.
+      ###
+      def recover_dropped_keys
+        return unless self.class.idempotent_merge?
+
+        loss = storage.data_loss
+        return unless loss && loss.kind == :pending_dropped
+        return if @recovered_loss_at == loss.at
+
+        @recovered_loss_at = loss.at
+        @logged_keys.each { |key| @keys_to_record << key if track_key?(key) }
       end
 
       def newly_seen_key?(key)

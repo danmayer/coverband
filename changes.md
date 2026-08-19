@@ -18,6 +18,7 @@
 * Trackers keep their own keys whenever a report is not stored (`:failed`, `:unavailable`, or an error), so an unreachable backend is no longer lossier for them than one that raises. `TrackerStorage::Base#retains_pending?` is removed; the decision comes from what `record` returns
 * A write refused or errored *after* the delta was enqueued now reports `:retained` rather than `:failed`, since the work is in the storage queue and a caller holding a second copy would replay it. This is the documented memcached >1MB path, where it double counted `QueryBurstTracker`
 * `QueryBurstTracker` reports on a quiet cycle when storage is holding work it could not write, instead of waiting for the next burst to flush it
+* Presence trackers (views, routes, translations) re-supply their known keys when storage reports work dropped at its retention caps, so a backend outage longer than the queue no longer leaves a used view reading as unused. Their merge is idempotent, so this cannot double count; `QueryBurstTracker` sums, so its loss stays irreducible and reported
 * `save_report` no longer mutates the report it is given. The merge used to sum stored counts back into the caller's line arrays, so a caller that reused its report object re-submitted counts that were already recorded.
 
 **Features**

@@ -243,7 +243,7 @@ module Coverband
       def data_loss_wording(loss, subject)
         if loss.kind.to_s == "unconfirmed_dropped"
           ["some #{subject} data may be undercounted",
-            "A repair was given up on and cannot be retried."]
+            "Affected only if another process overwrote that write."]
         else
           ["#{subject} data was lost", "Results before that point are unavailable."]
         end

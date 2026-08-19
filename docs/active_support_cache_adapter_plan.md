@@ -271,6 +271,15 @@ Which is also why only coverage retains work on failure. If both the tracker and
 the session held the same delta they would each replay it, and for the additive
 trackers that double counts.
 
+Idempotence buys one more thing at the far end of an outage. The queue is
+bounded, so loss past the cap is linear in outage length — but a presence
+tracker still holds its keys locally, and re-supplying them costs nothing when
+the merge takes the later timestamp. Those three trackers queue what they know
+again whenever storage reports `pending_dropped`, so the loss is recovered
+rather than permanent. `QueryBurstTracker` cannot: re-supplying a summed counter
+is exactly the double count `:retained` exists to prevent, so its loss past the
+cap is irreducible, and is reported instead.
+
 The same reasoning decides what `record` may return, and whether it may raise at
 all. "Refused" is two different situations, and only the session knows which:
 work rejected *before* it was enqueued is the caller's again (`:failed`,

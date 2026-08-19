@@ -70,6 +70,51 @@ class TranslationTrackerTest < Minitest::Test
 
   protected
 
+  ###
+  # Work dropped at the storage caps is gone, and the dedupe set has already
+  # moved on, so those keys would never be reported again -- a used translation
+  # reading as unused, which is the dangerous direction for anything driving
+  # deletion. Presence merging is idempotent, so re-supplying costs nothing.
+  ###
+  test "keys dropped at the storage caps come back on an idempotent tracker" do
+    require "active_support"
+    require "active_support/cache"
+
+    refusing = false
+    cache = ActiveSupport::Cache::MemoryStore.new
+    cache.define_singleton_method(:write) do |key, *rest, **kw|
+      next false if refusing && !key.to_s.end_with?(".pointer")
+      super(key, *rest, **kw)
+    end
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "translation_drop")
+    tracker = Coverband::Collectors::TranslationTracker.new(store: store, roots: "dir")
+
+    # far past the storage queue's cap, so the earliest deltas are dropped
+    refusing = true
+    12.times do |i|
+      tracker.track_key(:"en.a.k_#{i}")
+      tracker.save_report
+    end
+
+    refusing = false
+    tracker.save_report
+    tracker.save_report
+
+    expected = 12.times.map { |i| "en.a.k_#{i}" }
+    assert_equal [], expected - tracker.used_keys.keys,
+      "a key this process still knows about must not be lost to a capped queue"
+  end
+
+  ###
+  # The counterpart: re-supplying a summed counter is the double count the
+  # retained state exists to prevent, so an additive tracker keeps its loss.
+  ###
+  test "an additive tracker does not resupply dropped work" do
+    Coverband::Collectors::TranslationTracker.new(store: fake_store, roots: "dir")
+    assert Coverband::Collectors::TranslationTracker.idempotent_merge?
+    refute Coverband::Collectors::QueryBurstTracker.idempotent_merge?
+  end
+
   def fake_store
     @fake_store ||= Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
   end

@@ -180,7 +180,7 @@ module Coverband
 
       get "/"
       assert_match(/some coverage data may be undercounted at \d{4}-/, last_response.body)
-      assert_match(/cannot be retried/, last_response.body)
+      assert_match(/Affected only if another process overwrote that write\./, last_response.body)
       refute_match(/was lost/, last_response.body)
     end
 
