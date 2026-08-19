@@ -48,12 +48,9 @@ module Coverband
 
       DataLoss = Struct.new(:at, :kind, :detail, keyword_init: true)
 
-      ###
-      # Work the session is holding because it cannot be written. Distinct from
-      # DataLoss, which says something is gone: this says nothing is arriving,
-      # which for a quiet document is otherwise indistinguishable from an app
-      # that genuinely used nothing.
-      ###
+      # held because it cannot be written. DataLoss says something is gone; this
+      # says nothing is arriving, which for a quiet document is otherwise
+      # indistinguishable from an app that used nothing
       UnwrittenWork = Struct.new(:deltas, :since, keyword_init: true)
 
       DEFAULT_MAX_ENTRIES = 5
@@ -67,11 +64,10 @@ module Coverband
       attr_reader :data_loss
 
       ###
-      # A document that can never be written -- one past memcached's value limit
-      # is the documented case -- otherwise reports nothing at all. Its caps
-      # never fire, because a quiet tracker enqueues nothing new for them to
-      # drop, so only the absolute age cap eventually converts the stall into a
-      # loss, an hour later by default.
+      # A document that can never be written -- past memcached's value limit, say
+      # -- reports nothing otherwise: its caps never fire, because a quiet tracker
+      # enqueues nothing new to drop, so only the age cap converts the stall into
+      # a loss, an hour later by default.
       ###
       def unwritten
         return nil unless @unwritten_since
@@ -148,17 +144,15 @@ module Coverband
 
       ###
       # An empty payload still needs the flush, to confirm earlier work and run
-      # the keep-alive; enqueuing it would rewrite the document every quiet
-      # cycle.
+      # the keep-alive; enqueuing it would rewrite the document every quiet cycle.
       #
-      # Generation resolution happens before the payload is enqueued, so a
-      # backend that fails there would drop the cycle's work entirely: the
-      # retention protocol only protects deltas that reached the queue. Anything
-      # that did not get enqueued is held for the next cycle.
+      # The generation is resolved before the payload is enqueued, and retention
+      # only protects deltas that reached the queue, so anything that did not
+      # get there is held for the next cycle.
       ###
       def record(payload)
         # "nothing to take" is not "taken": an empty payload leaves the caller
-        # holding nothing, so a failure on that cycle still has to be raised
+        # holding nothing, so a failure there still has to be raised
         nothing_to_take = payload.nil? || payload.empty?
         taken = false
         operation do
@@ -173,13 +167,9 @@ module Coverband
         log_unavailable(error)
         taken ? :retained : :unavailable
       rescue => error
-        ###
-        # Whether the work is ours decides who keeps it, and it decides whether
-        # this can raise at all: a caller that sees an exception keeps its own
-        # copy, so raising after we have taken the delta gives it two owners and
-        # replays it. Log it here instead, where the raise would have been the
-        # only record.
-        ###
+        # whether the work is ours decides who keeps it, and whether this may
+        # raise at all: a caller that sees an exception keeps its copy, so raising
+        # after we took the delta gives it two owners and replays it
         if taken
           note_unwritten
           log("failed to store #{@key_base}, retaining #{@writer.pending_size} pending deltas, " \
@@ -235,13 +225,9 @@ module Coverband
           end
 
           prefix = @writer.contiguous_prefix(watermark)
-          ###
-          # Pending work that yields no prefix means a sequence hole: something
-          # was dropped somewhere that had no watermark to rebase against, which
-          # is what retain does during an outage. Closing it here rather than
-          # tracking who owes a rebase keeps the invariant structural -- a flush
-          # with pending work always makes progress.
-          ###
+          # pending work yielding no prefix is a sequence hole, left by a drop
+          # that had no watermark to rebase against. Closing it here rather than
+          # tracking who owes a rebase keeps the invariant structural
           if prefix.empty? && @writer.pending_size > 0
             @writer.rebase_pending!(watermark)
             @written_through = nil
@@ -270,7 +256,10 @@ module Coverband
             # not durable, but ours: everything stays pending for the next cycle,
             # so a caller holding a second copy would replay it
             note_unwritten
-            log("failed to write #{@key_base}, retaining #{@writer.pending_size} pending deltas")
+            log("failed to write #{@key_base} (#{doc.to_json.bytesize} bytes), retaining " \
+              "#{@writer.pending_size} pending deltas. A backend value limit (memcached's is " \
+              "1MB by default) will refuse this every cycle until the limit is raised or the " \
+              "store is changed")
             :retained
           end
         end
@@ -307,31 +296,20 @@ module Coverband
       private
 
       ###
-      # Holds a payload that never reached the queue, stamped with the last
-      # epoch this session observed -- the same stamp the next cycle would use.
-      # Zero when nothing has been observed yet, which can only filter the delta
-      # against an existing tombstone, never resurrect a deleted key.
+      # Holds a payload that never reached the queue, stamped with the last epoch
+      # observed -- zero if none, which can filter the delta against an existing
+      # tombstone but never resurrect a deleted key.
       #
-      # Only for callers that hand their work over and forget it, which is why
-      # it is off by default. Coverage does: Delta has already advanced its
-      # previous-coverage baseline by the time this runs, so nothing else holds
-      # the cycle. A tracker keeps its own keys until it is told they are
-      # stored, so retaining here as well replays the same work twice -- and for
-      # the additive trackers, that double counts.
+      # Off by default: only a caller that hands work over and forgets it can use
+      # this. Coverage does; a tracker keeps its own keys, so retaining here too
+      # replays them, which for the additive trackers double counts.
       #
-      # The caps are enforced here too. flush is where they normally run, and a
-      # sustained outage never reaches it: an unreachable backend, or a store
-      # misconfigured with something that can never resolve, would otherwise
-      # grow the queue by one delta per cycle for as long as it lasts.
-      #
-      # Dropping leaves a sequence hole that only a flush can close, since only
-      # it knows the watermark to rebase against.
+      # The caps run here because a sustained outage never reaches flush, where
+      # they normally do. Dropping leaves a sequence hole only a flush can close,
+      # since only it knows the watermark to rebase against.
       ###
-      ###
-      # A misconfigured store can never resolve, so repeating it every cycle is
-      # noise; a store that is merely not ready yet is worth saying each time,
-      # since each line is a cycle that has been deferred.
-      ###
+      # a misconfiguration can never resolve, so it is said once; "not ready yet"
+      # is said each cycle, because each line is a cycle that was deferred
       def log_unavailable(error)
         return log(error.message) unless error.is_a?(Target::Misconfigured)
         return if @misconfiguration_logged
@@ -462,15 +440,12 @@ module Coverband
       end
 
       ###
-      # Two reasons the token can change, wanting opposite handling. An operator
-      # reset means drop everything. A lost initialization race means our deltas
-      # went to a generation that can never become authoritative, so carrying
-      # them forward cannot double count.
-      #
-      # Telling them apart takes evidence, not a flag: a reset names the token it
-      # retired, and a backend with atomic create cannot produce a race at all.
-      # Anything unproven is treated as a reset, since carrying work across a
-      # deliberate clear is the worse mistake.
+      # Two reasons the token can change, wanting opposite handling: a reset means
+      # drop everything, a lost initialization race means our deltas went
+      # somewhere that can never be authoritative, so carrying them cannot double
+      # count. Telling them apart takes evidence, not a flag -- a reset names the
+      # token it retired, and atomic create rules a race out entirely. Anything
+      # unproven is treated as a reset, the safer mistake.
       ###
       def on_generation_changed(result)
         # the pointer vanished while we were using it, so whatever it addressed
@@ -528,11 +503,10 @@ module Coverband
       end
 
       ###
-      # A dropped delta is only lost coverage if it never reached a document.
-      # One that was written and was merely awaiting confirmation is already in
-      # the payload; dropping it forfeits the repair if some other writer
-      # clobbered that write, which is a weaker claim than "results before this
-      # point are unavailable" and has to read differently to an operator.
+      # Only lost if it never reached a document. One already written and merely
+      # awaiting confirmation is in the payload; dropping it forfeits the repair
+      # if another writer clobbered that write -- a weaker claim than "results
+      # before this point are unavailable", and it has to read differently.
       ###
       def record_dropped(dropped)
         return if dropped.empty?

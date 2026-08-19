@@ -12,12 +12,8 @@ module Coverband
     # does not exist while config/coverband.rb is loading.
     ###
     class Target
-      ###
-      # Not a failure: the store exists but is not ready to be resolved yet.
-      # Coverband.start runs from before_configuration, so a reporting cycle can
-      # land before Rails has assigned Rails.cache. Callers hold their work and
-      # try again rather than treating it as a lost write.
-      ###
+      # not a failure: Coverband.start runs from before_configuration, so a cycle
+      # can land before Rails assigns Rails.cache. Callers hold their work
       Unavailable = Class.new(StandardError)
 
       # the resolver handed back something that is not a cache store, which no
@@ -41,11 +37,9 @@ module Coverband
         @target = usable(target) unless target.respond_to?(:call)
       end
 
-      ###
-      # Resolved once, on first use; the mutex is what makes that true when
-      # several threads report at the same time on boot. An unusable result is
-      # not memoized, so a later cycle can resolve it properly.
-      ###
+      # resolved once, on first use; the mutex makes that true when several
+      # threads report at once on boot. An unusable result is not memoized, so a
+      # later cycle can resolve it properly
       def target
         return @target if @target
 

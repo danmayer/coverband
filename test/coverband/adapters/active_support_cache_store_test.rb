@@ -553,8 +553,10 @@ if ENV["COVERBAND_MEMCACHED"]
       session.enqueue(oversized)
       assert_equal :retained, session.flush
       assert_equal 1, session.pending_size, "a refused write must keep the work, not drop it"
-      assert messages.any? { |message| message.include?("failed to write") },
-        "the warning has to name what could not be stored"
+      warning = messages.find { |message| message.include?("failed to write") }
+      refute_nil warning, "the warning has to name what could not be stored"
+      assert_match(/\d+ bytes/, warning, "and how big it was")
+      assert_match(/value limit/, warning, "and why a backend would refuse it")
     end
 
     ###

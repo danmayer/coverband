@@ -223,15 +223,10 @@ module Coverband
       # report is complete.
       ###
       ###
-      # A document that can never be written -- past memcached's value limit, say
-      # -- stores nothing while its caps never fire, because a quiet tracker
-      # enqueues nothing new to drop. Only the absolute age cap turns that into
-      # a loss event, an hour later by default, and until then an empty tab is
-      # indistinguishable from an app that used nothing.
-      #
-      # This is process-local, unlike a recorded loss: it says what this process
-      # is holding, which is the only evidence available when the failure is
-      # that nothing can be stored at all.
+      # Nothing is lost, but nothing is arriving either, and an empty tab reads
+      # exactly like an app that used nothing. Process-local, unlike a recorded
+      # loss -- when the failure is that nothing can be stored, what this process
+      # is holding is the only evidence there is.
       ###
       def unwritten_notice(source, subject:)
         return "" unless source.respond_to?(:unwritten)
@@ -258,12 +253,9 @@ module Coverband
           "(#{kind}): #{detail}. #{consequence}<br/>"
       end
 
-      ###
-      # Giving up an unconfirmed retry is not the same as losing data: that work
-      # is already in the document unless another writer clobbered the write it
-      # went out in. Saying "results before that point are unavailable" for it
-      # would leave an operator unable to tell it from a real eviction.
-      ###
+      # a forfeited retry is not lost data -- that work is in the document unless
+      # another writer clobbered the write it went out in -- so it must not read
+      # like a real eviction
       def data_loss_wording(loss, subject)
         if loss.kind.to_s == "unconfirmed_dropped"
           ["some #{subject} data may be undercounted",

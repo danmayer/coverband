@@ -8,9 +8,8 @@ module Coverband
       # applied sequence protocol all live below this line; trackers deal in
       # keys and timestamps.
       #
-      # record returns a protocol state rather than an outcome, because
-      # "written" and "proven durable" are different things and that difference
-      # is the entire point of the watermark:
+      # record returns a protocol state, not an outcome: "written" and "proven
+      # durable" differ, and that difference is the point of the watermark.
       #
       #   :written_unconfirmed  merged and written, still awaiting confirmation
       #   :confirmed            an earlier write was proven durable and dropped

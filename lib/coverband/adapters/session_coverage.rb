@@ -111,15 +111,12 @@ module Coverband
       private
 
       ###
-      # A delta has to survive being applied, because re-applying it is how a
-      # lost update gets repaired. expand_report hands the delta the caller's own
-      # line arrays and array_add sums into them in place unless they are frozen,
-      # so an unfrozen payload is overwritten with the merged document total on
-      # its first apply -- and a repair after that carries the whole document
-      # back in and doubles it, once per repair.
-      #
-      # Freezing selects array_add's copying branch, so the delta keeps this
-      # process's own counts and the caller's report is left alone.
+      # A delta has to survive being applied, since re-applying it is how a lost
+      # update is repaired. expand_report hands over the caller's own line arrays
+      # and array_add sums into them in place unless frozen, so an unfrozen
+      # payload is overwritten with the merged document total on its first apply
+      # -- and a repair after that carries the whole document back in, doubling
+      # it once per repair. Freezing selects array_add's copying branch.
       ###
       def own_expanded_report(report)
         expand_report(report).each_value do |entry|

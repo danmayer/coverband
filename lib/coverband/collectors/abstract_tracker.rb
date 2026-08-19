@@ -118,8 +118,8 @@ module Coverband
         storage&.data_loss
       end
 
-      # reports this tracker cannot store, so a tab showing nothing can say why
-      # rather than reading as an app that used nothing
+      # so a tab showing nothing can say why, rather than reading as an app that
+      # used nothing
       def unwritten
         storage&.unwritten
       end
@@ -130,14 +130,10 @@ module Coverband
       end
 
       ###
-      # States meaning the work is not stored and not held for us. A tracker's
-      # own key set is unbounded and re-supplied every cycle, so keeping it is
-      # what makes an outage of any length lossless -- where the storage layer's
-      # queue is capped, and a key dropped from it can never come back, since
-      # this tracker's dedupe set already has it.
-      #
-      # Anything else means storage took responsibility, and holding a second
-      # copy would enqueue the same work twice.
+      # The work is neither stored nor held for us. Keeping our keys against
+      # these is what makes an outage of any length lossless, since this set is
+      # unbounded where the storage queue is capped. Anything else means storage
+      # took it, and a second copy would enqueue the same work twice.
       ###
       UNSTORED_STATES = %i[failed unavailable].freeze
 
@@ -200,18 +196,14 @@ module Coverband
       end
 
       ###
-      # Work dropped at the storage caps is gone, and this tracker's dedupe set
-      # has already moved on, so those keys would never be reported again: a
-      # used view reading as unused. That is the dangerous direction for
-      # anything driving deletion, so what is known is queued again, the same
-      # way an eviction is handled.
+      # Work dropped at the storage caps is gone and the dedupe set has moved on,
+      # so those keys would never be reported again: a used view reading as
+      # unused, the dangerous direction for anything driving deletion. What is
+      # known is queued again, the way an eviction already is.
       #
-      # Only sound where the merge is idempotent. Re-supplying a summed counter
-      # is precisely the double count :retained exists to prevent, so
-      # QueryBurstTracker's loss is irreducible and stays reported.
-      #
-      # Keyed on the loss timestamp so a sustained outage re-supplies once per
-      # drop rather than once per cycle.
+      # Only sound where the merge is idempotent -- re-supplying a summed counter
+      # is the double count :retained exists to prevent. Keyed on the loss
+      # timestamp, so an outage re-supplies once per drop, not once per cycle.
       ###
       def recover_dropped_keys
         return unless self.class.idempotent_merge?

@@ -2,15 +2,24 @@
 
 Tracking issue: [#533 Build generic Active Support Cache adapter](https://github.com/danmayer/coverband/issues/533)
 
-Status: **implemented, revision 9** — shipped in #652. Revision 9 records what
-review found wrong in the first implementation: a dropped delta must be stepped
-over rather than stalled on, an initialization race has to be proven rather than
-assumed, tombstones need timestamps, and an observed delete has to move the
-enqueue epoch. Previously **proposed, revision 8** — corrects the Redis `clear_key!` durability claim to
-best-effort, restores applied sequences to all whole-document layouts (conflict detection, not
-only retry safety), makes the cleanup queue and orphan leakage honestly best-effort, and
-expands the SolidCache analysis (quiet-document expiry, storage-I/O guard). Targets a **7.0.0
-major release** with breaking storage-format changes. Nothing implemented yet.
+Status: **shipped in #652**, for the **7.0.0** major release, with breaking
+storage-format changes.
+
+This began as a plan and is now a description of what was built, kept because
+most of it is reasoning that the code cannot carry: what was rejected and why,
+which guarantees are real and which are best-effort, and what the first
+implementation got wrong. Where a design decision changed under testing, the
+change is recorded rather than the original silently edited away.
+
+Two rounds of correction are folded in. Review of the first implementation found
+that a dropped delta must be stepped over rather than stalled on, an
+initialization race has to be proven rather than assumed, tombstones need
+timestamps, and an observed delete has to move the enqueue epoch. Seven rounds
+of testing against a real Rails app on Redis, Memcached, and Solid Cache then
+found nine more, every one of them in the seams around the protocol rather than
+in the merge algorithm: who owns work that could not be stored, what a cap
+actually bounds, and what silence means. Those are marked **[found in testing]**
+where they appear.
 
 ## Goal
 
@@ -529,7 +538,7 @@ writer remains alive and the delta remains pending.**
 | --- | --- | --- | --- |
 | Coverage conflict, quiescent | Cannot occur (LUA, per-file keys) | Repaired next cycle | Repaired next cycle |
 | Coverage conflict, sustained | Cannot occur | Bounded by the queue / byte cap / age cap, then dropped + reported | Same |
-| Presence trackers | Atomic per field | **Atomic per field** (native `HSET`, unchanged) | Conflict detected via applied sequences and repaired next cycle; bounded by 5 cycles |
+| Presence trackers | Atomic per field | **Atomic per field** (native `HSET`, unchanged) | Conflict detected via applied sequences and repaired next cycle; **no bound** — dropped keys are re-supplied from the tracker's own set |
 | Query-burst counters | Repaired next cycle | Repaired next cycle (was silently lossy; now one JSON document) | Repaired next cycle |
 | Process death with pending deltas | No pending state | Loses that writer's unconfirmed cycle | Same |
 | Long suspension | n/a | Pending dropped by age cap or identity rotation; loss recorded | Same |
@@ -541,6 +550,18 @@ writer remains alive and the delta remains pending.**
 | Orphaned generations | n/a | Cleanable via `SCAN` task | **Low-rate but potentially unbounded** without enumeration or cache-wide expiry |
 
 `MemoryStore` is per-process and dev/test only in every row.
+
+**[found in testing] What an outage actually costs**, once the caps are queue depths and the
+idempotent trackers self-heal:
+
+| | Tolerates | Then |
+| --- | --- | --- |
+| Coverage | 2 missed cycles | drops the oldest, records `pending_dropped` |
+| Presence trackers | any outage, while the process lives | nothing lost; a restart mid-outage loses what only that process knew |
+| Query bursts | 4 missed cycles | drops the oldest, records `pending_dropped` — irreducible, since re-supplying a summed counter double counts |
+
+Anything that cannot be stored at all reports `unwritten` immediately rather than looking like
+absence.
 
 **I/O cost.** No extra *write*. Confirmation requires a read in a cycle that would otherwise be
 silent, plus **one pointer read per document per cycle** — up to six for a process running
@@ -581,41 +602,58 @@ land in Phase 0.
 module Coverband::Adapters::TrackerStorage
   class Base
     def entries                        # -> Hash<String, String>, current generation
-    def record(delta)                  # enqueue + flush pending prefix
-                                       #  -> :written_unconfirmed | :confirmed | :deferred | :failed
+    def record(delta)                  # enqueue + flush pending prefix; states below
     def delete_entry(key)              # HDEL (Redis presence) or delete delta (whole-document)
     def reset                          # fresh pointer token; -> true | false (false = reset failed)
     def tracking_since                 # -> Time | nil
-    def data_loss                      # -> nil | {at:, kind: :eviction | :pending_dropped | :identity_rotated | :orphaned_generation, detail:}
+    def data_loss                      # -> nil | DataLoss(at:, kind:, detail:)
+    def unwritten                      # -> nil | UnwrittenWork(deltas:, since:)
     def generation                     # -> String (opaque token)
     def pending_size                   # -> Integer
   end
 end
 ```
 
+`data_loss` kinds: `:eviction`, `:pending_dropped`, `:unconfirmed_dropped`,
+`:identity_rotated`, `:orphaned_generation`, `:corrupt_document`.
+
 `record`'s return values name protocol states, not outcomes. Revision 7's `:applied` was
 ambiguous — after the initial write a delta is written but **not yet proven durable**, and
 that distinction is the whole point of the watermark:
 
-| Value | Meaning |
-| --- | --- |
-| `:written_unconfirmed` | Merged and written; still in `@pending` awaiting a later cycle's watermark check |
-| `:confirmed` | A prior write was proven durable by the watermark and dropped from `@pending` |
-| `:deferred` | Enqueued only — nothing flushed this call (no contiguous prefix, or not a report cycle) |
-| `:failed` | Write refused or errored; `@pending` retained for retry |
+| Value | Meaning | Who holds the work |
+| --- | --- | --- |
+| `:written_unconfirmed` | Merged and written; still in `@pending` awaiting a later cycle's watermark check | storage |
+| `:confirmed` | A prior write was proven durable by the watermark and dropped from `@pending` | storage |
+| `:deferred` | Enqueued only — nothing flushed this call (no contiguous prefix, or not a report cycle) | storage |
+| `:retained` | Taken, then refused or errored on the write; still ours to retry | storage |
+| `:failed` | Refused **before** it was taken | the caller |
+| `:unavailable` | The backend could not be reached at all | the caller |
+
+**[found in testing]** The last column is the whole point, and `:retained` exists
+because it was missing. `:failed` originally covered both a write refused before
+the enqueue and one refused after it — but in the second case the delta is in the
+queue, and a caller that kept its own copy replayed it. For `QueryBurstTracker`,
+whose counters sum, that double counted on the documented memcached >1MB path.
+A raise is itself a signal of caller ownership, for the same reason: a caller
+that sees an exception keeps its copy, so once the delta is taken the failure is
+logged rather than raised.
 
 Two concrete families, chosen by merge type rather than by backend:
-`TrackerStorage::RedisHash` (idempotent presence trackers, native per-field ops, no
-watermark) and `TrackerStorage::Document` (everything else, `{meta, payload}` in one
-authoritative write, with a Redis `SET` subclass and a cache subclass).
+`TrackerStorage::RedisHashRepository` (idempotent presence trackers, native
+per-field ops, no watermark) and `TrackerStorage::DocumentRepository` (everything
+else, `{meta, payload}` in one authoritative write, over either target). One
+`TrackerStorage::Factory` picks between them — `Factory.redis` and
+`Factory.cache` differ only in how the target is built and whether native hashes
+exist, so the layout decision lives in one place.
 
 ```mermaid
 flowchart LR
     P["per-document pointer key<br/>opaque token<br/>(reset replaces; reporters only initialize)"]
     P -.->|scopes| H
     P -.->|scopes| DOC
-    A["View · Route · Translation<br/>(idempotent)"] --> H["RedisHash<br/>HSET / HDEL per field<br/>no watermark"]
-    Q["QueryBurst · Coverage<br/>(non-idempotent)"] --> DOC["Document<br/>{meta, payload}<br/>one authoritative write"]
+    A["View · Route · Translation<br/>(idempotent)"] --> H["RedisHashRepository<br/>HSET / HDEL per field<br/>no watermark"]
+    Q["QueryBurst · Coverage<br/>(non-idempotent)"] --> DOC["DocumentRepository<br/>{meta, payload}<br/>one authoritative write"]
     H --> F[(Redis)]
     DOC --> F
     DOC --> G[(Rails.cache:<br/>Redis · Memcached · SolidCache)]
@@ -623,6 +661,23 @@ flowchart LR
 ```
 
 `AbstractTracker#redis_store` becomes a deprecated private alias for one release.
+
+### What shipped, by file
+
+The plan named behaviors, not files. For a reader starting from the code:
+
+| File | Role |
+| --- | --- |
+| `storage/session.rb` | the merge protocol: enqueue, flush, watermarks, data loss, held work |
+| `storage/writer.rb` | writer identity and the pending queue, including the caps |
+| `storage/document.rb` | `{meta, payload}`, watermarks, tombstones, pruning |
+| `storage/generation.rb` | the pointer, reset, retirement queue, sweeps |
+| `storage/generation_lifecycle.rb` | pointer bookkeeping shared by the session and the Redis hash repository |
+| `storage/target.rb`, `redis_target.rb` | the two backends behind one small interface |
+| `storage/read_fallback.rb` | reads degrade rather than raise, shared by both repositories |
+| `storage/io_guard.rb` | marks Coverband's own storage I/O so query bursts ignore it |
+| `adapters/session_coverage.rb` | coverage on the protocol, shared by both coverage adapters |
+| `adapters/tracker_storage/` | `Factory`, and the two repository layouts it picks between |
 
 ### Cache target contract
 
@@ -790,15 +845,25 @@ asserts identical types across implementations.
 - `JSON::ParserError` → empty, log, flag `data_loss`.
 - Document missing while a token is held → eviction path.
 - Pointer missing while a token is held → orphaned-generation data loss + re-initialize.
-- `write` returning `false` → **retain `@pending`**, log, do not advance the watermark. Today
-  `AbstractTracker#save_report` only retains state when an exception is raised
-  (`abstract_tracker.rb:113` is skipped by the `rescue`), so a falsey write silently drops
-  data — a bug fix for the Redis path too.
+- `write` returning `false` → **retain `@pending`**, log, do not advance the watermark, and
+  report `:retained` so the caller drops its copy. Before this, `AbstractTracker#save_report`
+  only retained state when an exception was raised, so a falsey write silently dropped data —
+  a bug fix for the Redis path too.
 - Pointer `write` returning `false` → reset reports failure.
 - Backend unreachable, or a Solid Cache table that does not exist yet → **reads** log and
-  return empty, never raising into the request rendering the report. **Writes** keep
-  propagating to the reporting paths that already rescue and log them, so their messages are
-  not swallowed.
+  return empty, never raising into the request rendering the report. **Writes** propagate to
+  the reporting paths that already rescue and log them — but only while the work is still the
+  caller's; once taken, the failure is logged in the session instead, because raising would
+  hand the same delta two owners.
+- **[found in testing]** A target that cannot be resolved (`Rails.cache` not yet assigned) is
+  `Target::Unavailable`, not a `NoMethodError` on `nil`; a resolver returning something that
+  is not a cache store is `Target::Misconfigured`, reported once rather than every cycle,
+  because no later cycle can fix it.
+- **[found in testing]** Work held because it cannot be written is reported as `unwritten`,
+  separately from `data_loss`. A document that can never be written drops nothing — a quiet
+  tracker enqueues nothing new for the caps to drop — so only the absolute age cap converted
+  the stall into a loss event, an hour later, and until then an empty tab was
+  indistinguishable from an app that used nothing.
 
 ### Coverage adapter details
 
@@ -818,53 +883,55 @@ config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }
 
 ## Phases
 
+The original delivery plan, checked off against what shipped. One item did not, and says so.
+
 ### Phase 0 — capability plumbing
 
-- [ ] `tracker_storage`, `supports_trackers?`, `supports_paged_reports?`,
+- [x] `tracker_storage`, `supports_trackers?`, `supports_paged_reports?`,
       `persistent_coverage?`, and defaults for **both** `file_count` and `cached_file_count`
       on `adapters/base.rb` (`FileStore` defines neither today).
-- [ ] `size` / `size_in_mib` contract fix.
-- [ ] Replace `is_a?(HashRedisStore)` at `reporters/html_report.rb:19`.
+- [x] `size` / `size_in_mib` contract fix.
+- [x] Replace `is_a?(HashRedisStore)` at `reporters/html_report.rb:19`.
 
 ### Phase 1 — `ActiveSupportCacheStore` (coverage data)
 
-- [ ] New adapter with `{meta, payload}`, per-document pointers, lazy target, namespace.
-- [ ] `MemcachedStore` deprecated subclass with namespace translation.
-- [ ] Require from `lib/coverband.rb`; template example; 600s default.
+- [x] New adapter with `{meta, payload}`, per-document pointers, lazy target, namespace.
+- [x] `MemcachedStore` deprecated subclass with namespace translation.
+- [x] Require from `lib/coverband.rb`; template example; 600s default.
 
 ### Phase 2 — tracker repository + Redis implementations
 
-- [ ] `TrackerStorage::Base`, `::RedisHash` (presence, unchanged wire format),
+- [x] `TrackerStorage::Base`, `::RedisHash` (presence, unchanged wire format),
       `::Document` (Redis `SET` + cache subclasses).
-- [ ] Rewrite `AbstractTracker`, `ViewTracker`, `QueryBurstTracker` against the repository.
-- [ ] Deprecated `redis_store` alias; rewrite tracker tests that mock
+- [x] Rewrite `AbstractTracker`, `ViewTracker`, `QueryBurstTracker` against the repository.
+- [x] Deprecated `redis_store` alias; rewrite tracker tests that mock
       `store.raw_store.expects(:hset)` into a shared behavior module.
 
 ### Phase 3 — the merge protocol
 
-- [ ] Writer identity: nonce, PID-change detection, fork reset.
-- [ ] Immutable deltas: expand + serialize once at enqueue, frozen.
-- [ ] Contiguous-prefix flush and watermark invariant on **every whole-document layout**
+- [x] Writer identity: nonce, PID-change detection, fork reset.
+- [x] Immutable deltas: expand + serialize once at enqueue, frozen.
+- [x] Contiguous-prefix flush and watermark invariant on **every whole-document layout**
       (conflict detection everywhere; retry safety additionally on non-idempotent ones).
-- [ ] Gap taxonomy: retention cap, absolute age cap, identity rotation.
-- [ ] Missing-watermark recovery.
-- [ ] `applied` + tombstone pruning with the documented horizon ordering.
-- [ ] Version-based tombstones; **tombstone observation invalidates local dedupe**.
-- [ ] Per-document pointers: `unless_exist` init, reset, orphaned-generation classification,
+- [x] Gap taxonomy: retention cap, absolute age cap, identity rotation.
+- [x] Missing-watermark recovery.
+- [x] `applied` + tombstone pruning with the documented horizon ordering.
+- [x] Version-based tombstones; **tombstone observation invalidates local dedupe**.
+- [x] Per-document pointers: `unless_exist` init, reset, orphaned-generation classification,
       failure reporting, token-change split (reset-driven drop vs init-race carry-forward).
-- [ ] Bounded cleanup queue, sweep window, `rake coverband:clear_orphans` for Redis.
-- [ ] Nesting-safe, `ensure`-released `coverband_storage_io` guard at the single choke point
+- [x] Bounded cleanup queue, sweep window, `rake coverband:clear_orphans` for Redis.
+- [x] Nesting-safe, `ensure`-released `coverband_storage_io` guard at the single choke point
       where the adapter calls the cache target — covering `read`, `read_multi`, `write`,
       `exist?`, and `delete` — so `QueryBurstTracker` ignores all SQL that Coverband's own
       storage I/O emits.
-- [ ] Optional keep-alive: quiet cache-backed documents get one empty-delta write when
+- [x] Optional keep-alive: quiet cache-backed documents get one empty-delta write when
       untouched beyond a jittered fraction of the backend's expiry window.
 
 ### Phase 4 — gate unsupported features cleanly
 
-- [ ] `Configuration#railtie!` (`configuration.rb:130`) skips trackers when
+- [x] `Configuration#railtie!` (`configuration.rb:130`) skips trackers when
       `!store.supports_trackers?`, logging one clear line.
-- [ ] Web UI (`reporters/web.rb:63`): no dead tabs; data-loss banner; clears reported as
+- [x] Web UI (`reporters/web.rb:63`): no dead tabs; data-loss banner; clears reported as
       **submitted**; reset failure surfaced as failure.
 
 ### Phase 5 — tests and CI
@@ -880,67 +947,67 @@ Protocol conformance suite — both `RedisStore` and the cache adapter:
 
 *Merge and sequencing*
 
-- [ ] two-writer interleaving, coverage line counts → totals equal contributions, no double
+- [x] two-writer interleaving, coverage line counts → totals equal contributions, no double
       counting after a forced re-apply;
-- [ ] **two-writer interleaving, cache presence trackers** → the losing writer detects that
+- [x] **two-writer interleaving, cache presence trackers** → the losing writer detects that
       its key was erased and repairs it, despite permanent local dedupe (restored; it went
       missing in revision 7 when the watermark rule was wrongly narrowed);
-- [ ] concurrent query-burst aggregation → totals equal contributions;
-- [ ] **the partial-write counterexample**: two writers each adding a distinct key to a
+- [x] concurrent query-burst aggregation → totals equal contributions;
+- [x] **the partial-write counterexample**: two writers each adding a distinct key to a
       non-idempotent document → no watermark is lost while its contribution survives;
-- [ ] same-writer conflict: sequence 1 overwritten, sequence 2 after → no gap skipping;
-- [ ] re-apply of an already-applied sequence is a no-op;
-- [ ] retrying a coverage delta does not refresh its timestamps.
+- [x] same-writer conflict: sequence 1 overwritten, sequence 2 after → no gap skipping;
+- [x] re-apply of an already-applied sequence is a no-op;
+- [x] retrying a coverage delta does not refresh its timestamps.
 
 *Gaps and writer lifecycle*
 
-- [ ] retention cap, **absolute age cap**, and **suspension beyond the pruning horizon** each
+- [x] retention cap, **absolute age cap**, and **suspension beyond the pruning horizon** each
       drop cleanly, record loss, and never double count;
-- [ ] PID reuse does not adopt a dead writer's watermark;
-- [ ] pre-fork construction → distinct identities, inherited pending discarded;
-- [ ] `applied` pruning never prunes inside the pending horizon.
+- [x] PID reuse does not adopt a dead writer's watermark;
+- [x] pre-fork construction → distinct identities, inherited pending discarded;
+- [x] `applied` pruning never prunes inside the pending horizon.
 
 *Generations, pointers, deletion*
 
-- [ ] resetting one tracker leaves coverage and other trackers untouched;
-- [ ] missing-pointer initialization; **`unless_exist` init under concurrency**;
-- [ ] **init-race carry-forward**: a writer that loses the init race with real first-cycle
+- [x] resetting one tracker leaves coverage and other trackers untouched;
+- [x] missing-pointer initialization; **`unless_exist` init under concurrency**;
+- [x] **init-race carry-forward**: a writer that loses the init race with real first-cycle
       data re-applies it under the winning token, exactly once;
-- [ ] **pointer evicted while the document survives** → orphaned-generation loss recorded;
-- [ ] pointer write returning `false` → reset reports failure, no partial reset;
-- [ ] concurrent resets collapse to one valid generation;
-- [ ] reset followed by a stale writer → the stale write lands on the retired generation;
-- [ ] **concurrent resets may drop a cleanup instruction** — asserts the documented
+- [x] **pointer evicted while the document survives** → orphaned-generation loss recorded;
+- [x] pointer write returning `false` → reset reports failure, no partial reset;
+- [x] concurrent resets collapse to one valid generation;
+- [x] reset followed by a stale writer → the stale write lands on the retired generation;
+- [x] **concurrent resets may drop a cleanup instruction** — asserts the documented
       best-effort behavior and that the surviving generation is still correct (replaces
       revision 7's "both instructions survive", which is not achievable without CAS);
-- [ ] **sweep stops after the window** rather than repeating forever;
-- [ ] delayed sweep executes after the reset initiator exits, driven by an ordinary reporter,
+- [x] **sweep stops after the window** rather than repeating forever;
+- [x] delayed sweep executes after the reset initiator exits, driven by an ordinary reporter,
       idempotent under several reporters;
-- [ ] `clear_file!` followed by a stale coverage writer → no resurrection;
-- [ ] tombstone epoch ordering with equal and skewed wall clocks → outcome unchanged;
-- [ ] **tombstone observation clears local dedupe**: A and B both recorded K; A clears K; B
+- [x] `clear_file!` followed by a stale coverage writer → no resurrection;
+- [x] tombstone epoch ordering with equal and skewed wall clocks → outcome unchanged;
+- [x] **tombstone observation clears local dedupe**: A and B both recorded K; A clears K; B
       observes the tombstone; B uses K again; K is recorded under the new epoch;
-- [ ] `clear_key!` where the initiator exits first → documented best-effort behavior.
+- [x] `clear_key!` where the initiator exits first → documented best-effort behavior.
 
 *Storage and degradation*
 
-- [ ] Redis presence trackers keep per-field semantics and wire format (regression);
-- [ ] **Redis `clear_key!` against an in-flight pre-delete `HSET`** → asserts the documented
+- [x] Redis presence trackers keep per-field semantics and wire format (regression);
+- [x] **Redis `clear_key!` against an in-flight pre-delete `HSET`** → asserts the documented
       best-effort resurrection, not a false durability promise;
-- [ ] **oversized document on memcached** (a translation tracker over 1 MB) → `write` returns
+- [x] **oversized document on memcached** (a translation tracker over 1 MB) → `write` returns
       `false`, `@pending` is retained, and the warning names the document, its size, and the
       remedy;
-- [ ] `write` returning `false` → `@pending` retained and retried;
-- [ ] corrupt JSON and evicted documents → safe degradation + `data_loss` set;
-- [ ] eviction with **all** processes restarted → asserts the documented undetectable
+- [x] `write` returning `false` → `@pending` retained and retried;
+- [x] corrupt JSON and evicted documents → safe degradation + `data_loss` set;
+- [x] eviction with **all** processes restarted → asserts the documented undetectable
       behavior;
-- [ ] legacy keys ignored, not misread;
-- [ ] lazy target resolved exactly once under concurrent first access;
-- [ ] value-type parity across implementations.
+- [x] legacy keys ignored, not misread;
+- [x] lazy target resolved exactly once under concurrent first access;
+- [x] value-type parity across implementations.
 
 Infrastructure:
 
-- [ ] Add memcached to `.github/workflows/main.yml` and set `COVERBAND_MEMCACHED=true`:
+- [x] Add memcached to `.github/workflows/main.yml` and set `COVERBAND_MEMCACHED=true`:
 
       ```yaml
       services:
@@ -952,29 +1019,32 @@ Infrastructure:
             - 11211:11211
       ```
 
-- [ ] `activesupport` as an explicit dev dependency (currently only transitive via `rails`).
-- [ ] `MemoryStore` + `FileStore` cases run with no services at all.
+- [x] `activesupport` as an explicit dev dependency (currently only transitive via `rails`).
+- [x] `MemoryStore` + `FileStore` cases run with no services at all.
 - [ ] Integration test in `test/rails7_dummy` / `test/rails8_dummy` using `Rails.cache`.
+      **Not shipped.** Seven rounds against a real Rails app on all three backends covered
+      this far better than a dummy app would, including the boot ordering a dummy would not
+      reproduce. Still worth having as a permanent regression, so it stays listed.
 - [x] **SolidCache case** (ENV-gated, SQLite is enough for CI): verifies atomic-create
       semantics for pointer initialization, `read_multi` batching, that an
       ActiveRecord-unavailable report degrades to a no-op instead of raising, and that a
       missing SolidCache schema degrades the same way. Also **verify the installed version's
       compression behavior** before documenting any `compress` option — the README says values
       are already compressed.
-- [ ] **Query-burst feedback loop**: a report issued inside a tracked controller context
+- [x] **Query-burst feedback loop**: a report issued inside a tracked controller context
       contributes zero queries to that action's stats — asserted separately for **reads
       (including the every-cycle pointer read), writes, and cleanup deletes**, plus a raise
       inside storage I/O leaving the guard cleared.
-- [ ] **Quiet-document keep-alive**: a document with no new keys is still touched before the
+- [x] **Quiet-document keep-alive**: a document with no new keys is still touched before the
       backend's expiry window, and the touch is conflict-safe under a concurrent writer.
-- [ ] Integration tests pin `Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION`
+- [x] Integration tests pin `Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION`
       (`test/integration/full_stack_test.rb:7` and two siblings) — update for the new format.
 
 ### Phase 6 — release
 
-- [ ] Version bump to **7.0.0** (`lib/coverband/version.rb`).
-- [ ] `changes.md` leading with breaking changes, then features.
-- [ ] README adapter/capability matrix, upgrade notes, storage caveats.
+- [x] Version bump to **7.0.0** (`lib/coverband/version.rb`).
+- [x] `changes.md` leading with breaking changes, then features.
+- [x] README adapter/capability matrix, upgrade notes, storage caveats.
 
 ## Risks and tradeoffs
 
