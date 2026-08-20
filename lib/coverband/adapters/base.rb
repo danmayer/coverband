@@ -88,8 +88,10 @@ module Coverband
         coverage.keys || []
       end
 
-      def raw_store
-        raise ABSTRACT_KEY
+      # Optional maintenance capability. Redis-backed adapters return an object
+      # that can enumerate and safely clean Coverband-owned keys.
+      def cleanup
+        nil
       end
 
       protected

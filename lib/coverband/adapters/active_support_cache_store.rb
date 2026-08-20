@@ -41,10 +41,6 @@ module Coverband
           format_version: @format_version)
       end
 
-      def raw_store
-        raise NotImplementedError, "#{self.class.name} doesn't support raw_store, use tracker_storage"
-      end
-
       private
 
       def storage_target

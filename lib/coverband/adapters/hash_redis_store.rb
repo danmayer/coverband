@@ -185,8 +185,8 @@ module Coverband
         @cached_file_count ||= file_count(Coverband::RUNTIME_TYPE)
       end
 
-      def raw_store
-        @redis
+      def cleanup
+        RedisCleanup.new(@redis, namespace: @redis_namespace)
       end
 
       def persistent_coverage?

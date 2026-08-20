@@ -40,8 +40,8 @@ module Coverband
           format_version: @format_version)
       end
 
-      def raw_store
-        @redis
+      def cleanup
+        RedisCleanup.new(@redis, namespace: @redis_namespace)
       end
 
       private

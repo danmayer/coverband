@@ -145,8 +145,8 @@ module ActiveSupportCacheStoreBehavior
     refute @store.supports_paged_reports?
   end
 
-  def test_raw_store_is_not_supported
-    assert_raises(NotImplementedError) { @store.raw_store }
+  def test_redis_cleanup_is_not_supported
+    assert_nil @store.cleanup
   end
 
   ###

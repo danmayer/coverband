@@ -88,10 +88,6 @@ module Coverband
         end&.join
       end
 
-      def raw_store
-        raise "not supported via service"
-      end
-
       private
 
       def retry_failed_reports

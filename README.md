@@ -555,6 +555,28 @@ This will clear both the coverage and trackers data. It can also be done through
 To clear only coverage data, run `rake coverband:clear_coverage`.
 To clear only trackers data, run `rake coverband:clear_tracker`.
 
+Redis-backed stores also support two maintenance tasks:
+
+- `rake coverband:clear_legacy` removes Coverband-owned keys from storage
+  formats retired by the 7.0 upgrade.
+- `rake coverband:clear_orphans` removes old generation documents that no
+  pointer references, after rechecking that each candidate is not live or too
+  young to delete safely.
+
+In Coverband 7.0, adapters no longer expose their backend through `raw_store`.
+Code that needs these supported maintenance operations can request the narrow
+capability instead:
+
+```ruby
+cleanup = Coverband.configuration.store.cleanup
+cleanup&.clear_legacy!
+cleanup&.clear_orphans!
+```
+
+`RedisStore` and `HashRedisStore` provide this capability. Adapters that cannot
+enumerate their keys return `nil`; clear the backing cache or rely on its expiry
+policy for those stores.
+
 ### Adding Rake Tasks outside of Rails
 
 Rails apps should automatically include the tasks via the Railtie.
