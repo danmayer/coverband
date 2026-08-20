@@ -17,6 +17,8 @@ class RailsCacheFullStackTest < Minitest::Test
     # Keep this assertion meaningful when contributors run the suite from a
     # temporary worktree; /tmp is ignored by default for deploy-time builds.
     Coverband.configuration.ignore.delete_if { |pattern| pattern.source == "/tmp" }
+    Coverband::Utils::RelativeFileConverter.reset
+    Coverband::Utils::AbsoluteFileConverter.reset
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.report_coverage
   end
@@ -39,12 +41,8 @@ class RailsCacheFullStackTest < Minitest::Test
     assert_content("I am no dummy")
 
     dummy_controller = "./app/controllers/dummy_controller.rb"
-    coverage = nil
-    5.times do
-      Coverband.report_coverage
-      coverage = store.coverage
-      break if coverage.key?(dummy_controller)
-    end
+    Coverband.report_coverage
+    coverage = store.coverage
     assert coverage.key?(dummy_controller), "stored coverage keys: #{coverage.keys.inspect}"
 
     route_tracker = Coverband.configuration.route_tracker
