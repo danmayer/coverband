@@ -12,7 +12,6 @@ class FullStackTest < Minitest::Test
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
       config.background_reporting_enabled = false
-      config.track_gems = true
     end
     Coverband.start
     Coverband::Collectors::Coverage.instance.eager_loading!

@@ -124,4 +124,21 @@ class BaseTest < Minitest::Test
 
     assert_equal "rediss://my-elasticache.example.com:6379", Coverband.configuration.redis_url
   end
+
+  test "removed configuration options are not exposed" do
+    removed = %i[
+      s3_region
+      s3_bucket
+      s3_access_key_id
+      s3_secret_access_key
+      track_gems
+      gem_details
+      simulate_oneshot_lines_coverage
+    ]
+
+    removed.each do |setting|
+      refute_respond_to Coverband.configuration, setting
+      refute_respond_to Coverband.configuration, :"#{setting}="
+    end
+  end
 end

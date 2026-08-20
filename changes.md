@@ -3,6 +3,7 @@
 **Breaking changes**
 
 * **Coverage and tracker history do not survive this upgrade.** Stored documents now carry the metadata the new merge protocol needs, and keys are scoped by a generation token, so the storage format version changed for both `RedisStore` and the cache adapters. Old keys are ignored rather than migrated, and coverage accumulates fresh from the upgrade. Delete the old `coverband_3_2.*` keys once you are happy with the new data.
+* Removed configuration settings that no longer had production consumers: `s3_region`, `s3_bucket`, `s3_access_key_id`, `s3_secret_access_key`, `track_gems`, `gem_details`, and `simulate_oneshot_lines_coverage`. The S3 and gem-tracking settings were already deprecated no-ops.
 * **`Coverband::Adapters::MemcachedStore` is deprecated** and is now a thin subclass of the new `ActiveSupportCacheStore`. Its `memcached_namespace` option and reader keep working; its stored data is not migrated.
 * **`background_reporting_sleep_seconds` now defaults to 600** for the new cache adapter (`HashRedisStore` still defaults to 300, everything else to 60), because each report rewrites a whole document.
 * `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.

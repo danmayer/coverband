@@ -12,7 +12,6 @@ class FullStackSendDeferredEagerTest < Minitest::Test
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configure do |config|
       config.background_reporting_enabled = false
-      config.track_gems = true
       config.defer_eager_loading_data = true
       config.send_deferred_eager_loading_data = false
     end

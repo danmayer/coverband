@@ -19,8 +19,8 @@ module Coverband
       :verbose,
       :reporter, :redis_namespace, :redis_ttl,
       :background_reporting_enabled,
-      :test_env, :web_enable_clear, :gem_details, :web_debug, :report_on_exit,
-      :use_oneshot_lines_coverage, :simulate_oneshot_lines_coverage,
+      :test_env, :web_enable_clear, :web_debug, :report_on_exit,
+      :use_oneshot_lines_coverage,
       :view_tracker, :defer_eager_loading_data,
       :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
@@ -29,13 +29,12 @@ module Coverband
       :trackers, :csp_policy, :hide_settings,
       :mcp_enabled
 
-    attr_writer :logger, :s3_region, :s3_bucket, :s3_access_key_id,
-      :s3_secret_access_key, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
+    attr_writer :logger, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
       :service_test_mode, :process_type, :track_views, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle,
       :send_deferred_eager_loading_data, :paged_reporting, :mcp_allowed_environments, :mcp_password
 
-    attr_reader :track_gems, :ignore
+    attr_reader :ignore
 
     #####
     # TODO: This is is brittle and not a great solution to avoid deploy time
@@ -100,7 +99,6 @@ module Coverband
       @web_debug = false
       @report_on_exit = true
       @use_oneshot_lines_coverage = ENV["ONESHOT"] || false
-      @simulate_oneshot_lines_coverage = false # this is being deprecated
       @current_root = nil
       @all_root_paths = nil
       @all_root_patterns = nil
@@ -131,14 +129,6 @@ module Coverband
       self.class.dynamic_flag_defaults.each do |name, default|
         instance_variable_set(:"@#{name}", default)
       end
-
-      # TODO: these are deprecated
-      @s3_region = nil
-      @s3_bucket = nil
-      @s3_access_key_id = nil
-      @s3_secret_access_key = nil
-      @track_gems = false
-      @gem_details = false
     end
 
     def railtie!
@@ -315,7 +305,7 @@ module Coverband
       @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
-    SKIPPED_SETTINGS = %w[@s3_secret_access_key @store @api_key @password @mcp_password]
+    SKIPPED_SETTINGS = %w[@store @api_key @password @mcp_password]
     def to_h
       instance_variables
         .each_with_object({}) do |var, hash|
@@ -376,26 +366,6 @@ module Coverband
 
       (coverband_env == "test" && !Coverband.configuration.service_test_mode) ||
         (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
-    end
-
-    def s3_bucket
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_region
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_access_key_id
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def s3_secret_access_key
-      puts "deprecated, s3 is no longer support"
-    end
-
-    def track_gems=(_value)
-      puts "gem tracking is deprecated, setting this will be ignored & eventually removed"
     end
 
     private
