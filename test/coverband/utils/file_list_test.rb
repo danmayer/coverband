@@ -10,8 +10,8 @@ describe Coverband::Utils::FileList do
   subject do
     original_result = {
       source_fixture("sample.rb") => {"first_updated_at" => Time.at(0), "data" => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil]},
-      source_fixture("app/models/user.rb") => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil],
-      source_fixture("app/controllers/sample_controller.rb") => [nil, 2, 2, 0, nil, nil, 0, nil, nil, nil]
+      source_fixture("app/models/user.rb") => {"data" => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]},
+      source_fixture("app/controllers/sample_controller.rb") => {"data" => [nil, 2, 2, 0, nil, nil, 0, nil, nil, nil]}
     }
     Coverband::Utils::Result.new(original_result).files
   end

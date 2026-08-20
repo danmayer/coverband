@@ -7,15 +7,16 @@ require "forwardable"
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov
 # initial version pulled into Coverband from Simplecov 12/04/2018
 #
-# A code coverage result, initialized from the Hash stdlib built-in coverage
-# library generates (Coverage.result).
+# A code coverage result initialized from a stored Coverband report. The report
+# maps filenames to enriched file records; each record contains a line-coverage
+# Array under "data" and may contain Coverband's timestamp and loading metadata.
 ####
 module Coverband
   module Utils
     class Result
       extend Forwardable
 
-      # Returns the original Coverage.result used for this instance of Coverband::Result
+      # Returns the original stored Coverband report used for this result
       attr_reader :original_result
       # Returns all files that are applicable to this result (sans filters!)
       # as instances of Coverband::SourceFile. Aliased as :source_files
@@ -27,8 +28,7 @@ module Coverband
       def_delegators :files, :covered_percent, :covered_percentages, :covered_strength, :covered_lines, :missed_lines
       def_delegator :files, :lines_of_code, :total_lines
 
-      # Initialize a new Coverband::Result from given Coverage.result (a Hash of filenames each containing an array of
-      # coverage data)
+      # Initialize a result from a Hash mapping filenames to enriched file records.
       def initialize(original_result)
         @original_result = (original_result || {}).freeze
 

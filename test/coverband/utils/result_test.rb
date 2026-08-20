@@ -7,12 +7,12 @@ require File.expand_path("../../test_helper", File.dirname(__FILE__))
 # initial version of test pulled into Coverband from Simplecov 12/19/2018
 ####
 describe "result" do
-  describe "with a (mocked) Coverage.result" do
+  describe "with a stored Coverband report" do
     let(:original_result) do
       {
-        source_fixture("sample.rb") => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil],
-        source_fixture("app/models/user.rb") => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil],
-        source_fixture("app/controllers/sample_controller.rb") => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]
+        source_fixture("sample.rb") => {"data" => [nil, 1, 1, 1, nil, nil, 1, 1, nil, nil]},
+        source_fixture("app/models/user.rb") => {"data" => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]},
+        source_fixture("app/controllers/sample_controller.rb") => {"data" => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]}
       }
     end
 

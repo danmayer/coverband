@@ -4,8 +4,11 @@
 # Thanks for all the help SimpleCov https://github.com/colszowka/simplecov
 # initial version pulled into Coverband from Simplecov 12/04/2018
 #
-# Representation of a source file including it's coverage data, source code,
-# source lines and featuring helpers to interpret that data.
+# Representation of a source file including its coverage data, source code,
+# source lines and featuring helpers to interpret that data. Coverage is supplied
+# as an enriched file record from a stored Coverband report. The record must be a
+# Hash with a line-coverage Array under the "data" key and may include "timedata",
+# "first_updated_at", "last_updated_at", and "never_loaded" metadata.
 ####
 require_relative "source_file/line"
 
@@ -14,9 +17,9 @@ module Coverband
     class SourceFile
       # The full path to this source file (e.g. /User/colszowka/projects/simplecov/lib/simplecov/source_file.rb)
       attr_reader :filename
-      # The array of coverage data received from the Coverage.result
+      # The array of line coverage data from the enriched file record
       attr_reader :coverage
-      # The array of coverage timedata received from the Coverage.result
+      # The array of coverage timestamps from the enriched file record
       attr_reader :coverage_posted
 
       # the date this version of the file first started to record coverage
@@ -28,21 +31,18 @@ module Coverband
       NOT_AVAILABLE = "not available"
 
       def initialize(filename, file_data)
+        unless file_data.is_a?(Hash) && file_data["data"].is_a?(Array)
+          raise ArgumentError, 'file_data must be an enriched coverage record with an Array at "data"'
+        end
+
         @filename = filename
         @runtime_relavant_lines = nil
-        if file_data.is_a?(Hash)
-          @coverage = file_data["data"]
-          @coverage_posted = file_data["timedata"] || [] # NOTE: only implement timedata for HashRedisStore
-          @first_updated_at = @last_updated_at = NOT_AVAILABLE
-          @first_updated_at = Time.at(file_data["first_updated_at"]) if file_data["first_updated_at"]
-          @last_updated_at = Time.at(file_data["last_updated_at"]) if file_data["last_updated_at"]
-          @never_loaded = file_data["never_loaded"] || false
-        else
-          # TODO: Deprecate this code path this was backwards compatibility from 3-4
-          @coverage = file_data
-          @first_updated_at = NOT_AVAILABLE
-          @last_updated_at = NOT_AVAILABLE
-        end
+        @coverage = file_data["data"]
+        @coverage_posted = file_data["timedata"] || [] # NOTE: only implement timedata for HashRedisStore
+        @first_updated_at = @last_updated_at = NOT_AVAILABLE
+        @first_updated_at = Time.at(file_data["first_updated_at"]) if file_data["first_updated_at"]
+        @last_updated_at = Time.at(file_data["last_updated_at"]) if file_data["last_updated_at"]
+        @never_loaded = file_data["never_loaded"] || false
       end
 
       def runtime_relavant_calculations(runtime_relavant_lines)
