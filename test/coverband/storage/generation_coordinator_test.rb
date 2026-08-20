@@ -106,6 +106,21 @@ class GenerationCoordinatorTest < Minitest::Test
     assert_equal "one", changes.last.authoritative_token
   end
 
+  def test_change_event_does_not_expose_the_coordinators_token_string
+    token = +"one"
+    change = Change.new(
+      cause: Change::CONFIRMATION,
+      previous_token: token,
+      authoritative_token: token
+    )
+
+    token << " changed"
+
+    assert_predicate change, :frozen?
+    assert_equal "one", change.previous_token
+    assert_equal "one", change.authoritative_token
+  end
+
   def test_non_atomic_initialization_race_is_classified
     generation = FakeGeneration.new(
       result("loser", initialized: true),
