@@ -73,10 +73,6 @@ module Coverband
         true
       end
 
-      def raw_store
-        raise NotImplementedError, "FileStore doesn't support raw_store"
-      end
-
       private
 
       attr_accessor :path

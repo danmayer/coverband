@@ -28,10 +28,6 @@ module Coverband
       def save_report(report)
         $stdout.puts(report.to_json)
       end
-
-      def raw_store
-        raise NotImplementedError, "StdoutStore doesn't support raw_store"
-      end
     end
   end
 end

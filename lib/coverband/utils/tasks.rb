@@ -15,11 +15,10 @@ module Coverband
         Rake.application["environment"].invoke
       end
 
-      def self.redis_for_cleanup
+      def self.cleanup_for_store
         store = Coverband.configuration.store
-        if store.respond_to?(:raw_store) && store.raw_store.respond_to?(:scan_each)
-          return store.raw_store
-        end
+        cleanup = store.cleanup
+        return cleanup if cleanup
 
         puts "Only a Redis backed store can enumerate its own keys, so this task"
         puts "cannot run against #{store.class}."
@@ -28,73 +27,6 @@ module Coverband
         puts "To reclaim them on a cache backed store, clear the cache itself"
         puts "(for example Rails.cache.clear) or let its own expiry do it."
         nil
-      rescue NotImplementedError
-        puts "This store does not expose a Redis client, nothing to enumerate."
-        nil
-      end
-
-      ###
-      # A generation key is only garbage while its pointer names something else,
-      # and deciding that from an earlier snapshot is unsafe: a reset in between
-      # would make the new authoritative generation look like an orphan and take
-      # the live document with it. Each candidate is re-checked against its
-      # pointer immediately before deletion, and anything younger than the grace
-      # period is left alone.
-      ###
-      GRACE_SECONDS = 3600
-
-      def self.remove_orphans(redis, format)
-        removed = 0
-
-        redis.scan_each(match: "#{format}*.g*").to_a.uniq.each do |key|
-          base = key[/\A(.*)\.g[^.]*\z/, 1]
-          token = key[/\.g([^.]*)\z/, 1]
-          next unless base && token
-
-          pointer = read_pointer(redis, "#{base}.pointer")
-          next if pointer && pointer["token"] == token
-          # it may be a generation another process is about to point at
-          next if recently_written?(redis, key)
-
-          removed += redis.del(key)
-        end
-
-        removed
-      end
-
-      def self.read_pointer(redis, key)
-        raw = redis.get(key)
-        raw ? JSON.parse(raw) : nil
-      rescue JSON::ParserError
-        nil
-      end
-
-      def self.recently_written?(redis, key)
-        idle = redis.object("idletime", key)
-        idle ? idle < GRACE_SECONDS : true
-      rescue
-        # if we cannot tell how old it is, leave it alone
-        true
-      end
-
-      ###
-      # Formats no adapter writes any more. What a live adapter still uses is
-      # subtracted rather than trusted to a hand-written list: getting this wrong
-      # deletes production coverage, and the adapters already know what they own.
-      ###
-      def self.legacy_formats
-        current = [
-          Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION,
-          Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION,
-          Coverband::Adapters::ActiveSupportCacheStore::STORAGE_FORMAT_VERSION
-        ]
-
-        %w[coverband_3_2 coverband_hash_3_2 coverband_hash_4_0] - current
-      end
-
-      def self.delete_matching(redis, patterns)
-        keys = patterns.flat_map { |pattern| redis.scan_each(match: pattern).to_a }.uniq
-        keys.any? ? redis.del(*keys) : 0
       end
     end
   end
@@ -309,24 +241,10 @@ namespace :coverband do
   desc "delete Coverband data left behind by pre 7.0 storage formats (Redis only)"
   task :clear_legacy do
     Coverband::Utils::Tasks.load_environment!
-    redis = Coverband::Utils::Tasks.redis_for_cleanup
-    next unless redis
+    cleanup = Coverband::Utils::Tasks.cleanup_for_store
+    next unless cleanup
 
-    namespaces = [Coverband.configuration.redis_namespace, nil].uniq
-    trackers = %w[ViewTracker RouteTracker TranslationTracker QueryBurstTracker]
-
-    legacy_formats = Coverband::Utils::Tasks.legacy_formats
-
-    patterns = legacy_formats.map { |format| "#{format}*" }
-    namespaces.each do |namespace|
-      trackers.each do |tracker|
-        prefix = namespace ? "#{namespace}_#{tracker}" : tracker
-        patterns << "#{prefix}_tracker"
-        patterns << "#{prefix}_tracker_time"
-      end
-    end
-
-    puts "removed #{Coverband::Utils::Tasks.delete_matching(redis, patterns)} legacy Coverband keys"
+    puts "removed #{cleanup.clear_legacy!} legacy Coverband keys"
   end
 
   ###
@@ -340,16 +258,10 @@ namespace :coverband do
   desc "delete Coverband generation keys no longer referenced by any pointer (Redis only)"
   task :clear_orphans do
     Coverband::Utils::Tasks.load_environment!
-    redis = Coverband::Utils::Tasks.redis_for_cleanup
-    next unless redis
+    cleanup = Coverband::Utils::Tasks.cleanup_for_store
+    next unless cleanup
 
-    formats = [
-      Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION,
-      Coverband::Adapters::HashRedisStore::REDIS_STORAGE_FORMAT_VERSION
-    ].uniq
-
-    removed = formats.sum { |format| Coverband::Utils::Tasks.remove_orphans(redis, format) }
-    puts "removed #{removed} orphaned Coverband generation keys"
+    puts "removed #{cleanup.clear_orphans!} orphaned Coverband generation keys"
   end
 
   ###

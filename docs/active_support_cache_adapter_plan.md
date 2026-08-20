@@ -594,7 +594,9 @@ land in Phase 0.
 `StdoutStore`, and `WebServiceStore`, none of which have meaningful round-trip, `size`, or
 `file_count` semantics. The core test contract is scoped to it.
 
-`raw_store` is **kept unchanged** — public API — but nothing inside Coverband calls it.
+This plan originally kept `raw_store` unchanged, but the 7.0 cleanup follow-up
+removed it. Redis-backed adapters now expose only the narrow `cleanup`
+capability used by `coverband:clear_legacy` and `coverband:clear_orphans`.
 
 ### Tracker repository interface
 

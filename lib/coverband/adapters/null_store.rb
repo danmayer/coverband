@@ -29,10 +29,6 @@ module Coverband
       def save_report(report)
         # NOOP
       end
-
-      def raw_store
-        raise NotImplementedError, "NullStore doesn't support raw_store"
-      end
     end
   end
 end

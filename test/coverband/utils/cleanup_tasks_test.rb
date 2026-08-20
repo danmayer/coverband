@@ -15,6 +15,10 @@ class CleanupTasksTest < Minitest::Test
   def setup
     super
     @redis = Coverband::Test.redis
+    Coverband.configuration.store = Coverband::Adapters::RedisStore.new(
+      @redis,
+      redis_namespace: "coverband_test"
+    )
     Rake::Task.tasks.each(&:reenable)
   end
 
@@ -30,7 +34,7 @@ class CleanupTasksTest < Minitest::Test
 
     # treat every candidate as old enough; the pointer check is what protects
     # the live generation, not its age
-    Coverband::Utils::Tasks.stubs(:recently_written?).returns(false)
+    Coverband::Adapters::RedisCleanup.any_instance.stubs(:recently_written?).returns(false)
 
     Rake::Task["coverband:clear_orphans"].invoke
 
@@ -44,13 +48,18 @@ class CleanupTasksTest < Minitest::Test
   # generation that became authoritative in the meantime is spared.
   ###
   def test_clear_orphans_spares_a_generation_that_just_became_live
-    store = Coverband.configuration.store
-    mock_file_hash
-    store.save_report(basic_coverage)
-    store.clear!
-    store.save_report(basic_coverage)
-
-    new_live = store.send(:session_for, Coverband::RUNTIME_TYPE).send(:data_key)
+    format = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
+    base = "#{format}.coverage.runtime"
+    token = "becamelive"
+    new_live = "#{base}.g#{token}"
+    @redis.set(new_live, "{}")
+    scan = Enumerator.new do |keys|
+      keys << new_live
+      # Simulate a reset publishing this generation after SCAN found it but
+      # before cleanup performs its authoritative pointer check.
+      @redis.set("#{base}.pointer", {token: token}.to_json)
+    end
+    @redis.stubs(:scan_each).returns(scan, [])
 
     Rake::Task["coverband:clear_orphans"].invoke
 
@@ -89,7 +98,6 @@ class CleanupTasksTest < Minitest::Test
       assert @redis.exists?("#{format}.live_key_#{i}"),
         "#{format} is still written by an adapter and must never be treated as legacy"
     end
-    assert_empty(Coverband::Utils::Tasks.legacy_formats & current)
   end
 
   ###
@@ -98,12 +106,59 @@ class CleanupTasksTest < Minitest::Test
   def test_clear_legacy_leaves_unrelated_application_keys_alone
     @redis.set("my_app_tracker", "important")
     @redis.set("coverband_3_2.runtime", "{}")
+    @redis.set("coverband_test_ViewTracker_tracker", "old")
 
     Rake::Task["coverband:clear_legacy"].invoke
 
     assert_equal "important", @redis.get("my_app_tracker"),
       "cleanup must be scoped to Coverband's own keys"
     refute @redis.exists?("coverband_3_2.runtime")
+    refute @redis.exists?("coverband_test_ViewTracker_tracker")
+  end
+
+  def test_hash_redis_store_exposes_the_same_legacy_cleanup
+    Coverband.configuration.store = Coverband::Adapters::HashRedisStore.new(
+      @redis,
+      redis_namespace: "coverband_test"
+    )
+    @redis.set("coverband_3_2.runtime", "{}")
+
+    Rake::Task["coverband:clear_legacy"].invoke
+
+    refute @redis.exists?("coverband_3_2.runtime")
+  end
+
+  def test_hash_redis_store_exposes_the_same_orphan_cleanup
+    Coverband.configuration.store = Coverband::Adapters::HashRedisStore.new(
+      @redis,
+      redis_namespace: "coverband_test"
+    )
+    orphan = "#{Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION}.coverage.runtime.gorphan"
+    @redis.set(orphan, "{}")
+    Coverband::Adapters::RedisCleanup.any_instance.stubs(:recently_written?).returns(false)
+
+    Rake::Task["coverband:clear_orphans"].invoke
+
+    refute @redis.exists?(orphan)
+  end
+
+  def test_clear_orphans_retains_a_generation_when_redis_cannot_report_its_age
+    format = Coverband::Adapters::RedisStore::REDIS_STORAGE_FORMAT_VERSION
+    uncertain = "#{format}.coverage.runtime.guncertain"
+    @redis.set(uncertain, "{}")
+    @redis.stubs(:object).raises(Redis::CommandError)
+
+    Rake::Task["coverband:clear_orphans"].invoke
+
+    assert @redis.exists?(uncertain)
+  end
+
+  def test_cleanup_reports_an_unsupported_adapter_without_exception_probing
+    Coverband.configuration.store = Coverband::Adapters::NullStore.new
+
+    output, = capture_io { Rake::Task["coverband:clear_orphans"].invoke }
+
+    assert_includes output, "cannot run against Coverband::Adapters::NullStore"
   end
 
   ###
@@ -116,7 +171,7 @@ class CleanupTasksTest < Minitest::Test
     tasks = source.scan(/^  task :?(\w+)(?:,|\s|=)[^\n]*do\n(.*?)\n  end\n/m)
 
     store_touching = tasks.select do |_name, body|
-      body.include?("configuration.store") || body.include?("redis_for_cleanup") ||
+      body.include?("configuration.store") || body.include?("cleanup_for_store") ||
         body.include?("Reporters::")
     end
     refute_empty store_touching
