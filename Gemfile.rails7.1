@@ -9,5 +9,9 @@ gem "haml"
 gem "slim"
 gem "webrick"
 
+# ActiveSupport's MemCacheStore passes positional options to ConnectionPool,
+# which connection_pool 3.x turned into keyword arguments.
+gem "connection_pool", "~> 2.5"
+
 # Required for Ruby 3.4+ (extracted from stdlib)
 gem "cgi"
