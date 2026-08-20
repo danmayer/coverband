@@ -85,7 +85,8 @@ module Coverband
 
         data = {
           **coverage_totals(source_files),
-          files: coverage_files(result, source_files)
+          files: coverage_files(result, source_files),
+          storage_health: Coverband.storage_health(coverage: store)
         }
 
         if as_report

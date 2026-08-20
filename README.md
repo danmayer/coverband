@@ -653,6 +653,28 @@ The MCP server provides the following tools:
 | `get_view_tracker_data` | Get view/template usage data |
 | `get_route_tracker_data` | Get route usage statistics |
 | `get_translation_tracker_data` | Get translation key usage data |
+| `get_storage_health` | Get observed coverage and tracker storage protocol state |
+
+#### Storage health
+
+`Coverband.storage_health` returns normalized diagnostics for coverage and every initialized
+tracker. The normal JSON report also includes this value as its top-level `storage_health`
+field, and MCP exposes the same representation through `get_storage_health`:
+
+```ruby
+Coverband.storage_health
+# => {
+#   coverage: {status: "ok", data_loss: nil, unwritten: nil},
+#   trackers: {view_tracker: {status: "stalled", data_loss: nil,
+#     unwritten: {deltas: 3, since: "2026-08-19T12:01:00Z"}}}
+# }
+```
+
+Statuses are `ok`, `stalled`, `data_loss`, or `unsupported`; `data_loss` takes precedence
+when both loss and unwritten work are present. These diagnostics describe state Coverband's
+storage protocol has already observed. They are not an active backend availability or
+connectivity probe. SimpleCov-compatible JSON generated with `for_merged_report` does not
+include this metadata.
 
 #### Running the MCP Server
 

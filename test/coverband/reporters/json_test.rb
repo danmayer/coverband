@@ -21,6 +21,29 @@ class ReportJSONTest < Minitest::Test
     parsed = JSON.parse(json)
     expected_keys = ["total_files", "lines_of_code", "lines_covered", "lines_missed", "covered_strength", "covered_percent"]
     assert expected_keys - parsed.keys == []
+    assert_equal "ok", parsed.dig("storage_health", "coverage", "status")
+  end
+
+  test "does not add storage health to merged report JSON" do
+    @store.send(:save_report, basic_coverage)
+
+    parsed = JSON.parse(Coverband::Reporters::JSONReport.new(@store, for_merged_report: true).report)
+
+    refute_includes parsed, "storage_health"
+    assert_includes parsed, Coverband::RUNTIME_TYPE.to_s
+  end
+
+  test "storage health describes the report's store" do
+    @store.send(:save_report, basic_coverage)
+    configured_store = @store
+    report_store = Object.new
+    report_store.define_singleton_method(:get_coverage_report) do |options|
+      configured_store.get_coverage_report(options)
+    end
+
+    parsed = JSON.parse(Coverband::Reporters::JSONReport.new(report_store).report)
+
+    assert_equal "unsupported", parsed.dig("storage_health", "coverage", "status")
   end
 
   test "honors ignore list" do

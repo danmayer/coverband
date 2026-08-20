@@ -40,7 +40,8 @@ if defined?(Coverband::MCP)
         "get_dead_methods",
         "get_view_tracker_data",
         "get_route_tracker_data",
-        "get_translation_tracker_data"
+        "get_translation_tracker_data",
+        "get_storage_health"
       ]
 
       expected_tools.each do |tool_name|
