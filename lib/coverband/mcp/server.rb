@@ -7,6 +7,7 @@ require_relative "tools/get_dead_methods"
 require_relative "tools/get_view_tracker_data"
 require_relative "tools/get_route_tracker_data"
 require_relative "tools/get_translation_tracker_data"
+require_relative "tools/get_storage_health"
 
 module Coverband
   module MCP
@@ -66,6 +67,7 @@ module Coverband
             - get_view_tracker_data
             - get_route_tracker_data
             - get_translation_tracker_data
+            - get_storage_health
 
           For Claude Desktop, configure with:
             {
@@ -108,7 +110,8 @@ module Coverband
           Tools::GetDeadMethods,
           Tools::GetViewTrackerData,
           Tools::GetRouteTrackerData,
-          Tools::GetTranslationTrackerData
+          Tools::GetTranslationTrackerData,
+          Tools::GetStorageHealth
         ]
       end
     end

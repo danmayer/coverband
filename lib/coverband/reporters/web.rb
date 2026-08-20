@@ -114,8 +114,7 @@ module Coverband
       def index
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        notice += data_loss_notice(Coverband.configuration.store, subject: "coverage")
-        notice += unwritten_notice(Coverband.configuration.store, subject: "coverage")
+        notice += storage_notices(Coverband.configuration.store, subject: "coverage")
         page = (request.params["page"] || 1).to_i
         options = {
           static: false,
@@ -155,8 +154,7 @@ module Coverband
       def display_abstract_tracker(tracker)
         notice = "<strong>Notice:</strong> #{Rack::Utils.escape_html(request.params["notice"])}<br/>"
         notice = request.params["notice"] ? notice : ""
-        notice += data_loss_notice(tracker, subject: "tracker")
-        notice += unwritten_notice(tracker, subject: "tracker")
+        notice += storage_notices(tracker, subject: "tracker")
         used_keys_sort = tracker_used_keys_sort_mode(tracker)
         options = {
           tracker: tracker,
@@ -228,36 +226,37 @@ module Coverband
       # loss -- when the failure is that nothing can be stored, what this process
       # is holding is the only evidence there is.
       ###
-      def unwritten_notice(source, subject:)
-        return "" unless source.respond_to?(:unwritten)
+      def storage_notices(source, subject:)
+        health = Coverband::StorageHealth.for_source(source)
+        data_loss_notice(health, subject: subject) + unwritten_notice(health, subject: subject)
+      end
 
-        held = source.unwritten
+      def unwritten_notice(health, subject:)
+        held = health[:unwritten]
         return "" unless held
 
-        "<strong>Notice:</strong> #{held.deltas} #{subject} #{(held.deltas == 1) ? "report" : "reports"} " \
-          "could not be stored, the oldest since #{held.since.iso8601}. What is shown is missing them, " \
+        deltas = held[:deltas]
+        "<strong>Notice:</strong> #{deltas} #{subject} #{(deltas == 1) ? "report" : "reports"} " \
+          "could not be stored, the oldest since #{held[:since]}. What is shown is missing them, " \
           "and the log says why each write was refused.<br/>"
       end
 
-      def data_loss_notice(source, subject:)
-        # stores and trackers registered by an app or gem need not implement this
-        return "" unless source.respond_to?(:data_loss)
-
-        loss = source.data_loss
+      def data_loss_notice(health, subject:)
+        loss = health[:data_loss]
         return "" unless loss
 
-        detail = Rack::Utils.escape_html(loss.detail.to_s)
-        kind = Rack::Utils.escape_html(loss.kind.to_s)
-        lead, consequence = data_loss_wording(loss, subject)
-        "<strong>Notice:</strong> #{lead} at #{loss.at.iso8601} " \
+        detail = Rack::Utils.escape_html(loss[:detail].to_s)
+        kind = Rack::Utils.escape_html(loss[:kind])
+        lead, consequence = data_loss_wording(kind, subject)
+        "<strong>Notice:</strong> #{lead} at #{loss[:at]} " \
           "(#{kind}): #{detail}. #{consequence}<br/>"
       end
 
       # a forfeited retry is not lost data -- that work is in the document unless
       # another writer clobbered the write it went out in -- so it must not read
       # like a real eviction
-      def data_loss_wording(loss, subject)
-        if loss.kind.to_s == "unconfirmed_dropped"
+      def data_loss_wording(kind, subject)
+        if kind == "unconfirmed_dropped"
           ["some #{subject} data may be undercounted",
             "Affected only if another process overwrote that write."]
         else

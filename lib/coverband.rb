@@ -15,6 +15,7 @@ require "coverband/storage/generation"
 require "coverband/storage/generation_lifecycle"
 require "coverband/storage/writer"
 require "coverband/storage/session"
+require "coverband/storage_health"
 require "coverband/adapters/base"
 require "coverband/adapters/session_coverage"
 require "coverband/adapters/tracker_storage/base"
@@ -124,6 +125,12 @@ module Coverband
   def self.report_coverage
     prefetch_report_pointers!
     coverage_instance.report_coverage
+  end
+
+  # Returns normalized diagnostics for coverage and every initialized tracker.
+  # This is Coverband's observed protocol state, not an active backend probe.
+  def self.storage_health(coverage: configuration.store)
+    StorageHealth.report(coverage: coverage)
   end
 
   def self.configuration

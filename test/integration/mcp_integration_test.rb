@@ -72,7 +72,8 @@ if defined?(Coverband::MCP)
         Coverband::MCP::Tools::GetDeadMethods,
         Coverband::MCP::Tools::GetViewTrackerData,
         Coverband::MCP::Tools::GetRouteTrackerData,
-        Coverband::MCP::Tools::GetTranslationTrackerData
+        Coverband::MCP::Tools::GetTranslationTrackerData,
+        Coverband::MCP::Tools::GetStorageHealth
       ].each do |tool_class|
         assert_respond_to tool_class, :call
         assert_respond_to tool_class, :title
@@ -136,7 +137,8 @@ if defined?(Coverband::MCP)
         [Coverband::MCP::Tools::GetDeadMethods, {}],
         [Coverband::MCP::Tools::GetViewTrackerData, {}],
         [Coverband::MCP::Tools::GetRouteTrackerData, {}],
-        [Coverband::MCP::Tools::GetTranslationTrackerData, {}]
+        [Coverband::MCP::Tools::GetTranslationTrackerData, {}],
+        [Coverband::MCP::Tools::GetStorageHealth, {}]
       ]
 
       tools.each do |tool_class, params|
