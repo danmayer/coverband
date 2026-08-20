@@ -104,7 +104,8 @@ if ENV["COVERBAND_SOLID_CACHE"]
         # and the batch primes them, so no session reads its pointer again
         fresh.prefetch_pointers!
         sessions.each do |session|
-          refute_nil session.instance_variable_get(:@primed_pointer), "#{session.pointer_key} should be primed"
+          coordinator = session.instance_variable_get(:@generation_coordinator)
+          refute_nil coordinator.instance_variable_get(:@primed_pointer), "#{session.pointer_key} should be primed"
         end
       end
 

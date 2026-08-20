@@ -186,10 +186,12 @@ module Coverband
       # backend lost data this process can partly reconstruct, so the keys it
       # already knows are queued to be reported once more rather than forgotten.
       ###
-      def drop_local_state!(reason = :reset)
-        if reason == :eviction
+      def drop_local_state!(change)
+        case change.cause
+        when Storage::GenerationChange::POINTER_EVICTION,
+          Storage::GenerationChange::DOCUMENT_EVICTION
           @logged_keys.each { |key| @keys_to_record << key if track_key?(key) }
-        else
+        when Storage::GenerationChange::OPERATOR_RESET
           @logged_keys.clear
           @keys_to_record.clear
         end
@@ -249,7 +251,7 @@ module Coverband
           merger: merger,
           idempotent: self.class.idempotent_merge?,
           logger: logger,
-          on_generation_change: ->(reason) { drop_local_state!(reason) }
+          on_generation_change: ->(change) { drop_local_state!(change) }
         )
       end
 

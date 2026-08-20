@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "base"
-require_relative "../../storage/generation"
-require_relative "../../storage/generation_lifecycle"
+require_relative "../../storage/generation_coordinator"
 require_relative "../../storage/read_fallback"
 
 module Coverband
@@ -18,18 +17,20 @@ module Coverband
       # queued before it, which is why single key clears are best effort.
       ###
       class RedisHashRepository < Base
-        include Storage::GenerationLifecycle
         include Storage::ReadFallback
 
         STARTED_AT_FIELD = "__coverband_started_at__"
 
         def initialize(target:, key_base:, logger: nil, grace_seconds: 1200, on_generation_change: nil)
           @target = target
-          @key_base = key_base
           @logger = logger
           @on_generation_change = on_generation_change
-          @generation = Storage::Generation.new(target, "#{key_base}.pointer", grace_seconds: grace_seconds)
-          @token = nil
+          @generation_coordinator = Storage::GenerationCoordinator.new(
+            target: target,
+            key_base: key_base,
+            grace_seconds: grace_seconds,
+            on_change: ->(change) { handle_generation_change(change) }
+          )
         end
 
         def pointer_session
@@ -38,7 +39,19 @@ module Coverband
 
         # no pending deltas here, but a primed pointer is still cycle state
         def discard_pending!
-          clear_primed_pointer!
+          @generation_coordinator.discard_primed_pointer!
+        end
+
+        def pointer_key
+          @generation_coordinator.pointer_key
+        end
+
+        def prime_pointer(pointer)
+          @generation_coordinator.prime_pointer(pointer)
+        end
+
+        def generation
+          safely { @generation_coordinator.token }
         end
 
         def entries
@@ -74,15 +87,7 @@ module Coverband
         end
 
         def reset
-          operation do
-            token = @generation.reset!(current_token: @token)
-            next false unless token
-
-            @token = token
-            @started_at_set = false
-            @on_generation_change&.call(:reset)
-            true
-          end
+          @generation_coordinator.reset
         end
 
         def tracking_since
@@ -100,9 +105,21 @@ module Coverband
           @started_at_set ||= !@target.hgetall(data_key)[STARTED_AT_FIELD].nil?
         end
 
-        def on_generation_changed(result)
+        def handle_generation_change(change)
+          return unless [Storage::GenerationChange::OPERATOR_RESET,
+            Storage::GenerationChange::POINTER_EVICTION,
+            Storage::GenerationChange::INITIALIZATION_RACE].include?(change.cause)
+
           @started_at_set = false
-          @on_generation_change&.call(result.pointer_missing ? :eviction : :reset)
+          @on_generation_change&.call(change)
+        end
+
+        def operation(&block)
+          @generation_coordinator.operation(&block)
+        end
+
+        def data_key
+          @generation_coordinator.data_key
         end
       end
     end

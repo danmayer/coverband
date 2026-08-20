@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "document"
-require_relative "generation"
 require_relative "writer"
-require_relative "generation_lifecycle"
+require_relative "generation_coordinator"
 require_relative "read_fallback"
 
 module Coverband
@@ -18,7 +17,6 @@ module Coverband
     # count.
     ###
     class Session
-      include GenerationLifecycle
       include ReadFallback
 
       # every pointer a reporting cycle needs, in one round trip instead of one
@@ -90,15 +88,26 @@ module Coverband
         @on_generation_change = on_generation_change
         @retain_on_failure = retain_on_failure
         @writer = Writer.new(max_entries: max_entries, max_bytes: max_bytes, max_age: max_age)
-        @generation = Generation.new(target, "#{key_base}.pointer", grace_seconds: grace_seconds)
-        @token = nil
-        @initialized_token = false
+        @generation_coordinator = GenerationCoordinator.new(
+          target: target,
+          key_base: key_base,
+          grace_seconds: grace_seconds,
+          on_change: ->(change) { handle_generation_change(change) }
+        )
         @data_loss = nil
         @last_write_at = nil
       end
 
       def generation_token
-        safely { generation }
+        safely { @generation_coordinator.token }
+      end
+
+      def pointer_key
+        @generation_coordinator.pointer_key
+      end
+
+      def prime_pointer(pointer)
+        @generation_coordinator.prime_pointer(pointer)
       end
 
       def entries
@@ -187,15 +196,7 @@ module Coverband
       # isn't durable is a failure, never a silent partial reset.
       ###
       def reset
-        operation do
-          token = @generation.reset!(current_token: @token)
-          next false unless token
-
-          @token = token
-          @initialized_token = false
-          drop_local_state!
-          true
-        end
+        @generation_coordinator.reset
       rescue Target::Unavailable => error
         log_unavailable(error)
         false
@@ -278,7 +279,7 @@ module Coverband
       ###
       def discard_pending!
         @writer.clear_pending!
-        clear_primed_pointer!
+        @generation_coordinator.discard_primed_pointer!
       end
 
       ###
@@ -368,7 +369,7 @@ module Coverband
           @seen_document = false
           # trackers dedupe locally and forever, so the keys they could still
           # re-report would stay unreported after an eviction
-          @on_generation_change&.call(:eviction)
+          @generation_coordinator.document_evicted!
         end
 
         @seen_document = true unless raw.nil?
@@ -440,57 +441,30 @@ module Coverband
       end
 
       ###
-      # Two reasons the token can change, wanting opposite handling: a reset means
-      # drop everything, a lost initialization race means our deltas went
-      # somewhere that can never be authoritative, so carrying them cannot double
-      # count. Telling them apart takes evidence, not a flag -- a reset names the
-      # token it retired, and atomic create rules a race out entirely. Anything
-      # unproven is treated as a reset, the safer mistake.
+      # The coordinator classifies pointer transitions. This consumer owns only
+      # the session consequences: drop incompatible work for a reset, report an
+      # orphan for pointer eviction, and carry safe initialization-race work into
+      # the authoritative generation.
       ###
-      def on_generation_changed(result)
-        # the pointer vanished while we were using it, so whatever it addressed
-        # may still be in the backend, unreachable: that is loss worth reporting
-        if result.pointer_missing
-          record_loss(:orphaned_generation, "pointer for #{@key_base} disappeared, generation #{@token} is orphaned")
-          @token = result.token
-          drop_local_state!(:eviction)
-          return
-        end
-
-        if lost_initialization_race?(result.pointer)
+      def handle_generation_change(change)
+        case change.cause
+        when GenerationChange::POINTER_EVICTION
+          record_loss(:orphaned_generation,
+            "pointer for #{@key_base} disappeared, generation #{change.previous_token} is orphaned")
+          drop_local_state!(change)
+        when GenerationChange::OPERATOR_RESET
+          drop_local_state!(change)
+        when GenerationChange::INITIALIZATION_RACE
           log("lost a pointer initialization race for #{@key_base}, carrying #{@writer.pending_size} deltas forward")
-        else
-          drop_local_state!
+          @seen_document = false
+          @observed_tombstone_epoch = nil
+          @on_generation_change&.call(change)
+        when GenerationChange::DOCUMENT_EVICTION
+          @on_generation_change&.call(change)
         end
-
-        @initialized_token = false
-        @seen_document = false
-        @observed_tombstone_epoch = nil
       end
 
-      def on_generation_initialized(result)
-        @initialized_token = result.initialized
-      end
-
-      # reading our own token back settles the initialization race, so a later
-      # change is a reset rather than a lost race
-      def on_generation_confirmed(_result)
-        @initialized_token = false
-      end
-
-      def lost_initialization_race?(pointer)
-        return false unless @initialized_token
-        return false if atomic_create_target?
-        return false if @generation.retires?(pointer, @token)
-
-        true
-      end
-
-      def atomic_create_target?
-        @target.respond_to?(:atomic_create?) && @target.atomic_create?
-      end
-
-      def drop_local_state!(reason = :reset)
+      def drop_local_state!(change)
         @writer.rotate_identity!
         @written_through = nil
         @observed_tombstone_epoch = nil
@@ -499,7 +473,15 @@ module Coverband
         # would ignore the new generation's first deletes
         @tombstones_seen = nil
         @tombstone_notifications = []
-        @on_generation_change&.call(reason)
+        @on_generation_change&.call(change)
+      end
+
+      def operation(&block)
+        @generation_coordinator.operation(&block)
+      end
+
+      def data_key
+        @generation_coordinator.data_key
       end
 
       ###
