@@ -38,6 +38,8 @@ class RailsCacheFullStackTest < Minitest::Test
     visit "/dummy/show"
     assert_content("I am no dummy")
     Coverband.report_coverage
+    # A quiet follow-up confirms any unconfirmed merge from the request cycle.
+    Coverband.report_coverage
 
     dummy_controller = "./app/controllers/dummy_controller.rb"
     assert store.coverage.key?(dummy_controller)
