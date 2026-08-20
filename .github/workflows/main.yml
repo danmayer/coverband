@@ -25,9 +25,11 @@ jobs:
         redis-version: [4, 5, 6, 7]
         exclude:
           # Rails 8 requires ruby 3.2+.
-          - gemfile: 'rails_8.0'
+          - gemfile: 'Gemfile.rails8.0'
             ruby: '3.1'
     runs-on: ${{ matrix.os }}-latest
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:
       redis:
         image: redis:${{ matrix.redis-version }}

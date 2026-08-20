@@ -22,7 +22,8 @@ def rails_setup
   ENV["RAILS_ENV"] = "test"
   require "rails"
   # coverband must be required after rails
-  Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/coverband.rb")
+  coverband_config = ENV["COVERBAND_RAILS_CACHE"] ? "coverband_rails_cache.rb" : "coverband.rb"
+  Coverband.configure("./test/rails#{Rails::VERSION::MAJOR}_dummy/config/#{coverband_config}")
   load "coverband/utils/railtie.rb"
 
   require_relative "../test/rails#{Rails::VERSION::MAJOR}_dummy/config/environment"

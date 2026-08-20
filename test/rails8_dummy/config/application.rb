@@ -11,5 +11,6 @@ module Rails6Dummy
   class Application < Rails::Application
     config.eager_load = true
     config.consider_all_requests_local = true
+    config.cache_store = :memory_store if ENV["COVERBAND_RAILS_CACHE"]
   end
 end
