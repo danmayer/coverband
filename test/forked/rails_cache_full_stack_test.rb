@@ -18,6 +18,7 @@ class RailsCacheFullStackTest < Minitest::Test
     # temporary worktree; /tmp is ignored by default for deploy-time builds.
     Coverband.configuration.ignore.delete_if { |pattern| pattern.source == "/tmp" }
     Coverband::Collectors::Coverage.instance.reset_instance
+    Coverband.report_coverage
   end
 
   def teardown
