@@ -9,6 +9,8 @@ Coverband.configure do |config|
   config.root_paths = []
   config.logger = Rails.logger
   config.verbose = true
-  config.background_reporting_enabled = true
+  # The test triggers reporting explicitly, so no boot-time thread races the
+  # assignment of Rails.cache or introduces timing into the assertions.
+  config.background_reporting_enabled = false
   config.track_routes = true
 end
