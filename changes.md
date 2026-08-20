@@ -25,6 +25,7 @@
 
 **Features**
 
+* Replaced the generation lifecycle mixin and its implicit instance-variable/hook contract with a state-owning coordinator and typed generation-change events (#656)
 * Added structured storage health through `Coverband.storage_health`, normal JSON reports, and the MCP `get_storage_health` tool, so monitoring can distinguish healthy, stalled, data-loss, and unsupported diagnostic states (#658)
 * Added `Coverband::Adapters::ActiveSupportCacheStore`, which stores coverage in any `ActiveSupport::Cache::Store` — Redis, Memcached, files, or Solid Cache for Postgres/MySQL/SQLite. The cache target can be passed lazily (`ActiveSupportCacheStore.new { Rails.cache }`) so it works from `config/coverband.rb`, where `Rails.cache` does not exist yet (#533)
 * Trackers (views, routes, translations, query bursts) now work on non-Redis stores. They previously reached through the store to raw Redis commands, so file and memcached users got trackers that silently collected nothing and empty web UI tabs

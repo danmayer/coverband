@@ -290,15 +290,17 @@ module ProtocolConformance
   # generation change.
   ###
   def test_pointer_eviction_is_reported_as_an_orphaned_generation
-    reasons = []
-    session = build_session(on_generation_change: ->(reason) { reasons << reason })
+    changes = []
+    session = build_session(on_generation_change: ->(change) { changes << change })
     session.record({"a" => 1})
 
     target.delete(session.pointer_key)
     session.entries
 
     assert_equal :orphaned_generation, session.data_loss.kind
-    assert_equal [:eviction], reasons
+    assert_equal [:pointer_eviction], changes.map(&:cause)
+    assert_equal changes.first.authoritative_token, session.generation_token
+    refute_equal changes.first.previous_token, changes.first.authoritative_token
   end
 
   def test_stored_size_resolves_the_generation_first
@@ -348,11 +350,12 @@ module ProtocolConformance
 
     # the idle session is handed the pointer, then never reports this cycle
     Coverband::Storage::Session.prefetch_pointers(target, [writer, idle])
-    assert idle.instance_variable_get(:@primed_pointer), "the batch should have primed it"
+    coordinator = idle.instance_variable_get(:@generation_coordinator)
+    assert coordinator.instance_variable_get(:@primed_pointer), "the batch should have primed it"
 
     # meanwhile another process resets, and the primed value ages out
     assert writer.reset
-    idle.instance_variable_set(:@primed_at, Time.now.to_i - 3600)
+    coordinator.instance_variable_set(:@primed_at, Time.now.to_i - 3600)
 
     idle.record({"b" => 2})
     assert_equal 2, writer.entries["b"].to_i,
@@ -370,12 +373,13 @@ module ProtocolConformance
     a.enqueue({"a" => 1})
     Coverband::Storage::Session.prefetch_pointers(target, [a, b])
     assert a.pending_size > 0
-    refute_nil a.instance_variable_get(:@primed_pointer)
+    coordinator = a.instance_variable_get(:@generation_coordinator)
+    refute_nil coordinator.instance_variable_get(:@primed_pointer)
 
     a.discard_pending!
 
     assert_equal 0, a.pending_size
-    assert_nil a.instance_variable_get(:@primed_pointer), "a primed pointer is cycle state too"
+    assert_nil coordinator.instance_variable_get(:@primed_pointer), "a primed pointer is cycle state too"
   end
 
   def test_pending_dropped_by_age_records_data_loss
@@ -472,15 +476,15 @@ module ProtocolConformance
   # dedupe, the keys they could still re-report stay unreported.
   ###
   def test_eviction_invalidates_local_dedupe
-    reasons = []
-    session = build_session(on_generation_change: ->(reason) { reasons << reason })
+    changes = []
+    session = build_session(on_generation_change: ->(change) { changes << change })
     session.record({"a" => 1})
 
     target.delete(session.send(:data_key))
     session.entries
 
     assert_equal :eviction, session.data_loss.kind
-    assert_equal [:eviction], reasons,
+    assert_equal [:document_eviction], changes.map(&:cause),
       "the tracker has to be told this was an eviction, not an operator reset"
   end
 
@@ -675,16 +679,12 @@ module ProtocolConformance
   def test_a_lost_initialization_race_carries_work_forward
     session = build_session(key_base: "conformance.race")
     session.enqueue({"a" => 1})
-    session.send(:operation) {}
-    session.instance_variable_set(:@initialized_token, true)
+    coordinator = session.instance_variable_get(:@generation_coordinator)
+    coordinator.instance_variable_set(:@initialized_token, true)
 
     # another process won the race, and its pointer names a token we never held
-    generation = session.instance_variable_get(:@generation)
-    result = Coverband::Storage::Generation::Result.new(
-      token: "winner", initialized: false, pointer: {"token" => "winner", "retire" => []},
-      pointer_missing: false
-    )
-    session.send(:on_generation_changed, result)
+    target.write(session.pointer_key, {"token" => "winner", "retire" => []}.to_json)
+    session.entries
 
     if target.respond_to?(:atomic_create?) && target.atomic_create?
       # a backend that creates atomically cannot produce a race, so an
@@ -697,7 +697,7 @@ module ProtocolConformance
         "work bound for a generation that lost a race is still unreported work"
     end
   ensure
-    generation&.reset!
+    target.delete(session.pointer_key)
   end
 end
 
