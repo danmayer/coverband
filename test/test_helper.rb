@@ -72,7 +72,11 @@ module Coverband
 
     def setup
       super
-      Coverband::Test.reset
+      Coverband::Test.reset unless skip_coverband_test_reset?
+    end
+
+    def skip_coverband_test_reset?
+      false
     end
   end
 end
