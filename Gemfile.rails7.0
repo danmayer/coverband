@@ -13,5 +13,8 @@ gem "webrick"
 # which connection_pool 3.x turned into keyword arguments.
 gem "connection_pool", "~> 2.5"
 
+# Rack 2 requires ostruct, which Ruby 4 no longer ships as a default gem.
+gem "ostruct"
+
 # Required for Ruby 3.4+ (extracted from stdlib)
 gem "cgi"

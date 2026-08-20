@@ -12,6 +12,10 @@ class RailsCacheFullStackTest < Minitest::Test
 
   def setup
     super
+    # This test intentionally skips Coverband::Test.reset because that helper
+    # initializes Redis. Clear configuration state directly so memoized root
+    # paths inherited by the fork cannot leak into this dummy application.
+    Coverband.configuration.reset
     ENV["COVERBAND_RAILS_CACHE"] = "true"
     rails_setup
     # Keep this assertion meaningful when contributors run the suite from a
