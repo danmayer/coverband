@@ -3,21 +3,26 @@
 require File.expand_path("../../test_helper", File.dirname(__FILE__))
 
 describe "results" do
-  describe "with a (mocked) Coverage.result" do
-    let(:source_file) { Coverband::Utils::SourceFile.new(source_fixture("app/models/user.rb"), run_lines) }
+  describe "with a stored Coverband report" do
+    let(:source_file) { Coverband::Utils::SourceFile.new(source_fixture("app/models/user.rb"), record(source_lines)) }
     let(:eager_lines) { [nil, 1, 1, 0, nil, nil, 1, 0, nil, nil] }
+    let(:source_lines) { [nil, nil, nil, 1, nil, nil, nil, nil, nil, nil] }
     let(:run_lines) { [nil, nil, nil, 1, nil, nil, nil, nil, nil, nil] }
     let(:missing_run_coverage_file) { false }
     let(:original_result) do
       orig = {
-        Coverband::MERGED_TYPE => {source_fixture("app/models/user.rb") => eager_lines}
+        Coverband::MERGED_TYPE => {source_fixture("app/models/user.rb") => record(eager_lines)}
       }
-      orig[Coverband::EAGER_TYPE] = {source_fixture("app/models/user.rb") => eager_lines} if eager_lines
-      orig[Coverband::RUNTIME_TYPE] = {source_fixture("app/models/user.rb") => run_lines} if run_lines
-      orig[Coverband::RUNTIME_TYPE] = {"random.rb" => [nil, 1, nil]} if missing_run_coverage_file
+      orig[Coverband::EAGER_TYPE] = {source_fixture("app/models/user.rb") => record(eager_lines)} if eager_lines
+      orig[Coverband::RUNTIME_TYPE] = {source_fixture("app/models/user.rb") => record(run_lines)} if run_lines
+      orig[Coverband::RUNTIME_TYPE] = {"random.rb" => record([nil, 1, nil])} if missing_run_coverage_file
       orig
     end
     subject { Coverband::Utils::Results.new(original_result) }
+
+    def record(lines)
+      {"data" => lines}
+    end
 
     describe "runtime relevant lines is supported" do
       it "has correct runtime relevant coverage" do
