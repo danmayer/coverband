@@ -37,12 +37,15 @@ class RailsCacheFullStackTest < Minitest::Test
 
     visit "/dummy/show"
     assert_content("I am no dummy")
-    Coverband.report_coverage
-    # A quiet follow-up confirms any unconfirmed merge from the request cycle.
-    Coverband.report_coverage
 
     dummy_controller = "./app/controllers/dummy_controller.rb"
-    assert store.coverage.key?(dummy_controller)
+    coverage = nil
+    5.times do
+      Coverband.report_coverage
+      coverage = store.coverage
+      break if coverage.key?(dummy_controller)
+    end
+    assert coverage.key?(dummy_controller), "stored coverage keys: #{coverage.keys.inspect}"
 
     route_tracker = Coverband.configuration.route_tracker
     assert_same store, route_tracker.store
@@ -53,7 +56,7 @@ class RailsCacheFullStackTest < Minitest::Test
     assert_selector("a", text: /dummy_controller.rb/)
 
     visit "/coverage/routes_tracker"
-    assert_content('controller: "dummy"')
-    assert_content('action: "show"')
+    assert_content(/controller(?::|=>)\s*"dummy"/)
+    assert_content(/action(?::|=>)\s*"show"/)
   end
 end
