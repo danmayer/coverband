@@ -1055,3 +1055,204 @@ td:has(> span.green) {
 #dcs-modal-foot button { margin-left: 8px; }
 .dcs-mono { font-family: monospace; }
 .dcs-comment-edit { width: 100%; box-sizing: border-box; }
+
+/* -----------------------------------------------------------------------
+
+  Dark theme
+
+  Follows the operating system via prefers-color-scheme; there is nothing
+  to configure and no toggle. Everything here either redefines a custom
+  property from the :root block at the top of this file, or neutralizes a
+  baked-in light background image that a color cannot override.
+
+  Coverage row colors are picked for contrast against the dark surface
+  rather than darkened mechanically, so covered / missed / never / skipped
+  stay as easy to tell apart as they are in the light theme.
+
+----------------------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Coverband report */
+    --cb-link: #d7dde3;
+    --cb-link-hover: #ffffff;
+    --cb-page-bg: #15181a;
+    --cb-heading: #e6edf3;
+    --cb-content-bg: #1b1f22;
+    --cb-content-border: #2b3136;
+    --cb-timestamp-text: #9aa4ae;
+    --cb-tab-bg: #1e2328;
+    --cb-tab-gradient-start: #2a3036;
+    --cb-tab-shadow: transparent;
+    --cb-tab-text: #adb8c2;
+    --cb-tab-border: #3a4249;
+    --cb-tab-hover-bg: #2d333b;
+    --cb-tab-hover-gradient-start: #343b42;
+    --cb-tab-active-text: #ffffff;
+    --cb-tab-active-shadow: transparent;
+    --cb-tab-active-bg: #1b1f22;
+    --cb-tab-active-gradient-start: #23282c;
+    --cb-red: #ff7b72;
+    --cb-source-text: #e6edf3;
+    --cb-source-bg: #0f1215;
+    --cb-source-gutter-text: #8b949e;
+    --cb-source-line-border: #30363d;
+    --cb-hits-bg: #21262d;
+    --cb-hits-gradient-start: #161b22;
+    --cb-hits-gradient-end: #30363d;
+    --cb-hits-text: #c9d1d9;
+    --cb-header-text: #c9d1d9;
+    --cb-header-link: #c9d1d9;
+    --cb-header-link-hover: #ffffff;
+    --cb-button-bg: #2e7d32;
+    --cb-button-text: #ffffff;
+    --cb-notice-text: #f0d68a;
+    --cb-notice-bg: #3a2f0b;
+    --cb-notice-border: #5c4a12;
+    --cb-footer-text: #8b949e;
+    --cb-footer-link: #adb8c2;
+    --cb-footer-link-hover: #ffffff;
+    --cb-green: #3fb950;
+    --cb-yellow: #d29922;
+    --cb-covered-border: #2ea043;
+    --cb-missed-border: #f85149;
+    --cb-never-border: #6e7681;
+    --cb-skipped-border: #d29922;
+    --cb-covered-bg-odd: #12261a;
+    --cb-covered-bg-even: #16301f;
+    --cb-missed-bg-odd: #3a1618;
+    --cb-missed-bg-even: #45191c;
+    --cb-never-bg-odd: #1a1d21;
+    --cb-never-bg-even: #1e2226;
+    --cb-skipped-bg-odd: #33290a;
+    --cb-skipped-bg-even: #3b300c;
+
+    /* Blueprint CSS framework */
+    --cb-bp-text: #c9d1d9;
+    --cb-bp-surface: #1b1f22;
+    --cb-bp-heading: #e6edf3;
+    --cb-bp-link-hover: #ffffff;
+    --cb-bp-link: #8ab4f8;
+    --cb-bp-muted: #8b949e;
+    --cb-bp-table-header-bg: #1f2a3a;
+    --cb-bp-table-stripe-bg: #20252a;
+    --cb-bp-caption-bg: #20252a;
+    --cb-bp-loud: #ffffff;
+    --cb-bp-highlight-bg: #6b5b00;
+    --cb-bp-added-bg: #1b4721;
+    --cb-bp-inverted-text: #ffffff;
+    --cb-bp-removed-bg: #6e1b1b;
+    --cb-bp-fieldset-border: #30363d;
+    --cb-bp-input-bg: #0d1117;
+    --cb-bp-input-border: #30363d;
+    --cb-bp-input-focus-border: #58a6ff;
+    --cb-bp-message-border: #30363d;
+    --cb-bp-error-bg: #3a1618;
+    --cb-bp-error-text: #ff7b72;
+    --cb-bp-error-border: #6e2326;
+    --cb-bp-notice-bg: #3a2f0b;
+    --cb-bp-notice-text: #f0d68a;
+    --cb-bp-notice-border: #5c4a12;
+    --cb-bp-success-bg: #12261a;
+    --cb-bp-success-text: #7ee787;
+    --cb-bp-success-border: #23502e;
+    --cb-bp-box-bg: #1f2a3a;
+    --cb-bp-rule: #30363d;
+
+    /* Syntax highlighting (highlight.js github theme) */
+    --cb-hl-comment: #8b949e;
+    --cb-hl-keyword: #ff7b72;
+    --cb-hl-number: #79c0ff;
+    --cb-hl-string: #a5d6ff;
+    --cb-hl-subst: #c9d1d9;
+    --cb-hl-title: #d2a8ff;
+    --cb-hl-class: #ffa657;
+    --cb-hl-tag: #7ee787;
+    --cb-hl-attribute: #79c0ff;
+    --cb-hl-regexp: #7ee787;
+    --cb-hl-symbol: #d2a8ff;
+    --cb-hl-builtin: #79c0ff;
+    --cb-hl-preprocessor: #8b949e;
+    --cb-hl-deletion-bg: #3a1618;
+    --cb-hl-addition-bg: #12261a;
+    --cb-hl-change-bg: #1f2f45;
+    --cb-hl-chunk: #8b949e;
+
+    /* jQuery UI widgets */
+    --cb-ui-content-border: #30363d;
+    --cb-ui-content-bg: #1b1f22;
+    --cb-ui-content-text: #c9d1d9;
+    --cb-ui-header-border: #30363d;
+    --cb-ui-header-bg: #21262d;
+    --cb-ui-header-text: #e6edf3;
+    --cb-ui-default-border: #30363d;
+    --cb-ui-default-bg: #21262d;
+    --cb-ui-default-text: #adb8c2;
+    --cb-ui-hover-border: #484f58;
+    --cb-ui-hover-bg: #2d333b;
+    --cb-ui-hover-text: #e6edf3;
+    --cb-ui-active-border: #58a6ff;
+    --cb-ui-active-bg: #0d1117;
+    --cb-ui-active-text: #ffffff;
+    --cb-ui-highlight-border: #5c4a12;
+    --cb-ui-highlight-bg: #3a2f0b;
+    --cb-ui-highlight-text: #f0d68a;
+    --cb-ui-error-border: #f85149;
+    --cb-ui-error-bg: #3a1618;
+    --cb-ui-error-text: #ff7b72;
+    --cb-ui-overlay-bg: #010409;
+
+    /* ColorBox lightbox */
+    --cb-cbox-content-bg: #1b1f22;
+    --cb-cbox-error-border: #30363d;
+    --cb-cbox-label-text: #8b949e;
+
+    /* Dead-code review session */
+    --cb-dcs-toolbar-bg: #1b1f22;
+    --cb-dcs-border: #30363d;
+    --cb-dcs-badge-bg: #30363d;
+    --cb-dcs-badge-text: #e6edf3;
+    --cb-dcs-surface: #1b1f22;
+    --cb-dcs-surface-border: #30363d;
+    --cb-dcs-surface-shadow: rgba(0, 0, 0, 0.6);
+    --cb-dcs-chip-bg: #21262d;
+    --cb-dcs-chip-border: #30363d;
+    --cb-dcs-button-bg: #30363d;
+    --cb-dcs-button-hover-bg: #484f58;
+    --cb-dcs-overlay-bg: rgba(1, 4, 9, 0.7);
+    --cb-dcs-table-border: #30363d;
+  }
+
+  /* jQuery UI paints an opaque light gradient PNG over the background color,
+     so the color alone cannot darken these. Drop the image and let the
+     custom properties above show through. */
+  .ui-widget-content,
+  .ui-widget-header,
+  .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default,
+  .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover,
+  .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus,
+  .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active,
+  .ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight,
+  .ui-state-error, .ui-widget-content .ui-state-error, .ui-widget-header .ui-state-error,
+  .ui-widget-overlay,
+  .ui-widget-shadow {
+    background-image: none;
+  }
+
+  /* The icon sprites are flat PNGs in a fixed color. Use the darkest sheet
+     for every neutral state and invert it, which lands on a single light
+     gray and keeps the sort arrows legible. The highlight and error sheets
+     are already saturated enough to read on a dark surface. */
+  .ui-icon,
+  .ui-widget-content .ui-icon,
+  .ui-widget-header .ui-icon,
+  .ui-state-default .ui-icon,
+  .ui-state-hover .ui-icon,
+  .ui-state-focus .ui-icon,
+  .ui-state-active .ui-icon {
+    background-image: url(images/ui-icons_222222_256x240.png);
+    filter: invert(1);
+  }
+}
