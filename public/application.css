@@ -1065,13 +1065,18 @@ td:has(> span.green) {
   property from the :root block at the top of this file, or neutralizes a
   baked-in light background image that a color cannot override.
 
+  Scoped to screen. This stylesheet is also linked for print (views/layout.erb,
+  views/abstract_tracker.erb, views/settings.erb), Chrome keeps reporting a dark
+  prefers-color-scheme while printing, and browsers drop background colors from
+  print output by default -- so an unscoped query would print light text on white.
+
   Coverage row colors are picked for contrast against the dark surface
   rather than darkened mechanically, so covered / missed / never / skipped
   stay as easy to tell apart as they are in the light theme.
 
 ----------------------------------------------------------------------- */
 
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
