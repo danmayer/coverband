@@ -1248,8 +1248,7 @@ td:has(> span.green) {
 
   /* The icon sprites are flat PNGs in a fixed color. Use the darkest sheet
      for every neutral state and invert it, which lands on a single light
-     gray and keeps the sort arrows legible. The highlight and error sheets
-     are already saturated enough to read on a dark surface. */
+     gray and keeps the sort arrows legible. */
   .ui-icon,
   .ui-widget-content .ui-icon,
   .ui-widget-header .ui-icon,
@@ -1259,5 +1258,19 @@ td:has(> span.green) {
   .ui-state-active .ui-icon {
     background-image: url(images/ui-icons_222222_256x240.png);
     filter: invert(1);
+  }
+
+  /* The highlight and error sheets are saturated enough to read on a dark
+     surface, so they keep their own sprite. Re-assert them here: the two
+     .ui-widget-* selectors above match the same icons at the same
+     specificity (0,2,0) and would otherwise win on source order. */
+  .ui-state-highlight .ui-icon {
+    background-image: url(images/ui-icons_2e83ff_256x240.png);
+    filter: none;
+  }
+  .ui-state-error .ui-icon,
+  .ui-state-error-text .ui-icon {
+    background-image: url(images/ui-icons_cd0a0a_256x240.png);
+    filter: none;
   }
 }
