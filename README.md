@@ -431,6 +431,14 @@ The web report includes a client-side "dead-code session" toolbar to help drive 
 
 Session state lives in your browser's localStorage: "Reset session" clears the hidden set; "Start over" (in the modal) clears the marked list.
 
+### Dark mode
+
+The web report follows your operating system's appearance setting through the CSS `prefers-color-scheme` media query. There is nothing to configure and no toggle in the UI: if your desktop is in dark mode, the report is dark, and it switches back when your desktop does. Printing always uses the light theme.
+
+The coverage row colors (covered / missed / never / skipped) are chosen for contrast on the dark surface rather than darkened mechanically, so the states stay as easy to tell apart as in the light theme.
+
+If you restyle the report, every color in `public/application.css` resolves through a custom property defined on `:root`, and the dark theme is a single `@media (prefers-color-scheme: dark)` block that redefines those properties. Overriding a property is enough to change both themes from one place.
+
 ### Fixing Coverage Only Shows Loading Hits
 
 If all your coverage is being counted as loading or eager_loading coverage, and nothing is showing as runtime Coverage the initialization hook failed for some reason. The most likely reason for this issue is manually calling `eager_load!` on some Plugin/Gem. If you or a plugin is altering the Rails initialization process, you can manually flip Coverband to runtime coverage by calling these two lines, in an `after_initialize` block, in `application.rb`.
