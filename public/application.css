@@ -1273,4 +1273,18 @@ td:has(> span.green) {
     background-image: url(images/ui-icons_cd0a0a_256x240.png);
     filter: none;
   }
+
+  /* ColorBox draws the frame around the source view from border.png and
+     controls.png -- a white top edge and a solid #e6e6e6 bottom bar baked
+     into the images. The popup is 95% of the viewport, so that frame rings
+     the whole screen. Drop the images and paint the frame the same color as
+     the content it surrounds. This also puts #cboxTitle / #cboxCurrent,
+     which sit over the bottom bar, on a dark background: --cb-cbox-label-text
+     reads 5.34:1 there, against 2.46:1 on the baked-in gray. */
+  #cboxTopLeft, #cboxTopCenter, #cboxTopRight,
+  #cboxBottomLeft, #cboxBottomCenter, #cboxBottomRight,
+  #cboxMiddleLeft, #cboxMiddleRight {
+    background-image: none;
+    background-color: var(--cb-cbox-content-bg);
+  }
 }

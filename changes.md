@@ -43,6 +43,7 @@
 * Added `rake coverband:clear_orphans` to reclaim generation keys no longer referenced by a pointer, and scoped `coverband:clear_legacy` to Coverband's own namespaces and tracker names so it cannot delete unrelated application keys
 * CI now runs a memcached service, so the memcached backed adapter is actually exercised
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
+* The web report has a dark theme. It follows the operating system through `prefers-color-scheme`, so there is nothing to configure and no toggle; every color in `public/application.css` now resolves through a custom property on `:root`, which makes the report restylable from one place. Coverage row colors are picked for contrast on the dark surface rather than darkened mechanically, so covered / missed / never / skipped stay as easy to tell apart; thanks @naofumi-fujii (#665, #666, #667)
 
 ### Unreleased
 
