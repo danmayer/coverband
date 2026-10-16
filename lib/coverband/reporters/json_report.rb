@@ -115,7 +115,6 @@ module Coverband
           data["iTotalDisplayRecords"] = filesreported
           data["aaData"] = row_data
           data.delete(:files)
-          data = data.as_json
         end
         data.to_json
       end
