@@ -12,7 +12,7 @@ module Coverband
   class Railtie < Rails::Railtie
     initializer "coverband.configure" do |app|
       app.middleware.use Coverband::BackgroundMiddleware
-    rescue Redis::CannotConnectError => error
+    rescue *Coverband.redis_connection_errors => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
@@ -33,7 +33,7 @@ module Coverband
         begin
           Coverband.configure unless Coverband.configured?
           Coverband.start
-        rescue Redis::CannotConnectError => error
+        rescue *Coverband.redis_connection_errors => error
           Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
           Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
         end

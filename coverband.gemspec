@@ -48,10 +48,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
   spec.add_development_dependency "standard", ">= 1.35.1"
-  # breaking changes in various rubocop versions
-  spec.add_development_dependency "rubocop"
-
-  spec.add_development_dependency "coveralls"
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
@@ -61,11 +57,14 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "activesupport"
   spec.add_development_dependency "mcp" # For MCP server support testing
 
-  # TODO: Remove when other production adapters exist
-  # because the default configuration of redis store, we really do require
-  # redis now. I was reluctant to add this, but until we offer another production
-  # quality adapter, I think this is more honest about requirements and reduces confusion
-  # without this there was a race condition on calling coverband configure before redis was loaded
-  spec.add_runtime_dependency "redis", ">= 3.0"
-  spec.add_runtime_dependency "base64"
+  # Redis is optional since 7.0: it stays the default store whenever the redis gem
+  # is installed, and the ActiveSupport cache adapter covers everything else.
+  spec.add_development_dependency "redis", ">= 3.0"
+
+  spec.post_install_message = <<~MSG
+    Coverband 7.0 no longer depends on the redis gem. Redis is still the default
+    store, so if you use it add `gem "redis"` to your Gemfile. To store coverage
+    elsewhere (Solid Cache, memcached, files) see config.store in the README.
+    Coverage stored by Coverband 6.x is not carried over; see changes.md.
+  MSG
 end

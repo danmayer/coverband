@@ -239,5 +239,18 @@ module Coverband
       get "/"
       assert_equal 401, last_response.status
     end
+
+    test "renders 401 auth error for the wrong password" do
+      basic_authorize "anything", "wrong_pass"
+      get "/"
+      assert_equal 401, last_response.status
+    end
+
+    test "accepts a password containing a colon" do
+      Coverband.configuration.password = "test:pass"
+      basic_authorize "anything", "test:pass"
+      get "/"
+      assert last_response.ok?
+    end
   end
 end

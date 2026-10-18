@@ -6,7 +6,8 @@
 ####
 # Coverband.configure do |config|
 ####
-# set a redis URL and set it with with some reasonable timeouts
+# Redis is the default store (add `gem "redis"` to your Gemfile, Coverband no
+# longer installs it). Set a redis URL and set it with some reasonable timeouts
 # For TLS connections (e.g. AWS serverless ElastiCache), use rediss:// scheme
 ####
 # redis_url = ENV["COVERBAND_REDIS"] || ENV["REDIS_URL"] || "redis://localhost:6379"

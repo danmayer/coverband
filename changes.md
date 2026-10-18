@@ -2,6 +2,7 @@
 
 **Breaking changes**
 
+* **The `redis` gem is no longer a dependency of Coverband. If you use Redis (the default), add `gem "redis"` to your Gemfile when you upgrade.** Redis is still the default store and still needs no other configuration: whenever the `redis` gem is installed Coverband loads it and stores coverage there exactly as before. Apps that only got `redis` through Coverband will otherwise boot with a warning telling them to add it, and record nothing until they do. Apps that store coverage elsewhere (`ActiveSupportCacheStore` with Solid Cache, memcached, or files) no longer need Redis installed at all
 * **Coverage and tracker history do not survive this upgrade.** Stored documents now carry the metadata the new merge protocol needs, and keys are scoped by a generation token, so the storage format version changed for both `RedisStore` and the cache adapters. Old keys are ignored rather than migrated, and coverage accumulates fresh from the upgrade. Delete the old `coverband_3_2.*` keys once you are happy with the new data.
 * Removed configuration settings that no longer had production consumers: `s3_region`, `s3_bucket`, `s3_access_key_id`, `s3_secret_access_key`, `track_gems`, `gem_details`, and `simulate_oneshot_lines_coverage`. The S3 and gem-tracking settings were already deprecated no-ops.
 * `Coverband::Utils::SourceFile` and `Coverband::Utils::Result` now accept only enriched file records from stored Coverband reports. Passing the legacy bare line-coverage Array is no longer supported.
@@ -44,14 +45,18 @@
 * CI now runs a memcached service, so the memcached backed adapter is actually exercised
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
 * The web report has a dark theme. It follows the operating system through `prefers-color-scheme`, so there is nothing to configure and no toggle; every color in `public/application.css` now resolves through a custom property on `:root`, which makes the report restylable from one place. Coverage row colors are picked for contrast on the dark surface rather than darkened mechanically, so covered / missed / never / skipped stay as easy to tell apart; thanks @naofumi-fujii (#665, #666, #667)
+* Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
 
 **Bug fixes**
 
+* The web report's `/report_json` route and `JSONReport.new(store, as_report: true)` no longer raise `NoMethodError` outside Rails, where ActiveSupport's `as_json` is not loaded; thanks @dajiaohuang (#669)
+* The web report's password check accepts passwords containing `:` (it split the credentials on every colon) and compares in constant time, as does the MCP endpoint's bearer token check. This also drops the runtime dependency on the `base64` gem
+* `Coverband::Utils::Results#respond_to?(name, true)` no longer raises `ArgumentError`
 * The runtime % no longer reads 100% for files with runtime relevant lines that were never hit, and no longer divides by every line of a file that was never eager loaded. It only counts runtime hits on lines that eager loading did not cover, and takes line relevance from real coverage data rather than the never loaded placeholder, which marked blank and comment lines as relevant. Runtime relevant lines on the file page use the same calculation, and the runtime % there is colored by its own value rather than by % covered (#668)
 
-### Unreleased
+**Deprecations**
 
-* Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
+* `Coverband::Utils::Results#runtime_relavent_lines` is now `#runtime_relevant_lines`. The misspelled name remains as an alias
 
 ### 6.2.2
 

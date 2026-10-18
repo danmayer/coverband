@@ -69,11 +69,14 @@ The `rediss://` scheme works with:
 
 ## Gem Installation
 
-Add this line to your application's `Gemfile`, remember to `bundle install` after updating:
+Add these lines to your application's `Gemfile`, remember to `bundle install` after updating:
 
-```bash
+```ruby
 gem 'coverband'
+gem 'redis' # the default store
 ```
+
+Redis is the default store and needs no configuration beyond a reachable Redis. Since Coverband 7.0 the `redis` gem is no longer installed for you, so add it yourself as above. If you would rather keep coverage somewhere else (Solid Cache, memcached, files), leave out `redis` and set `config.store`, see [ActiveSupport::Cache Store](#activesupportcache-store). Without the `redis` gem and without a configured store, Coverband logs a warning at boot and records nothing.
 
 ### No custom code or middleware required
 
@@ -238,7 +241,7 @@ Take Coverband for a spin on the live Heroku deployed [Coverband Demo](https://c
 If you need to configure Coverband, this can be done by creating a `config/coverband.rb` file relative to your project root.
 
 - See [lib/coverband/configuration.rb](https://github.com/danmayer/coverband/blob/main/lib/coverband/configuration.rb) for all options
-- By default Coverband will try to store data to Redis \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
+- By default Coverband will try to store data to Redis (when the `redis` gem is installed) \* Redis endpoint is looked for in this order: `ENV['COVERBAND_REDIS_URL']`, `ENV['REDIS_URL']`, or `localhost`
 
 Below is an example config file for a Rails 5 app:
 
@@ -833,7 +836,7 @@ Outputs:
 # Prerequisites
 
 - Ruby 3.1+
-- Coverband currently requires Redis for production usage
+- A production store: Redis by default (add the `redis` gem), or any `ActiveSupport::Cache` store such as Solid Cache or memcached
 
 ### Ruby and Rails Version Support
 

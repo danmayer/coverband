@@ -151,7 +151,7 @@ module Coverband
         trackers << tracker
       end
       trackers.each { |tracker| tracker.railtie! }
-    rescue Redis::CannotConnectError => e
+    rescue *Coverband.redis_connection_errors => e
       Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
@@ -232,13 +232,18 @@ module Coverband
 
         require "coverband/adapters/web_service_store"
         Coverband::Adapters::WebServiceStore.new(service_url)
+      elsif !Coverband.redis_available?
+        logger.warn "Coverband: no store configured and the redis gem is not installed, so coverage is not being recorded"
+        logger.warn "Coverband: add `gem \"redis\"` to your Gemfile to use the default Redis store, or configure one: config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }"
+        require "coverband/adapters/null_store"
+        Coverband::Adapters::NullStore.new
       else
         begin
           # Redis gem automatically enables TLS when the scheme is 'rediss://'
           # For serverless ElastiCache or other TLS-required Redis instances, use:
           #   REDIS_URL=rediss://your-endpoint:6379
           Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
-        rescue Redis::CannotConnectError => error
+        rescue *Coverband.redis_connection_errors => error
           logger.info "Redis is not available (#{error}), defaulting to NullStore"
           logger.info "If this is intended, please explicitly configure your store: config.store = Coverband::Adapters::FileStore.new('log/coverage')"
           require "coverband/adapters/null_store"

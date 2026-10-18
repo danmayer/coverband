@@ -37,11 +37,13 @@ module Coverband
         (covered * 100.0 / line_numbers.size).round(2)
       end
 
-      def runtime_relavent_lines(source_file)
+      def runtime_relevant_lines(source_file)
         return 0 unless runtime_coverage
 
         runtime_relevant_line_numbers(source_file).size
       end
+      # misspelled name kept so code written against Coverband 6.x keeps working
+      alias_method :runtime_relavent_lines, :runtime_relevant_lines
 
       def file_from_path_with_type(full_path, results_type = :merged)
         return unless get_results(results_type)
@@ -61,8 +63,8 @@ module Coverband
         end
       end
 
-      def respond_to_missing?(method)
-        get_results(type).respond_to?(method)
+      def respond_to_missing?(method, include_private = false)
+        get_results(type).respond_to?(method, include_private)
       end
 
       # Note: small set of hacks for static html simplecov report (groups, created_at, & command_name)

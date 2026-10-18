@@ -30,7 +30,18 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
+        assert_equal 2, subject.runtime_relevant_lines(source_file)
+      end
+
+      it "keeps the misspelled pre 7.0 name working" do
         assert_equal 2, subject.runtime_relavent_lines(source_file)
+      end
+    end
+
+    describe "delegating to the merged results" do
+      it "answers respond_to? including private methods" do
+        assert subject.respond_to?(:source_files, true)
+        refute subject.respond_to?(:not_a_results_method, true)
       end
     end
 
@@ -42,7 +53,7 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
-        assert_equal 0, subject.runtime_relavent_lines(source_file)
+        assert_equal 0, subject.runtime_relevant_lines(source_file)
       end
     end
 
@@ -55,7 +66,7 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
-        assert_equal 0, subject.runtime_relavent_lines(source_file)
+        assert_equal 0, subject.runtime_relevant_lines(source_file)
       end
     end
 
@@ -68,7 +79,7 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
-        assert_equal 2, subject.runtime_relavent_lines(source_file)
+        assert_equal 2, subject.runtime_relevant_lines(source_file)
       end
     end
 
@@ -88,7 +99,7 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
-        assert_equal 5, subject.runtime_relavent_lines(source_file)
+        assert_equal 5, subject.runtime_relevant_lines(source_file)
       end
     end
 
@@ -124,8 +135,8 @@ describe "results" do
             runtime_covered = runtime_relevant.count { |i| run_hits[i] == 1 }
             message = "eager=#{eager_record.inspect} runtime=#{run_hits.inspect}"
 
-            assert_equal runtime_relevant.size, results.runtime_relavent_lines(source_file), message
-            assert_operator results.runtime_relavent_lines(source_file), :<=, relevant_indexes.size, message
+            assert_equal runtime_relevant.size, results.runtime_relevant_lines(source_file), message
+            assert_operator results.runtime_relevant_lines(source_file), :<=, relevant_indexes.size, message
 
             percent = results.runtime_relevant_coverage(source_file)
             assert_includes 0.0..100.0, percent, message
@@ -145,7 +156,7 @@ describe "results" do
       end
 
       it "has correct runtime relevant lines" do
-        assert_equal 1, subject.runtime_relavent_lines(source_file)
+        assert_equal 1, subject.runtime_relevant_lines(source_file)
       end
     end
   end

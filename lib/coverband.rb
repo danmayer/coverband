@@ -2,7 +2,12 @@
 
 require "logger"
 require "json"
-require "redis"
+begin
+  # Optional since 7.0. Loaded when installed so Redis stays the default store.
+  require "redis"
+rescue LoadError
+  nil
+end
 require "coverband/version"
 require "coverband/at_exit"
 require "coverband/utils/relative_file_converter"
@@ -58,6 +63,16 @@ module Coverband
   MERGED_TYPE = :merged
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]
   ALL_TYPES = TYPES + [:merged]
+
+  # Rescuable "Redis is down" errors. Empty when the optional redis gem is not
+  # installed, so `rescue *Coverband.redis_connection_errors` never names a missing constant.
+  def self.redis_connection_errors
+    defined?(::Redis::CannotConnectError) ? [::Redis::CannotConnectError] : []
+  end
+
+  def self.redis_available?
+    defined?(::Redis) ? true : false
+  end
 
   def self.configure(file = nil)
     configuration_file = file || ENV["COVERBAND_CONFIG"]
@@ -218,7 +233,7 @@ module Coverband
       end
       require "coverband/integrations/resque" if defined? ::Resque
       require "coverband/integrations/sidekiq_swarm" if defined? ::Sidekiq::Enterprise::Swarm
-    rescue Redis::CannotConnectError => error
+    rescue *Coverband.redis_connection_errors => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
