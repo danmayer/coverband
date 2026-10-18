@@ -45,6 +45,10 @@
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
 * The web report has a dark theme. It follows the operating system through `prefers-color-scheme`, so there is nothing to configure and no toggle; every color in `public/application.css` now resolves through a custom property on `:root`, which makes the report restylable from one place. Coverage row colors are picked for contrast on the dark surface rather than darkened mechanically, so covered / missed / never / skipped stay as easy to tell apart; thanks @naofumi-fujii (#665, #666, #667)
 
+**Bug fixes**
+
+* The runtime % no longer reads 100% for files with runtime relevant lines that were never hit, and no longer divides by every line of a file that was never eager loaded. It only counts runtime hits on lines that eager loading did not cover, and takes line relevance from real coverage data rather than the never loaded placeholder, which marked blank and comment lines as relevant. Runtime relevant lines on the file page use the same calculation, and the runtime % there is colored by its own value rather than by % covered (#668)
+
 ### Unreleased
 
 * Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)

@@ -69,6 +69,36 @@ class ReportJSONTest < Minitest::Test
     end
   end
 
+  test "runtime percentage for a file never eager loaded uses only its relevant lines" do
+    # other files (e.g. initializers) were loaded at boot, this one only at runtime
+    @store.type = Coverband::EAGER_TYPE
+    @store.send(:save_report, basic_coverage)
+    @store.type = Coverband::RUNTIME_TYPE
+    @store.send(:save_report, {source_fixture("app/models/user.rb") => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]})
+
+    file = JSON.parse(Coverband::Reporters::JSONReport.new(@store).report)["files"]["app/models/user.rb"]
+
+    assert_equal 80.0, file["covered_percent"]
+    assert_equal 80.0, file["runtime_percentage"]
+  ensure
+    @store.type = Coverband::RUNTIME_TYPE
+  end
+
+  test "runtime percentage ignores load-time lines that are also hit at runtime" do
+    @store.type = Coverband::EAGER_TYPE
+    @store.send(:save_report, {source_fixture("app/models/user.rb") => [nil, 1, 1, 0, nil, nil, 1, 0, nil, nil]})
+    @store.type = Coverband::RUNTIME_TYPE
+    @store.send(:save_report, {source_fixture("app/models/user.rb") => [nil, 1, 1, 1, nil, nil, 1, 0, nil, nil]})
+
+    file = JSON.parse(Coverband::Reporters::JSONReport.new(@store).report)["files"]["app/models/user.rb"]
+
+    assert_equal 80.0, file["covered_percent"]
+    assert_equal 50.0, file["runtime_percentage"]
+    assert_equal 4, file["lines_runtime"]
+  ensure
+    @store.type = Coverband::RUNTIME_TYPE
+  end
+
   test "supports merging" do
     @store.send(:save_report, basic_coverage)
     first_report = JSON.parse(Coverband::Reporters::JSONReport.new(@store, for_merged_report: true).report)
