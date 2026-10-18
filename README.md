@@ -129,15 +129,20 @@ run ActionController::Dispatcher.new
 
 The columns in the web UI are as follows:
 
-- **% covered** - Percentage of total relevant lines covered
-- **% runtime** - Percentage of the runtime lines covered where runtime lines are lines that are hit after the application has been eagerly loaded
+- **% covered** - Percentage of relevant lines covered, during either eager loading or runtime
+- **% runtime** - Percentage of the runtime relevant lines that were hit at runtime. Runtime relevant lines are the relevant lines that were *not* hit while the application eager loaded, so this is the share of the code that only real usage can exercise (method bodies, branches, etc.) which real usage actually exercised
 - **Lines** - Total lines in the file including lines unreachable or uncover-able. An unreachable line would be an empty line with no code, comments, or `end` statements.
 - **Relevant lines** - Lines that are coverable, i.e. not empty
-- **Lines runtime** - Total lines minus uncoverable lines minus the lines that are only hit during eager loading of application
+- **Lines covered** - Relevant lines hit during either eager loading or runtime
+- **Lines runtime** - Relevant lines hit at least once at runtime
 - **Lines missed** - Relevant lines not covered
 - **Avg hits/line** - Total of coverage to the file divided by relevant lines.
 
-When viewing an individual file, a line of code such as a class or method definition may appear green because it is eager loaded by the application, but still not be hit at all in runtime by actual users.  
+The individual file view also lists the file's **runtime relevant lines**, the denominator of **% runtime**. A file only reports 100% runtime when every one of its runtime relevant lines was hit at runtime. If a file was never eager loaded (the default in development), every relevant line is runtime relevant, so **% runtime** matches **% covered**.
+
+**Lines runtime** can include load time lines such as class and method definitions. Those lines are hit at runtime when a process loads the file lazily after Coverband switched to runtime coverage, e.g. a console, runner, or job process that does not eager load. Such lines still count as eager loaded for **% runtime** as long as any process loaded them during eager loading.
+
+When viewing an individual file, a line of code such as a class or method definition may appear green because it is eager loaded by the application, but still not be hit at all in runtime by actual users. Each line's badge shows its `load` (eager loading) and `runtime` hit counts separately.  
 
 ![example of a file with lines not hit at runtime](https://user-images.githubusercontent.com/96786/63541229-aa98a580-c4eb-11e9-8eb8-c004fe1369db.png)
 #### Coverage first seen and Last activity recorded

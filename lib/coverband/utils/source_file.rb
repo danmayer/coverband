@@ -36,20 +36,12 @@ module Coverband
         end
 
         @filename = filename
-        @runtime_relavant_lines = nil
         @coverage = file_data["data"]
         @coverage_posted = file_data["timedata"] || [] # NOTE: only implement timedata for HashRedisStore
         @first_updated_at = @last_updated_at = NOT_AVAILABLE
         @first_updated_at = Time.at(file_data["first_updated_at"]) if file_data["first_updated_at"]
         @last_updated_at = Time.at(file_data["last_updated_at"]) if file_data["last_updated_at"]
         @never_loaded = file_data["never_loaded"] || false
-      end
-
-      def runtime_relavant_calculations(runtime_relavant_lines)
-        @runtime_relavant_lines = runtime_relavant_lines
-        yield self
-      ensure
-        @runtime_relavant_lines = nil
       end
 
       # The path to this source file relative to the projects directory
@@ -103,8 +95,7 @@ module Coverband
 
         return 0.0 if relevant_lines.zero?
 
-        # handle edge case where runtime in dev can go over 100%
-        [Float(covered_lines_count * 100.0 / relevant_lines.to_f), 100.0].min&.round(2)
+        Float(covered_lines_count * 100.0 / relevant_lines.to_f).round(2)
       end
 
       def formatted_covered_percent
@@ -128,7 +119,6 @@ module Coverband
       end
 
       def relevant_lines
-        return @runtime_relavant_lines if @runtime_relavant_lines
         lines_of_code
       end
 

@@ -27,28 +27,20 @@ module Coverband
       def runtime_relevant_coverage(source_file)
         return unless eager_loading_coverage && runtime_coverage
 
-        eager_file = get_eager_file(source_file)
         runtime_file = get_runtime_file(source_file)
-
         return 0.0 unless runtime_file
 
-        return runtime_file.formatted_covered_percent unless eager_file
+        line_numbers = runtime_relevant_line_numbers(source_file)
+        return 0.0 if line_numbers.empty?
 
-        runtime_relavant_lines = eager_file.relevant_lines - eager_file.covered_lines_count
-        runtime_file.runtime_relavant_calculations(runtime_relavant_lines) { |file| file.formatted_covered_percent }
+        covered = line_numbers.count { |number| runtime_file.line(number)&.covered? }
+        (covered * 100.0 / line_numbers.size).round(2)
       end
 
       def runtime_relavent_lines(source_file)
         return 0 unless runtime_coverage
 
-        eager_file = get_eager_file(source_file)
-        runtime_file = get_runtime_file(source_file)
-
-        return 0 unless runtime_file
-
-        return runtime_file.covered_lines_count unless eager_file
-
-        eager_file.relevant_lines - eager_file.covered_lines_count
+        runtime_relevant_line_numbers(source_file).size
       end
 
       def file_from_path_with_type(full_path, results_type = :merged)
@@ -87,6 +79,30 @@ module Coverband
       end
 
       private
+
+      ###
+      # Runtime relevant lines are the relevant lines that eager loading did not cover.
+      # Line relevance comes from real Ruby coverage data, never from a never_loaded
+      # placeholder (which marks every line, including blanks and comments, as 0).
+      # Lines also hit at runtime by a lazily loading process (class bodies etc.) stay
+      # excluded, so runtime coverage can't count them against the smaller denominator.
+      ###
+      def runtime_relevant_line_numbers(source_file)
+        runtime_file = get_runtime_file(source_file)
+        return [] unless runtime_file
+
+        eager_file = get_eager_file(source_file)
+        eager_file = nil if eager_file&.never_loaded
+        reference_file = eager_file || (runtime_file unless runtime_file.never_loaded)
+        return [] unless reference_file
+
+        reference_file.lines.filter_map do |line|
+          next unless line.covered? || line.missed?
+          next if eager_file&.line(line.number)&.covered?
+
+          line.number
+        end
+      end
 
       def get_eager_file(source_file)
         file_with_type(source_file, Coverband::EAGER_TYPE)

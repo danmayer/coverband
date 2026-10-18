@@ -57,6 +57,32 @@ class ReportHTMLTest < Minitest::Test
     assert_match "Coverage first seen", html
   end
 
+  test "detailed file report shows runtime coverage from runtime relevant lines" do
+    filename = source_fixture("casting_invitor.rb")
+    stub = Coverage.line_stub(filename)
+    relevant = stub.each_index.select { |i| stub[i] }
+    # eager loading hits all but the last two relevant lines; runtime (a lazily loading
+    # process) hits the load time lines again plus one of those two
+    eager = stub.each_with_index.map { |hits, i| hits && (relevant.last(2).include?(i) ? 0 : 1) }
+    runtime = stub.each_with_index.map { |hits, i| hits && ((i == relevant.last) ? 0 : 1) }
+    @store.type = Coverband::EAGER_TYPE
+    @store.send(:save_report, {filename => eager})
+    @store.type = Coverband::RUNTIME_TYPE
+    @store.send(:save_report, {filename => runtime})
+
+    html = Coverband::Reporters::HTMLReport.new(Coverband.configuration.store,
+      filename: filename,
+      base_path: "/coverage",
+      open_report: false).file_details
+
+    assert_match %r{<span class="green">\s*96.67 %\s*</span>\s*covered}, html
+    # colored by its own value, not by % covered
+    assert_match %r{<span class="red">\s*50.0 %\s*</span>\s*runtime covered}, html
+    assert_match "<b>2</b> runtime relevant lines.", html
+  ensure
+    @store.type = Coverband::RUNTIME_TYPE
+  end
+
   test "generate dynamic content detailed file report handles missing file" do
     @store.send(:save_report, basic_coverage_full_path)
 

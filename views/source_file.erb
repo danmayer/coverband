@@ -7,8 +7,9 @@
       </span>
       covered,
 
-      <span class="<%= coverage_css_class(source_file.covered_percent) %>">
-        <%= result.runtime_relevant_coverage(source_file) %> %
+      <% runtime_percentage = result.runtime_relevant_coverage(source_file) %>
+      <span class="<%= coverage_css_class(runtime_percentage) %>">
+        <%= runtime_percentage %> %
       </span>
       runtime covered
 
