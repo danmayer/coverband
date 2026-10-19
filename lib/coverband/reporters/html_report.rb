@@ -9,7 +9,6 @@ module Coverband
       def initialize(store, options = {})
         self.page = options.fetch(:page) { nil }
         self.open_report = options.fetch(:open_report) { true }
-        # TODO: refactor notice out to top level of web only
         self.notice = options.fetch(:notice) { nil }
         self.base_path = options.fetch(:base_path) { "./" }
         self.filename = options.fetch(:filename) { nil }

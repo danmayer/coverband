@@ -146,8 +146,8 @@ module Coverband
 
   def self.start
     Coverband::Collectors::Coverage.instance
-    # TODO: Railtie sets up at_exit after forks, via middleware, perhaps this should be
-    # added if not rails or if rails but not rackserverrunning
+    # Rack servers register again after forking through BackgroundMiddleware;
+    # AtExit.register is idempotent within each process.
     AtExit.register unless tasks_to_ignore?
     Background.start if configuration.background_reporting_enabled && !RackServerCheck.running? && !tasks_to_ignore?
   end

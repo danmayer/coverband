@@ -112,7 +112,6 @@ module Coverband
         Coverband::Utils::FileHasher.hash_file(file)
       end
 
-      # TODO: modify to extend report inline?
       def expand_report(report)
         expanded = {}
         report_time = Time.now.to_i

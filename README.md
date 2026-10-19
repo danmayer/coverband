@@ -137,7 +137,7 @@ run ActionController::Dispatcher.new
 6. **Custom code against Coverband internals.** Only relevant if you wrote a tracker or call adapters directly:
    - In a custom tracker, use `storage` instead of `redis_store`.
    - Instead of `store.raw_store`, use `store.cleanup` (`clear_legacy!`, `clear_orphans!`), which returns `nil` for stores that cannot enumerate keys.
-   - `Coverband::Utils::Results#runtime_relavent_lines` is now spelled `runtime_relevant_lines`.
+   - Use the corrected `Coverband::Utils::Results#runtime_relevant_lines`; the old `runtime_relavent_lines` spelling remains as a compatibility alias.
    - `Coverband::Utils::SourceFile` and `Coverband::Utils::Result` take stored report records (`{"data" => [...]}`) rather than bare line arrays.
 
 ## Coverband Web UI

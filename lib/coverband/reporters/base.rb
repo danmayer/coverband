@@ -84,8 +84,6 @@ module Coverband
         # basically because paths on machines or deployed hosts could be different, so
         # two different keys could point to the same filename or `line_key`
         # this happens when deployment has a dynamic path or the path change during deployment (hot code reload)
-        # TODO: think we are filtering based on ignore while sending to the store
-        # and as we also pull it out here
         ###
         def get_current_scov_data_imp(store, roots, options = {})
           scov_style_report = {}

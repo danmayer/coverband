@@ -63,12 +63,8 @@ module Coverband
       end
     end
 
-    #####
-    # TODO: This is is brittle and not a great solution to avoid deploy time
-    # actions polluting the 'runtime' metrics
-    #
-    # * Perhaps detect heroku deployment ENV var opposed to tasks?
-    #####
+    # Tasks that load application code for deployment or maintenance should not
+    # contribute to production runtime coverage.
     IGNORE_TASKS = ["coverband:clear",
       "coverband:coverage",
       "coverband:coverage_server",

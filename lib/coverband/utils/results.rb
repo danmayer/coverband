@@ -42,6 +42,7 @@ module Coverband
 
         runtime_relevant_line_numbers(source_file).size
       end
+      alias_method :runtime_relavent_lines, :runtime_relevant_lines
 
       def file_from_path_with_type(full_path, results_type = :merged)
         return unless get_results(results_type)
