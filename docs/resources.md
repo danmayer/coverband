@@ -12,7 +12,6 @@ These notes of kind of for myself, but if anyone is seriously interested in cont
 * [more erb code coverage](https://github.com/colszowka/simplecov/issues/38)
 * [erb syntax](http://stackoverflow.com/questions/7996695/rails-erb-syntax) parse out and mark lines as important
 * [ruby 2 tracer](https://github.com/brightbox/deb-ruby2.0/blob/master/lib/tracer.rb)
-* [coveralls hosted code coverage tracking](https://coveralls.io/docs/ruby) currently for test coverage but might be a good partner for production coverage
 * [simplecov usage example](http://www.cakesolutions.net/teamblogs/brief-introduction-to-rspec-and-simplecov-for-ruby) copy some of the syntax sugar setup for cover band
 * [Jruby coverage bug](https://github.com/jruby/jruby/issues/1196)
 * [learn from oboe ruby code](https://github.com/appneta/oboe-ruby#writing-custom-instrumentation)

@@ -3,7 +3,6 @@
 # Coverband
 
 [![GithubCI](https://github.com/danmayer/coverband/workflows/CI/badge.svg)](https://github.com/danmayer/coverband/actions)
-[![Coverage Status](https://coveralls.io/repos/github/danmayer/coverband/badge.svg?branch=main)](https://coveralls.io/github/danmayer/coverband?branch=main)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1e6682f9540d75f26da7/maintainability)](https://codeclimate.com/github/danmayer/coverband/maintainability)
 [![Discord Shield](https://img.shields.io/discord/609509533999562753)](https://discord.gg/KAH38EV)
 
