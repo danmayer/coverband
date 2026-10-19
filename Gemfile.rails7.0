@@ -18,3 +18,7 @@ gem "ostruct"
 
 # Required for Ruby 3.4+ (extracted from stdlib)
 gem "cgi"
+
+# railties 7.0 requires tsort without declaring it, and Ruby 4.1 no longer
+# ships it as a default gem.
+gem "tsort"
