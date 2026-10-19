@@ -13,8 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         # need to figure out how to use redis on macos github actions
-        # os: [ubuntu, macos]
-        os: [ubuntu]
+        # os: [ubuntu-24.04, macos-15]
+        os: [ubuntu-24.04]
         # remove until I sort out CI issues for truffle
         # truffleruby,
         # truffleruby-head,
@@ -27,7 +27,7 @@ jobs:
           # Rails 8 requires ruby 3.2+.
           - gemfile: 'Gemfile.rails8.0'
             ruby: '3.1'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:
