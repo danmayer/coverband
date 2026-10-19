@@ -147,12 +147,6 @@ end
 
 Coverband::Collectors::TrackerRegistry.register(
   :view_tracker,
-  tracker_class: lambda {
-    if Coverband.coverband_service?
-      Coverband::Collectors::ViewTrackerService.new
-    else
-      Coverband::Collectors::ViewTracker.new
-    end
-  },
+  tracker_class: Coverband::Collectors::ViewTracker,
   enabled: ->(config) { config.track_views }
 )

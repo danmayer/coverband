@@ -2,7 +2,12 @@
 
 require "logger"
 require "json"
-require "redis"
+begin
+  # Optional since 7.0. Loaded when installed so Redis stays the default store.
+  require "redis"
+rescue LoadError
+  nil
+end
 require "coverband/version"
 require "coverband/at_exit"
 require "coverband/utils/relative_file_converter"
@@ -30,13 +35,11 @@ require "coverband/adapters/file_store"
 require "coverband/adapters/stdout_store"
 require "coverband/adapters/null_store"
 require "coverband/adapters/active_support_cache_store"
-require "coverband/adapters/memcached_store"
 require "coverband/utils/file_hasher"
 require "coverband/collectors/coverage"
 require "coverband/collectors/abstract_tracker"
 require "coverband/collectors/tracker_registry"
 require "coverband/collectors/view_tracker"
-require "coverband/collectors/view_tracker_service"
 require "coverband/collectors/route_tracker"
 require "coverband/collectors/translation_tracker"
 require "coverband/collectors/query_burst_tracker"
@@ -51,7 +54,6 @@ Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore if ENV["CO
 
 module Coverband
   @@configured = false
-  SERVICE_CONFIG = "./config/coverband_service.rb"
   CONFIG_FILE = "./config/coverband.rb"
   RUNTIME_TYPE = :runtime
   EAGER_TYPE = :eager_loading
@@ -59,11 +61,18 @@ module Coverband
   TYPES = [RUNTIME_TYPE, EAGER_TYPE]
   ALL_TYPES = TYPES + [:merged]
 
+  # Rescuable "Redis is down" errors. Empty when the optional redis gem is not
+  # installed, so `rescue *Coverband.redis_connection_errors` never names a missing constant.
+  def self.redis_connection_errors
+    defined?(::Redis::CannotConnectError) ? [::Redis::CannotConnectError] : []
+  end
+
+  def self.redis_available?
+    defined?(::Redis) ? true : false
+  end
+
   def self.configure(file = nil)
-    configuration_file = file || ENV["COVERBAND_CONFIG"]
-    if configuration_file.nil?
-      configuration_file = coverband_service? ? SERVICE_CONFIG : CONFIG_FILE
-    end
+    configuration_file = file || ENV["COVERBAND_CONFIG"] || CONFIG_FILE
 
     configuration
     if block_given?
@@ -75,10 +84,6 @@ module Coverband
     end
     @@configured = true
     coverage_instance.reset_instance
-  end
-
-  def self.coverband_service?
-    !!File.exist?(SERVICE_CONFIG)
   end
 
   def self.configured?
@@ -218,7 +223,7 @@ module Coverband
       end
       require "coverband/integrations/resque" if defined? ::Resque
       require "coverband/integrations/sidekiq_swarm" if defined? ::Sidekiq::Enterprise::Swarm
-    rescue Redis::CannotConnectError => error
+    rescue *Coverband.redis_connection_errors => error
       Coverband.configuration.logger.info "Redis is not available (#{error}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end

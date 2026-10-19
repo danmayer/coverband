@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "base64"
 require "coverband"
 
 begin
@@ -42,11 +41,11 @@ module Coverband
       def check_auth
         return true unless Coverband.configuration.password
 
-        # support rack 1.6.x and rack 2.0 (get_header)
-        auth_header = request.respond_to?(:get_header) ? request.get_header("HTTP_AUTHORIZATION") : request.env["HTTP_AUTHORIZATION"]
-        return unless auth_header
+        auth = Rack::Auth::Basic::Request.new(request.env)
+        return false unless auth.provided? && auth.basic? && auth.credentials
 
-        Coverband.configuration.password == Base64.decode64(auth_header.split[1]).split(":")[1]
+        # credentials splits on the first colon only, so passwords may contain one
+        Rack::Utils.secure_compare(Coverband.configuration.password.to_s, auth.credentials.last.to_s)
       end
 
       def self.call(env)

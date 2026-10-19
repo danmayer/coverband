@@ -93,7 +93,7 @@ module Coverband
         return false unless token
 
         # Compare with configured MCP password
-        token == mcp_password
+        Rack::Utils.secure_compare(mcp_password.to_s, token)
       end
 
       def transport

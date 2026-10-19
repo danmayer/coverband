@@ -11,7 +11,6 @@ class BaseTest < Minitest::Test
       config.root = Dir.pwd
       config.root_paths = ["/app_path/"]
       config.ignore = ["config/environments"]
-      config.reporter = "std_out"
       config.store = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
     end
   end
@@ -68,49 +67,21 @@ class BaseTest < Minitest::Test
     assert_equal Coverband.configuration.store.class, Coverband::Adapters::RedisStore
   end
 
-  test "store is a service store when api_key is set" do
+  test "removed settings are ignored with a warning saying how to upgrade" do
     Coverband::Collectors::Coverage.instance.reset_instance
     Coverband.configuration.reset
+    logger = Logger.new(log = StringIO.new)
     Coverband.configure do |config|
-      config.redis_url = nil
+      config.logger = logger
       config.api_key = "test-key"
+      config.reporter = "std_out"
     end
-    assert_equal Coverband.configuration.store.class.to_s, "Coverband::Adapters::WebServiceStore"
-  end
 
-  test "store raises when api key set but not set to service" do
-    Coverband::Collectors::Coverage.instance.reset_instance
-    Coverband.configuration.reset
-    assert_raises RuntimeError do
-      Coverband.configure do |config|
-        config.api_key = "test-key"
-        config.redis_url = "redis://localhost:3333"
-        config.store = Coverband::Adapters::RedisStore.new(Coverband::Test.redis, redis_namespace: "coverband_test")
-      end
-    end
-  end
-
-  test "store raises when api key and coverband redis env" do
-    Coverband::Collectors::Coverage.instance.reset_instance
-    Coverband.configuration.reset
-
-    env = ENV.to_hash.merge("COVERBAND_REDIS_URL" => "redis://localhost:3333")
-    Object.stub_const(:ENV, env) do
-      assert_raises RuntimeError do
-        Coverband.configure do |config|
-          config.api_key = "test-key"
-        end
-      end
-    end
-  end
-
-  test "store doesn't raises when api key and redis_url" do
-    Coverband::Collectors::Coverage.instance.reset_instance
-    Coverband.configuration.reset
-    Coverband.configure do |config|
-      config.api_key = "test-key"
-      config.redis_url = "redis://localhost:3333"
-    end
+    assert_match "config.api_key was removed in 7.0 and is ignored", log.string
+    assert_match "coverband.io is no longer maintained", log.string
+    assert_match "config.reporter was removed in 7.0 and is ignored", log.string
+    assert_equal Coverband::Adapters::RedisStore, Coverband.configuration.store.class
+    refute_respond_to Coverband.configuration, :api_key
   end
 
   test "redis_url with rediss:// scheme for TLS support" do
@@ -134,11 +105,21 @@ class BaseTest < Minitest::Test
       track_gems
       gem_details
       simulate_oneshot_lines_coverage
+      reporter
+      api_key
+      service_url
+      coverband_timeout
+      service_dev_mode
+      service_test_mode
+      process_type
     ]
+    assert_equal removed.sort, Coverband::Configuration::REMOVED_SETTINGS.keys.sort
 
+    Coverband.configuration.logger = Logger.new(StringIO.new)
     removed.each do |setting|
       refute_respond_to Coverband.configuration, setting
-      refute_respond_to Coverband.configuration, :"#{setting}="
+      Coverband.configuration.public_send(:"#{setting}=", "value")
+      refute Coverband.configuration.instance_variable_defined?(:"@#{setting}"), setting
     end
   end
 end

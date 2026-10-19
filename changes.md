@@ -2,14 +2,18 @@
 
 **Breaking changes**
 
+* **Upgrading from 6.x? Follow [Upgrading to 7.0](https://github.com/danmayer/coverband#upgrading-to-70) in the README**, which lists what to change for each item below. Removed APIs are removed outright rather than deprecated first.
+* **The `redis` gem is no longer a dependency of Coverband. If you use Redis (the default), add `gem "redis"` to your Gemfile when you upgrade.** Redis is still the default store and still needs no other configuration: whenever the `redis` gem is installed Coverband loads it and stores coverage there exactly as before. Apps that only got `redis` through Coverband will otherwise boot with a warning telling them to add it, and record nothing until they do. Apps that store coverage elsewhere (`ActiveSupportCacheStore` with Solid Cache, memcached, or files) no longer need Redis installed at all
 * **Coverage and tracker history do not survive this upgrade.** Stored documents now carry the metadata the new merge protocol needs, and keys are scoped by a generation token, so the storage format version changed for both `RedisStore` and the cache adapters. Old keys are ignored rather than migrated, and coverage accumulates fresh from the upgrade. Delete the old `coverband_3_2.*` keys once you are happy with the new data.
-* Removed configuration settings that no longer had production consumers: `s3_region`, `s3_bucket`, `s3_access_key_id`, `s3_secret_access_key`, `track_gems`, `gem_details`, and `simulate_oneshot_lines_coverage`. The S3 and gem-tracking settings were already deprecated no-ops.
+* **Reporting to coverband.io (`WebServiceStore`) has been removed, as the hosted service is no longer maintained.** This also removes `ViewTrackerService`, loading `config/coverband_service.rb`, the `api_key`, `service_url`, `coverband_timeout`, `service_dev_mode`, `service_test_mode`, and `process_type` settings, and the `COVERBAND_API_KEY`, `COVERBAND_URL`, `COVERBAND_ENABLE_DEV_MODE`, `COVERBAND_ENABLE_TEST_MODE`, and `PROCESS_TYPE` environment variables. Setting `COVERBAND_API_KEY` no longer switches Coverband into service mode. Move settings into `config/coverband.rb` and configure Redis or an `ActiveSupportCacheStore`
+* Removed configuration settings that no longer had production consumers: `reporter` (no effect since 5.0), `s3_region`, `s3_bucket`, `s3_access_key_id`, `s3_secret_access_key`, `track_gems`, `gem_details`, and `simulate_oneshot_lines_coverage`, plus the coverband.io settings above. Assigning any of them logs a warning naming the setting and how to fix it, and is otherwise ignored, so an old `config/coverband.rb` still boots.
 * `Coverband::Utils::SourceFile` and `Coverband::Utils::Result` now accept only enriched file records from stored Coverband reports. Passing the legacy bare line-coverage Array is no longer supported.
-* **`Coverband::Adapters::MemcachedStore` is deprecated** and is now a thin subclass of the new `ActiveSupportCacheStore`. Its `memcached_namespace` option and reader keep working; its stored data is not migrated.
+* **`Coverband::Adapters::MemcachedStore` has been removed.** Use `ActiveSupportCacheStore.new(cache, cache_namespace: "...")` with the same memcached cache; it also supports the trackers. `ActiveSupportCacheStore` no longer accepts `memcached_namespace`
 * **`background_reporting_sleep_seconds` now defaults to 600** for the new cache adapter (`HashRedisStore` still defaults to 300, everything else to 60), because each report rewrites a whole document.
 * `Adapters::Base#size` now returns bytes as an Integer or `nil`; `size_in_mib` owns the "N/A" presentation. A store returning the string `"N/A"` previously reported `0.00` MiB.
 * `Adapters::Base#get_coverage_report` now reports the receiver's coverage instead of routing through `Coverband.configuration.store`, which quietly returned another store's data when the receiver was not the configured one.
-* `AbstractTracker#redis_store` is deprecated in favor of `#storage`, and trackers no longer reach through the store to raw Redis commands.
+* Removed `AbstractTracker#redis_store`; custom trackers use `#storage`. Trackers no longer reach through the store to raw Redis commands.
+* `Coverband::Utils::Results#runtime_relavent_lines` is renamed `#runtime_relevant_lines`.
 * Removed `Adapters::Base#raw_store` and the Redis adapters' raw-client escape hatch. Redis maintenance now uses the narrow `store.cleanup` capability (`clear_legacy!` and `clear_orphans!`); adapters that cannot enumerate keys return `nil`.
 * Work is retained when generation resolution fails, so a backend blip during a reporting cycle no longer discards that cycle's coverage. Previously only deltas that had reached the pending queue were protected, and the generation is resolved before the payload is enqueued. The retention caps apply to that held work too, so a sustained outage cannot grow the queue without limit
 * A cache store that is not resolvable yet (`ActiveSupportCacheStore.new { Rails.cache }` running before Rails assigns `Rails.cache`) is no longer a `NoMethodError` on a nil target. It holds the cycle's work, logs, and resolves on a later cycle. A resolver returning something that is not a cache store now names the problem instead of failing deep in the storage layer
@@ -44,14 +48,14 @@
 * CI now runs a memcached service, so the memcached backed adapter is actually exercised
 * Coverage adapters share one implementation of the merge protocol, and the generation lifecycle is shared between the session and the Redis hash repository, rather than each reimplementing the same bookkeeping
 * The web report has a dark theme. It follows the operating system through `prefers-color-scheme`, so there is nothing to configure and no toggle; every color in `public/application.css` now resolves through a custom property on `:root`, which makes the report restylable from one place. Coverage row colors are picked for contrast on the dark surface rather than darkened mechanically, so covered / missed / never / skipped stay as easy to tell apart; thanks @naofumi-fujii (#665, #666, #667)
+* Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
 
 **Bug fixes**
 
+* The web report's `/report_json` route and `JSONReport.new(store, as_report: true)` no longer raise `NoMethodError` outside Rails, where ActiveSupport's `as_json` is not loaded; thanks @dajiaohuang (#669)
+* The web report's password check accepts passwords containing `:` (it split the credentials on every colon) and compares in constant time, as does the MCP endpoint's bearer token check. This also drops the runtime dependency on the `base64` gem
+* `Coverband::Utils::Results#respond_to?(name, true)` no longer raises `ArgumentError`
 * The runtime % no longer reads 100% for files with runtime relevant lines that were never hit, and no longer divides by every line of a file that was never eager loaded. It only counts runtime hits on lines that eager loading did not cover, and takes line relevance from real coverage data rather than the never loaded placeholder, which marked blank and comment lines as relevant. Runtime relevant lines on the file page use the same calculation, and the runtime % there is colored by its own value rather than by % covered (#668)
-
-### Unreleased
-
-* Feature: Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
 
 ### 6.2.2
 

@@ -17,11 +17,11 @@ module Coverband
 
     attr_accessor :root_paths, :root,
       :verbose,
-      :reporter, :redis_namespace, :redis_ttl,
+      :redis_namespace, :redis_ttl,
       :background_reporting_enabled,
       :test_env, :web_enable_clear, :web_debug, :report_on_exit,
       :use_oneshot_lines_coverage,
-      :view_tracker, :defer_eager_loading_data,
+      :track_views, :view_tracker, :defer_eager_loading_data,
       :track_routes, :track_redirect_routes, :route_tracker,
       :track_translations, :translations_tracker,
       :track_query_bursts, :query_burst_tracker,
@@ -29,12 +29,39 @@ module Coverband
       :trackers, :csp_policy, :hide_settings,
       :mcp_enabled
 
-    attr_writer :logger, :password, :api_key, :service_url, :coverband_timeout, :service_dev_mode,
-      :service_test_mode, :process_type, :track_views, :redis_url,
+    attr_writer :logger, :password, :redis_url,
       :background_reporting_sleep_seconds, :reporting_wiggle,
       :send_deferred_eager_loading_data, :paged_reporting, :mcp_allowed_environments, :mcp_password
 
     attr_reader :ignore
+
+    HOSTED_SERVICE_REMOVED = "coverband.io is no longer maintained and support for it was removed. " \
+      "Delete the setting and configure a store, see Upgrading to 7.0 in the README"
+
+    # Settings removed in 7.0. Assigning one logs how to upgrade rather than
+    # raising NoMethodError from the app's config file during boot.
+    REMOVED_SETTINGS = {
+      reporter: "it has had no effect since Coverband 5.0. Delete the setting",
+      api_key: HOSTED_SERVICE_REMOVED,
+      service_url: HOSTED_SERVICE_REMOVED,
+      coverband_timeout: HOSTED_SERVICE_REMOVED,
+      service_dev_mode: HOSTED_SERVICE_REMOVED,
+      service_test_mode: HOSTED_SERVICE_REMOVED,
+      process_type: HOSTED_SERVICE_REMOVED,
+      s3_region: "the S3 report upload was removed earlier and this setting did nothing. Delete the setting",
+      s3_bucket: "the S3 report upload was removed earlier and this setting did nothing. Delete the setting",
+      s3_access_key_id: "the S3 report upload was removed earlier and this setting did nothing. Delete the setting",
+      s3_secret_access_key: "the S3 report upload was removed earlier and this setting did nothing. Delete the setting",
+      track_gems: "gem tracking was removed earlier and this setting did nothing. Delete the setting",
+      gem_details: "gem tracking was removed earlier and this setting did nothing. Delete the setting",
+      simulate_oneshot_lines_coverage: "it had no production effect. Delete the setting"
+    }.freeze
+
+    REMOVED_SETTINGS.each do |name, fix|
+      define_method(:"#{name}=") do |_value|
+        logger.warn "Coverband: config.#{name} was removed in 7.0 and is ignored, #{fix}"
+      end
+    end
 
     #####
     # TODO: This is is brittle and not a great solution to avoid deploy time
@@ -76,7 +103,6 @@ module Coverband
       @ignore = IGNORE_DEFAULTS.map { |ignore_str| Regexp.new(ignore_str) }
       @search_paths = TRACKED_DEFAULT_PATHS.dup
       @verbose = false
-      @reporter = "scov"
       @logger = nil
       @store = nil
       @background_reporting_enabled = true
@@ -111,14 +137,6 @@ module Coverband
       @mcp_password = nil
       @mcp_allowed_environments = %w[development test]
 
-      # coverband service settings
-      @api_key = nil
-      @service_url = nil
-      @coverband_timeout = nil
-      @service_dev_mode = nil
-      @service_test_mode = nil
-      @process_type = nil
-
       @redis_url = nil
       @redis_namespace = nil
       @redis_ttl = 2_592_000 # in seconds. Default is 30 days.
@@ -151,7 +169,7 @@ module Coverband
         trackers << tracker
       end
       trackers.each { |tracker| tracker.railtie! }
-    rescue Redis::CannotConnectError => e
+    rescue *Coverband.redis_connection_errors => e
       Coverband.configuration.logger.info "Redis is not available (#{e}), Coverband not configured"
       Coverband.configuration.logger.info "If this is a setup task like assets:precompile feel free to ignore"
     end
@@ -201,14 +219,11 @@ module Coverband
       @mcp_allowed_environments || %w[development test]
     end
 
-    # The adjustments here either protect the redis or service from being overloaded
+    # The adjustments here protect the store from being overloaded
     # the tradeoff being the delay in when reporting data is available
     # if running your own redis increasing this number reduces load on the redis CPU
     def background_reporting_sleep_seconds
-      @background_reporting_sleep_seconds ||= if service?
-        # default to 10m for service
-        (Coverband.configuration.coverband_env == "production") ? 600 : 60
-      elsif store.is_a?(Coverband::Adapters::ActiveSupportCacheStore)
+      @background_reporting_sleep_seconds ||= if store.is_a?(Coverband::Adapters::ActiveSupportCacheStore)
         # every report rewrites a whole document, and a cache backed store is
         # the one most likely to be shared with the host application
         600
@@ -225,20 +240,18 @@ module Coverband
     end
 
     def store
-      @store ||= if service?
-        if ENV["COVERBAND_REDIS_URL"]
-          raise "invalid configuration: unclear default store coverband expects either api_key or redis_url"
-        end
-
-        require "coverband/adapters/web_service_store"
-        Coverband::Adapters::WebServiceStore.new(service_url)
+      @store ||= if !Coverband.redis_available?
+        logger.warn "Coverband: no store configured and the redis gem is not installed, so coverage is not being recorded"
+        logger.warn "Coverband: add `gem \"redis\"` to your Gemfile to use the default Redis store, or configure one: config.store = Coverband::Adapters::ActiveSupportCacheStore.new { Rails.cache }"
+        require "coverband/adapters/null_store"
+        Coverband::Adapters::NullStore.new
       else
         begin
           # Redis gem automatically enables TLS when the scheme is 'rediss://'
           # For serverless ElastiCache or other TLS-required Redis instances, use:
           #   REDIS_URL=rediss://your-endpoint:6379
           Coverband::Adapters::RedisStore.new(Redis.new(url: redis_url), redis_store_options)
-        rescue Redis::CannotConnectError => error
+        rescue *Coverband.redis_connection_errors => error
           logger.info "Redis is not available (#{error}), defaulting to NullStore"
           logger.info "If this is intended, please explicitly configure your store: config.store = Coverband::Adapters::FileStore.new('log/coverage')"
           require "coverband/adapters/null_store"
@@ -249,22 +262,8 @@ module Coverband
 
     def store=(store)
       raise "Pass in an instance of Coverband::Adapters" unless store.is_a?(Coverband::Adapters::Base)
-      if api_key && store.class.to_s != "Coverband::Adapters::WebServiceStore"
-        raise "invalid configuration: only coverband service expects an API Key"
-      end
-      if ENV["COVERBAND_REDIS_URL"] &&
-          defined?(::Coverband::Adapters::WebServiceStore) &&
-          store.instance_of?(::Coverband::Adapters::WebServiceStore)
-        raise "invalid configuration: coverband service shouldn't have redis url set"
-      end
 
       @store = store
-    end
-
-    def track_views
-      return false if service_disabled_dev_test_env?
-
-      @track_views
     end
 
     ###
@@ -305,7 +304,7 @@ module Coverband
       @all_root_patterns ||= all_root_paths.map { |path| /^#{path}/ }.freeze
     end
 
-    SKIPPED_SETTINGS = %w[@store @api_key @password @mcp_password]
+    SKIPPED_SETTINGS = %w[@store @password @mcp_password]
     def to_h
       instance_variables
         .each_with_object({}) do |var, hash|
@@ -317,36 +316,8 @@ module Coverband
       @redis_url ||= ENV["COVERBAND_REDIS_URL"] || ENV["REDIS_URL"]
     end
 
-    def api_key
-      @api_key ||= ENV["COVERBAND_API_KEY"]
-    end
-
-    def service_url
-      @service_url ||= ENV["COVERBAND_URL"] || "https://coverband.io"
-    end
-
     def coverband_env
       ENV["RACK_ENV"] || ENV["RAILS_ENV"] || ((defined?(Rails) && Rails.respond_to?(:env)) ? Rails.env : "unknown")
-    end
-
-    def coverband_timeout
-      @coverband_timeout ||= (coverband_env == "development") ? 5 : 2
-    end
-
-    def service_dev_mode
-      @service_dev_mode ||= ENV["COVERBAND_ENABLE_DEV_MODE"] || false
-    end
-
-    def service_test_mode
-      @service_test_mode ||= ENV["COVERBAND_ENABLE_TEST_MODE"] || false
-    end
-
-    def process_type
-      @process_type ||= ENV["PROCESS_TYPE"] || "unknown"
-    end
-
-    def service?
-      Coverband.coverband_service? || !api_key.nil?
     end
 
     def defer_eager_loading_data?
@@ -359,13 +330,6 @@ module Coverband
 
     def paged_reporting
       !!@paged_reporting
-    end
-
-    def service_disabled_dev_test_env?
-      return false unless service?
-
-      (coverband_env == "test" && !Coverband.configuration.service_test_mode) ||
-        (coverband_env == "development" && !Coverband.configuration.service_dev_mode)
     end
 
     private

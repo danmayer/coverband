@@ -255,18 +255,6 @@ module Coverband
         )
       end
 
-      ###
-      # Deprecated: trackers used to reach through the store to raw Redis
-      # commands, which is why only Redis backed stores could track anything.
-      # Kept for a release so out of tree trackers keep working.
-      ###
-      def redis_store
-        Coverband.configuration.logger&.info(
-          "Coverband: #{self.class.name}#redis_store is deprecated, use #storage"
-        )
-        storage
-      end
-
       private
 
       def concrete_target

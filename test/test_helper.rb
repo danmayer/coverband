@@ -5,14 +5,7 @@ require "bigdecimal"
 original_verbosity = $VERBOSE
 $VERBOSE = nil
 
-SKIP_SIMPLECOV = true
-
 require "rubygems"
-
-unless SKIP_SIMPLECOV
-  require "simplecov"
-  require "coveralls"
-end
 
 require "minitest/autorun"
 require "minitest/stub_const"
@@ -36,15 +29,6 @@ require "spy/integration"
 
 require_relative "unique_files"
 $VERBOSE = original_verbosity
-
-unless ENV["ONESHOT"] || SKIP_SIMPLECOV
-  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
-  SimpleCov.start do
-    add_filter "test/forked"
-  end
-
-  Coveralls.wear!
-end
 
 module Coverband
   module Test
