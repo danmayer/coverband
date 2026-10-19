@@ -611,18 +611,3 @@ if ENV["COVERBAND_MEMCACHED"]
     end
   end
 end
-
-###
-# Deprecated, but existing configuration has to keep working: the namespace
-# option and its reader survive even though the storage format did not.
-###
-class MemcachedStoreCompatibilityTest < Minitest::Test
-  def test_namespace_option_is_translated
-    cache = ActiveSupport::Cache::MemoryStore.new
-    store = Coverband::Adapters::MemcachedStore.new(cache, memcached_namespace: "legacy_ns")
-    assert_equal "legacy_ns", store.memcached_namespace
-    assert_equal "legacy_ns", store.cache_namespace
-    assert_equal cache, store.memcached
-    assert_kind_of Coverband::Adapters::ActiveSupportCacheStore, store
-  end
-end

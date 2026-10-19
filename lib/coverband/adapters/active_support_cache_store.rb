@@ -30,8 +30,7 @@ module Coverband
       def initialize(cache = nil, opts = {}, &block)
         super()
         @target = Storage::Target.new(cache, &block)
-        @cache_namespace = opts[:cache_namespace] || opts[:memcached_namespace] ||
-          opts[:redis_namespace] || Coverband.configuration.redis_namespace
+        @cache_namespace = opts[:cache_namespace] || opts[:redis_namespace] || Coverband.configuration.redis_namespace
         @format_version = self.class::STORAGE_FORMAT_VERSION
         @ttl = opts[:ttl]
       end

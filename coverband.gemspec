@@ -48,6 +48,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
   spec.add_development_dependency "standard", ">= 1.35.1"
+  # json 3 rejects the quirks_mode option ActiveSupport 7.0 - 8.0 still passes when
+  # encoding, and breaks multi_json (used by resque) on Ruby 3.1
+  spec.add_development_dependency "json", "< 3"
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"

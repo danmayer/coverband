@@ -76,7 +76,7 @@ gem 'coverband'
 gem 'redis' # the default store
 ```
 
-Redis is the default store and needs no configuration beyond a reachable Redis. Since Coverband 7.0 the `redis` gem is no longer installed for you, so add it yourself as above. If you would rather keep coverage somewhere else (Solid Cache, memcached, files), leave out `redis` and set `config.store`, see [ActiveSupport::Cache Store](#activesupportcache-store). Without the `redis` gem and without a configured store, Coverband logs a warning at boot and records nothing.
+Redis is the default store and needs no configuration beyond a reachable Redis. Since Coverband 7.0 the `redis` gem is no longer installed for you, so add it yourself as above. If you would rather keep coverage somewhere else (Solid Cache, memcached, files), leave out `redis` and set `config.store`, see [ActiveSupport::Cache Store](#activesupportcache-store). Without the `redis` gem and without a configured store, Coverband logs a warning at boot and records nothing. Upgrading from 6.x? See [Upgrading to 7.0](#upgrading-to-70).
 
 ### No custom code or middleware required
 
@@ -99,6 +99,46 @@ require File.dirname(__FILE__) + '/config/environment'
 use Coverband::BackgroundMiddleware
 run ActionController::Dispatcher.new
 ```
+
+## Upgrading to 7.0
+
+7.0 is a major release with breaking changes. Most apps only need the first two steps. The full list is in the [changelog](https://github.com/danmayer/coverband/blob/main/changes.md).
+
+1. **Add the `redis` gem if you use Redis.** Coverband no longer installs it for you. Redis is still the default store and still needs no other configuration once the gem is in your Gemfile:
+
+   ```ruby
+   gem 'coverband'
+   gem 'redis'
+   ```
+
+   Without it, and without a configured `config.store`, Coverband logs a warning at boot and records nothing.
+
+2. **Coverage starts fresh.** The storage format changed, so data recorded by 6.x is ignored rather than migrated. Once you are happy with the new data, delete the old keys with `rake coverband:clear_legacy` (Redis only).
+
+3. **Delete removed settings from `config/coverband.rb`.** These now do nothing. Assigning one logs a warning naming the setting, but the app still boots:
+
+   | Setting | What to do |
+   | --- | --- |
+   | `reporter` | Delete it. It has had no effect since Coverband 5.0. |
+   | `api_key`, `service_url`, `coverband_timeout`, `service_dev_mode`, `service_test_mode`, `process_type` | Delete them, see the coverband.io step below. |
+   | `s3_region`, `s3_bucket`, `s3_access_key_id`, `s3_secret_access_key`, `track_gems`, `gem_details`, `simulate_oneshot_lines_coverage` | Delete them. They were already no-ops. |
+
+4. **coverband.io users: configure a store.** coverband.io is no longer maintained, so reporting to it (`WebServiceStore`) has been removed, along with `config/coverband_service.rb` and the `COVERBAND_API_KEY`, `COVERBAND_URL`, `COVERBAND_ENABLE_DEV_MODE`, `COVERBAND_ENABLE_TEST_MODE`, and `PROCESS_TYPE` environment variables. Move any settings from `config/coverband_service.rb` into `config/coverband.rb` and use Redis (step 1) or an [ActiveSupport::Cache store](#activesupportcache-store).
+
+5. **`MemcachedStore` users: switch to `ActiveSupportCacheStore`.** `MemcachedStore` has been removed. The replacement takes the same cache and adds tracker support:
+
+   ```ruby
+   # before
+   config.store = Coverband::Adapters::MemcachedStore.new(cache, memcached_namespace: "myapp")
+   # after
+   config.store = Coverband::Adapters::ActiveSupportCacheStore.new(cache, cache_namespace: "myapp")
+   ```
+
+6. **Custom code against Coverband internals.** Only relevant if you wrote a tracker or call adapters directly:
+   - In a custom tracker, use `storage` instead of `redis_store`.
+   - Instead of `store.raw_store`, use `store.cleanup` (`clear_legacy!`, `clear_orphans!`), which returns `nil` for stores that cannot enumerate keys.
+   - `Coverband::Utils::Results#runtime_relavent_lines` is now spelled `runtime_relevant_lines`.
+   - `Coverband::Utils::SourceFile` and `Coverband::Utils::Result` take stored report records (`{"data" => [...]}`) rather than bare line arrays.
 
 ## Coverband Web UI
 
@@ -538,8 +578,9 @@ assigns `Rails.cache`, so the first reporting cycle can run before the block can
 resolve. That cycle's coverage is held and written once the cache appears; it is
 not lost, and it does not raise into the booting app.
 
-Unlike the previous `MemcachedStore` (now a deprecated subclass of this one),
-this adapter supports the view, route, translation, and query burst trackers.
+This adapter supports the view, route, translation, and query burst trackers.
+It replaces `MemcachedStore`, which was removed in 7.0 (see
+[Upgrading to 7.0](#upgrading-to-70)).
 
 Things to know before pointing it at a cache:
 

@@ -35,13 +35,11 @@ require "coverband/adapters/file_store"
 require "coverband/adapters/stdout_store"
 require "coverband/adapters/null_store"
 require "coverband/adapters/active_support_cache_store"
-require "coverband/adapters/memcached_store"
 require "coverband/utils/file_hasher"
 require "coverband/collectors/coverage"
 require "coverband/collectors/abstract_tracker"
 require "coverband/collectors/tracker_registry"
 require "coverband/collectors/view_tracker"
-require "coverband/collectors/view_tracker_service"
 require "coverband/collectors/route_tracker"
 require "coverband/collectors/translation_tracker"
 require "coverband/collectors/query_burst_tracker"
@@ -56,7 +54,6 @@ Coverband::Adapters::RedisStore = Coverband::Adapters::HashRedisStore if ENV["CO
 
 module Coverband
   @@configured = false
-  SERVICE_CONFIG = "./config/coverband_service.rb"
   CONFIG_FILE = "./config/coverband.rb"
   RUNTIME_TYPE = :runtime
   EAGER_TYPE = :eager_loading
@@ -75,10 +72,7 @@ module Coverband
   end
 
   def self.configure(file = nil)
-    configuration_file = file || ENV["COVERBAND_CONFIG"]
-    if configuration_file.nil?
-      configuration_file = coverband_service? ? SERVICE_CONFIG : CONFIG_FILE
-    end
+    configuration_file = file || ENV["COVERBAND_CONFIG"] || CONFIG_FILE
 
     configuration
     if block_given?
@@ -90,10 +84,6 @@ module Coverband
     end
     @@configured = true
     coverage_instance.reset_instance
-  end
-
-  def self.coverband_service?
-    !!File.exist?(SERVICE_CONFIG)
   end
 
   def self.configured?
