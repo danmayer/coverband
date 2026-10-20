@@ -48,9 +48,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "resque"
   spec.add_development_dependency "standard", ">= 1.35.1"
-  # json 3 rejects the quirks_mode option ActiveSupport 7.0 - 8.0 still passes when
-  # encoding, and breaks multi_json (used by resque) on Ruby 3.1
-  spec.add_development_dependency "json", "< 3"
   # minitest-profile is not compatible with Rails 7.1.0 setup... dropping it for now
   # spec.add_development_dependency "minitest-profile"
   spec.add_development_dependency "webmock"
@@ -58,7 +55,7 @@ Gem::Specification.new do |spec|
   # the cache adapter duck types the ActiveSupport::Cache::Store interface and
   # never requires it, but the tests need real cache stores to run against
   spec.add_development_dependency "activesupport"
-  spec.add_development_dependency "mcp" # For MCP server support testing
+  spec.add_development_dependency "mcp", ">= 0.23" # For MCP server support testing
 
   # Redis is optional since 7.0: it stays the default store whenever the redis gem
   # is installed, and the ActiveSupport cache adapter covers everything else.

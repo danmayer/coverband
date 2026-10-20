@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 # Specify your gem's dependencies in coverband.gemspec
 gemspec
+gem "json", "< 3" # ActiveSupport 7.1 passes options that JSON 3 rejects.
 gem 'rails', '~>7.1.0'
 gem "haml"
 gem "slim"

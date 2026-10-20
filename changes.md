@@ -52,6 +52,7 @@
 
 **Bug fixes**
 
+* Coverband's development dependencies no longer globally constrain JSON to 2.x. Legacy Rails test bundles retain their required JSON 2 constraint, while the latest-Rails suite explicitly validates Coverband against JSON 3. This constraint was development-only and never affected applications installing Coverband.
 * The web report's `/report_json` route and `JSONReport.new(store, as_report: true)` no longer raise `NoMethodError` outside Rails, where ActiveSupport's `as_json` is not loaded; thanks @dajiaohuang (#669)
 * The web report's password check accepts passwords containing `:` (it split the credentials on every colon) and compares in constant time, as does the MCP endpoint's bearer token check. This also drops the runtime dependency on the `base64` gem
 * `Coverband::Utils::Results#respond_to?(name, true)` no longer raises `ArgumentError`

@@ -91,3 +91,32 @@ jobs:
         with:
           node-version: "20"
       - run: node --test test/javascript/*.test.mjs
+  json3:
+    runs-on: ubuntu-24.04
+    env:
+      BUNDLE_GEMFILE: Gemfile
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      memcached:
+        image: memcached:1.6
+        ports:
+          - 11211:11211
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: Verify JSON 3 resolution
+        run: bundle exec ruby -rjson -e 'abort "expected JSON 3" unless JSON::VERSION.start_with?("3.")'
+      - run: bundle exec rake test:all
+        env:
+          COVERBAND_MEMCACHED: "true"
