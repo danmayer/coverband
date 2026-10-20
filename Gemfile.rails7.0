@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 # Specify your gem's dependencies in coverband.gemspec
 gemspec
+gem "json", "< 3" # ActiveSupport 7.0 and Ruby 3.1-era multi_json reject JSON 3.
 gem 'rails', '~>7.0.0'
 gem "haml"
 gem "slim"

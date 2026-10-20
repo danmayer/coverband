@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 # Specify your gem's dependencies in coverband.gemspec
 gemspec
+gem "json", ">= 3", "< 4" # Exercise Coverband itself against JSON 3.
 gem "rails" # latest
 gem "haml"
 gem "slim"
