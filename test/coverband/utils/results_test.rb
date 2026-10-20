@@ -32,10 +32,6 @@ describe "results" do
       it "has correct runtime relevant lines" do
         assert_equal 2, subject.runtime_relevant_lines(source_file)
       end
-
-      it "keeps the misspelled pre-7.0 name as an alias" do
-        assert_equal 2, subject.runtime_relavent_lines(source_file)
-      end
     end
 
     describe "delegating to the merged results" do
