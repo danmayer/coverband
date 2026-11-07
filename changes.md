@@ -51,6 +51,7 @@
 * Added `Coverband::Collectors::TrackerRegistry` so applications and gems can register their own trackers, along with `Coverband::Configuration.add_tracker_flag` for their enablement flags and `Coverband.configuration.tracker_for` / `Coverband.track_key` support for trackers without a dedicated accessor; bundled trackers now self-register and are initialized generically at Rails boot (#651)
 
 **Bug fixes**
+* When `defer_eager_loading_data` is on and `send_deferred_eager_loading_data` is off, the eager loading report is no longer computed only to be thrown away. Computing it re-parses every loaded file through `Coverage.line_stub`, which added seconds to the boot of large apps; the raw coverage is now just dropped so it does not leak into the first runtime report
 
 * Coverband's development dependencies no longer globally constrain JSON to 2.x. Legacy Rails test bundles retain their required JSON 2 constraint, while the latest-Rails suite explicitly validates Coverband against JSON 3. This constraint was development-only and never affected applications installing Coverband.
 * The web report's `/report_json` route and `JSONReport.new(store, as_report: true)` no longer raise `NoMethodError` outside Rails, where ActiveSupport's `as_json` is not loaded; thanks @dajiaohuang (#669)

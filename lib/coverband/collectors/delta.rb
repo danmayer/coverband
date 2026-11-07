@@ -27,6 +27,14 @@ module Coverband
         new(coverage_results).results
       end
 
+      # Consumes the coverage collected so far without transforming it, so that the next
+      # delta only contains what runs from now on. In oneshot mode reading the results already
+      # clears them; otherwise they become the baseline the next delta is diffed against.
+      def self.discard_results(process_coverage = RubyCoverage)
+        coverage_results = process_coverage.results
+        @@previous_coverage = coverage_results unless Coverband.configuration.use_oneshot_lines_coverage
+      end
+
       def results
         if Coverband.configuration.use_oneshot_lines_coverage
           transform_oneshot_lines_results(current_coverage)
