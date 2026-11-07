@@ -48,6 +48,45 @@ class CollectorsCoverageTest < Minitest::Test
     assert_equal(coverage["data"], [nil, nil, 1, 1, 0, nil, nil, 1, nil, 1, nil, nil])
   end
 
+  test "Dog eager load coverage is dropped untransformed when the deferred data is never sent" do
+    Coverband.configure do |config|
+      config.defer_eager_loading_data = true
+      config.send_deferred_eager_loading_data = false
+    end
+    # the collector is a singleton, so deferred data from another test may still be around
+    coverband.instance_variable_set(:@deferred_eager_loading_data, nil)
+    Coverband::Collectors::Delta.expects(:results).never
+    file = coverband.eager_loading {
+      require_unique_file
+    }
+    assert_nil coverband.instance_variable_get(:@deferred_eager_loading_data)
+    Coverband::Collectors::Delta.unstub(:results)
+
+    coverband.report_coverage
+    assert_nil Coverband.configuration.store.coverage[file], "eager loaded lines are not reported as runtime coverage"
+    coverband.eager_loading!
+    assert_nil Coverband.configuration.store.coverage[file], "No eager load coverage is stored"
+  end
+
+  test "Dog eager load coverage is still deferred when the deferred data is sent" do
+    Coverband.configure do |config|
+      config.defer_eager_loading_data = true
+      config.send_deferred_eager_loading_data = true
+    end
+    coverband.instance_variable_set(:@deferred_eager_loading_data, nil)
+    file = coverband.eager_loading {
+      require_unique_file
+    }
+    deferred = coverband.instance_variable_get(:@deferred_eager_loading_data)
+    assert deferred.key?(File.expand_path(file)), "eager load coverage is kept until the first runtime report"
+
+    coverband.report_coverage
+    coverband.eager_loading!
+    coverage = Coverband.configuration.store.coverage[file]
+    refute_nil coverage, "Eager load coverage is sent with the first runtime report"
+    assert_equal(coverage["data"], [nil, nil, 1, 1, 0, nil, nil, 1, nil, 1, nil, nil])
+  end
+
   test "gets coverage instance" do
     assert_equal Coverband::Collectors::Coverage, coverband.class
   end

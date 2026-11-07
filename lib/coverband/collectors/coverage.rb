@@ -54,17 +54,25 @@ module Coverband
         @semaphore.synchronize do
           raise "no Coverband store set" unless @store
 
-          files_with_line_usage = filtered_files(Delta.results)
-          if @store.type == Coverband::EAGER_TYPE && Coverband.configuration.defer_eager_loading_data?
-            @deferred_eager_loading_data = files_with_line_usage
+          if discard_eager_loading_coverage?
+            # The eager loading report would only be kept to be sent later, and this server never sends it.
+            # Transforming it re-parses every loaded file through Coverage.line_stub, which on a large app
+            # adds seconds to boot, so drop the raw coverage instead. Dropping is still needed: otherwise the
+            # lines run while eager loading would show up as runtime coverage in the next report.
+            Delta.discard_results
           else
-            if @deferred_eager_loading_data && Coverband.configuration.defer_eager_loading_data?
-              toggle_eager_loading do
-                @store.save_report(@deferred_eager_loading_data) if Coverband.configuration.send_deferred_eager_loading_data?
-                @deferred_eager_loading_data = nil
+            files_with_line_usage = filtered_files(Delta.results)
+            if @store.type == Coverband::EAGER_TYPE && Coverband.configuration.defer_eager_loading_data?
+              @deferred_eager_loading_data = files_with_line_usage
+            else
+              if @deferred_eager_loading_data && Coverband.configuration.defer_eager_loading_data?
+                toggle_eager_loading do
+                  @store.save_report(@deferred_eager_loading_data) if Coverband.configuration.send_deferred_eager_loading_data?
+                  @deferred_eager_loading_data = nil
+                end
               end
+              @store.save_report(files_with_line_usage)
             end
-            @store.save_report(files_with_line_usage)
           end
         end
       rescue => e
@@ -75,6 +83,12 @@ module Coverband
       end
 
       private
+
+      def discard_eager_loading_coverage?
+        @store.type == Coverband::EAGER_TYPE &&
+          Coverband.configuration.defer_eager_loading_data? &&
+          !Coverband.configuration.send_deferred_eager_loading_data?
+      end
 
       def filtered_files(new_results)
         new_results.select! { |_file, coverage| coverage.any? { |value| value&.nonzero? } }
