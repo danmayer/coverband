@@ -16,7 +16,9 @@ Gem::Specification.new do |spec|
   spec.homepage = "https://github.com/danmayer/coverband"
   spec.license = "MIT"
 
-  spec.files = `git ls-files`.split("\n").reject { |f| f.start_with?("docs") }
+  spec.files = Dir.glob("{bin,lib,lua,public,views}/**/*", base: __dir__)
+    .select { |f| File.file?(File.join(__dir__, f)) } +
+    %w[LICENSE README.md changes.md]
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = %w[lib]
 
