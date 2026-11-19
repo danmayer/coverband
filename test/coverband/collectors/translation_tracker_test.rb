@@ -68,6 +68,31 @@ class TranslationTrackerTest < Minitest::Test
     assert_equal [], tracker.used_keys.keys
   end
 
+  test "a key tracked while the store is written is stored by the next report" do
+    require "active_support"
+    require "active_support/cache"
+
+    store = Coverband::Adapters::ActiveSupportCacheStore.new(ActiveSupport::Cache::MemoryStore.new, cache_namespace: "translation_late")
+    tracker = Coverband::Collectors::TranslationTracker.new(store: store, roots: "dir")
+    tracker.track_key(:"en.views.first")
+
+    # a request thread uses a translation while save_report is writing
+    storage = tracker.send(:storage)
+    hooked = false
+    storage.define_singleton_method(:record) do |delta|
+      unless hooked
+        hooked = true
+        Thread.new { tracker.track_key(:"en.views.late") }.join
+      end
+      super(delta)
+    end
+
+    tracker.save_report
+    tracker.save_report
+
+    assert_equal ["en.views.first", "en.views.late"], tracker.used_keys.keys.sort
+  end
+
   protected
 
   ###
