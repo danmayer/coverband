@@ -141,8 +141,12 @@ module Coverband
         return unless storage
 
         forget_deleted_keys
-        result = storage.record(delta_to_record)
-        @keys_to_record.clear unless UNSTORED_STATES.include?(result)
+        # other threads keep tracking keys while the store is written; only the
+        # keys in this delta leave the set, or a key tracked meanwhile would be
+        # dropped without ever being stored
+        pending = @keys_to_record.to_a
+        result = storage.record(delta_to_record(pending))
+        @keys_to_record.subtract(pending) unless UNSTORED_STATES.include?(result)
         recover_dropped_keys
       rescue => e
         # we don't want to raise errors if Coverband can't reach its store.
@@ -165,11 +169,11 @@ module Coverband
 
       protected
 
-      def delta_to_record
-        return {} if @keys_to_record.empty?
+      def delta_to_record(keys = @keys_to_record.to_a)
+        return {} if keys.empty?
 
         reported_time = Time.now.to_i
-        @keys_to_record.each_with_object({}) { |key, hash| hash[key.to_s] = reported_time }
+        keys.each_with_object({}) { |key, hash| hash[key.to_s] = reported_time }
       end
 
       # a key another process cleared has to leave the dedupe set, or a later
