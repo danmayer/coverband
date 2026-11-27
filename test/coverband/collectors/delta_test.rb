@@ -109,6 +109,27 @@ class CollectorsDeltaTest < Minitest::Test
     assert_equal({"car.rb" => [nil, 0, 0, 1, nil]}, results)
   end
 
+  test "discard_results makes the current coverage the baseline of the next delta" do
+    current_coverage = {
+      "car.rb" => [nil, 1, 5, 1]
+    }
+    Coverband::Collectors::Delta.discard_results(mock_coverage(current_coverage))
+
+    current_coverage = {
+      "car.rb" => [nil, 1, 7, 1]
+    }
+    results = Coverband::Collectors::Delta.results(mock_coverage(current_coverage))
+    assert_equal({"car.rb" => [nil, 0, 2, 0]}, results)
+  end
+
+  test "discard_results in oneshot mode only clears the coverage" do
+    Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
+    ::Coverage.expects(:result).with(clear: true, stop: false).returns({"car.rb" => {oneshot_lines: [2, 3]}})
+    ::Coverage.expects(:line_stub).never
+    Coverband::Collectors::Delta.discard_results
+    assert_equal({}, Coverband::Collectors::Delta.class_variable_get(:@@previous_coverage))
+  end
+
   test "oneshot coverage calls clear" do
     Coverband.configuration.stubs(:use_oneshot_lines_coverage).returns(true)
     current_coverage = {
